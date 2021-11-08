@@ -23,9 +23,7 @@ sudo apt-get install cmake python3 python3-pip git zlib1g-dev libopenmpi-dev ffm
 ```
 pip3 install opencv-python anyrl gym joblib atari-py tensorflow-gpu==1.14 baselines stable-baselines pygame
 
-git clone https://github.com/MatPoliquin/stable-retro.git
-cd stable-retro
-pip3 install -e .
+pip3 install git+https://github.com/MatPoliquin/stable-retro.git
 ```
 
 ## Install roms
