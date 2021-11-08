@@ -1,4 +1,4 @@
-# nhl94-machinelearning
+# nhl94-ai
 
 
 The end goals of this project is to:
