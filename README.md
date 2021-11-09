@@ -55,3 +55,14 @@ Pit two models against each together:
 ```
 python3 model_vs_model.py --env=NHL941on1-Genesis --state=PenguinsVsSenators.2P --load_p1_model=[PATH TO P1 MODEL] --load_p2_model=[PATH TO P2 MODEL]
 ```
+
+Play against a model:
+```
+python3 player_vs_model.py --env=NHL941on1-Genesis --state=PenguinsVsSenators.2P --load_model=[PATH TO MODEL]
+```
+## Devlog
+
+https://youtube.com/playlist?list=PLmwlWbdWpZVtH6NXqWbrnWOf6SWv9nJBY
+
+NHL94 Discord (with a subgroup dedicated for AI):
+https://discord.gg/SDnKEXujDs
