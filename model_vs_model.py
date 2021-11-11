@@ -45,7 +45,7 @@ def main(argv):
     args = parse_cmdline(argv[1:])
     
     logger.log('========= Init =============')
-    play_env, uw_display_env = init_play_env(args)
+    play_env, uw_display_env = init_play_env(args, True)
     p1_env = init_env(None, 1, None, 1, args)
     p2_env = init_env(None, 1, None, 1, args)
     

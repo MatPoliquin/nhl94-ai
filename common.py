@@ -75,13 +75,14 @@ def init_env(output_path, num_env, state, num_players, args, use_frameskip=True,
 
     return env
 
-def init_play_env(args):
+def init_play_env(args, is_pvp_display=False):
     env = retro.make(game=args.env, state=args.state, use_restricted_actions=retro.Actions.FILTERED, players=args.num_players)
 
-    if args.num_players == 1:
-        display_env = env = GameDisplayEnv(env, args, 0, args.model_desc, None)
-    else:
+    if is_pvp_display:        
         display_env = env = PvPGameDisplayEnv(env, args, args.model1_desc, args.model2_desc, None, None, None)
+    else:
+        display_env = env = GameDisplayEnv(env, args, 0, args.model_desc, None)
+        
     #env = FullScreenDisplayEnv(env, args)
     
 

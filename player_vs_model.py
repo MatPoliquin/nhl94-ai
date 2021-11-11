@@ -11,7 +11,6 @@ import pygame
 from stable_baselines import logger
 
 from common import init_env, init_model, init_play_env, get_num_parameters
-from display import PvPGameDisplay
 
 def parse_cmdline(argv):
     parser = argparse.ArgumentParser()
