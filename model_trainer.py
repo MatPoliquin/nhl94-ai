@@ -21,12 +21,12 @@ def parse_cmdline(argv):
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--alg', type=str, default='ppo2')
-    parser.add_argument('--nn', type=str, default='CnnPolicy')
-    parser.add_argument('--env', type=str, default='NHL94-Genesis')
+    parser.add_argument('--nn', type=str, default='MlpPolicy')
+    parser.add_argument('--env', type=str, default='NHL941on1-Genesis')
     parser.add_argument('--state', type=str, default=None)
     parser.add_argument('--num_players', type=int, default='1')
     parser.add_argument('--num_env', type=int, default=24)
-    parser.add_argument('--num_timesteps', type=int, default=9000000)
+    parser.add_argument('--num_timesteps', type=int, default=6000000)
     parser.add_argument('--output_basedir', type=str, default='~/OUTPUT')
     parser.add_argument('--load_p1_model', type=str, default='')
     parser.add_argument('--display_width', type=int, default='1440')
@@ -58,6 +58,7 @@ class ModelTrainer:
         self.model_savepath = os.path.join(self.output_fullpath, model_savefile_name)
 
         self.env = init_env(self.output_fullpath, args.num_env, args.state, 1, args)
+        
         self.p1_model = init_model(self.output_fullpath, args.load_p1_model, args.alg, args, self.env)
       
         if self.args.alg_verbose:
@@ -69,6 +70,8 @@ class ModelTrainer:
             logger.log('NUM TIMESTEPS: %s' % args.num_timesteps)
             logger.log('NUM ENV:       %s' % args.num_env)
             logger.log('NUM PLAYERS:   %s' % args.num_players)
+
+        print(self.env.observation_space)
 
     def train(self):
         if self.args.alg_verbose:

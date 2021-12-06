@@ -21,6 +21,8 @@ from stable_baselines import logger
 from display import GameDisplayEnv, PvPGameDisplayEnv, FullScreenDisplayEnv
 from baselines.common.retro_wrappers import StochasticFrameSkip
 
+from nhl94_obs import NHL94ObservationEnv
+
 
 def make_retro(*, game, state=None, num_players, max_episode_steps=4500, **kwargs):
     import retro
@@ -59,6 +61,7 @@ def init_env(output_path, num_env, state, num_players, args, use_frameskip=True,
             if use_frameskip:
                 env = StochasticFrameSkip(env, n=4, stickprob=0.25)
 
+            #env = NHL94ObservationEnv(env)
             env = WarpFrame(env)
             env = ClipRewardEnv(env)
 

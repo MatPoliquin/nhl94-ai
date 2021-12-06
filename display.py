@@ -12,6 +12,7 @@ environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 import pygame.freetype
 import cv2
+import math
 
 FB_WIDTH = 1920
 FB_HEIGHT = 1080
@@ -207,6 +208,9 @@ class GameDisplayEnv(gym.Wrapper):
         self.player_actions = [0] * 12
 
 
+        self.best_dist = 0
+
+
     def reset(self, **kwargs):
         return self.env.reset(**kwargs)
 
@@ -285,6 +289,19 @@ class GameDisplayEnv(gym.Wrapper):
         self.main_surf.blit(pygame.transform.rotozoom(surf, -90, 3), (self.INPUT_X, self.INPUT_Y))
 
     def draw_game_stats(self, info):
+        p1_x = info.get('p1_x')
+        p1_y = info.get('p1_y')
+        puck_x = info.get('puck_x')
+        puck_y = info.get('puck_y')
+
+        tmp = (p1_x - puck_x)**2 + (p1_y - puck_y)**2
+        distance = math.sqrt(tmp)
+
+
+        if distance > self.best_dist:
+            self.best_dist = distance
+            #print(self.best_dist)
+
         self.draw_string(self.info_font, 'GAME STATS', (self.STATS_X, self.STATS_Y), (0, 255, 0))
 
         self.draw_string(self.info_font, ('P1 SHOTS: %d' %  info.get('p1_shots')), (self.STATS_X, self.STATS_Y + 40), (0, 255, 255))
@@ -295,6 +312,7 @@ class GameDisplayEnv(gym.Wrapper):
         self.draw_string(self.info_font, ('P2 BODYCHECKS: %d' %  info.get('p2_passing')), (self.STATS_X + 300, self.STATS_Y + 80), (0, 255, 255))
         self.draw_string(self.info_font, ('P1 FACEOFFWON: %d' %  info.get('p1_faceoffwon')), (self.STATS_X, self.STATS_Y + 100), (0, 255, 255))
         self.draw_string(self.info_font, ('P2 FACEOFFWON: %d' %  info.get('p2_faceoffwon')), (self.STATS_X + 300, self.STATS_Y + 100), (0, 255, 255))
+        self.draw_string(self.info_font, ('PUCK DIST: %f' %  distance), (self.STATS_X + 300, self.STATS_Y + 120), (0, 255, 255))
 
 
     def draw_frame(self, frame_img, action_probabilities, input_state, info):

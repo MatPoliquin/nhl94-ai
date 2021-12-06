@@ -12,8 +12,8 @@ import logging
 import numpy as np
 import pygame
 from stable_baselines import logger
-
 from common import init_env, init_model, init_play_env, get_model_file_name, print_model_info, get_num_parameters
+from ai_system import AISystem
 
 def parse_cmdline(argv):
     parser = argparse.ArgumentParser()
@@ -44,11 +44,15 @@ class ModelVsGame:
 
         self.p1_env = init_env(None, 1, args.state, 1, args, True)
         self.display_env, self.uw_display_env = init_play_env(args)
-        self.p1_model = init_model(None, args.load_p1_model, args.alg, args, self.p1_env)
+
+        self.ai_sys = AISystem(args, self.p1_env)
+        #self.p1_model = init_model(None, args.load_p1_model, args.alg, args, self.p1_env)
         self.need_display = need_display
         self.args = args
 
-        self.uw_display_env.num_params = get_num_parameters(self.p1_model)
+        if self.ai_sys.p1_model is not None:
+            self.uw_display_env.num_params = get_num_parameters(self.ai_sys.p1_model)
+            self.uw_display_env.num_params = -1
 
     def play(self, continuous=True, need_reset=True):
         state = self.display_env.reset()
@@ -56,15 +60,17 @@ class ModelVsGame:
         total_rewards = 0
         skip_frames = 0
         p1_actions = []
+        info = None
 
         while True:
-            p1_actions = self.p1_model.predict(state, deterministic=self.args.deterministic)
-
-            self.uw_display_env.action_probabilities = self.p1_model.action_probability(state)
+            #p1_actions = self.p1_model.predict(state, deterministic=self.args.deterministic)
+            p1_actions = self.ai_sys.predict(state, info=info, deterministic=self.args.deterministic)
+            if self.ai_sys.p1_model is not None:
+                self.uw_display_env.action_probabilities = self.ai_sys.p1_model.action_probability(state)
 
             #print(self.p1_model.action_probability(state))
             
-            state, reward, done, info = self.display_env.step(p1_actions[0])
+            state, reward, done, info = self.display_env.step(p1_actions)
             total_rewards += reward
 
             if done:
