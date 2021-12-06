@@ -11,7 +11,7 @@ from gym.utils import seeding
 import numpy as np
 from os import environ
 
-
+# WARNING: NON FUNCTIONAL CODE - WIP
 class NHL94ObservationEnv(gym.Wrapper):
     def __init__(self, env):
         gym.Wrapper.__init__(self, env)

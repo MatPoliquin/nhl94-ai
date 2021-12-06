@@ -47,6 +47,8 @@ class AISystem():
 
         p1_x = info.get('p1_x')
         p1_y = info.get('p1_y')
+        g1_x = info.get('g1_x')
+        g1_y = info.get('g1_y')
         puck_x = info.get('puck_x')
         puck_y = info.get('puck_y')
 
@@ -58,20 +60,32 @@ class AISystem():
         has_puck = True
         if pp_dist > GameConsts.MAX_PLAYER_PUCK_DIST:
             has_puck = False
+    
+        
+        goalie_has_puck = True
+        dist = self.DistToPos([g1_x, g1_y], [puck_x, puck_y])
+        if dist > GameConsts.MAX_PLAYER_PUCK_DIST:            
+            goalie_has_puck = False
 
+
+        print(goalie_has_puck)
         #print(has_puck)    
 
         if has_puck:
-            dist = self.DistToPos([p1_x, p1_y], [GameConsts.SHOOT_POS_X,GameConsts.SHOOT_POS_Y])
+            dist = self.DistToPos([p1_x, p1_y], [GameConsts.SHOOT_POS_X, GameConsts.SHOOT_POS_Y])
 
             if dist < 60:
                 #self.state = AI_STATE_ISHOOTING
                 p1_actions[GameConsts.INPUT_C] = 1
             else:
                 self.GotoTarget(p1_actions, [p1_x - GameConsts.SHOOT_POS_X, p1_y - GameConsts.SHOOT_POS_Y])
-
+                print('GOTO SHOOT POSITION')
+        elif goalie_has_puck:
+            p1_actions[GameConsts.INPUT_B] = 1
+            print('GOALIE PASS')
         else:
             self.GotoTarget(p1_actions, pp_vec)
+            print('FIND PUCK')
 
         return p1_actions
 

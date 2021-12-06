@@ -27,5 +27,5 @@ class GameConsts():
 
     MAX_PLAYER_PUCK_DIST = 27
 
-    SHOOT_POS_X = 64
+    SHOOT_POS_X = 0
     SHOOT_POS_Y = 170

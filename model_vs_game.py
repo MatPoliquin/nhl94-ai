@@ -67,6 +67,8 @@ class ModelVsGame:
             p1_actions = self.ai_sys.predict(state, info=info, deterministic=self.args.deterministic)
             if self.ai_sys.p1_model is not None:
                 self.uw_display_env.action_probabilities = self.ai_sys.p1_model.action_probability(state)
+            else:
+                self.uw_display_env.action_probabilities = p1_actions
 
             #print(self.p1_model.action_probability(state))
             
