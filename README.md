@@ -40,7 +40,7 @@ Currently there is two NHL 94 env in stable-retro: The original game and the '1 
 
 Train your model:
 ```
-python3 model_trainer.py --env=NHL941on1-Genesis --state=canadiensvsnordique.haspuck --num_timesteps=6000000
+python3 model_trainer.py --env=NHL941on1-Genesis --state=PenguinsVsSenators.haspuck --num_timesteps=6000000
 ```
 
 Note: By default the your model will be in the OUTPUT folder in your home directory. Can be customized with --output_basedir
