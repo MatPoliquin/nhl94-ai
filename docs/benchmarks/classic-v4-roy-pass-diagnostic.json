@@ -1,0 +1,2757 @@
+{
+  "summary": {
+    "nordiques-canadiens": {
+      "periods": 20,
+      "wins": 7,
+      "draws": 4,
+      "losses": 9,
+      "goals_for": 17,
+      "goals_against": 23,
+      "one_timer_setups": 39,
+      "one_timers": 9,
+      "one_timer_goals": 7,
+      "periods_without_one_timers": 13,
+      "pass_outcomes": {
+        "intercepted": 23,
+        "flight_timeout": 3,
+        "one_timer_shot": 9,
+        "received_without_shot": 3,
+        "returned_to_passer": 1
+      },
+      "wrong_recipient": 2
+    }
+  },
+  "matches": [
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9000,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        7,
+        1
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1315,
+        "carry": 638,
+        "one-timer-setup": 40,
+        "switch": 66,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 3,
+        "one-timer-wait": 9,
+        "goalie-outlet": 14,
+        "shoot": 2,
+        "shot-follow-through": 7
+      },
+      "frames": 8388,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 3
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 1257,
+          "passer": 10,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 22,
+          "final_owner": 5
+        },
+        {
+          "frame": 5713,
+          "passer": 10,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 4,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 15,
+          "final_owner": 3
+        },
+        {
+          "frame": 5957,
+          "passer": 7,
+          "intended": 9,
+          "actual": 9,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 18,
+          "final_owner": 3
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "6bbf25c95d2504e25deb697565f90f29dc311cde0c6c479a89f82c07466ccd17",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9001,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        7,
+        1
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1482,
+        "carry": 593,
+        "switch": 60,
+        "shoot": 12,
+        "shot-follow-through": 45,
+        "goalie-outlet": 19,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 2,
+        "one-timer-setup": 17
+      },
+      "frames": 8929,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 2
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 5201,
+          "passer": 8,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 7,
+          "final_owner": 4
+        },
+        {
+          "frame": 8665,
+          "passer": 7,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 6,
+          "final_owner": 0
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "6837ba8ff47bb2e8bf2ff0f2e90afdf5f15bc2ee3a6991ee1a1dee68c41752df",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9002,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        5,
+        2
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1209,
+        "carry": 584,
+        "shoot": 4,
+        "shot-follow-through": 18,
+        "switch": 60,
+        "goalie-outlet": 50,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 5
+      },
+      "frames": 7726,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 5821,
+          "passer": 6,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 28,
+          "final_owner": 3
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "9cb8c8de0ecd522525f4fd96d8500122fd6ac5801dbbc7e8ab72745085909a90",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9003,
+      "goals": [
+        4,
+        0
+      ],
+      "shots": [
+        7,
+        0
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "recover": 1951,
+        "switch": 77,
+        "carry": 497,
+        "one-timer-pass": 4,
+        "one-timer-shoot": 7,
+        "one-timer-wait": 22,
+        "one-timer-setup": 16,
+        "shoot": 2,
+        "shot-follow-through": 12,
+        "goalie-outlet": 10
+      },
+      "frames": 10393,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 3,
+          "flight_timeout": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 1209,
+          "passer": 7,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 10,
+          "final_owner": 4
+        },
+        {
+          "frame": 1409,
+          "passer": 10,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 23,
+          "final_owner": 5
+        },
+        {
+          "frame": 2745,
+          "passer": 6,
+          "intended": 8,
+          "actual": null,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 21,
+          "final_owner": 5
+        },
+        {
+          "frame": 3673,
+          "passer": 8,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "flight_timeout",
+          "elapsed_frames": 120,
+          "final_owner": -248
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "8b11289f103597cf2b437c2a88635e9e2ab1bdd09058884cc1afb194bf4e0893",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9004,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        6,
+        2
+      ],
+      "one_timers": [
+        2,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "recover": 1507,
+        "carry": 520,
+        "switch": 70,
+        "goalie-outlet": 13,
+        "shoot": 3,
+        "shot-follow-through": 13,
+        "one-timer-setup": 7,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 2,
+        "one-timer-wait": 17
+      },
+      "frames": 8616,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1,
+          "one_timer_shot": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 6613,
+          "passer": 9,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 11,
+          "final_owner": 4
+        },
+        {
+          "frame": 7805,
+          "passer": 10,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 44,
+          "final_owner": -246
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "c04cd89397d537e535d4aa6c24057cc206cbf359661ab149f0811f90a08e7ce0",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9005,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        6,
+        2
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "recover": 1453,
+        "carry": 471,
+        "switch": 71,
+        "one-timer-setup": 30,
+        "shoot": 15,
+        "shot-follow-through": 77,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "goalie-outlet": 14
+      },
+      "frames": 8530,
+      "pass_outcomes": {
+        "outcomes": {
+          "received_without_shot": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 2573,
+          "passer": 10,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 5,
+          "final_owner": 8
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "9e8e718ced16f066b4f4d4bd49226230fc65aacca2b8c59f7a813b4e769e7a3b",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9006,
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        7,
+        2
+      ],
+      "one_timers": [
+        3,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "recover": 1792,
+        "switch": 64,
+        "goalie-outlet": 19,
+        "carry": 490,
+        "shoot": 4,
+        "shot-follow-through": 18,
+        "one-timer-setup": 14,
+        "one-timer-pass": 4,
+        "one-timer-shoot": 6,
+        "one-timer-wait": 24
+      },
+      "frames": 9741,
+      "pass_outcomes": {
+        "outcomes": {
+          "received_without_shot": 1,
+          "intercepted": 1,
+          "one_timer_shot": 2
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 4877,
+          "passer": 8,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 0,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 5,
+          "final_owner": 6
+        },
+        {
+          "frame": 6937,
+          "passer": 7,
+          "intended": 8,
+          "actual": null,
+          "launched": true,
+          "passes_before": 4,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 23,
+          "final_owner": 3
+        },
+        {
+          "frame": 7393,
+          "passer": 6,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 4,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 8,
+          "final_owner": -250
+        },
+        {
+          "frame": 8225,
+          "passer": 8,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 41,
+          "final_owner": -248
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "0d9d6687ebd053553481459178622dc35d8a87a29442b878fb8acaf34190a77e",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9007,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "recover": 1189,
+        "switch": 59,
+        "carry": 654,
+        "one-timer-setup": 18,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 15,
+        "one-timer-wait": 32,
+        "shoot": 2,
+        "shot-follow-through": 11,
+        "goalie-outlet": 11
+      },
+      "frames": 7976,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 1,
+          "intercepted": 1,
+          "flight_timeout": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 1601,
+          "passer": 10,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 9,
+          "final_owner": -246
+        },
+        {
+          "frame": 6617,
+          "passer": 10,
+          "intended": 6,
+          "actual": null,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 1,
+          "outcome": "intercepted",
+          "elapsed_frames": 54,
+          "final_owner": 5
+        },
+        {
+          "frame": 7829,
+          "passer": 7,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 1,
+          "outcome": "flight_timeout",
+          "elapsed_frames": 120,
+          "final_owner": -249
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "667365519fbfb65e2681e3a9c49f83e620b28dc8077f0dcd69fe91ba589d62ea",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9008,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1660,
+        "carry": 582,
+        "switch": 53,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 10,
+        "one-timer-wait": 15,
+        "goalie-outlet": 28,
+        "shoot": 5,
+        "shot-follow-through": 24,
+        "one-timer-setup": 19
+      },
+      "frames": 9596,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 3
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 1965,
+          "passer": 6,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 72,
+          "final_owner": 4
+        },
+        {
+          "frame": 2729,
+          "passer": 8,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 19,
+          "final_owner": 2
+        },
+        {
+          "frame": 8145,
+          "passer": 6,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 20,
+          "final_owner": 0
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "4a0637a3b4c289729e1c6f8c7dfe46d9ba921e6ad3d7944f644e0f858eebb8cb",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9009,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        7,
+        2
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1721,
+        "carry": 401,
+        "shoot": 3,
+        "shot-follow-through": 7,
+        "switch": 75,
+        "goalie-outlet": 55,
+        "one-timer-setup": 2,
+        "one-timer-pass": 1
+      },
+      "frames": 9061,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 7985,
+          "passer": 6,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 10,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 4,
+          "final_owner": 5
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "087cd381a72ef547d742a90db8833044ca0e6bc472dede02a6cc74002fdad601",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9010,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1242,
+        "carry": 650,
+        "switch": 57,
+        "shoot": 11,
+        "one-timer-setup": 24,
+        "shot-follow-through": 46,
+        "goalie-outlet": 14,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 9,
+        "one-timer-wait": 8
+      },
+      "frames": 8246,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 7649,
+          "passer": 8,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 4,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 9,
+          "final_owner": 3
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "03ca5b94db36a15402b62bb9e05ee22e0a747405284e65c7547957b367c87e9c",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9011,
+      "goals": [
+        3,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1495,
+        "carry": 654,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 3,
+        "one-timer-wait": 5,
+        "switch": 59,
+        "shoot": 9,
+        "shot-follow-through": 54,
+        "one-timer-setup": 17,
+        "goalie-outlet": 18
+      },
+      "frames": 9269,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 3
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 289,
+          "passer": 7,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 15,
+          "final_owner": 3
+        },
+        {
+          "frame": 3577,
+          "passer": 6,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 17,
+          "final_owner": 4
+        },
+        {
+          "frame": 5869,
+          "passer": 9,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 5,
+          "final_owner": 3
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "3839b29929f776c655cf745cb7caf018377083a5be0e66537f9b3db38102022c",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9012,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        3,
+        4
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "recover": 1838,
+        "carry": 614,
+        "switch": 69,
+        "shoot": 5,
+        "shot-follow-through": 20,
+        "one-timer-setup": 24,
+        "goalie-outlet": 19
+      },
+      "frames": 10355,
+      "pass_outcomes": {
+        "outcomes": {},
+        "wrong_recipient": 0
+      },
+      "pass_events": [],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "b4a0c670abe7c75d8ea72494d91ce6a2263b90640ed8dd2e57c1133041d6de2c",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9013,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        9,
+        2
+      ],
+      "one_timers": [
+        2,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "recover": 1524,
+        "carry": 667,
+        "switch": 65,
+        "goalie-outlet": 63,
+        "shoot": 7,
+        "shot-follow-through": 31,
+        "one-timer-setup": 8,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 6,
+        "one-timer-wait": 11
+      },
+      "frames": 9532,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 8429,
+          "passer": 10,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 21,
+          "final_owner": -246
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "5ceb2caf22c98d61b9c7fef45938be2ced459c2489feccc8e2eca9b6aa041bc9",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9014,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        6,
+        2
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1467,
+        "carry": 613,
+        "shoot": 7,
+        "shot-follow-through": 33,
+        "switch": 71,
+        "one-timer-setup": 14,
+        "goalie-outlet": 29
+      },
+      "frames": 8935,
+      "pass_outcomes": {
+        "outcomes": {},
+        "wrong_recipient": 0
+      },
+      "pass_events": [],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "049f3c5962fc1006079c3a66f0d663103b07bdf89538b5c1bbc943a4b49b57f0",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9015,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timers": [
+        1,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "recover": 1269,
+        "carry": 674,
+        "switch": 63,
+        "one-timer-setup": 15,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 18,
+        "one-timer-wait": 20,
+        "goalie-outlet": 14
+      },
+      "frames": 8305,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 1,
+          "intercepted": 1,
+          "flight_timeout": 1
+        },
+        "wrong_recipient": 1
+      },
+      "pass_events": [
+        {
+          "frame": 1961,
+          "passer": 10,
+          "intended": 7,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 22,
+          "final_owner": -246
+        },
+        {
+          "frame": 4421,
+          "passer": 9,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 1,
+          "outcome": "intercepted",
+          "elapsed_frames": 18,
+          "final_owner": 0
+        },
+        {
+          "frame": 6677,
+          "passer": 9,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 6,
+          "one_timers_before": 1,
+          "outcome": "flight_timeout",
+          "elapsed_frames": 120,
+          "final_owner": -247
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "0c578b58184ae45d1bc39a037ad7bf10865e46bf70439b07673069645358fb64",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9016,
+      "goals": [
+        0,
+        4
+      ],
+      "shots": [
+        3,
+        7
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "recover": 1631,
+        "carry": 713,
+        "one-timer-setup": 18,
+        "shoot": 9,
+        "shot-follow-through": 38,
+        "switch": 50,
+        "goalie-outlet": 7,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 9,
+        "one-timer-wait": 8
+      },
+      "frames": 9940,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 1,
+          "received_without_shot": 1
+        },
+        "wrong_recipient": 1
+      },
+      "pass_events": [
+        {
+          "frame": 4109,
+          "passer": 7,
+          "intended": 9,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 35,
+          "final_owner": -249
+        },
+        {
+          "frame": 7469,
+          "passer": 9,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 4,
+          "one_timers_before": 1,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 4,
+          "final_owner": 8
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "9181598089e330ca311d9f85a1931bb83beaa28603d12583da0b75040851f629",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9017,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        8,
+        1
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "recover": 1602,
+        "switch": 60,
+        "carry": 614,
+        "goalie-outlet": 44,
+        "shoot": 8,
+        "shot-follow-through": 34,
+        "one-timer-setup": 15,
+        "one-timer-pass": 2,
+        "one-timer-wait": 17
+      },
+      "frames": 9583,
+      "pass_outcomes": {
+        "outcomes": {
+          "returned_to_passer": 1,
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 6205,
+          "passer": 8,
+          "intended": 7,
+          "actual": null,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 0,
+          "outcome": "returned_to_passer",
+          "elapsed_frames": 95,
+          "final_owner": 8
+        },
+        {
+          "frame": 8337,
+          "passer": 10,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 4,
+          "final_owner": 0
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "6bd8d31b0eb0616211ade01691e1a2afd3ccb0f526189328b00f706569b63eb1",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9018,
+      "goals": [
+        2,
+        3
+      ],
+      "shots": [
+        8,
+        3
+      ],
+      "one_timers": [
+        3,
+        2
+      ],
+      "one_timer_goals": [
+        1,
+        2
+      ],
+      "decisions": {
+        "recover": 1818,
+        "carry": 625,
+        "switch": 83,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 12,
+        "one-timer-wait": 22,
+        "goalie-outlet": 39,
+        "shoot": 2,
+        "shot-follow-through": 12,
+        "one-timer-setup": 23
+      },
+      "frames": 10551,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 2
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 513,
+          "passer": 9,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 32,
+          "final_owner": -247
+        },
+        {
+          "frame": 4545,
+          "passer": 6,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 8,
+          "final_owner": -250
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "f212a2c75d0625a30060a86f5858c40e445ffe76700090beb73078507a5ae692",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9019,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "recover": 1641,
+        "carry": 566,
+        "shoot": 7,
+        "shot-follow-through": 36,
+        "switch": 60,
+        "goalie-outlet": 18,
+        "one-timer-setup": 12,
+        "one-timer-pass": 1,
+        "one-timer-wait": 11,
+        "one-timer-shoot": 3
+      },
+      "frames": 9420,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 4077,
+          "passer": 7,
+          "intended": 8,
+          "actual": null,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 59,
+          "final_owner": 5
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "881492df6054b33330fcf216b1a618e022169ee2dde7962a51a849e3f1fd41b5",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    }
+  ],
+  "telemetry_preserves_original_actions": true,
+  "protocol": "nhl94-cpu-first-period-v1",
+  "baseline_source": "\"\"\"Classic V4: recover the puck, carry into the slot, and finish across the goalie.\n\nOne decision tree handles skating, shooting, and an opportunistic pass/one-timer.\nThere are no option scores, inherited V2/V3 tactics, or learned parameters.\n\"\"\"\nimport math\n\nimport numpy as np\n\nfrom nhl94_ai.game.constants import GameConsts as Buttons\nfrom nhl94_ai.game.geometry import aim_pass\nfrom nhl94_ai.env.intents import (\n    HOCKEY_INTENT_DPAD_ACTION_SPACE, HOCKEY_INTENT_NOOP,\n    HOCKEY_INTENT_NORMAL_SHOOT, HOCKEY_INTENT_CHANGE_PLAYER,\n    HOCKEY_INTENT_PASS_START,\n)\n\n\nclass ClassicAIV4Model:\n    \"\"\"Small, deterministic controller. Timings are in agent decisions.\"\"\"\n\n    def __init__(self, args=None, env=None):\n        self.args, self.env = args, env\n        self._tick = 0\n        self._switch_at = 0\n        self._shot_until = 0\n        self._shot_side = 1\n        self._c_down = False\n        self._one_timer = None\n        self._pass_at = 0\n        self._setup_until = 0\n        self._setup_at = 0\n        self._setup_slot = None\n        self._one_timers = getattr(args, 'one_timers', True)\n        self._last_decision = 'init'\n        self._last_target = (0, 0)\n        self._intents = getattr(args, 'action_type', 'FILTERED').upper() == 'HOCKEY_INTENT_DPAD'\n        self._size = len(HOCKEY_INTENT_DPAD_ACTION_SPACE) if self._intents else Buttons.INPUT_MAX\n        self._last_action_preferences = np.zeros((1, self._size), dtype=np.float32)\n\n    def predict(self, _observation, deterministic=True):\n        return np.zeros((1, self._size), dtype=np.int8), None\n\n    def get_action_preferences(self, _observation=None):\n        return self._last_action_preferences\n\n    def learn(self, *args, **kwargs):\n        raise NotImplementedError('ClassicAIV4 is inference-only; use nhl94 play --agent classic-v4.')\n\n    def save(self, *args, **kwargs):\n        raise NotImplementedError('ClassicAIV4 does not produce a trainable checkpoint.')\n\n    def predict_game_state(self, state, deterministic=True):\n        self._tick += 1\n        action, intent = self._decide(state)\n        self._c_down = bool(action[Buttons.INPUT_C])\n        if self._intents:\n            action = np.asarray([intent, *action[4:8], int(action[8] and intent == HOCKEY_INTENT_NOOP)], dtype=np.int8)\n        self._last_action_preferences = action[None].astype(np.float32)\n        return action[None]\n\n    def _steer(self, action, player, x, y):\n        self._last_target = (x, y)\n        dx, dy = x - player.x, y - player.y\n        if abs(dx) > 3:\n            action[Buttons.INPUT_RIGHT if dx > 0 else Buttons.INPUT_LEFT] = 1\n        if abs(dy) > 3:\n            action[Buttons.INPUT_UP if dy > 0 else Buttons.INPUT_DOWN] = 1\n\n    def _aim(self, action):\n        # Horizontal shot aim selects a goal-mouth corner at middle height.\n        # Left/right stay in world coordinates for either attacking direction.\n        action[Buttons.INPUT_RIGHT if self._shot_side > 0 else Buttons.INPUT_LEFT] = 1\n\n    @staticmethod\n    def _accuracy(player):\n        accuracy = getattr(player, 'shot_accuracy', None)\n        return 15 if accuracy is None else max(0, min(30, accuracy))\n\n    def _one_timer_target(self, team, opponents, attack, prepare=False):\n        \"\"\"First open cross-slot receiver; a bounded scan, without option scoring.\"\"\"\n        passer = team.get_controlled_player()\n        if not self._one_timers or self._tick < self._pass_at or passer.y * attack < 100:\n            return None\n        teammates = [(team.skater_scnum_base() + i, p) for i, p in enumerate(team.players)\n                     if i != team.control - 1]\n        for index, (slot, receiver) in enumerate(teammates):\n            if (receiver.is_falling or abs(receiver.x) > 70\n                    or not 175 + max(0, 15 - self._accuracy(receiver)) < receiver.y * attack < 245):\n                continue\n            dx, dy = receiver.x - passer.x, receiver.y - passer.y\n            length2 = dx * dx + dy * dy\n            if prepare:\n                if abs(dy) < 75 and receiver.y * attack >= passer.y * attack - 25:\n                    return index, slot\n                continue\n            if not (30**2 < length2 < 150**2 and abs(dy) < 80\n                    and receiver.x * passer.x <= 0 and abs(dx) > 30):\n                continue\n            clear = True\n            for defender in opponents.players:\n                along = max(0, min(1, ((defender.x - passer.x) * dx + (defender.y - passer.y) * dy) / length2))\n                if math.hypot(defender.x - passer.x - along * dx, defender.y - passer.y - along * dy) < 14:\n                    clear = False\n                    break\n            if clear:\n                return index, slot\n        return None\n\n    def _continue_one_timer(self, state, action):\n        passer, slot, deadline = self._one_timer\n        receiver = state.team1.get_player_by_scnum(slot)\n        owner = state.engine.puck_owner\n        if (receiver is None or receiver.is_falling or self._tick >= deadline\n                or owner >= 0 and owner != passer):\n            self._one_timer = None\n            return None\n        self._last_decision = 'one-timer-wait'\n        if owner == passer:\n            self._last_target = (receiver.x, receiver.y)\n            aim_pass(action, state.team1.get_player_by_scnum(passer), receiver)\n        elif not self._c_down and not receiver.is_one_timer:\n            # A new C edge while the pass is free activates the ROM's automatic\n            # receiver/aiming routine. NOOP + boost emits that same C in intents.\n            self._last_decision = 'one-timer-shoot'\n            action[Buttons.INPUT_C] = 1\n        return action, HOCKEY_INTENT_NOOP\n\n    def _decide(self, state):\n        action = np.zeros(Buttons.INPUT_MAX, dtype=np.int8)\n        team, opponents, puck = state.team1, state.team2, state.puck\n        player = team.get_controlled_player()\n        attack = 1 if opponents.net.y > team.net.y else -1\n        owner = state.engine.puck_owner\n        owned = team.owns_scnum(owner)\n\n        if self._one_timer is not None:\n            pending = self._continue_one_timer(state, action)\n            if pending is not None:\n                return pending\n\n        if owner == team.goalie_scnum():\n            self._last_decision = 'goalie-outlet'\n            self._shot_until = 0\n            receivers = team.players[:4] if self._intents else team.players\n            index = min(range(len(receivers)), key=lambda i: math.hypot(receivers[i].x - team.goalie.x, receivers[i].y - team.goalie.y))\n            receiver = receivers[index]\n            self._last_target = (receiver.x, receiver.y)\n            aim_pass(action, team.goalie, receiver)\n            action[Buttons.INPUT_B] = int(self._tick % 2 == 0)\n            return action, HOCKEY_INTENT_PASS_START + index if action[0] else HOCKEY_INTENT_NOOP\n\n        if owner >= 0 and not owned:\n            self._shot_until = 0\n            self._setup_until = 0\n        if self._tick < self._shot_until:\n            self._last_decision = 'shot-follow-through'\n            self._aim(action)\n            return action, HOCKEY_INTENT_NOOP\n\n        if owner == team.controlled_scnum() and team.control:\n            progress = player.y * attack\n            shot_y = 218 + max(0, 15 - self._accuracy(player)) * 0.4\n            target = self._one_timer_target(team, opponents, attack)\n            if target is not None and not (progress > shot_y and abs(player.x) < 48):\n                index, slot = target\n                receiver = team.get_player_by_scnum(slot)\n                self._one_timer = (owner, slot, self._tick + 18)\n                self._pass_at = self._tick + 24\n                self._setup_until = 0\n                self._last_decision = 'one-timer-pass'\n                self._last_target = (receiver.x, receiver.y)\n                aim_pass(action, player, receiver)\n                action[Buttons.INPUT_B] = 1\n                return action, HOCKEY_INTENT_PASS_START + index\n\n            if progress > shot_y and abs(player.x) < 48:\n                self._last_decision = 'shoot'\n                self._shot_side = -1 if opponents.goalie.x > 0 else 1\n                self._aim(action)\n                if self._c_down:  # A shot needs a new press, even after a checking burst.\n                    return action, HOCKEY_INTENT_NOOP\n                self._shot_until = self._tick + 7\n                action[Buttons.INPUT_C] = 1\n                return action, HOCKEY_INTENT_NORMAL_SHOOT\n\n            if self._tick >= self._setup_at and 140 < progress < 215:\n                target = self._one_timer_target(team, opponents, attack, prepare=True)\n                if target is not None:\n                    self._setup_slot = target[1]\n                    self._setup_until = self._tick + 8\n                    self._setup_at = self._tick + 48\n            if self._tick < self._setup_until:\n                receiver = team.get_player_by_scnum(self._setup_slot)\n                if receiver is not None and not receiver.is_falling:\n                    self._last_decision = 'one-timer-setup'\n                    self._steer(action, player, -65 if receiver.x >= 0 else 65,\n                                attack * min(215, max(progress, receiver.y * attack - 15)))\n                    return action, HOCKEY_INTENT_NOOP\n                self._setup_until = 0\n\n            self._last_decision = 'carry'\n            target_x = 35 if player.x >= 0 else -35\n            if progress > 140:\n                target_x = -35 if opponents.goalie.x >= 0 else 35\n            self._steer(action, player, target_x, attack * 235)\n            return action, HOCKEY_INTENT_NOOP\n\n        self._last_decision = 'recover'\n        distance = math.hypot(puck.x - player.x, puck.y - player.y)\n        closest = min(math.hypot(puck.x - p.x, puck.y - p.y) for p in team.players)\n        if self._tick >= self._switch_at and (not team.control or closest + 20 < distance):\n            self._last_decision = 'switch'\n            self._switch_at = self._tick + 6\n            action[Buttons.INPUT_B] = 1\n            return action, HOCKEY_INTENT_CHANGE_PLAYER\n\n        lead = min(distance / 12, 6) * 0.45\n        x = max(-112, min(112, puck.x + puck.vx * lead))\n        y = max(-246, min(246, puck.y + puck.vy * lead))\n        self._steer(action, player, x, y)\n        action[Buttons.INPUT_C] = int(self._tick % 2 == 0)\n        return action, HOCKEY_INTENT_NOOP\n",
+  "reference": "classic-v4-roster-cpu.json",
+  "compared_fields": [
+    "actions_sha256",
+    "goals",
+    "shots",
+    "frames"
+  ],
+  "baseline_controller_sha256": "da7b56cb7964db7f9b3b363753c579657456becbc66d6de3176acf0b37e7be66",
+  "replay_script": "from concurrent.futures import ProcessPoolExecutor\nfrom pathlib import Path\nimport json\nfrom nhl94_ai.agents.base import ScriptedAgent\nfrom nhl94_ai.evaluation import cpu_benchmark as cpu\nscope={};exec(Path('/tmp/nhl94-v4-before-roy.py').read_text(),scope)\ncpu.create_scripted=lambda name,args:ScriptedAgent(scope['ClassicAIV4Model'],args)\nif __name__=='__main__':\n fixtures=[('classic-v4','nordiques-canadiens',s,300,4,'FILTERED') for s in range(9000,9020)]\n with ProcessPoolExecutor(max_workers=8) as pool:rows=list(pool.map(cpu.cpu_match,fixtures))\n original=json.loads(Path('/home/mat/github/nhl94-ai/docs/benchmarks/classic-v4-roster-cpu.json').read_text())\n for row in rows:\n  old=next(r for r in original['matches'] if r['seed']==row['seed'] and r['matchup']==row['matchup'])\n  for field in ['actions_sha256','goals','shots','frames']:assert row[field]==old[field],(row['seed'],field)\n report={'summary':cpu.summarize(rows),'matches':rows,'telemetry_preserves_original_actions':True}\n Path('/tmp/nhl94-roy-trace-baseline.json').write_text(json.dumps(report,indent=2)+'\\n')\n print(json.dumps(report['summary'],indent=2))\n",
+  "note": "Controller source and exact trajectory comparison are preserved. Shared-file hashes were not captured at this development stage; use baseline_source with the replay_script to repeat under the current benchmark."
+}

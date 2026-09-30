@@ -1,0 +1,5159 @@
+{
+  "protocol": "nhl94-paired-first-period-v1",
+  "protocol_sha256": "42cf00a77033f8937c136705733ef222a5250c8b331ea22a2e1c7cc7b6acc15b",
+  "game": "NHL94-Genesis-v0",
+  "settings": {
+    "agent": "classic-v4",
+    "opponents": [
+      "classic-v4-direct",
+      "classic-v2",
+      "classic-v3"
+    ],
+    "seed": 3000,
+    "pairs": 20,
+    "seconds": 300,
+    "frame_skip": 4,
+    "workers": 4,
+    "output": "docs/benchmarks/classic-v4-one-timers.json",
+    "config": null
+  },
+  "sources": {
+    "classic_v4.py": {
+      "sha256": "88405e6b8d9f9d16b510785c3d0f6a24c192d6ee1b2ebaa92f35c50b8421bc8a",
+      "lines": 188
+    },
+    "classic_v2.py": {
+      "sha256": "11b0068a30e7ae2d40ab714dafefb0c1a7537554c64b09e48cfe39e0f586d60a",
+      "lines": 820
+    },
+    "geometry.py": {
+      "sha256": "cdcf80a65c4f2ab9c06f4f81daec3a791d18df1aadaa37f28d98b77a65d920bd",
+      "lines": 9
+    },
+    "classic_v3.py": {
+      "sha256": "1203e9f453f92781d4433d775b3864dc68188e2339e37c6eda4858cd121feecd",
+      "lines": 347
+    }
+  },
+  "versions": {
+    "nhl94-ai": "0.1.0",
+    "stable-retro": "1.0.1",
+    "numpy": "2.5.1"
+  },
+  "summary": {
+    "classic-v4-direct": {
+      "games": 40,
+      "wins": 17,
+      "draws": 12,
+      "losses": 11,
+      "goals_for": 33,
+      "goals_against": 29,
+      "mean_decision_us": {
+        "classic-v4": 24.87,
+        "classic-v4-direct": 24.67
+      },
+      "one_timer_setups": {
+        "classic-v4": 40,
+        "classic-v4-direct": 0
+      },
+      "one_timers": {
+        "classic-v4": 25,
+        "classic-v4-direct": 1
+      },
+      "one_timer_goals": {
+        "classic-v4": 9,
+        "classic-v4-direct": 0
+      }
+    },
+    "classic-v2": {
+      "games": 40,
+      "wins": 17,
+      "draws": 15,
+      "losses": 8,
+      "goals_for": 31,
+      "goals_against": 21,
+      "mean_decision_us": {
+        "classic-v4": 25.7,
+        "classic-v2": 244.04
+      },
+      "one_timer_setups": {
+        "classic-v4": 23,
+        "classic-v2": 0
+      },
+      "one_timers": {
+        "classic-v4": 10,
+        "classic-v2": 234
+      },
+      "one_timer_goals": {
+        "classic-v4": 5,
+        "classic-v2": 11
+      }
+    },
+    "classic-v3": {
+      "games": 40,
+      "wins": 18,
+      "draws": 15,
+      "losses": 7,
+      "goals_for": 29,
+      "goals_against": 14,
+      "mean_decision_us": {
+        "classic-v4": 25.65,
+        "classic-v3": 271.91
+      },
+      "one_timer_setups": {
+        "classic-v4": 37,
+        "classic-v3": 0
+      },
+      "one_timers": {
+        "classic-v4": 20,
+        "classic-v3": 243
+      },
+      "one_timer_goals": {
+        "classic-v4": 8,
+        "classic-v3": 9
+      }
+    }
+  },
+  "matches": [
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3000,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        4,
+        3
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9779,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        63230332,
+        55226262
+      ],
+      "decisions": [
+        2445,
+        2445
+      ],
+      "actions_sha256": "95a4be50e0d61883bc1c55bff7bfbb715e9f9925bb8442bc74d28304453da415",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3000,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7393,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        45661284,
+        42561717
+      ],
+      "decisions": [
+        1848,
+        1848
+      ],
+      "actions_sha256": "a8fa14a6a283e3b68b69460b88584fcab903f706108ba0b15ab019c09d81755b",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3000,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11388,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        74038787,
+        713129909
+      ],
+      "decisions": [
+        2847,
+        2847
+      ],
+      "actions_sha256": "55e4c58a7d10ba53b6565d60b4e9c5f598964541809026fb4a5e82b51408b17e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3000,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        4,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8627,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        545745997,
+        51871300
+      ],
+      "decisions": [
+        2157,
+        2157
+      ],
+      "actions_sha256": "e0f99254aad0d35dbf368ba76c945c94e0d7b02e038aefb4992604b3b38b8aa2",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3000,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "one_timers": [
+        2,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10434,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        67672515,
+        750944353
+      ],
+      "decisions": [
+        2609,
+        2609
+      ],
+      "actions_sha256": "d01061ad0c4ce99cd937621f4d8ce8fd1701eedd0bfc973837d3547c46ddef12",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3000,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        7,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        11,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9594,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        631060769,
+        57066944
+      ],
+      "decisions": [
+        2399,
+        2399
+      ],
+      "actions_sha256": "ec1becce4c19f06da6daa9be7d57ebda84fad04658269b1ce045fb0555470316",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3001,
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        3,
+        4
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9378,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        63867848,
+        55616212
+      ],
+      "decisions": [
+        2345,
+        2345
+      ],
+      "actions_sha256": "adf1fce8d6cdbd066333786f17ff4fc97af496778cd1cd5b03aad7e48098b2ef",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3001,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        5,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8841,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        56249805,
+        50805780
+      ],
+      "decisions": [
+        2210,
+        2210
+      ],
+      "actions_sha256": "351bf37fb30fbf47e5ea39b9610e632081ad3f91af012c5ce364adc7672ccf7e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3001,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        3,
+        6
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        0,
+        7
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10980,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        70813448,
+        675378869
+      ],
+      "decisions": [
+        2745,
+        2745
+      ],
+      "actions_sha256": "429921814cfdaf22002ad8c8c51ac39661c0e706931f0a400bf27142c1e096e0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3001,
+      "goals": [
+        2,
+        2
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        4,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9883,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        646490976,
+        59701950
+      ],
+      "decisions": [
+        2471,
+        2471
+      ],
+      "actions_sha256": "7ff7570285c8f3161664d619aecc433bdb35de216010f3aeb75fabd55b20ac0b",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3001,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        5
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8676,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        56467439,
+        566348957
+      ],
+      "decisions": [
+        2169,
+        2169
+      ],
+      "actions_sha256": "ae5d6f490b21c781483f5fcc27fc133dfdce1416f82c4f7efb7c315530a08102",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3001,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        5,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10194,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        681149410,
+        61018349
+      ],
+      "decisions": [
+        2549,
+        2549
+      ],
+      "actions_sha256": "2edfd03ca42729128ff812dff345f3c421e86db67b7c9e40d528994550e4514a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3002,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9106,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        59379256,
+        52347361
+      ],
+      "decisions": [
+        2277,
+        2277
+      ],
+      "actions_sha256": "135555579392143df550e716b991987542ba8524cf176100de9d00d4662fb418",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3002,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        0,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10296,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        68367300,
+        60819987
+      ],
+      "decisions": [
+        2574,
+        2574
+      ],
+      "actions_sha256": "c43cf39c389e5565d216cada3d963b0bb941535ab90685e71ea3c6084d3386b1",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3002,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        6,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        0,
+        4
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9428,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        61120841,
+        555761791
+      ],
+      "decisions": [
+        2357,
+        2357
+      ],
+      "actions_sha256": "f817937a364f8ea2968e55461f04a15768b0920ec008d9c2dc1b91fc2a2e5ce1",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3002,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        0,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        5,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10157,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        644210247,
+        60843743
+      ],
+      "decisions": [
+        2539,
+        2539
+      ],
+      "actions_sha256": "0d696ff6f4df601171df0ca819b1664086bc62b5d2f02bf28509491112bd6d5d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3002,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        4,
+        4
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "one_timers": [
+        0,
+        4
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10578,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        72397758,
+        702277587
+      ],
+      "decisions": [
+        2645,
+        2645
+      ],
+      "actions_sha256": "bf39801eae5cb070e9dd6d1644d7ccd60760a2be1ea8b66951684ca20ec65401",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3002,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        4,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7393,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        458560797,
+        44937169
+      ],
+      "decisions": [
+        1848,
+        1848
+      ],
+      "actions_sha256": "e052db3b702e23ce7953a18523ba1a7ce7ff42d7f72b58255daf9b289660eec3",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3003,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8947,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        59530712,
+        51889182
+      ],
+      "decisions": [
+        2237,
+        2237
+      ],
+      "actions_sha256": "2eb8032e3102be770b8201a01652733d81b2c389762fd9be33171ad2fa0ffdeb",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3003,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8520,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        57398588,
+        49465420
+      ],
+      "decisions": [
+        2130,
+        2130
+      ],
+      "actions_sha256": "2c6cfd02edf75f006c6c3d4bf2027c20418e82a97faef3b10455725f61b6c263",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3003,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        7
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8809,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        63914789,
+        526472187
+      ],
+      "decisions": [
+        2202,
+        2202
+      ],
+      "actions_sha256": "6fb94eb125c97d35ef6e4cc7fd7e103e54e13cbab303881ccd0e58fe822d2174",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3003,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9822,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        550516384,
+        63232864
+      ],
+      "decisions": [
+        2456,
+        2456
+      ],
+      "actions_sha256": "c6dab95049e29214f1170ba92dc671dfad6368a1df5ce9cd3c3809be87e7e804",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3003,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        6,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9579,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        69417740,
+        666137945
+      ],
+      "decisions": [
+        2395,
+        2395
+      ],
+      "actions_sha256": "d76b654054171af0faef1630ed20ed772a49fb4a4c491dd8ce0efb77f33567f1",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3003,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        5,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8650,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        594122371,
+        52537026
+      ],
+      "decisions": [
+        2163,
+        2163
+      ],
+      "actions_sha256": "95c607165124ed5d0778a802b200a4230665ef76ba18a6375860d5d2d61fbc92",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3004,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        2,
+        5
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8693,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        65126119,
+        51949520
+      ],
+      "decisions": [
+        2173,
+        2173
+      ],
+      "actions_sha256": "0dbbcb61f7b9b23a89dd28482f4d582bd0aa0511d3998cab18b480849da61a0f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3004,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7993,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        55819027,
+        48047051
+      ],
+      "decisions": [
+        1998,
+        1998
+      ],
+      "actions_sha256": "e32262e037b0ef5deeea48d855ea470ca2e8f54616bef588556db6a4a431c9bf",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3004,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        2,
+        5
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        9
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10519,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        72180658,
+        712280780
+      ],
+      "decisions": [
+        2630,
+        2630
+      ],
+      "actions_sha256": "178cda27d7c5e9d2bc901bde4c14dfe449dcb9fd27abfac30422451b50b88753",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3004,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        0,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9945,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        538092961,
+        60121559
+      ],
+      "decisions": [
+        2486,
+        2486
+      ],
+      "actions_sha256": "16b13b76a411f38e608604244f455ea8651858b48380554322d3cbd12a76fbf6",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3004,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "one_timers": [
+        1,
+        4
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9784,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        64181870,
+        624591397
+      ],
+      "decisions": [
+        2446,
+        2446
+      ],
+      "actions_sha256": "640b06aec5314264164d332bc7111d2423141c2f7373e99d57dec04575ba2f5e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3004,
+      "goals": [
+        0,
+        3
+      ],
+      "shots": [
+        2,
+        6
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        2,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10621,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        748650896,
+        63187605
+      ],
+      "decisions": [
+        2655,
+        2655
+      ],
+      "actions_sha256": "e0eca422270b8f40896c3c9edbdb916e8534ecfe56c06835733a5b645528cb6c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3005,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8567,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        55211947,
+        48848548
+      ],
+      "decisions": [
+        2142,
+        2142
+      ],
+      "actions_sha256": "9a1629d0c41690d580e60747f6cdf9bdeaf5bab25e5cae4599ea6517b541755f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3005,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        0,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        4
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9281,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        59018617,
+        51488553
+      ],
+      "decisions": [
+        2320,
+        2320
+      ],
+      "actions_sha256": "e8aa94bd0165fe66591baca713bb6007d7cdc4b3b0005719c2746b14f020bc54",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3005,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        3,
+        0
+      ],
+      "one_timers": [
+        1,
+        8
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11847,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        81502786,
+        745290353
+      ],
+      "decisions": [
+        2962,
+        2962
+      ],
+      "actions_sha256": "d0d18b2a78521644d06d36ea81170e872d085f8dd2d0f2ebe034457e618bdf54",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3005,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8261,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        513391096,
+        48899677
+      ],
+      "decisions": [
+        2065,
+        2065
+      ],
+      "actions_sha256": "ed5db35efd991ce7c870a0046b17e9e4ca21118c874f96269221dac4d3f911eb",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3005,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        9
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9006,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        59201597,
+        611330984
+      ],
+      "decisions": [
+        2252,
+        2252
+      ],
+      "actions_sha256": "a35fbea08e971612107d3073bb00e321d5087a5342974cc200226bc01fd87be2",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3005,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        8,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11202,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        778198032,
+        68395284
+      ],
+      "decisions": [
+        2801,
+        2801
+      ],
+      "actions_sha256": "18bbd1cc5e2ddf940071c030ec18b3977657830b989d0e6860597f5ab0664c3d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3006,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10011,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        64059492,
+        57802809
+      ],
+      "decisions": [
+        2503,
+        2503
+      ],
+      "actions_sha256": "edc5c5d32f3402f20a5f09629cdd53e6c42209f647aeffc4b7011f75121ecc80",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3006,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        3,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8665,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        55458914,
+        48998602
+      ],
+      "decisions": [
+        2166,
+        2166
+      ],
+      "actions_sha256": "19921fc66dd7c5beddfc6bfec088396f90f0e18b48bc435d3e08a47f549f3ce7",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3006,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "one_timers": [
+        0,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9686,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        65056802,
+        587481723
+      ],
+      "decisions": [
+        2422,
+        2422
+      ],
+      "actions_sha256": "70a035d294d5a4b51d88675bf300e0b9a5c6f0960609a4919cf3e5de6bc859f7",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3006,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        0,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        5,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8277,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        459472866,
+        49358961
+      ],
+      "decisions": [
+        2069,
+        2069
+      ],
+      "actions_sha256": "af595c86e7f40c32ef55cd11a50047da0cefcd3655f2adf130e1039554e13746",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3006,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        5
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "one_timers": [
+        1,
+        8
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8073,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        52220210,
+        596500783
+      ],
+      "decisions": [
+        2018,
+        2018
+      ],
+      "actions_sha256": "d68ce2f63cba380a68fca634af45afebabf94c52fad088ace9b33af28d3035ae",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3006,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        8,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9131,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        606817794,
+        54165470
+      ],
+      "decisions": [
+        2283,
+        2283
+      ],
+      "actions_sha256": "193fa9e5d6a2200898af8d5dbe3763188ea3fab51dcf50074650c2af60c5da1c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3007,
+      "goals": [
+        1,
+        4
+      ],
+      "shots": [
+        2,
+        7
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11092,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        75701262,
+        64405637
+      ],
+      "decisions": [
+        2773,
+        2773
+      ],
+      "actions_sha256": "8803e5fdd29affdde0c89adcb4b479acecb14d91e6bc5ac2fbc5ec86a132c58f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3007,
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9987,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        64822164,
+        57564796
+      ],
+      "decisions": [
+        2497,
+        2497
+      ],
+      "actions_sha256": "2de3b381791bf729a10669efa5b7e9148a74253955e23ca0f5932ac09eaecc1d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3007,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8513,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        56000052,
+        513044360
+      ],
+      "decisions": [
+        2128,
+        2128
+      ],
+      "actions_sha256": "9c1cf368f3ca95dba17b5a0b5d91bc8a1426518306c173b7ba2b7600955504f9",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3007,
+      "goals": [
+        2,
+        3
+      ],
+      "shots": [
+        5,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        5,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11398,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        746243236,
+        70588789
+      ],
+      "decisions": [
+        2850,
+        2850
+      ],
+      "actions_sha256": "3235f4fca5f8f8b78023f2cc9c201ca2b2db252a4fd491789fc7535bb32d9096",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3007,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        5
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        0,
+        11
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11939,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        78952767,
+        883320358
+      ],
+      "decisions": [
+        2985,
+        2985
+      ],
+      "actions_sha256": "8da773f5ff11c4a9dbf869acf0bb78747b6fa498e01e2eb34d7a757aefe41d77",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3007,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        7,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        6,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8729,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        585814777,
+        53772649
+      ],
+      "decisions": [
+        2182,
+        2182
+      ],
+      "actions_sha256": "3cc5cdb2558449f4d706c8fdeb9729e72de3afac4c4c0e868cc99b6ccd1858aa",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3008,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8910,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        56931753,
+        51280693
+      ],
+      "decisions": [
+        2228,
+        2228
+      ],
+      "actions_sha256": "84c99ae639f6e82af77a7d7e3ac30ce343a609579e269a060a43afe24c0970f3",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3008,
+      "goals": [
+        3,
+        1
+      ],
+      "shots": [
+        5,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9841,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        62627706,
+        56961907
+      ],
+      "decisions": [
+        2460,
+        2460
+      ],
+      "actions_sha256": "95fab46e6564525076be37d3f6b05d6e4823cde4b88ea02c45b6d4eb861f10e8",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3008,
+      "goals": [
+        0,
+        3
+      ],
+      "shots": [
+        1,
+        8
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        13
+      ],
+      "one_timer_goals": [
+        0,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 11637,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        79466293,
+        752473607
+      ],
+      "decisions": [
+        2909,
+        2909
+      ],
+      "actions_sha256": "267039d33c00b9d4e57a9575c49702e34eb594e9c6d028910eb8f076a6069839",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3008,
+      "goals": [
+        1,
+        4
+      ],
+      "shots": [
+        3,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        7,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11509,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        716577079,
+        70462873
+      ],
+      "decisions": [
+        2877,
+        2877
+      ],
+      "actions_sha256": "43d00a8d41a8b194079471df962c1ce7c50fc70492f7735b9a0bfb3bcb0ace71",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3008,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9499,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        63634802,
+        637290744
+      ],
+      "decisions": [
+        2375,
+        2375
+      ],
+      "actions_sha256": "821e09a7a58979aea8e873aa7004d7a7f869d17fab85f63ee9125f38e664de3b",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3008,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        6,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        7,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8940,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        591835334,
+        53276202
+      ],
+      "decisions": [
+        2235,
+        2235
+      ],
+      "actions_sha256": "67ef6d0e6c688b3bc8e9043b773879c77b960a66096b1ed56db27a9af1d2f116",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3009,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        0,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8987,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        59395220,
+        51732721
+      ],
+      "decisions": [
+        2247,
+        2247
+      ],
+      "actions_sha256": "621e74b8123f5d82647d47870d0fab61dbbc553bccd4fcc8545cf98af2a5c192",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3009,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9171,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        58681396,
+        52462694
+      ],
+      "decisions": [
+        2293,
+        2293
+      ],
+      "actions_sha256": "f01dd4fe8f2ae592f9cfdb52b992930f4bd4cae95d247dbaeadf094855e32728",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3009,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9942,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        65554918,
+        558430694
+      ],
+      "decisions": [
+        2486,
+        2486
+      ],
+      "actions_sha256": "b4d0b16ec2fc0fec98a934c68ae8097bbacb462cd8d80f41f948492fcafc5d2c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3009,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        8,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8502,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        500493246,
+        50211832
+      ],
+      "decisions": [
+        2126,
+        2126
+      ],
+      "actions_sha256": "427dd4e812846d39efc12d36780a5956dcb58ec64b0b66c5dd4004e1fe3a12af",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3009,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        0,
+        5
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        10
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10394,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        68591873,
+        738821774
+      ],
+      "decisions": [
+        2599,
+        2599
+      ],
+      "actions_sha256": "097a7ff155aa797ef22d9bf2605270fbcb8b46b2b1b09e7c0f025bd6a56c3de8",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3009,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        6,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        7,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10066,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        668159234,
+        60416280
+      ],
+      "decisions": [
+        2517,
+        2517
+      ],
+      "actions_sha256": "588c85de56fad2c718c6d372227770a8a65eb50c7edc70cfedf9f59a7fe4cce0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3010,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8694,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        56252573,
+        49041853
+      ],
+      "decisions": [
+        2174,
+        2174
+      ],
+      "actions_sha256": "698ce3b2781197869fbef50144bc6ff4a319c167a12190fb09d64aef6e977354",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3010,
+      "goals": [
+        0,
+        3
+      ],
+      "shots": [
+        2,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10447,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        67433920,
+        59108270
+      ],
+      "decisions": [
+        2612,
+        2612
+      ],
+      "actions_sha256": "b7b91a8f35d272687b9e5ee6ae81bc56796ca03f536d590024fc9e53805fa801",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3010,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8747,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        57582354,
+        526344607
+      ],
+      "decisions": [
+        2187,
+        2187
+      ],
+      "actions_sha256": "ce4caf16a3a296598f57e2d65bdff928f1fa176c69eb2b78d43621605c8feca2",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3010,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7867,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        473141898,
+        46106291
+      ],
+      "decisions": [
+        1967,
+        1967
+      ],
+      "actions_sha256": "8a58c259c01a45e9cbba518d4500527dc793e3f8056d9bd0a052a374f0f7b958",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3010,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9362,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        62186055,
+        622279770
+      ],
+      "decisions": [
+        2341,
+        2341
+      ],
+      "actions_sha256": "e34f14de1d466a56bb5e6f5490533c465f4f9a1b807f6fa4942b6d19b8ed2648",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3010,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        8,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8465,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        580322614,
+        50833185
+      ],
+      "decisions": [
+        2116,
+        2116
+      ],
+      "actions_sha256": "d704bdade11225c70a9258bbec7ca10df3d26cacda6688b2af6da41974b9a353",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3011,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8567,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        55439386,
+        49878537
+      ],
+      "decisions": [
+        2142,
+        2142
+      ],
+      "actions_sha256": "c9e8f70cfa9ba78e052013220233b1812d3f5b0fe456ec186e6e6e95f6661009",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3011,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        1,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        0,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9353,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        61872878,
+        54874195
+      ],
+      "decisions": [
+        2338,
+        2338
+      ],
+      "actions_sha256": "05f59dd3ff3318ac992f1cb35ce379b1de1c5d6930faf8956f12bba852db5a64",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3011,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        7
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8858,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        59002101,
+        552429868
+      ],
+      "decisions": [
+        2215,
+        2215
+      ],
+      "actions_sha256": "e673f68280b342283a050eb52afc72401175c43c44f5bbb93cc0b71c52671c37",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3011,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        7,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11913,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        695938798,
+        72379258
+      ],
+      "decisions": [
+        2978,
+        2978
+      ],
+      "actions_sha256": "7d9cdffcbb985d940f4c7d681382fc73c77e240cc20ba7106edc55fdf0edf8a3",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3011,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8981,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        58491409,
+        664757902
+      ],
+      "decisions": [
+        2245,
+        2245
+      ],
+      "actions_sha256": "740d9784d6ff682edfb0f4188becb65f3872d3d5b7b14ca9a9e8e35530b4c709",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3011,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        4,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8971,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        624861103,
+        54696503
+      ],
+      "decisions": [
+        2243,
+        2243
+      ],
+      "actions_sha256": "0c22aee82bd831ee64a20525fd16155c7bc941034abc492ed7067a4e945686cd",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3012,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        6,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8710,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        55370926,
+        49918540
+      ],
+      "decisions": [
+        2178,
+        2178
+      ],
+      "actions_sha256": "77e6ddc954b7cbc9a856f7ff941ac52a5b3669629a8a64888bcf1844892965b5",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3012,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        6,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9374,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        59524505,
+        53626258
+      ],
+      "decisions": [
+        2344,
+        2344
+      ],
+      "actions_sha256": "209d5448213fb3ce5d5663e8443cfb0c5a01bd88ce76b2fc96733772be15f4a8",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3012,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "one_timers": [
+        1,
+        5
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8723,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        55721220,
+        517511629
+      ],
+      "decisions": [
+        2181,
+        2181
+      ],
+      "actions_sha256": "4362b995e41de677d167ae2cffea57149ebe9d6bbe766fe14dfaaf91d3bb81cb",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3012,
+      "goals": [
+        3,
+        1
+      ],
+      "shots": [
+        5,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        8,
+        0
+      ],
+      "one_timer_goals": [
+        2,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11691,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        753190932,
+        71847075
+      ],
+      "decisions": [
+        2923,
+        2923
+      ],
+      "actions_sha256": "f1a74358739bea49a66062ab1271ca3d647923fa0e36b4ea1af43a1346be05d1",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3012,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        6
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        0,
+        9
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9157,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        59919248,
+        558808332
+      ],
+      "decisions": [
+        2289,
+        2289
+      ],
+      "actions_sha256": "d0dbf63df16f1b499c625593a42938596a29e1c2468682d08662c6e0d0a66c0f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3012,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        4,
+        2
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9065,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        632009741,
+        54067970
+      ],
+      "decisions": [
+        2266,
+        2266
+      ],
+      "actions_sha256": "6cea4e30c5904d158fc90ad057d9d1f26096640f0226b82aec13808d6008065a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3013,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7393,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        45903174,
+        41585595
+      ],
+      "decisions": [
+        1848,
+        1848
+      ],
+      "actions_sha256": "623601ac2cb100e8f022cd822b7e022574efdf3218cd061c762e8f0ac4d460a7",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3013,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        2,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9633,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        64719040,
+        56581649
+      ],
+      "decisions": [
+        2408,
+        2408
+      ],
+      "actions_sha256": "3a5cfdf8bcb1b3140cf814e23c4474793a7f4e14d34b4b2d03a9be0f71af0aeb",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3013,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        1
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        0,
+        8
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 12166,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        86305089,
+        773819838
+      ],
+      "decisions": [
+        3042,
+        3042
+      ],
+      "actions_sha256": "bde9727806dd7511bae9ed10f7b53e5ecaf2b7bcde1a71d1b35ba5b1013b1648",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3013,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7393,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        430334573,
+        44126705
+      ],
+      "decisions": [
+        1848,
+        1848
+      ],
+      "actions_sha256": "88189e242da71bcf63c1a77d6bc86676d4bf1cdc0b4c066c6874ed2a0ffc8b99",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3013,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        5
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        0,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9211,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        64266737,
+        603511619
+      ],
+      "decisions": [
+        2303,
+        2303
+      ],
+      "actions_sha256": "50c0227544ecfbde5c88cc5e1fa17c0940fbf30db6403b63e62097a63f3ec71b",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3013,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        6,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8438,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        582965915,
+        53373157
+      ],
+      "decisions": [
+        2110,
+        2110
+      ],
+      "actions_sha256": "3d3ef6651ff4c2704adfdf34d8f94154fcd0e199c6303ac4ea092a679b58e30d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3014,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7393,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        53439110,
+        43765494
+      ],
+      "decisions": [
+        1848,
+        1848
+      ],
+      "actions_sha256": "8d6e4fe9cccf7619d79a812a93d91475b2651d3bd0e5b4ca84e5dc8ee084a0fb",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3014,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8721,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        60531917,
+        53019749
+      ],
+      "decisions": [
+        2180,
+        2180
+      ],
+      "actions_sha256": "7a14580f2fcd1760ac28cb9129b8ee7a819a2669f45de4e4e71b107eddb65960",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3014,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        7
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11787,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        79511207,
+        727200653
+      ],
+      "decisions": [
+        2947,
+        2947
+      ],
+      "actions_sha256": "28ab6bde433484a0ba2babe9d2c6aa936882f82440de6b21660d014d4c236f6f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3014,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        4,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8937,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        543086406,
+        55382624
+      ],
+      "decisions": [
+        2234,
+        2234
+      ],
+      "actions_sha256": "142c2bb2b4bda9c3ca6508d9151a261582ff167ad270dd5b59cd2b64457448db",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3014,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        5
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        10
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9025,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        59113299,
+        623000991
+      ],
+      "decisions": [
+        2256,
+        2256
+      ],
+      "actions_sha256": "aca7051717b9c5670405b12d70c96f56c1662657889b0c9d278588f9d399c58f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3014,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        3,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8970,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        605668834,
+        55242417
+      ],
+      "decisions": [
+        2243,
+        2243
+      ],
+      "actions_sha256": "25468ce96985bf91a5a9d5ae61f8b74b8a467bb15416014b77cb2d1eda225221",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3015,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        2,
+        6
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10154,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        68018092,
+        59509414
+      ],
+      "decisions": [
+        2539,
+        2539
+      ],
+      "actions_sha256": "63ced4a83c4875250cef18ddc381b2bc5a5d1ed596d26e59768f9177535467a0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3015,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8942,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        58234958,
+        51399431
+      ],
+      "decisions": [
+        2236,
+        2236
+      ],
+      "actions_sha256": "179c1e002a56856952a540afb71fe2d015a1218fb947a99ba2f9a1c061785987",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3015,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        1,
+        8
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9269,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        63688202,
+        532578871
+      ],
+      "decisions": [
+        2317,
+        2317
+      ],
+      "actions_sha256": "39088f608a4f97e0c7aec278de29dabd07143bec3a6d73f21c565cc1b7fefb03",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3015,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        4,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        6,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8491,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        529113360,
+        52220488
+      ],
+      "decisions": [
+        2123,
+        2123
+      ],
+      "actions_sha256": "656512a8bb04dc33f032dc5610be980a99ac2d898000d6aec1aa271a4423c80c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3015,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        6,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10698,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        69949318,
+        679430080
+      ],
+      "decisions": [
+        2675,
+        2675
+      ],
+      "actions_sha256": "967b0bbfd1bc54de0599f9c04c1da5f8ea71230009ad2936181f529d2c913c83",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3015,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        5
+      ],
+      "one_timers": [
+        6,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9936,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        647459440,
+        60268199
+      ],
+      "decisions": [
+        2484,
+        2484
+      ],
+      "actions_sha256": "fc33c064309a4b8174cd19149a7934f3615cb63e6a5ae28beb25ffab8759afa8",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3016,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8708,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        55575378,
+        49224046
+      ],
+      "decisions": [
+        2177,
+        2177
+      ],
+      "actions_sha256": "1bbcd956153d668e5984303ec8cb8a8a67528e9b93c91bdae6efe1644d2e6815",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3016,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        0,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7393,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        47391390,
+        42949439
+      ],
+      "decisions": [
+        1848,
+        1848
+      ],
+      "actions_sha256": "b2891b347970756a5162953a777e2e67c4e48ea9c682bc3c55bb48d235865d49",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3016,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        0,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        7
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8422,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        55555835,
+        509731463
+      ],
+      "decisions": [
+        2106,
+        2106
+      ],
+      "actions_sha256": "1a13a03ad61e9a85d4f6a59038e9663cca57a8f97b3a5ec1aac5af93e31f3bbf",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3016,
+      "goals": [
+        3,
+        0
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        7,
+        0
+      ],
+      "one_timer_goals": [
+        2,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11366,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        698844658,
+        68980220
+      ],
+      "decisions": [
+        2842,
+        2842
+      ],
+      "actions_sha256": "9ec2885036446d74470448c20b6667f7a622c65ea95fd26cafff48e501d99a7f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3016,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        0
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9627,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        62916862,
+        711971484
+      ],
+      "decisions": [
+        2407,
+        2407
+      ],
+      "actions_sha256": "008da3e4a0b1bad4e2e4f15e16ed204b223fc68bce3aa7ca8d2104ebb68ef0bb",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3016,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        6,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        7,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8057,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        577207559,
+        50288394
+      ],
+      "decisions": [
+        2014,
+        2014
+      ],
+      "actions_sha256": "e5531a0716a93515559402adf47ec9aaf14ffbd757ca82a58b3c528c012f3d5f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3017,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        4,
+        5
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8641,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        56944585,
+        49325105
+      ],
+      "decisions": [
+        2160,
+        2160
+      ],
+      "actions_sha256": "8fe9779e000c90e0abb266be4fc158954de9800a870158c38679b67bad457741",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3017,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        5,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "one_timers": [
+        0,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8462,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        55097359,
+        48617196
+      ],
+      "decisions": [
+        2116,
+        2116
+      ],
+      "actions_sha256": "a43b5ef887b86ad181c1d178306ab6dc3a9c473a153a2e577fda36c3a452a73e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3017,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8857,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        60704849,
+        547343310
+      ],
+      "decisions": [
+        2214,
+        2214
+      ],
+      "actions_sha256": "c1bee6c9199eae7868a7f56ac7983596ca9f4ff9b24b639102ce5d4b8858e908",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3017,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        5,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8851,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        531008249,
+        53722364
+      ],
+      "decisions": [
+        2213,
+        2213
+      ],
+      "actions_sha256": "8163f497539a373ddafce110a78c751c9445578c92b753a91b8c156b14edbb8d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3017,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        4
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        0,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10440,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        74619486,
+        660725083
+      ],
+      "decisions": [
+        2610,
+        2610
+      ],
+      "actions_sha256": "601a46464a5b3bfb579641171c96d6d81d3fb517c499915145c156196a7bb1a6",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3017,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        6,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        8,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8697,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        605179065,
+        55456938
+      ],
+      "decisions": [
+        2174,
+        2174
+      ],
+      "actions_sha256": "0fe2a7e44a94c34732cb422c9910a7305d5f16f68ec0720c33517217f5ebd6bb",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3018,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8934,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        65784825,
+        54892626
+      ],
+      "decisions": [
+        2234,
+        2234
+      ],
+      "actions_sha256": "3019992b54aa2d4ede87e15d3186f067f407791bf5498fe1982a34aaed16ad09",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3018,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        3
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9005,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        65105677,
+        53986938
+      ],
+      "decisions": [
+        2251,
+        2251
+      ],
+      "actions_sha256": "596804cd7dcc232ddf9ac04cdb2252a1361a605762d60f2676fcc50e9ecca17e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3018,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8571,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        57999469,
+        499679549
+      ],
+      "decisions": [
+        2143,
+        2143
+      ],
+      "actions_sha256": "cbe98a104da8024473d08cb295ecb74ef55cc5e236f93346f266826833fe975f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3018,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8504,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        502652024,
+        53346643
+      ],
+      "decisions": [
+        2126,
+        2126
+      ],
+      "actions_sha256": "76d97ed36a3c177b335813dac5e122b1cea0efea5e110d35abeda0c5a9307924",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3018,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        1,
+        5
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        11
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11305,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        77845318,
+        820246986
+      ],
+      "decisions": [
+        2826,
+        2826
+      ],
+      "actions_sha256": "9f6969213fc04883e9cd0e7633cfb8ec7b5a2e009e2f2bbc1d5dd6ac2cb66c1e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3018,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        4,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        5,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7858,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        483803198,
+        47234893
+      ],
+      "decisions": [
+        1965,
+        1965
+      ],
+      "actions_sha256": "fee716025dc6ec32265f8cdb7e65a31d92df6dab2368d785b1c6d3294c2a0f4b",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v4-direct"
+      ],
+      "seed": 3019,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9026,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        58441682,
+        52008996
+      ],
+      "decisions": [
+        2257,
+        2257
+      ],
+      "actions_sha256": "c223d9b9f409f9f9de7b2d9d7d9eccc627c200fef92a90f915af0ac0dc40e45a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4-direct",
+        "classic-v4"
+      ],
+      "seed": 3019,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7999,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        50335885,
+        45417914
+      ],
+      "decisions": [
+        2000,
+        2000
+      ],
+      "actions_sha256": "6e774faf5ae1f0920ae5d065f3b778303228f50e8bd23654fac8432344ae4fc0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 3019,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 10745,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        74654090,
+        643978221
+      ],
+      "decisions": [
+        2686,
+        2686
+      ],
+      "actions_sha256": "fcc36dc2f2925537508e88b1472c7da346001e98d7630b9b16be76f8e395ea2b",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 3019,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        7,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9178,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        573565143,
+        58893956
+      ],
+      "decisions": [
+        2295,
+        2295
+      ],
+      "actions_sha256": "592e78ee9f4185e7d8e4c41491a7c67f85c3a5389740dfd879704426e3d53551",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 3019,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "one_timers": [
+        0,
+        10
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9248,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        67752413,
+        639653338
+      ],
+      "decisions": [
+        2312,
+        2312
+      ],
+      "actions_sha256": "2c295f148444f54edd0259e3f36bae6a683185e0bd40c43d01e8c8bc16c9dc7c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 3019,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9688,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        629685523,
+        62374635
+      ],
+      "decisions": [
+        2422,
+        2422
+      ],
+      "actions_sha256": "636a71f2a96c93fb8dbc9dab22aba14eb4697f4571951766710d0dc43eb255af",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    }
+  ]
+}

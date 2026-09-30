@@ -1,0 +1,21 @@
+{
+  "options": {
+    "env": "NHL94-Genesis-v0",
+    "state": "PenguinsVsSenators.DefenseZone",
+    "rf": "DefenseZone",
+    "nn": "MlpPolicy",
+    "alg": "ppo2",
+    "action_type": "TARGET_POSITION",
+    "num_players": 1,
+    "num_env": 16,
+    "num_timesteps": 100000000,
+    "hyperparams": "defense-target-hyperparams.json",
+    "output_basedir": "~/OUTPUT/defense-target",
+    "seed": 0,
+    "policy_seed": 0,
+    "headless": true,
+    "live_eval_freq": 10000,
+    "live_eval_episodes": 5,
+    "live_fps": 60
+  }
+}

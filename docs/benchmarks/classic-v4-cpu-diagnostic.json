@@ -1,0 +1,5960 @@
+{
+  "protocol": "nhl94-v4-cpu-diagnostic-v1",
+  "purpose": "Investigate infrequent one-timers and performance on stronger opposition / weaker controlled rosters. No controller tuning was performed.",
+  "game": "NHL94-Genesis-v0",
+  "settings": {
+    "seeds": [
+      4200,
+      4201,
+      4202,
+      4203,
+      4204,
+      4205,
+      4206,
+      4207,
+      4208,
+      4209
+    ],
+    "seconds": 300,
+    "frame_skip": 4,
+    "action_type": "FILTERED",
+    "workers": 4,
+    "agent": "classic-v4",
+    "opponent": "built-in game CPU"
+  },
+  "method": [
+    "Load existing one-controller start saves with unchanged rosters, player attributes, scores and gameplay rules. Set ROM RNG and 16-bit period clock.",
+    "Home trials use the normal star-derived GameState control inference. The raw emulator is stepped directly; this bypasses the play UI and PostPlay early ending.",
+    "Away trials transfer controller 1 from its home player slot to the corresponding away slot: set cont1team=2 and c1playernum+=6; clear the former home player joystick flag and request a new CPU assignment; set the away player joystick flag. Controller 2 remains unassigned. This activates the CPU for the home team; it is not a second human with zero input.",
+    "Away observations use the existing benchmark control/possession corrections, mapping controller 1 to away team control, and swap physical team references without rotating rink coordinates.",
+    "V4 decisions repeat for four emulator frames. Stop at the actual clock reaching zero; a 42000-frame ceiling bounds stuck games. All 30 periods completed.",
+    "One-timer attempts and goals are ROM team counters. Setup counts are V4 one-timer-pass decisions.",
+    "Starting player names are decoded from the ROM roster pointer and each live player roster index. The Montreal save has Patrick Roy in goalie slot 5. Live skater accuracy bytes are engine values, not displayed ratings or scoring probabilities."
+  ],
+  "limitations": [
+    "Ten seeds per fixed starting lineup; exploratory evidence, not a broad win-rate estimate or a complete-game benchmark.",
+    "Away trials change controller assignment and correct observations. They are diagnostic agent tests, not exact reproductions of the current play UI.",
+    "Opposing teams and save states differ. Results do not isolate the causal effect of goalkeeper quality or any individual skater rating.",
+    "Only raw FILTERED buttons, first-period saves and four-frame decisions were evaluated in this batch. Hockey intents and later periods need separate coverage."
+  ],
+  "sources": {
+    "nhl94_ai/agents/classic_v4.py": "88405e6b8d9f9d16b510785c3d0f6a24c192d6ee1b2ebaa92f35c50b8421bc8a",
+    "nhl94_ai/game/state.py": "eb94eb3cdfcd70cfd9b54523773e5445ceb86a53e451321548e5ca36505694f9",
+    "nhl94_ai/evaluation/benchmark.py": "42cf00a77033f8937c136705733ef222a5250c8b331ea22a2e1c7cc7b6acc15b",
+    "nhl94_ai/env/factory.py": "c46370ec54ce2308df706fb86b7b26433930cf5c7b355217d89f4948bdf40b81"
+  },
+  "versions": {
+    "nhl94-ai": "0.1.0",
+    "stable-retro": "1.0.1",
+    "numpy": "2.5.1"
+  },
+  "summary": [
+    {
+      "matchup": "Pittsburgh vs CPU Ottawa",
+      "periods": 10,
+      "draws": 3,
+      "wins": 5,
+      "losses": 2,
+      "goals_for": 8,
+      "goals_against": 2,
+      "one_timer_setups": 3,
+      "one_timers": 3,
+      "periods_without_one_timers": 7,
+      "corrected_control": false
+    },
+    {
+      "matchup": "Ottawa vs CPU Pittsburgh",
+      "periods": 10,
+      "losses": 6,
+      "wins": 1,
+      "draws": 3,
+      "goals_for": 5,
+      "goals_against": 13,
+      "one_timer_setups": 1,
+      "one_timers": 1,
+      "periods_without_one_timers": 9,
+      "corrected_control": true
+    },
+    {
+      "matchup": "Quebec vs CPU Montreal (Patrick Roy)",
+      "periods": 10,
+      "draws": 3,
+      "losses": 5,
+      "wins": 2,
+      "goals_for": 4,
+      "goals_against": 8,
+      "one_timer_setups": 6,
+      "one_timers": 1,
+      "periods_without_one_timers": 9,
+      "corrected_control": true
+    }
+  ],
+  "matches": [
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 4200,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        7
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1339,
+        "carry": 618,
+        "switch": 83,
+        "goalie-outlet": 28,
+        "shoot": 6,
+        "shot-follow-through": 26
+      },
+      "control_mismatch": 76,
+      "owned": 659,
+      "owned_control_mismatch": 3,
+      "frames": 8400,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 4201,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        0,
+        6
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1413,
+        "carry": 606,
+        "switch": 72,
+        "shoot": 7,
+        "shot-follow-through": 36,
+        "goalie-outlet": 67
+      },
+      "control_mismatch": 42,
+      "owned": 686,
+      "owned_control_mismatch": 1,
+      "frames": 8803,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 4202,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        4,
+        5
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1459,
+        "carry": 690,
+        "shoot": 17,
+        "shot-follow-through": 89,
+        "switch": 74,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 6,
+        "one-timer-wait": 5,
+        "goalie-outlet": 46
+      },
+      "control_mismatch": 46,
+      "owned": 777,
+      "owned_control_mismatch": 6,
+      "frames": 9547,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 4203,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        6
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1512,
+        "carry": 567,
+        "switch": 79,
+        "shoot": 9,
+        "shot-follow-through": 39,
+        "goalie-outlet": 28
+      },
+      "control_mismatch": 34,
+      "owned": 610,
+      "owned_control_mismatch": 1,
+      "frames": 8937,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 4204,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        6
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1242,
+        "carry": 752,
+        "switch": 74,
+        "shoot": 6,
+        "shot-follow-through": 20,
+        "goalie-outlet": 30
+      },
+      "control_mismatch": 48,
+      "owned": 796,
+      "owned_control_mismatch": 5,
+      "frames": 8497,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 4205,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1308,
+        "carry": 678,
+        "switch": 73,
+        "goalie-outlet": 17,
+        "shoot": 6,
+        "shot-follow-through": 28,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 5,
+        "one-timer-wait": 8
+      },
+      "control_mismatch": 39,
+      "owned": 704,
+      "owned_control_mismatch": 0,
+      "frames": 8496,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 4206,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1421,
+        "carry": 513,
+        "switch": 77,
+        "shoot": 5,
+        "shot-follow-through": 20,
+        "goalie-outlet": 26,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 12
+      },
+      "control_mismatch": 79,
+      "owned": 551,
+      "owned_control_mismatch": 5,
+      "frames": 8303,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 4207,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        4,
+        4
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1680,
+        "carry": 528,
+        "switch": 86,
+        "shoot": 6,
+        "shot-follow-through": 26,
+        "goalie-outlet": 35
+      },
+      "control_mismatch": 39,
+      "owned": 578,
+      "owned_control_mismatch": 6,
+      "frames": 9443,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 4208,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        4
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1363,
+        "carry": 594,
+        "switch": 60,
+        "goalie-outlet": 30,
+        "shoot": 13,
+        "shot-follow-through": 61
+      },
+      "control_mismatch": 43,
+      "owned": 664,
+      "owned_control_mismatch": 2,
+      "frames": 8483,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 4209,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        3,
+        0
+      ],
+      "shots": [
+        4,
+        4
+      ],
+      "one_timers": [
+        0,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1809,
+        "carry": 573,
+        "shoot": 9,
+        "shot-follow-through": 36,
+        "switch": 97,
+        "goalie-outlet": 32
+      },
+      "control_mismatch": 77,
+      "owned": 618,
+      "owned_control_mismatch": 3,
+      "frames": 10224,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 2,
+      "seed": 4200,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 72,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        8,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1445,
+        "switch": 61,
+        "carry": 635,
+        "goalie-outlet": 13,
+        "shoot": 3,
+        "shot-follow-through": 12
+      },
+      "control_mismatch": 68,
+      "owned": 653,
+      "owned_control_mismatch": 3,
+      "frames": 8674,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 2,
+      "seed": 4201,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 72,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        3,
+        0
+      ],
+      "shots": [
+        7,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1818,
+        "carry": 547,
+        "switch": 60,
+        "shoot": 3,
+        "shot-follow-through": 15,
+        "goalie-outlet": 14
+      },
+      "control_mismatch": 112,
+      "owned": 565,
+      "owned_control_mismatch": 4,
+      "frames": 9829,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 2,
+      "seed": 4202,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 72,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        7,
+        0
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1339,
+        "carry": 647,
+        "shoot": 9,
+        "shot-follow-through": 49,
+        "switch": 53,
+        "goalie-outlet": 19
+      },
+      "control_mismatch": 68,
+      "owned": 698,
+      "owned_control_mismatch": 1,
+      "frames": 8464,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 2,
+      "seed": 4203,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 72,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        6,
+        3
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1660,
+        "switch": 77,
+        "carry": 580,
+        "shoot": 5,
+        "shot-follow-through": 24,
+        "goalie-outlet": 16
+      },
+      "control_mismatch": 89,
+      "owned": 609,
+      "owned_control_mismatch": 0,
+      "frames": 9449,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 2,
+      "seed": 4204,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 72,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "one_timers": [
+        4,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1411,
+        "carry": 731,
+        "switch": 58,
+        "goalie-outlet": 7,
+        "shoot": 4,
+        "shot-follow-through": 24,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 12
+      },
+      "control_mismatch": 70,
+      "owned": 743,
+      "owned_control_mismatch": 6,
+      "frames": 8997,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 2,
+      "seed": 4205,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 72,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        10,
+        1
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1632,
+        "carry": 591,
+        "shoot": 3,
+        "shot-follow-through": 12,
+        "switch": 52,
+        "goalie-outlet": 2
+      },
+      "control_mismatch": 61,
+      "owned": 597,
+      "owned_control_mismatch": 2,
+      "frames": 9167,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 2,
+      "seed": 4206,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 72,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        5,
+        0
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1468,
+        "carry": 564,
+        "shoot": 3,
+        "shot-follow-through": 10,
+        "switch": 56,
+        "goalie-outlet": 26
+      },
+      "control_mismatch": 74,
+      "owned": 595,
+      "owned_control_mismatch": 5,
+      "frames": 8506,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 2,
+      "seed": 4207,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 72,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        5,
+        2
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 966,
+        "carry": 747,
+        "switch": 49,
+        "goalie-outlet": 31,
+        "shoot": 11,
+        "shot-follow-through": 54
+      },
+      "control_mismatch": 68,
+      "owned": 796,
+      "owned_control_mismatch": 5,
+      "frames": 7432,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 2,
+      "seed": 4208,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 72,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        6,
+        4
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1528,
+        "carry": 615,
+        "switch": 67,
+        "shoot": 10,
+        "shot-follow-through": 49,
+        "goalie-outlet": 9
+      },
+      "control_mismatch": 90,
+      "owned": 639,
+      "owned_control_mismatch": 4,
+      "frames": 9113,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 2,
+      "seed": 4209,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 72,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Jaromir Jagr",
+            "jersey": "68",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 1,
+            "name": "Kevin Stevens",
+            "jersey": "25",
+            "live_accuracy": 22
+          },
+          {
+            "slot": 2,
+            "name": "Mario Lemieux",
+            "jersey": "66",
+            "live_accuracy": 30
+          },
+          {
+            "slot": 3,
+            "name": "Ulf Samuelsson",
+            "jersey": "05",
+            "live_accuracy": 2
+          },
+          {
+            "slot": 4,
+            "name": "Larry Murphy",
+            "jersey": "55",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 5,
+            "name": "Tom Barrasso",
+            "jersey": "35",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Bob Kudelski",
+            "jersey": "26",
+            "live_accuracy": 17
+          },
+          {
+            "slot": 7,
+            "name": "Sylvain Turgeon",
+            "jersey": "61",
+            "live_accuracy": 6
+          },
+          {
+            "slot": 8,
+            "name": "Jamie Baker",
+            "jersey": "13",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 9,
+            "name": "Norm Maciver",
+            "jersey": "22",
+            "live_accuracy": 5
+          },
+          {
+            "slot": 10,
+            "name": "Brad Shaw",
+            "jersey": "04",
+            "live_accuracy": 0
+          },
+          {
+            "slot": 11,
+            "name": "Peter Sidorkwicz",
+            "jersey": "31",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        8,
+        2
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1799,
+        "carry": 516,
+        "switch": 80,
+        "goalie-outlet": 31,
+        "shoot": 14,
+        "shot-follow-through": 62
+      },
+      "control_mismatch": 93,
+      "owned": 584,
+      "owned_control_mismatch": 5,
+      "frames": 10006,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "CanadiensVsNordiques.start",
+      "side": 2,
+      "seed": 4200,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 11,
+        "away_team": 18,
+        "s0_flags": 130,
+        "s0_roster": 11,
+        "s0_jersey": 35,
+        "s0_accuracy": 20,
+        "s0_power": 18,
+        "s0_agility": 18,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 16,
+        "s1_power": 14,
+        "s1_agility": 19,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 17,
+        "s2_accuracy": 20,
+        "s2_power": 18,
+        "s2_agility": 18,
+        "s3_flags": 130,
+        "s3_roster": 16,
+        "s3_jersey": 40,
+        "s3_accuracy": 11,
+        "s3_power": 14,
+        "s3_agility": 19,
+        "s4_flags": 130,
+        "s4_roster": 17,
+        "s4_jersey": 39,
+        "s4_accuracy": 11,
+        "s4_power": 14,
+        "s4_agility": 14,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 51,
+        "s5_accuracy": 0,
+        "s5_power": 30,
+        "s5_agility": 30,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 17,
+        "s6_accuracy": 18,
+        "s6_power": 18,
+        "s6_agility": 18,
+        "s7_flags": 66,
+        "s7_roster": 2,
+        "s7_jersey": 25,
+        "s7_accuracy": 25,
+        "s7_power": 20,
+        "s7_agility": 20,
+        "s8_flags": 72,
+        "s8_roster": 13,
+        "s8_jersey": 19,
+        "s8_accuracy": 25,
+        "s8_power": 20,
+        "s8_agility": 20,
+        "s9_flags": 66,
+        "s9_roster": 17,
+        "s9_jersey": 40,
+        "s9_accuracy": 12,
+        "s9_power": 22,
+        "s9_agility": 22,
+        "s10_flags": 66,
+        "s10_roster": 18,
+        "s10_jersey": 7,
+        "s10_accuracy": 15,
+        "s10_power": 10,
+        "s10_agility": 15,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 39,
+        "s11_accuracy": 0,
+        "s11_power": 18,
+        "s11_agility": 18,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Brian Bellows",
+            "jersey": "23",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 1,
+            "name": "Vincent Damphousse",
+            "jersey": "25",
+            "live_accuracy": 16
+          },
+          {
+            "slot": 2,
+            "name": "Kirk Muller",
+            "jersey": "11",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 3,
+            "name": "Eric Desjardins",
+            "jersey": "28",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 4,
+            "name": "Matt Schneider",
+            "jersey": "27",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 5,
+            "name": "Patrick Roy",
+            "jersey": "33",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Owen Nolan",
+            "jersey": "11",
+            "live_accuracy": 18
+          },
+          {
+            "slot": 7,
+            "name": "Joe Sakic",
+            "jersey": "19",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 8,
+            "name": "Mats Sundin",
+            "jersey": "13",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 9,
+            "name": "Steve Duchesne",
+            "jersey": "28",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 10,
+            "name": "Curtis Leschyshyn",
+            "jersey": "07",
+            "live_accuracy": 15
+          },
+          {
+            "slot": 11,
+            "name": "Ron Hextall",
+            "jersey": "27",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        4,
+        3
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1448,
+        "carry": 644,
+        "switch": 62,
+        "goalie-outlet": 21,
+        "shoot": 9,
+        "shot-follow-through": 44
+      },
+      "control_mismatch": 75,
+      "owned": 681,
+      "owned_control_mismatch": 7,
+      "frames": 8912,
+      "save_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "state": "CanadiensVsNordiques.start",
+      "side": 2,
+      "seed": 4201,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 11,
+        "away_team": 18,
+        "s0_flags": 130,
+        "s0_roster": 11,
+        "s0_jersey": 35,
+        "s0_accuracy": 20,
+        "s0_power": 18,
+        "s0_agility": 18,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 16,
+        "s1_power": 14,
+        "s1_agility": 19,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 17,
+        "s2_accuracy": 20,
+        "s2_power": 18,
+        "s2_agility": 18,
+        "s3_flags": 130,
+        "s3_roster": 16,
+        "s3_jersey": 40,
+        "s3_accuracy": 11,
+        "s3_power": 14,
+        "s3_agility": 19,
+        "s4_flags": 130,
+        "s4_roster": 17,
+        "s4_jersey": 39,
+        "s4_accuracy": 11,
+        "s4_power": 14,
+        "s4_agility": 14,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 51,
+        "s5_accuracy": 0,
+        "s5_power": 30,
+        "s5_agility": 30,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 17,
+        "s6_accuracy": 18,
+        "s6_power": 18,
+        "s6_agility": 18,
+        "s7_flags": 66,
+        "s7_roster": 2,
+        "s7_jersey": 25,
+        "s7_accuracy": 25,
+        "s7_power": 20,
+        "s7_agility": 20,
+        "s8_flags": 72,
+        "s8_roster": 13,
+        "s8_jersey": 19,
+        "s8_accuracy": 25,
+        "s8_power": 20,
+        "s8_agility": 20,
+        "s9_flags": 66,
+        "s9_roster": 17,
+        "s9_jersey": 40,
+        "s9_accuracy": 12,
+        "s9_power": 22,
+        "s9_agility": 22,
+        "s10_flags": 66,
+        "s10_roster": 18,
+        "s10_jersey": 7,
+        "s10_accuracy": 15,
+        "s10_power": 10,
+        "s10_agility": 15,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 39,
+        "s11_accuracy": 0,
+        "s11_power": 18,
+        "s11_agility": 18,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Brian Bellows",
+            "jersey": "23",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 1,
+            "name": "Vincent Damphousse",
+            "jersey": "25",
+            "live_accuracy": 16
+          },
+          {
+            "slot": 2,
+            "name": "Kirk Muller",
+            "jersey": "11",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 3,
+            "name": "Eric Desjardins",
+            "jersey": "28",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 4,
+            "name": "Matt Schneider",
+            "jersey": "27",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 5,
+            "name": "Patrick Roy",
+            "jersey": "33",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Owen Nolan",
+            "jersey": "11",
+            "live_accuracy": 18
+          },
+          {
+            "slot": 7,
+            "name": "Joe Sakic",
+            "jersey": "19",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 8,
+            "name": "Mats Sundin",
+            "jersey": "13",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 9,
+            "name": "Steve Duchesne",
+            "jersey": "28",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 10,
+            "name": "Curtis Leschyshyn",
+            "jersey": "07",
+            "live_accuracy": 15
+          },
+          {
+            "slot": 11,
+            "name": "Ron Hextall",
+            "jersey": "27",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        6,
+        1
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1343,
+        "carry": 599,
+        "shoot": 11,
+        "shot-follow-through": 48,
+        "switch": 61,
+        "goalie-outlet": 37
+      },
+      "control_mismatch": 96,
+      "owned": 667,
+      "owned_control_mismatch": 12,
+      "frames": 8394,
+      "save_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "state": "CanadiensVsNordiques.start",
+      "side": 2,
+      "seed": 4202,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 11,
+        "away_team": 18,
+        "s0_flags": 130,
+        "s0_roster": 11,
+        "s0_jersey": 35,
+        "s0_accuracy": 20,
+        "s0_power": 18,
+        "s0_agility": 18,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 16,
+        "s1_power": 14,
+        "s1_agility": 19,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 17,
+        "s2_accuracy": 20,
+        "s2_power": 18,
+        "s2_agility": 18,
+        "s3_flags": 130,
+        "s3_roster": 16,
+        "s3_jersey": 40,
+        "s3_accuracy": 11,
+        "s3_power": 14,
+        "s3_agility": 19,
+        "s4_flags": 130,
+        "s4_roster": 17,
+        "s4_jersey": 39,
+        "s4_accuracy": 11,
+        "s4_power": 14,
+        "s4_agility": 14,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 51,
+        "s5_accuracy": 0,
+        "s5_power": 30,
+        "s5_agility": 30,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 17,
+        "s6_accuracy": 18,
+        "s6_power": 18,
+        "s6_agility": 18,
+        "s7_flags": 66,
+        "s7_roster": 2,
+        "s7_jersey": 25,
+        "s7_accuracy": 25,
+        "s7_power": 20,
+        "s7_agility": 20,
+        "s8_flags": 72,
+        "s8_roster": 13,
+        "s8_jersey": 19,
+        "s8_accuracy": 25,
+        "s8_power": 20,
+        "s8_agility": 20,
+        "s9_flags": 66,
+        "s9_roster": 17,
+        "s9_jersey": 40,
+        "s9_accuracy": 12,
+        "s9_power": 22,
+        "s9_agility": 22,
+        "s10_flags": 66,
+        "s10_roster": 18,
+        "s10_jersey": 7,
+        "s10_accuracy": 15,
+        "s10_power": 10,
+        "s10_agility": 15,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 39,
+        "s11_accuracy": 0,
+        "s11_power": 18,
+        "s11_agility": 18,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Brian Bellows",
+            "jersey": "23",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 1,
+            "name": "Vincent Damphousse",
+            "jersey": "25",
+            "live_accuracy": 16
+          },
+          {
+            "slot": 2,
+            "name": "Kirk Muller",
+            "jersey": "11",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 3,
+            "name": "Eric Desjardins",
+            "jersey": "28",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 4,
+            "name": "Matt Schneider",
+            "jersey": "27",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 5,
+            "name": "Patrick Roy",
+            "jersey": "33",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Owen Nolan",
+            "jersey": "11",
+            "live_accuracy": 18
+          },
+          {
+            "slot": 7,
+            "name": "Joe Sakic",
+            "jersey": "19",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 8,
+            "name": "Mats Sundin",
+            "jersey": "13",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 9,
+            "name": "Steve Duchesne",
+            "jersey": "28",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 10,
+            "name": "Curtis Leschyshyn",
+            "jersey": "07",
+            "live_accuracy": 15
+          },
+          {
+            "slot": 11,
+            "name": "Ron Hextall",
+            "jersey": "27",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        7,
+        0
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1589,
+        "carry": 697,
+        "shoot": 3,
+        "shot-follow-through": 12,
+        "switch": 79,
+        "goalie-outlet": 17
+      },
+      "control_mismatch": 86,
+      "owned": 718,
+      "owned_control_mismatch": 2,
+      "frames": 9586,
+      "save_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "state": "CanadiensVsNordiques.start",
+      "side": 2,
+      "seed": 4203,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 11,
+        "away_team": 18,
+        "s0_flags": 130,
+        "s0_roster": 11,
+        "s0_jersey": 35,
+        "s0_accuracy": 20,
+        "s0_power": 18,
+        "s0_agility": 18,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 16,
+        "s1_power": 14,
+        "s1_agility": 19,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 17,
+        "s2_accuracy": 20,
+        "s2_power": 18,
+        "s2_agility": 18,
+        "s3_flags": 130,
+        "s3_roster": 16,
+        "s3_jersey": 40,
+        "s3_accuracy": 11,
+        "s3_power": 14,
+        "s3_agility": 19,
+        "s4_flags": 130,
+        "s4_roster": 17,
+        "s4_jersey": 39,
+        "s4_accuracy": 11,
+        "s4_power": 14,
+        "s4_agility": 14,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 51,
+        "s5_accuracy": 0,
+        "s5_power": 30,
+        "s5_agility": 30,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 17,
+        "s6_accuracy": 18,
+        "s6_power": 18,
+        "s6_agility": 18,
+        "s7_flags": 66,
+        "s7_roster": 2,
+        "s7_jersey": 25,
+        "s7_accuracy": 25,
+        "s7_power": 20,
+        "s7_agility": 20,
+        "s8_flags": 72,
+        "s8_roster": 13,
+        "s8_jersey": 19,
+        "s8_accuracy": 25,
+        "s8_power": 20,
+        "s8_agility": 20,
+        "s9_flags": 66,
+        "s9_roster": 17,
+        "s9_jersey": 40,
+        "s9_accuracy": 12,
+        "s9_power": 22,
+        "s9_agility": 22,
+        "s10_flags": 66,
+        "s10_roster": 18,
+        "s10_jersey": 7,
+        "s10_accuracy": 15,
+        "s10_power": 10,
+        "s10_agility": 15,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 39,
+        "s11_accuracy": 0,
+        "s11_power": 18,
+        "s11_agility": 18,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Brian Bellows",
+            "jersey": "23",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 1,
+            "name": "Vincent Damphousse",
+            "jersey": "25",
+            "live_accuracy": 16
+          },
+          {
+            "slot": 2,
+            "name": "Kirk Muller",
+            "jersey": "11",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 3,
+            "name": "Eric Desjardins",
+            "jersey": "28",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 4,
+            "name": "Matt Schneider",
+            "jersey": "27",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 5,
+            "name": "Patrick Roy",
+            "jersey": "33",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Owen Nolan",
+            "jersey": "11",
+            "live_accuracy": 18
+          },
+          {
+            "slot": 7,
+            "name": "Joe Sakic",
+            "jersey": "19",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 8,
+            "name": "Mats Sundin",
+            "jersey": "13",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 9,
+            "name": "Steve Duchesne",
+            "jersey": "28",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 10,
+            "name": "Curtis Leschyshyn",
+            "jersey": "07",
+            "live_accuracy": 15
+          },
+          {
+            "slot": 11,
+            "name": "Ron Hextall",
+            "jersey": "27",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        6,
+        1
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1412,
+        "carry": 693,
+        "switch": 55,
+        "goalie-outlet": 37,
+        "shoot": 3,
+        "shot-follow-through": 17
+      },
+      "control_mismatch": 70,
+      "owned": 740,
+      "owned_control_mismatch": 3,
+      "frames": 8867,
+      "save_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "state": "CanadiensVsNordiques.start",
+      "side": 2,
+      "seed": 4204,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 11,
+        "away_team": 18,
+        "s0_flags": 130,
+        "s0_roster": 11,
+        "s0_jersey": 35,
+        "s0_accuracy": 20,
+        "s0_power": 18,
+        "s0_agility": 18,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 16,
+        "s1_power": 14,
+        "s1_agility": 19,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 17,
+        "s2_accuracy": 20,
+        "s2_power": 18,
+        "s2_agility": 18,
+        "s3_flags": 130,
+        "s3_roster": 16,
+        "s3_jersey": 40,
+        "s3_accuracy": 11,
+        "s3_power": 14,
+        "s3_agility": 19,
+        "s4_flags": 130,
+        "s4_roster": 17,
+        "s4_jersey": 39,
+        "s4_accuracy": 11,
+        "s4_power": 14,
+        "s4_agility": 14,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 51,
+        "s5_accuracy": 0,
+        "s5_power": 30,
+        "s5_agility": 30,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 17,
+        "s6_accuracy": 18,
+        "s6_power": 18,
+        "s6_agility": 18,
+        "s7_flags": 66,
+        "s7_roster": 2,
+        "s7_jersey": 25,
+        "s7_accuracy": 25,
+        "s7_power": 20,
+        "s7_agility": 20,
+        "s8_flags": 72,
+        "s8_roster": 13,
+        "s8_jersey": 19,
+        "s8_accuracy": 25,
+        "s8_power": 20,
+        "s8_agility": 20,
+        "s9_flags": 66,
+        "s9_roster": 17,
+        "s9_jersey": 40,
+        "s9_accuracy": 12,
+        "s9_power": 22,
+        "s9_agility": 22,
+        "s10_flags": 66,
+        "s10_roster": 18,
+        "s10_jersey": 7,
+        "s10_accuracy": 15,
+        "s10_power": 10,
+        "s10_agility": 15,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 39,
+        "s11_accuracy": 0,
+        "s11_power": 18,
+        "s11_agility": 18,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Brian Bellows",
+            "jersey": "23",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 1,
+            "name": "Vincent Damphousse",
+            "jersey": "25",
+            "live_accuracy": 16
+          },
+          {
+            "slot": 2,
+            "name": "Kirk Muller",
+            "jersey": "11",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 3,
+            "name": "Eric Desjardins",
+            "jersey": "28",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 4,
+            "name": "Matt Schneider",
+            "jersey": "27",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 5,
+            "name": "Patrick Roy",
+            "jersey": "33",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Owen Nolan",
+            "jersey": "11",
+            "live_accuracy": 18
+          },
+          {
+            "slot": 7,
+            "name": "Joe Sakic",
+            "jersey": "19",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 8,
+            "name": "Mats Sundin",
+            "jersey": "13",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 9,
+            "name": "Steve Duchesne",
+            "jersey": "28",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 10,
+            "name": "Curtis Leschyshyn",
+            "jersey": "07",
+            "live_accuracy": 15
+          },
+          {
+            "slot": 11,
+            "name": "Ron Hextall",
+            "jersey": "27",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        5,
+        2
+      ],
+      "one_timers": [
+        5,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1265,
+        "carry": 602,
+        "switch": 67,
+        "goalie-outlet": 44,
+        "shoot": 4,
+        "shot-follow-through": 19
+      },
+      "control_mismatch": 86,
+      "owned": 652,
+      "owned_control_mismatch": 5,
+      "frames": 8003,
+      "save_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "state": "CanadiensVsNordiques.start",
+      "side": 2,
+      "seed": 4205,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 11,
+        "away_team": 18,
+        "s0_flags": 130,
+        "s0_roster": 11,
+        "s0_jersey": 35,
+        "s0_accuracy": 20,
+        "s0_power": 18,
+        "s0_agility": 18,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 16,
+        "s1_power": 14,
+        "s1_agility": 19,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 17,
+        "s2_accuracy": 20,
+        "s2_power": 18,
+        "s2_agility": 18,
+        "s3_flags": 130,
+        "s3_roster": 16,
+        "s3_jersey": 40,
+        "s3_accuracy": 11,
+        "s3_power": 14,
+        "s3_agility": 19,
+        "s4_flags": 130,
+        "s4_roster": 17,
+        "s4_jersey": 39,
+        "s4_accuracy": 11,
+        "s4_power": 14,
+        "s4_agility": 14,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 51,
+        "s5_accuracy": 0,
+        "s5_power": 30,
+        "s5_agility": 30,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 17,
+        "s6_accuracy": 18,
+        "s6_power": 18,
+        "s6_agility": 18,
+        "s7_flags": 66,
+        "s7_roster": 2,
+        "s7_jersey": 25,
+        "s7_accuracy": 25,
+        "s7_power": 20,
+        "s7_agility": 20,
+        "s8_flags": 72,
+        "s8_roster": 13,
+        "s8_jersey": 19,
+        "s8_accuracy": 25,
+        "s8_power": 20,
+        "s8_agility": 20,
+        "s9_flags": 66,
+        "s9_roster": 17,
+        "s9_jersey": 40,
+        "s9_accuracy": 12,
+        "s9_power": 22,
+        "s9_agility": 22,
+        "s10_flags": 66,
+        "s10_roster": 18,
+        "s10_jersey": 7,
+        "s10_accuracy": 15,
+        "s10_power": 10,
+        "s10_agility": 15,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 39,
+        "s11_accuracy": 0,
+        "s11_power": 18,
+        "s11_agility": 18,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Brian Bellows",
+            "jersey": "23",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 1,
+            "name": "Vincent Damphousse",
+            "jersey": "25",
+            "live_accuracy": 16
+          },
+          {
+            "slot": 2,
+            "name": "Kirk Muller",
+            "jersey": "11",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 3,
+            "name": "Eric Desjardins",
+            "jersey": "28",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 4,
+            "name": "Matt Schneider",
+            "jersey": "27",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 5,
+            "name": "Patrick Roy",
+            "jersey": "33",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Owen Nolan",
+            "jersey": "11",
+            "live_accuracy": 18
+          },
+          {
+            "slot": 7,
+            "name": "Joe Sakic",
+            "jersey": "19",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 8,
+            "name": "Mats Sundin",
+            "jersey": "13",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 9,
+            "name": "Steve Duchesne",
+            "jersey": "28",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 10,
+            "name": "Curtis Leschyshyn",
+            "jersey": "07",
+            "live_accuracy": 15
+          },
+          {
+            "slot": 11,
+            "name": "Ron Hextall",
+            "jersey": "27",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        6,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1419,
+        "carry": 618,
+        "shoot": 12,
+        "shot-follow-through": 48,
+        "switch": 56,
+        "goalie-outlet": 35,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 8,
+        "one-timer-wait": 6
+      },
+      "control_mismatch": 88,
+      "owned": 675,
+      "owned_control_mismatch": 8,
+      "frames": 8819,
+      "save_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "state": "CanadiensVsNordiques.start",
+      "side": 2,
+      "seed": 4206,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 11,
+        "away_team": 18,
+        "s0_flags": 130,
+        "s0_roster": 11,
+        "s0_jersey": 35,
+        "s0_accuracy": 20,
+        "s0_power": 18,
+        "s0_agility": 18,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 16,
+        "s1_power": 14,
+        "s1_agility": 19,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 17,
+        "s2_accuracy": 20,
+        "s2_power": 18,
+        "s2_agility": 18,
+        "s3_flags": 130,
+        "s3_roster": 16,
+        "s3_jersey": 40,
+        "s3_accuracy": 11,
+        "s3_power": 14,
+        "s3_agility": 19,
+        "s4_flags": 130,
+        "s4_roster": 17,
+        "s4_jersey": 39,
+        "s4_accuracy": 11,
+        "s4_power": 14,
+        "s4_agility": 14,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 51,
+        "s5_accuracy": 0,
+        "s5_power": 30,
+        "s5_agility": 30,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 17,
+        "s6_accuracy": 18,
+        "s6_power": 18,
+        "s6_agility": 18,
+        "s7_flags": 66,
+        "s7_roster": 2,
+        "s7_jersey": 25,
+        "s7_accuracy": 25,
+        "s7_power": 20,
+        "s7_agility": 20,
+        "s8_flags": 72,
+        "s8_roster": 13,
+        "s8_jersey": 19,
+        "s8_accuracy": 25,
+        "s8_power": 20,
+        "s8_agility": 20,
+        "s9_flags": 66,
+        "s9_roster": 17,
+        "s9_jersey": 40,
+        "s9_accuracy": 12,
+        "s9_power": 22,
+        "s9_agility": 22,
+        "s10_flags": 66,
+        "s10_roster": 18,
+        "s10_jersey": 7,
+        "s10_accuracy": 15,
+        "s10_power": 10,
+        "s10_agility": 15,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 39,
+        "s11_accuracy": 0,
+        "s11_power": 18,
+        "s11_agility": 18,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Brian Bellows",
+            "jersey": "23",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 1,
+            "name": "Vincent Damphousse",
+            "jersey": "25",
+            "live_accuracy": 16
+          },
+          {
+            "slot": 2,
+            "name": "Kirk Muller",
+            "jersey": "11",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 3,
+            "name": "Eric Desjardins",
+            "jersey": "28",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 4,
+            "name": "Matt Schneider",
+            "jersey": "27",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 5,
+            "name": "Patrick Roy",
+            "jersey": "33",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Owen Nolan",
+            "jersey": "11",
+            "live_accuracy": 18
+          },
+          {
+            "slot": 7,
+            "name": "Joe Sakic",
+            "jersey": "19",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 8,
+            "name": "Mats Sundin",
+            "jersey": "13",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 9,
+            "name": "Steve Duchesne",
+            "jersey": "28",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 10,
+            "name": "Curtis Leschyshyn",
+            "jersey": "07",
+            "live_accuracy": 15
+          },
+          {
+            "slot": 11,
+            "name": "Ron Hextall",
+            "jersey": "27",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        0
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1272,
+        "carry": 447,
+        "switch": 61,
+        "goalie-outlet": 8,
+        "shoot": 6,
+        "shot-follow-through": 24,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 7,
+        "one-timer-wait": 6
+      },
+      "control_mismatch": 70,
+      "owned": 466,
+      "owned_control_mismatch": 6,
+      "frames": 7328,
+      "save_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "state": "CanadiensVsNordiques.start",
+      "side": 2,
+      "seed": 4207,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 11,
+        "away_team": 18,
+        "s0_flags": 130,
+        "s0_roster": 11,
+        "s0_jersey": 35,
+        "s0_accuracy": 20,
+        "s0_power": 18,
+        "s0_agility": 18,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 16,
+        "s1_power": 14,
+        "s1_agility": 19,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 17,
+        "s2_accuracy": 20,
+        "s2_power": 18,
+        "s2_agility": 18,
+        "s3_flags": 130,
+        "s3_roster": 16,
+        "s3_jersey": 40,
+        "s3_accuracy": 11,
+        "s3_power": 14,
+        "s3_agility": 19,
+        "s4_flags": 130,
+        "s4_roster": 17,
+        "s4_jersey": 39,
+        "s4_accuracy": 11,
+        "s4_power": 14,
+        "s4_agility": 14,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 51,
+        "s5_accuracy": 0,
+        "s5_power": 30,
+        "s5_agility": 30,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 17,
+        "s6_accuracy": 18,
+        "s6_power": 18,
+        "s6_agility": 18,
+        "s7_flags": 66,
+        "s7_roster": 2,
+        "s7_jersey": 25,
+        "s7_accuracy": 25,
+        "s7_power": 20,
+        "s7_agility": 20,
+        "s8_flags": 72,
+        "s8_roster": 13,
+        "s8_jersey": 19,
+        "s8_accuracy": 25,
+        "s8_power": 20,
+        "s8_agility": 20,
+        "s9_flags": 66,
+        "s9_roster": 17,
+        "s9_jersey": 40,
+        "s9_accuracy": 12,
+        "s9_power": 22,
+        "s9_agility": 22,
+        "s10_flags": 66,
+        "s10_roster": 18,
+        "s10_jersey": 7,
+        "s10_accuracy": 15,
+        "s10_power": 10,
+        "s10_agility": 15,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 39,
+        "s11_accuracy": 0,
+        "s11_power": 18,
+        "s11_agility": 18,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Brian Bellows",
+            "jersey": "23",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 1,
+            "name": "Vincent Damphousse",
+            "jersey": "25",
+            "live_accuracy": 16
+          },
+          {
+            "slot": 2,
+            "name": "Kirk Muller",
+            "jersey": "11",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 3,
+            "name": "Eric Desjardins",
+            "jersey": "28",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 4,
+            "name": "Matt Schneider",
+            "jersey": "27",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 5,
+            "name": "Patrick Roy",
+            "jersey": "33",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Owen Nolan",
+            "jersey": "11",
+            "live_accuracy": 18
+          },
+          {
+            "slot": 7,
+            "name": "Joe Sakic",
+            "jersey": "19",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 8,
+            "name": "Mats Sundin",
+            "jersey": "13",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 9,
+            "name": "Steve Duchesne",
+            "jersey": "28",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 10,
+            "name": "Curtis Leschyshyn",
+            "jersey": "07",
+            "live_accuracy": 15
+          },
+          {
+            "slot": 11,
+            "name": "Ron Hextall",
+            "jersey": "27",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1519,
+        "carry": 509,
+        "switch": 68,
+        "goalie-outlet": 11,
+        "shoot": 3,
+        "shot-follow-through": 10,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 12
+      },
+      "control_mismatch": 77,
+      "owned": 526,
+      "owned_control_mismatch": 2,
+      "frames": 8535,
+      "save_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "state": "CanadiensVsNordiques.start",
+      "side": 2,
+      "seed": 4208,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 11,
+        "away_team": 18,
+        "s0_flags": 130,
+        "s0_roster": 11,
+        "s0_jersey": 35,
+        "s0_accuracy": 20,
+        "s0_power": 18,
+        "s0_agility": 18,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 16,
+        "s1_power": 14,
+        "s1_agility": 19,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 17,
+        "s2_accuracy": 20,
+        "s2_power": 18,
+        "s2_agility": 18,
+        "s3_flags": 130,
+        "s3_roster": 16,
+        "s3_jersey": 40,
+        "s3_accuracy": 11,
+        "s3_power": 14,
+        "s3_agility": 19,
+        "s4_flags": 130,
+        "s4_roster": 17,
+        "s4_jersey": 39,
+        "s4_accuracy": 11,
+        "s4_power": 14,
+        "s4_agility": 14,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 51,
+        "s5_accuracy": 0,
+        "s5_power": 30,
+        "s5_agility": 30,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 17,
+        "s6_accuracy": 18,
+        "s6_power": 18,
+        "s6_agility": 18,
+        "s7_flags": 66,
+        "s7_roster": 2,
+        "s7_jersey": 25,
+        "s7_accuracy": 25,
+        "s7_power": 20,
+        "s7_agility": 20,
+        "s8_flags": 72,
+        "s8_roster": 13,
+        "s8_jersey": 19,
+        "s8_accuracy": 25,
+        "s8_power": 20,
+        "s8_agility": 20,
+        "s9_flags": 66,
+        "s9_roster": 17,
+        "s9_jersey": 40,
+        "s9_accuracy": 12,
+        "s9_power": 22,
+        "s9_agility": 22,
+        "s10_flags": 66,
+        "s10_roster": 18,
+        "s10_jersey": 7,
+        "s10_accuracy": 15,
+        "s10_power": 10,
+        "s10_agility": 15,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 39,
+        "s11_accuracy": 0,
+        "s11_power": 18,
+        "s11_agility": 18,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Brian Bellows",
+            "jersey": "23",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 1,
+            "name": "Vincent Damphousse",
+            "jersey": "25",
+            "live_accuracy": 16
+          },
+          {
+            "slot": 2,
+            "name": "Kirk Muller",
+            "jersey": "11",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 3,
+            "name": "Eric Desjardins",
+            "jersey": "28",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 4,
+            "name": "Matt Schneider",
+            "jersey": "27",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 5,
+            "name": "Patrick Roy",
+            "jersey": "33",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Owen Nolan",
+            "jersey": "11",
+            "live_accuracy": 18
+          },
+          {
+            "slot": 7,
+            "name": "Joe Sakic",
+            "jersey": "19",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 8,
+            "name": "Mats Sundin",
+            "jersey": "13",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 9,
+            "name": "Steve Duchesne",
+            "jersey": "28",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 10,
+            "name": "Curtis Leschyshyn",
+            "jersey": "07",
+            "live_accuracy": 15
+          },
+          {
+            "slot": 11,
+            "name": "Ron Hextall",
+            "jersey": "27",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        6,
+        3
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1884,
+        "carry": 559,
+        "switch": 68,
+        "shoot": 9,
+        "shot-follow-through": 35,
+        "goalie-outlet": 4
+      },
+      "control_mismatch": 84,
+      "owned": 582,
+      "owned_control_mismatch": 3,
+      "frames": 10237,
+      "save_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "state": "CanadiensVsNordiques.start",
+      "side": 2,
+      "seed": 4209,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 11,
+        "away_team": 18,
+        "s0_flags": 130,
+        "s0_roster": 11,
+        "s0_jersey": 35,
+        "s0_accuracy": 20,
+        "s0_power": 18,
+        "s0_agility": 18,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 16,
+        "s1_power": 14,
+        "s1_agility": 19,
+        "s2_flags": 128,
+        "s2_roster": 2,
+        "s2_jersey": 17,
+        "s2_accuracy": 20,
+        "s2_power": 18,
+        "s2_agility": 18,
+        "s3_flags": 130,
+        "s3_roster": 16,
+        "s3_jersey": 40,
+        "s3_accuracy": 11,
+        "s3_power": 14,
+        "s3_agility": 19,
+        "s4_flags": 130,
+        "s4_roster": 17,
+        "s4_jersey": 39,
+        "s4_accuracy": 11,
+        "s4_power": 14,
+        "s4_agility": 14,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 51,
+        "s5_accuracy": 0,
+        "s5_power": 30,
+        "s5_agility": 30,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 17,
+        "s6_accuracy": 18,
+        "s6_power": 18,
+        "s6_agility": 18,
+        "s7_flags": 66,
+        "s7_roster": 2,
+        "s7_jersey": 25,
+        "s7_accuracy": 25,
+        "s7_power": 20,
+        "s7_agility": 20,
+        "s8_flags": 72,
+        "s8_roster": 13,
+        "s8_jersey": 19,
+        "s8_accuracy": 25,
+        "s8_power": 20,
+        "s8_agility": 20,
+        "s9_flags": 66,
+        "s9_roster": 17,
+        "s9_jersey": 40,
+        "s9_accuracy": 12,
+        "s9_power": 22,
+        "s9_agility": 22,
+        "s10_flags": 66,
+        "s10_roster": 18,
+        "s10_jersey": 7,
+        "s10_accuracy": 15,
+        "s10_power": 10,
+        "s10_agility": 15,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 39,
+        "s11_accuracy": 0,
+        "s11_power": 18,
+        "s11_agility": 18,
+        "lineup": [
+          {
+            "slot": 0,
+            "name": "Brian Bellows",
+            "jersey": "23",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 1,
+            "name": "Vincent Damphousse",
+            "jersey": "25",
+            "live_accuracy": 16
+          },
+          {
+            "slot": 2,
+            "name": "Kirk Muller",
+            "jersey": "11",
+            "live_accuracy": 20
+          },
+          {
+            "slot": 3,
+            "name": "Eric Desjardins",
+            "jersey": "28",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 4,
+            "name": "Matt Schneider",
+            "jersey": "27",
+            "live_accuracy": 11
+          },
+          {
+            "slot": 5,
+            "name": "Patrick Roy",
+            "jersey": "33",
+            "live_accuracy": null
+          },
+          {
+            "slot": 6,
+            "name": "Owen Nolan",
+            "jersey": "11",
+            "live_accuracy": 18
+          },
+          {
+            "slot": 7,
+            "name": "Joe Sakic",
+            "jersey": "19",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 8,
+            "name": "Mats Sundin",
+            "jersey": "13",
+            "live_accuracy": 25
+          },
+          {
+            "slot": 9,
+            "name": "Steve Duchesne",
+            "jersey": "28",
+            "live_accuracy": 12
+          },
+          {
+            "slot": 10,
+            "name": "Curtis Leschyshyn",
+            "jersey": "07",
+            "live_accuracy": 15
+          },
+          {
+            "slot": 11,
+            "name": "Ron Hextall",
+            "jersey": "27",
+            "live_accuracy": null
+          }
+        ]
+      },
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1463,
+        "carry": 695,
+        "shoot": 3,
+        "shot-follow-through": 18,
+        "switch": 48,
+        "goalie-outlet": 7,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 2,
+        "one-timer-wait": 1
+      },
+      "control_mismatch": 59,
+      "owned": 708,
+      "owned_control_mismatch": 5,
+      "frames": 8950,
+      "save_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    }
+  ],
+  "control_diagnostic_seed_42": [
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 42,
+      "corrected": false,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8
+      },
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        0,
+        8
+      ],
+      "one_timers": [
+        0,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1519,
+        "carry": 529,
+        "switch": 79,
+        "goalie-outlet": 27,
+        "shoot": 5,
+        "shot-follow-through": 20
+      },
+      "control_mismatch": 62,
+      "owned": 569,
+      "owned_control_mismatch": 5,
+      "frames": 8715,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "state": "PenguinsVsSenators.start",
+      "side": 1,
+      "seed": 42,
+      "corrected": true,
+      "agent": "classic-v4",
+      "metadata": {
+        "home_team": 17,
+        "away_team": 15,
+        "s0_flags": 130,
+        "s0_roster": 10,
+        "s0_jersey": 104,
+        "s0_accuracy": 17,
+        "s0_power": 15,
+        "s0_agility": 25,
+        "s1_flags": 130,
+        "s1_roster": 6,
+        "s1_jersey": 37,
+        "s1_accuracy": 22,
+        "s1_power": 15,
+        "s1_agility": 15,
+        "s2_flags": 136,
+        "s2_roster": 2,
+        "s2_jersey": 102,
+        "s2_accuracy": 30,
+        "s2_power": 20,
+        "s2_agility": 25,
+        "s3_flags": 130,
+        "s3_roster": 17,
+        "s3_jersey": 5,
+        "s3_accuracy": 2,
+        "s3_power": 15,
+        "s3_agility": 20,
+        "s4_flags": 130,
+        "s4_roster": 16,
+        "s4_jersey": 85,
+        "s4_accuracy": 12,
+        "s4_power": 20,
+        "s4_agility": 20,
+        "s5_flags": 128,
+        "s5_roster": 0,
+        "s5_jersey": 53,
+        "s5_accuracy": 2,
+        "s5_power": 22,
+        "s5_agility": 22,
+        "s6_flags": 66,
+        "s6_roster": 14,
+        "s6_jersey": 38,
+        "s6_accuracy": 17,
+        "s6_power": 15,
+        "s6_agility": 15,
+        "s7_flags": 66,
+        "s7_roster": 9,
+        "s7_jersey": 97,
+        "s7_accuracy": 6,
+        "s7_power": 14,
+        "s7_agility": 19,
+        "s8_flags": 64,
+        "s8_roster": 2,
+        "s8_jersey": 19,
+        "s8_accuracy": 12,
+        "s8_power": 15,
+        "s8_agility": 15,
+        "s9_flags": 66,
+        "s9_roster": 18,
+        "s9_jersey": 34,
+        "s9_accuracy": 5,
+        "s9_power": 13,
+        "s9_agility": 13,
+        "s10_flags": 66,
+        "s10_roster": 19,
+        "s10_jersey": 4,
+        "s10_accuracy": 0,
+        "s10_power": 12,
+        "s10_agility": 12,
+        "s11_flags": 64,
+        "s11_roster": 0,
+        "s11_jersey": 49,
+        "s11_accuracy": 0,
+        "s11_power": 8,
+        "s11_agility": 8
+      },
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timers": [
+        0,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock": 0,
+      "decisions": {
+        "recover": 1369,
+        "carry": 711,
+        "switch": 66,
+        "shoot": 8,
+        "shot-follow-through": 28,
+        "goalie-outlet": 2
+      },
+      "control_mismatch": 21,
+      "owned": 726,
+      "owned_control_mismatch": 0,
+      "frames": 8735,
+      "save_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    }
+  ],
+  "reproduction_sources": {
+    "nhl94_cpu_probe.py": "import argparse, json, hashlib\nfrom collections import Counter\nfrom pathlib import Path\nimport numpy as np\nfrom nhl94_ai.env.factory import make_retro\nfrom nhl94_ai.evaluation.benchmark import RAM, make_agent, update_state, away_view\nfrom nhl94_ai.game.state import NHL94GameState\n\ndef run(state_name, side, seed, corrected, agent_name='classic-v4'):\n env=make_retro(game='NHL94-Genesis-v0',state=state_name,num_players=1)\n try:\n  fields=dict(RAM)\n  fields.update(home_team=(0xFFC330,'>u2'),away_team=(0xFFC332,'>u2'),home_roster=(0xFFC6EC,'>u4'),away_roster=(0xFFCA50,'>u4'))\n  for slot in range(12):\n   for key,offset,kind in [('flags',0x62,'|u1'),('roster',0x66,'|u1'),('jersey',0x6F,'|u1'),('accuracy',0x6D,'|u1'),('power',0x6C,'|u1'),('agility',0x68,'|u1')]:\n    fields[f's{slot}_{key}']=(0xFFB04A+slot*0x80+offset,kind)\n  for key,(address,kind) in fields.items():env.data.set_variable(key,dict(address=address,type=kind))\n  env.reset()\n  env.data.set_value('bench_rng',seed);env.data.set_value('bench_clock',300)\n  env.data.update_ram();info=env.data.lookup_all()\n  assert info['bench_team1']==1 and info['bench_team2']==0,(state_name,info['bench_team1'],info['bench_team2'])\n  if side==2:\n   slot=info['bench_control1'];target=slot+6\n   env.data.set_value('bench_team1',2);env.data.set_value('bench_control1',target)\n   env.data.set_value(f's{slot}_flags',(info[f's{slot}_flags'] & ~8)|2)\n   env.data.set_value(f's{target}_flags',info[f's{target}_flags']|8)\n  *_,info=env.step(np.zeros(12,dtype=np.int8))\n  metadata={k:info[k] for k in fields if k.startswith('s') or k.endswith('_team')}\n  rom=Path('/home/mat/github/stable-retro/stable_retro/data/stable/NHL94-Genesis-v0/rom.md').read_bytes()\n  lineup=[]\n  for slot in range(12):\n   ptr=info['home_roster' if slot<6 else 'away_roster']\n   ptr+=int.from_bytes(rom[ptr:ptr+2],'big')\n   for _ in range(info[f's{slot}_roster']):ptr+=int.from_bytes(rom[ptr:ptr+2],'big')+8\n   length=int.from_bytes(rom[ptr:ptr+2],'big')\n   name=rom[ptr+2:ptr+length].rstrip(b'\\x00').decode('ascii')\n   lineup.append(dict(slot=slot,name=name,jersey=f\"{info[f's{slot}_jersey']:02x}\",live_accuracy=info[f's{slot}_accuracy'] if slot%6!=5 else None))\n  metadata['lineup']=lineup\n  agent=make_agent(agent_name);state=NHL94GameState(5);counts=Counter();frames=1;badowned=0;owned=0;mismatch=0\n  while info['bench_clock']>0 and frames<42000:\n   state.BeginFrame(info,[0]*6)\n   inferred=(state.team1 if side==1 else state.team2).controlled_scnum()\n   actual=info['bench_control1']\n   mismatch+=inferred!=actual\n   owned+=info['puck_owner']==actual\n   badowned+=(info['puck_owner']==actual and inferred!=actual)\n   if corrected:\n    corrected_info=dict(info)\n    if side==2:\n     corrected_info['bench_control1']=-1\n     corrected_info['bench_control2']=actual\n    update_state(state,corrected_info)\n   view=state if side==1 else away_view(state)\n   actions=agent.predict_game_state(view)[0];counts[agent._last_decision]+=1\n   for _ in range(4):\n    *_,info=env.step(actions);frames+=1\n    if info['bench_clock']==0:break\n  return dict(state=state_name,side=side,seed=seed,corrected=corrected,agent=agent_name,metadata=metadata,goals=[info['p1_score'],info['p2_score']],shots=[info['bench_shots1'],info['bench_shots2']],one_timers=[info['bench_one_timers1'],info['bench_one_timers2']],one_timer_goals=[info['bench_one_timer_goals1'],info['bench_one_timer_goals2']],clock=info['bench_clock'],decisions=counts,control_mismatch=mismatch,owned=owned,owned_control_mismatch=badowned,frames=frames,save_sha256=hashlib.sha256(env.initial_state).hexdigest())\n finally:env.close()\nif __name__=='__main__':\n p=argparse.ArgumentParser();p.add_argument('--state',default='PenguinsVsSenators.start');p.add_argument('--side',type=int,default=1);p.add_argument('--seed',type=int,default=42);p.add_argument('--corrected',action='store_true');p.add_argument('--agent',default='classic-v4');p.add_argument('--output',required=True);a=p.parse_args()\n r=run(a.state,a.side,a.seed,a.corrected,a.agent);Path(a.output).write_text(json.dumps(r,indent=2));print(json.dumps(r),flush=True)\n",
+    "nhl94_cpu_batch.py": "import json\nfrom concurrent.futures import ProcessPoolExecutor\nfrom pathlib import Path\nfrom nhl94_cpu_probe import run\n\ndef trial(fixture):\n result=run(*fixture)\n print(json.dumps({k:result[k] for k in ['state','side','seed','corrected','goals','one_timers','clock']}),flush=True)\n return result\nif __name__=='__main__':\n fixtures=[(state,side,seed,corrected) for state,side,corrected in [('PenguinsVsSenators.start',1,False),('PenguinsVsSenators.start',2,True),('CanadiensVsNordiques.start',2,True)] for seed in range(4200,4210)]\n with ProcessPoolExecutor(max_workers=4) as pool:results=list(pool.map(trial,fixtures))\n Path('/tmp/nhl94-cpu-batch.json').write_text(json.dumps(results,indent=2)+'\\n')\n"
+  }
+}
