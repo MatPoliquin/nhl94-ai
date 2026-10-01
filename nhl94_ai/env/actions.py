@@ -103,6 +103,9 @@ class HockeyActionController:
         return self._team_has_puck(self.game_state.team2)
 
     def _hockey_controlled_player(self, team):
+        actual = getattr(team, 'defense_control', None)
+        if actual is not None:
+            return team.get_player_by_scnum(actual) if actual >= 0 else None
         return team.get_controlled_player()
 
     def _hockey_distance(self, first, second):
@@ -232,8 +235,8 @@ class HockeyActionController:
     def _hockey_pass_target(self, intent):
         target_index = intent - HOCKEY_INTENT_PASS_START
         players = list(getattr(self.game_state.team1, 'players', []) or [])
-        controlled_index = getattr(self.game_state.team1, 'control', 0) - 1
-        teammates = [player for index, player in enumerate(players) if index != controlled_index]
+        controlled = self._hockey_controlled_player(self.game_state.team1)
+        teammates = [player for player in players if player is not controlled]
         if target_index < 0 or target_index >= len(teammates):
             return None
         return teammates[target_index]
@@ -242,14 +245,13 @@ class HockeyActionController:
         team = self.game_state.team1
         opponents = self.game_state.team2
         controlled = self._hockey_controlled_player(team)
-        controlled_index = getattr(team, 'control', 0) - 1
         opponent_group = list(getattr(opponents, 'players', []) or []) + [getattr(opponents, 'goalie', None)]
         opponent_group = [player for player in opponent_group if player is not None]
 
         best_player = None
         best_score = -float('inf')
         for index, player in enumerate(team.players):
-            if index == controlled_index:
+            if player is controlled:
                 continue
             if getattr(player, 'is_falling', 0.0) or getattr(player, 'is_dive', 0.0):
                 continue

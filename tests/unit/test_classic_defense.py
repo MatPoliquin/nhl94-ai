@@ -9,11 +9,13 @@ import numpy as np
 from nhl94_ai.agents.base import AgentInput, configure_scripted_frames
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.defense import DefenseController, DefensePlan, owns_puck
-from nhl94_ai.agents.motion import arrival_time, boost_safe, puck_path, skating
+from nhl94_ai.agents.motion import (
+    VELOCITY_SCALE, arrival_time, blocks_shot_lane, boost_impulse, boost_safe, check_approach, puck_path, skating,
+)
 from nhl94_ai.agents.registry import create_scripted
 from nhl94_ai.env.target_control import project_target
 from nhl94_ai.env.actions import HockeyActionController
-from nhl94_ai.env.intents import HOCKEY_INTENT_CHANGE_PLAYER
+from nhl94_ai.env.intents import HOCKEY_INTENT_CHANGE_PLAYER, HOCKEY_INTENT_NOOP
 from nhl94_ai.env.wrappers import StochasticFrameSkip
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.ram import register_defense_state
@@ -90,6 +92,8 @@ class DefenseMotionTests(unittest.TestCase):
 class DefensiveTargetTests(unittest.TestCase):
     def test_carrier_target_is_goal_side_and_independent_of_controlled_skater(self):
         state = defense_state()
+        for player in state.team1.players:
+            player.x = 100
         planner = DefenseController()
         first = planner.choose_target(state)
         self.assertEqual(first.mode, 'protect-lane')
@@ -210,6 +214,178 @@ class DefensiveTargetTests(unittest.TestCase):
         state.team1.players = state.team1.players[:2]
         self.assertTrue(owns_puck(state.team1, 2))
         self.assertFalse(owns_puck(state.team1, 5))
+
+
+class TeammateLaneTests(unittest.TestCase):
+    def setUp(self):
+        self.state = defense_state()
+        for player in self.state.team1.players:
+            player.x, player.y = 110, 0
+        self.state.team1.players[0].x, self.state.team1.players[0].y = -40, -175
+        self.blocker = self.state.team1.players[1]
+        self.blocker.x, self.blocker.y = 0, -180
+        self.receiver = self.state.team2.players[1]
+        self.receiver.x, self.receiver.y = 40, -175
+        self.controller = DefenseController()
+
+    def test_central_but_off_ray_skater_is_not_cover(self):
+        self.blocker.x = 45
+        self.assertFalse(self.controller._covered(self.state, (0, -150), excluding=0))
+        self.blocker.x = 0
+        self.assertTrue(self.controller._covered(self.state, (0, -150), excluding=0))
+
+    def test_requires_blocker_between_shooter_and_goal_not_beyond_endpoints(self):
+        for y in (-140, -270):
+            self.blocker.y = y
+            self.assertFalse(self.controller._covered(self.state, (0, -150), excluding=0))
+        self.blocker.y = -255
+        self.assertFalse(self.controller._covered(self.state, (0, -270), excluding=0))
+
+    def test_cover_must_survive_momentum_shot_arrival_and_release_window(self):
+        self.assertTrue(blocks_shot_lane(self.blocker, (0, -150), (0, -264)))
+        self.blocker.motion_x = 1
+        self.assertFalse(blocks_shot_lane(self.blocker, (0, -150), (0, -264)))
+        self.blocker.motion_x = 0.25
+        self.assertTrue(blocks_shot_lane(self.blocker, (0, -150), (0, -264)))
+        self.assertFalse(blocks_shot_lane(self.blocker, (0, -150), (0, -264), delay=20))
+
+    def test_body_radius_is_bounded_and_stationary_long_horizon_is_unknown(self):
+        self.blocker.x = 8
+        self.assertTrue(blocks_shot_lane(self.blocker, (0, -150), (0, -264)))
+        self.blocker.x = 8.01
+        self.assertFalse(blocks_shot_lane(self.blocker, (0, -150), (0, -264)))
+        self.blocker.x = 0
+        self.assertFalse(blocks_shot_lane(self.blocker, (0, 0), (0, -264)))
+
+    def test_missing_motion_locked_unavailable_and_goalie_are_not_cover(self):
+        for field, value in (('motion_x', None), ('selection_flags', 0x20),
+                             ('unavailable', 4), ('role', 0)):
+            with self.subTest(field=field):
+                old = getattr(self.blocker, field)
+                setattr(self.blocker, field, value)
+                self.assertFalse(self.controller._covered(self.state, (0, -150), excluding=0))
+                setattr(self.blocker, field, old)
+
+    def test_center_lane_block_does_not_imply_both_corners_are_blocked(self):
+        self.blocker.y = -228
+        lanes = self.controller._shot_lanes(self.state, (0, -150), excluding=0)
+        self.assertEqual([bool(lane.blockers) for lane in lanes], [True, False, False])
+        self.assertFalse(self.controller._covered(self.state, (0, -150), excluding=0))
+        plan = self.controller.choose_target(self.state)
+        self.assertEqual(plan.threat_slot, 6)
+        self.assertIn(plan.shot_goal[0], (-13, 13))
+        self.assertEqual(plan.reserved_slots, (1,))
+        self.assertNotEqual(plan.target[0], 0)
+
+    def test_covered_carrier_retargets_uncovered_receiver_and_keeps_blocker(self):
+        self.controller.step(self.state)
+        plan = self.controller.plan
+        self.assertEqual(plan.mode, 'deny-reception')
+        self.assertEqual(plan.threat_slot, 7)
+        self.assertEqual(plan.receiver, (40, -175))
+        self.assertGreater(plan.target[0], 30)
+        self.assertEqual(plan.reserved_slots, (1,))
+        self.assertEqual(self.controller._likely_switch(self.state), 1)
+        self.assertEqual(self.controller.desired_slot, 0)
+        self.assertNotIn(1, self.controller.diagnostics['arrival_frames'])
+        self.assertEqual(len(self.controller.diagnostics['lanes']), 6)
+
+    def test_drifting_cover_immediately_restores_carrier_priority(self):
+        self.controller.step(self.state)
+        self.assertEqual(self.controller.plan.threat_slot, 7)
+        self.blocker.motion_x = 1.5
+        self.controller.step(self.state)
+        self.assertEqual(self.controller.plan.threat_slot, 6)
+        self.assertEqual(self.controller.plan.mode, 'protect-lane')
+        self.assertEqual(self.controller.plan.reserved_slots, ())
+
+    def test_cover_that_will_expire_during_pass_is_not_reassigned(self):
+        self.blocker.motion_x = 0.2
+        self.assertTrue(self.controller._covered(self.state, (0, -150), excluding=0))
+        self.assertEqual(self.controller.choose_target(self.state).threat_slot, 6)
+
+    def test_carrier_motion_must_not_open_a_lane_while_we_cover_a_receiver(self):
+        carrier = self.state.team2.players[0]
+        carrier.motion_x = 1
+        self.blocker.x = 5
+        led = carrier.x + 8, carrier.y
+        self.assertTrue(self.controller._covered(self.state, led, excluding=0))
+        self.assertEqual(self.controller.choose_target(self.state).threat_slot, 6)
+
+    def test_current_skater_cannot_supply_the_cover_that_frees_it_to_leave(self):
+        self.state.team1.defense_control = 1
+        plan = self.controller.choose_target(self.state)
+        self.assertEqual(plan.threat_slot, 6)
+        self.assertNotIn(1, plan.reserved_slots)
+
+    def test_pending_switch_destination_is_not_assumed_to_remain_covering(self):
+        self.controller.pending_switch = {'from_slot': 0, 'to_slot': 1, 'frame': 0}
+        self.assertEqual(self.controller.choose_target(self.state).threat_slot, 6)
+
+    def test_prioritizes_the_earliest_uncovered_receiver_not_an_already_covered_one(self):
+        other = self.state.team2.players[2]
+        other.x, other.y = -20, -180
+        self.assertEqual(self.controller.choose_target(self.state).threat_slot, 8)
+        second_blocker = self.state.team1.players[2]
+        second_blocker.x, second_blocker.y = -18, -200
+        self.assertEqual(self.controller.choose_target(self.state).threat_slot, 7)
+
+    def test_predicted_receiver_motion_changes_the_lane_target(self):
+        first = self.controller.choose_target(self.state)
+        self.receiver.motion_x = 0.25
+        second = self.controller.choose_target(self.state)
+        self.assertEqual(second.threat_slot, 7)
+        self.assertGreater(second.receiver[0], first.receiver[0])
+        self.assertGreater(second.target[0], first.target[0])
+
+    def test_reception_lane_uses_time_until_pass_arrives(self):
+        self.blocker.motion_x = 0.2
+        immediate = self.controller._lane(self.state, (0, -150), 6, receiver=(0, -150))
+        later = self.controller._lane(self.state, (0, -150), 6, receiver=(0, -150), delay=24)
+        self.assertTrue(all(lane.blockers for lane in immediate.lanes))
+        self.assertFalse(all(lane.blockers for lane in later.lanes))
+        self.assertEqual(later.lanes[0].release_delay, 24)
+
+    def test_board_containment_cannot_treat_cover_of_carrier_as_cover_of_receiver(self):
+        self.state.team2.players[0].x = self.state.puck.x = 100
+        self.state.team1.players[0].x, self.state.team1.players[0].y = 65, -190
+        self.blocker.x, self.blocker.y = 88, -164
+        self.receiver.x, self.receiver.y = 0, -195
+        self.assertTrue(self.controller._covered(self.state, (100, -150), excluding=0))
+        self.assertNotEqual(self.controller.choose_target(self.state).mode, 'contain-boards')
+
+    def test_away_perspective_has_mirrored_target_and_reservations(self):
+        first = self.controller.choose_target(self.state)
+        self.state.team1.controller, self.state.team2.controller = 2, 1
+        self.state.team1.defense_control = 6
+        self.state.engine.puck_owner = 0
+        self.state.puck.y *= -1
+        for team in (self.state.team1, self.state.team2):
+            team.net.y *= -1
+            for player in team.players:
+                player.y *= -1
+                player.motion_y *= -1
+        second = self.controller.choose_target(self.state)
+        self.assertEqual(second.target, (first.target[0], -first.target[1]))
+        self.assertEqual(second.threat_slot, 1)
+        self.assertEqual(second.reserved_slots, (7,))
+
+    def test_single_skater_cannot_claim_teammate_cover(self):
+        self.state.team1.players = self.state.team1.players[:1]
+        self.state.team1.num_players = 1
+        self.state.team1.players[0].x, self.state.team1.players[0].y = 0, -180
+        plan = self.controller.choose_target(self.state)
+        self.assertEqual(plan.threat_slot, 6)
+        self.assertTrue(all(not lane.blockers for lane in plan.lanes))
+
+    def test_hysteresis_never_keeps_stale_coverage_diagnostics(self):
+        self.blocker.x = 70
+        self.controller.step(self.state)
+        before = self.controller.plan.target
+        self.state.team2.players[0].y += 1
+        self.controller.step(self.state)
+        self.assertEqual(self.controller.plan.target, before)
+        self.assertEqual(self.controller.plan.lanes[0].origin, (0, -149))
 
 
 class DefensiveSwitchTests(unittest.TestCase):
@@ -342,6 +518,227 @@ class DefensiveSwitchTests(unittest.TestCase):
                 self.assertEqual(controller._player_has_puck(self.state.team1), owner == 0)
         self.state._update_engine_state({})
         self.assertTrue(controller._team_has_puck(self.state.team1))
+
+
+class DefensiveBodyCheckTests(unittest.TestCase):
+    def setUp(self):
+        self.state = defense_state()
+        self.state.engine.puck_owner_known = True
+        self.player, self.carrier = self.state.team1.players[0], self.state.team2.players[0]
+        self.player.y, self.player.weight, self.player.selection_flags = -174, 32, 8
+        self.carrier.selection_flags = 0x40
+        self.state.puck.y = -160
+        self.controller = DefenseController()
+
+    def _check(self):
+        return self.controller._body_check(self.state, 0, self.player)
+
+    def test_joystick_byte_weight_wrap_not_heavier_is_better(self):
+        for ours, theirs, threshold, ready in (
+                (32, 64, 8, True), (64, 32, 104, False), (32, 48, 0, True),
+                (48, 32, 112, False), (64, 64, 120, False), (64, 80, 0, True)):
+            with self.subTest(checker=ours, carrier=theirs):
+                self.player.weight, self.carrier.weight = ours, theirs
+                details = self._check()
+                self.assertEqual(details['weight_threshold'], threshold)
+                self.assertEqual(details['status'] == 'ready', ready, details)
+
+    def test_favorable_check_precedes_poke_and_only_pulses_c(self):
+        action = self.controller.step(self.state)
+        self.assertEqual(self.controller.diagnostics['mode'], 'check-request')
+        self.assertEqual(action[Buttons.INPUT_C], 1)
+        self.assertEqual(action.sum(), 1)
+        self.assertFalse(self.controller.step(self.state).any())
+        self.assertEqual(self.controller.diagnostics['mode'], 'check-follow-through')
+        self.assertEqual(self.controller.diagnostics['check']['status'], 'follow-through')
+
+    def test_unfavorable_check_falls_back_to_poke(self):
+        self.player.weight, self.carrier.weight = 64, 32
+        action = self.controller.step(self.state)
+        self.assertEqual(self.controller.diagnostics['mode'], 'poke-request')
+        self.assertTrue(action[Buttons.INPUT_B])
+        self.assertFalse(action[Buttons.INPUT_C])
+
+    def test_contact_prediction_requires_impact_not_just_weight(self):
+        time, point, impact = check_approach(self.player, self.carrier)
+        self.assertEqual(time, 6)
+        self.assertAlmostEqual(point[1], -164.66162109375)
+        self.assertEqual(impact, 21)
+        self.player.energy = 2048
+        self.player.y = -169
+        details = self._check()
+        self.assertEqual(details['status'], 'unfavorable-impact')
+        self.assertLess(details['impact_estimate'], 20)
+        self.carrier.weight = 48
+        self.assertEqual(self._check()['weight_threshold'], 0)
+        self.assertEqual(self._check()['status'], 'unfavorable-impact')
+
+    def test_minimum_impact_and_weight_margin_boundaries(self):
+        self.player.y = -166
+        for raw_speed, threshold, ready in ((5119, 0, False), (5120, 0, True),
+                                            (6143, 20, False), (6144, 20, True)):
+            with self.subTest(raw_speed=raw_speed, threshold=threshold):
+                self.player.motion_y = raw_speed * VELOCITY_SCALE - boost_impulse(self.player)
+                self.carrier.weight = 48 + threshold * 2
+                details = self._check()
+                self.assertEqual(details['weight_threshold'], threshold)
+                self.assertEqual(details['status'] == 'ready', ready, details)
+
+    def test_missing_feedback_never_invents_a_good_check(self):
+        for subject, field in ((self.player, 'energy'), (self.player, 'motion_x'),
+                               (self.player, 'weight'), (self.carrier, 'weight'),
+                               (self.player, 'facing'), (self.carrier, 'selection_flags')):
+            with self.subTest(field=field):
+                before = getattr(subject, field)
+                setattr(subject, field, None)
+                self.assertEqual(self._check()['status'], 'missing-feedback')
+                setattr(subject, field, before)
+
+    def test_only_checks_verified_active_opponent_skater_carrier(self):
+        for owner in (-256, -1, 0, 5, 11):
+            self.state.engine.puck_owner = owner
+            self.assertEqual(self._check()['status'], 'no-active-carrier')
+        self.state.engine.puck_owner = 6
+        self.state.engine.puck_owner_known = False
+        self.assertEqual(self._check()['status'], 'no-active-carrier')
+        self.state.engine.puck_owner_known = True
+        self.carrier.role = 0
+        self.assertEqual(self._check()['status'], 'no-active-carrier')
+
+    def test_wrong_side_distance_and_facing_reject_checks(self):
+        self.player.y = -125
+        self.assertEqual(self._check()['status'], 'not-goal-side')
+        self.player.y = -190
+        self.assertEqual(self._check()['status'], 'outside-range')
+        self.player.y, self.player.facing = -174, 4
+        self.assertEqual(self._check()['status'], 'not-facing-carrier')
+
+    def test_receding_glancing_and_too_late_contact_rejected(self):
+        for x_speed, y_speed in ((0, 2), (4, 0), (0, 1)):
+            with self.subTest(velocity=(x_speed, y_speed)):
+                self.carrier.motion_x, self.carrier.motion_y = x_speed, y_speed
+                self.assertEqual(self._check()['status'], 'no-contact-course')
+
+    def test_no_collision_flags_and_low_energy_reject_checks(self):
+        self.player.selection_flags = 0
+        self.assertEqual(self._check()['status'], 'unavailable-contact')
+        self.player.selection_flags = 8
+        for flags in (1, 0x20):
+            self.carrier.unavailable = flags
+            self.assertEqual(self._check()['status'], 'unavailable-contact')
+        self.carrier.unavailable = 0
+        self.player.energy = 1000
+        self.assertEqual(self._check()['status'], 'low-energy')
+
+    def test_goalie_teammate_and_crossing_skater_obstruct_contact(self):
+        for other in (self.state.team1.goalie, self.state.team1.players[1], self.state.team2.players[1]):
+            with self.subTest(other=other.role):
+                saved = other.x, other.y, other.motion_x, other.motion_y
+                other.x, other.y = 0, -155
+                other.motion_x = other.motion_y = 0
+                self.assertEqual(self._check()['status'], 'obstructed-contact')
+                other.x, other.y, other.motion_x, other.motion_y = saved
+        self.state.team1.players[1].x, self.state.team1.players[1].y = 30, -162
+        self.state.team1.players[1].motion_x = -4
+        self.assertEqual(self._check()['status'], 'obstructed-contact')
+
+    def test_no_check_while_responsible_for_another_threat(self):
+        self.controller.plan = DefensePlan((40, -200), 'deny-reception', 'test', threat_slot=7)
+        self.assertEqual(self._check()['status'], 'covering-other-threat')
+        self.controller.plan = None
+        self.state.team2.players[1].x, self.state.team2.players[1].y = 0, -125
+        self.assertEqual(self._check()['status'], 'leaves-receiver-lane')
+
+    def test_follow_through_cannot_overshoot_goal_side(self):
+        self.player.y, self.carrier.y = -166, -150
+        self.player.facing = 1
+        self.carrier.x = 8
+        self.player.motion_x, self.player.motion_y = 5, 5
+        self.carrier.motion_x, self.carrier.motion_y = 2, -1
+        self.assertEqual(self._check()['status'], 'unsafe-route')
+
+    def test_both_goal_ends_and_reduced_rosters(self):
+        for count in (1, 2, 5):
+            for mirrored in (False, True):
+                with self.subTest(skaters=count, mirrored=mirrored):
+                    state = deepcopy(self.state)
+                    for team in (state.team1, state.team2):
+                        team.players = team.players[:count]
+                        team.num_players = count
+                        team.defense_goalie = team.skater_scnum_base() + count
+                        if mirrored:
+                            team.net.y *= -1
+                            for player in (*team.players, team.goalie):
+                                player.y *= -1
+                                if player.facing is not None:
+                                    player.facing = (player.facing + 4) % 8
+                    if mirrored:
+                        state.puck.y *= -1
+                    controller = DefenseController()
+                    self.assertTrue(controller.step(state)[Buttons.INPUT_C])
+                    self.assertEqual(controller.diagnostics['mode'], 'check-request')
+
+    def test_switch_and_b_c_release_gates(self):
+        self.controller.pending_switch = {'from_slot': 1, 'to_slot': 0, 'frame': 0}
+        self.assertEqual(self._check()['status'], 'selection-busy')
+        self.controller.pending_switch = None
+        for field in ('b_down', 'c_down'):
+            setattr(self.controller, field, True)
+            self.assertEqual(self._check()['status'], 'release-buttons')
+            setattr(self.controller, field, False)
+        self.controller.boost_at = 36
+        self.assertEqual(self._check()['status'], 'cooldown')
+
+    def test_follow_through_releases_and_does_not_switch_during_animation_lock(self):
+        self.controller.step(self.state)
+        self.player.selection_flags |= 0x20
+        until = self.controller.pending_check['until']
+        while self.controller.frames < until - 1:
+            self.assertFalse(self.controller.step(self.state).any())
+            self.assertEqual(self.controller.diagnostics['mode'], 'check-follow-through')
+        self.controller.step(self.state)
+        self.assertIsNone(self.controller.pending_check)
+
+    def test_pass_selection_change_and_recovery_cancel_follow_through(self):
+        for outcome in ('pass', 'switch', 'recovery'):
+            with self.subTest(outcome=outcome):
+                self.controller = DefenseController()
+                self.state.team1.defense_control, self.state.engine.puck_owner = 0, 6
+                self.controller.step(self.state)
+                self.assertIsNotNone(self.controller.pending_check)
+                if outcome == 'switch':
+                    self.state.team1.defense_control = 1
+                else:
+                    self.state.engine.puck_owner = -256 if outcome == 'pass' else 0
+                self.controller.step(self.state)
+                self.assertIsNone(self.controller.pending_check)
+                self.assertFalse(self.controller.c_down)
+
+    def test_cooldown_shared_with_skating_boost(self):
+        self.controller.step(self.state)
+        for _ in range(35):
+            self.assertFalse(self.controller.step(self.state)[Buttons.INPUT_C])
+        self.assertTrue(self.controller.step(self.state)[Buttons.INPUT_C])
+
+    def test_existing_intent_schema_transmits_check_and_release_on_recovery(self):
+        for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
+            with self.subTest(schema=schema):
+                state = deepcopy(self.state)
+                model = ClassicAIV1Model(SimpleNamespace(action_type=schema))
+                emitted = model.predict_frame(state)[0]
+                if schema == 'HOCKEY_INTENT_DPAD':
+                    np.testing.assert_array_equal(emitted, [HOCKEY_INTENT_NOOP, 0, 0, 0, 0, 1])
+                    context = SimpleNamespace(game_state=state, action_type=schema)
+                    controls = HockeyActionController(context)
+                    buttons = np.zeros(12, dtype=np.int8)
+                    controls._apply_hockey_intent(emitted, buttons, [0] * 6, controls._new_action_state())
+                else:
+                    buttons = emitted
+                self.assertTrue(buttons[Buttons.INPUT_C])
+                self.assertEqual(buttons.sum(), 1)
+                state.engine.puck_owner = 0
+                self.assertFalse(model.predict_frame(state).any())
+                self.assertIsNone(model.defense.pending_check)
 
 
 class DefensiveCadenceTests(unittest.TestCase):

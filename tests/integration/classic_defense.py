@@ -131,7 +131,7 @@ def useful_switch():
 def live_switch_feedback():
     for game, spec in GAMES.items():
         env = make_retro(game=game, num_players=2)
-        confirmed = requests = 0
+        confirmed = unexpected = requests = 0
         last_result = None
         try:
             env.reset(seed=7)
@@ -144,11 +144,15 @@ def live_switch_feedback():
                 requests += details.get('mode') == 'switch-request'
                 result = details.get('last_switch_result')
                 if result and result != last_result:
-                    assert result['outcome'] != 'unexpected-selection', (game, result)
-                    if result['outcome'] == 'confirmed':
-                        confirmed += 1
+                    if result['outcome'] in ('confirmed', 'unexpected-selection'):
+                        confirmed += result['outcome'] == 'confirmed'
+                        unexpected += result['outcome'] == 'unexpected-selection'
                         assert result['from_slot'] != result['actual_slot']
                         assert 1 <= result['elapsed_frames'] <= 8
+                        # Faceoff placement can change the nearest skater
+                        # between B press/release. Follow actual ROM control.
+                        assert details['acting_slot'] == result['actual_slot'] == state.team1.defense_control
+                        assert model.defense.pending_switch is None
                     last_result = result
                 state.EndFrame()
                 *_, info = env.step(np.concatenate((action, np.zeros(12, dtype=np.int8))))
@@ -157,14 +161,151 @@ def live_switch_feedback():
                 assert requests == 0
             else:
                 assert confirmed > 0, (game, requests)
-            print(f'PASS: {game}: {confirmed}/{requests} requests confirmed in a bounded two-controller trace')
+            print(f'PASS: {game}: {confirmed}/{requests} requests confirmed, {unexpected} unexpected selections '
+                  'handled in a bounded two-controller trace')
         finally:
             env.close()
+
+
+def _coverage_setup(env, game):
+    get_task('DefenseZone').initialize(env, game)
+    memory = env.data.memory
+    actual = memory.extract(0xFFC320, '>i2')
+    carrier = memory.extract(0xFFB7AA, '>i2')
+    others = [slot for slot in range(5) if slot != actual]
+    attackers = [slot for slot in range(6, 11) if slot != carrier]
+    _place_object(memory, actual, (-40, -175))
+    for slot, point in zip(others, ((0, -180), (110, 0), (-110, 0), (80, 60))):
+        _place_object(memory, slot, point)
+    _place_object(memory, carrier, (0, -150))
+    memory.assign(0xFFB04A + carrier * 0x80 + 0x54, '>u2', 4)
+    for slot, point in zip(attackers, ((40, -175), (-110, 100), (0, 100), (110, 100))):
+        _place_object(memory, slot, point)
+    _place_object(memory, 14, (0, -160))
+    _rebuild_object_order(memory)
+
+
+def teammate_coverage():
+    name = 'ClassicCoverageProbe'
+    register_task(name, replace(get_task('DefenseZone'), initialize=_coverage_setup,
+                               reward=lambda _: 0.0, done=lambda _: False))
+    try:
+        for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
+            args = parse_cmdline([
+                '--mode=model_vs_game', '--nn=ClassicAIV1', '--env=NHL94-Genesis-v0',
+                '--state=PenguinsVsSenators.DefenseZone', f'--rf={name}', f'--action_type={schema}',
+            ])
+            env = build_single_nhl94_env(args, {'clip_reward': False}, use_frame_skip=False)
+            try:
+                env.reset(seed=7)
+                state = get_game_state(env)
+                actual, carrier = state.team1.defense_control, state.engine.puck_owner
+                assert carrier in range(6, 11), carrier
+                model = ClassicAIV1Model(args)
+                action = model.predict_frame(state)[0]
+                details = model.defense_diagnostics
+                assert details['decision'] == 'deny-reception', details
+                assert details['threat_slot'] != carrier
+                assert len(details['reserved_slots']) == 1, details
+                blocker = details['reserved_slots'][0]
+                assert model.defense._likely_switch(state) == blocker, details
+                assert details['desired_slot'] == actual, details
+                env.step(action)
+                assert get_game_state(env).team1.defense_control == actual
+                # Inject drift only in this isolated ROM scenario. The next
+                # decoded frame must no longer count the teammate as cover.
+                env.unwrapped.data.memory.assign(0xFFB04A + blocker * 0x80 + 0x28, '>i2', 6000)
+                env.step(np.zeros_like(action))
+                model.predict_frame(get_game_state(env))
+                details = model.defense_diagnostics
+                assert all(blocker not in lane['blockers'] for lane in details['lanes']), details
+                assert not details['reserved_slots'], details
+                print(f'PASS: {schema} covers another shooting lane without stealing blocker {blocker}; '
+                      'live velocity feedback removes drifting cover')
+            finally:
+                env.close()
+    finally:
+        TASKS.pop(name)
+
+
+def _check_setup(env, game):
+    get_task('DefenseZone').initialize(env, game)
+    memory = env.data.memory
+    actual, carrier = memory.extract(0xFFC320, '>i2'), memory.extract(0xFFB7AA, '>i2')
+    _place_object(memory, actual, (0, -174))
+    for index, slot in enumerate(slot for slot in range(5) if slot != actual):
+        _place_object(memory, slot, (-100 + index * 65, 50))
+    _place_object(memory, carrier, (0, -150))
+    for index, slot in enumerate(slot for slot in range(6, 11) if slot != carrier):
+        _place_object(memory, slot, (-100 + index * 65, 120))
+    # Isolated 4-versus-8 weight matchup; these are not benchmark roster edits.
+    for slot, weight in ((actual, 32), (carrier, 64)):
+        base = 0xFFB04A + slot * 0x80
+        memory.assign(base + 0x67, '|u1', weight)
+        memory.assign(base + 0x54, '>u2', 0)
+    roster = memory.extract(0xFFB04A + actual * 0x80 + 0x66, '|u1')
+    memory.assign(0xFFC700 + roster * 2, '>u2', 4096)
+    _place_object(memory, 14, (0, -140))
+    _rebuild_object_order(memory)
+
+
+def deliberate_body_check():
+    name = 'ClassicBodyCheckProbe'
+    register_task(name, replace(get_task('DefenseZone'), initialize=_check_setup,
+                               reward=lambda _: 0.0, done=lambda _: False))
+    try:
+        for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
+            args = parse_cmdline([
+                '--mode=model_vs_game', '--nn=ClassicAIV1', '--env=NHL94-Genesis-v0',
+                '--state=PenguinsVsSenators.DefenseZone', f'--rf={name}', f'--action_type={schema}',
+            ])
+            env = build_single_nhl94_env(args, {'clip_reward': False}, use_frame_skip=False)
+            try:
+                results = {}
+                for checking in (False, True):
+                    env.reset(seed=7)
+                    state = get_game_state(env)
+                    actual, carrier = state.team1.defense_control, state.engine.puck_owner
+                    assert actual in range(5) and carrier in range(6, 11)
+                    model = ClassicAIV1Model(args)
+                    action = model.predict_frame(state)[0]
+                    details = model.defense_diagnostics
+                    assert details['mode'] == 'check-request', details
+                    before = state.team1.stats.bodychecks
+                    trace = []
+                    memory = env.unwrapped.data.memory
+                    for frame in range(16):
+                        env.step(action if checking and frame == 0 else np.zeros_like(action))
+                        state = get_game_state(env)
+                        base = 0xFFB04A + carrier * 0x80
+                        trace.append({
+                            'frame': frame + 1, 'owner': state.engine.puck_owner,
+                            'checker_anim': memory.extract(0xFFB04A + actual * 0x80 + 0x58, '>u2'),
+                            'carrier_anim': memory.extract(base + 0x58, '>u2'),
+                            'impact_player': memory.extract(base + 0x2E, '>i2'),
+                            'impact': memory.extract(base + 0x32, '>u2'),
+                            'checks': state.team1.stats.bodychecks - before,
+                        })
+                    results[checking] = trace
+                trace = results[True]
+                assert any(row['checker_anim'] == 0xC5E for row in trace), (schema, trace)
+                assert any(row['impact_player'] == actual and row['impact'] > 0 for row in trace), (schema, trace)
+                assert any(row['checks'] == 1 and row['owner'] != carrier for row in trace), (schema, trace)
+                assert all(row['checks'] == 0 for row in results[False]), (schema, results[False])
+                recovered = any(row['owner'] == actual for row in trace)
+                print(f'PASS: {schema} fresh C produces a recorded body check and carrier possession loss; '
+                      f'controlled recovery={recovered}; paired neutral input records no check')
+            finally:
+                env.close()
+    finally:
+        TASKS.pop(name)
 
 
 if __name__ == '__main__':
     telemetry()
     useful_switch()
+    teammate_coverage()
+    deliberate_body_check()
     live_switch_feedback()
     for action_type in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
         assert capture(action_type, True) == capture(action_type, False), action_type

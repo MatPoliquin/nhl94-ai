@@ -1,0 +1,96 @@
+{
+  "protocol": "nhl94-exact-watched-first-period-v1",
+  "command": "nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --mode model_vs_game --side home --max_playback_speed 1.0",
+  "state": "PenguinsVsSenators.start",
+  "mode": "model_vs_game",
+  "side": "home",
+  "action_type": "FILTERED",
+  "task": "PostPlay",
+  "rom_rng_modified": false,
+  "limitations": [
+    "Exact default saved first period, stopping at PostPlay clock cutoff below ten seconds; not a full match or general win-rate benchmark.",
+    "Display path executed unthrottled with SDL dummy video; emulator inputs and policy cadence are the supplied command.",
+    "Receiver motion, changing animation and future CPU reactions remain estimates."
+  ],
+  "before": {
+    "frames": 7215,
+    "goals": [
+      0,
+      0
+    ],
+    "shots": [
+      6,
+      2
+    ],
+    "one_timers": [
+      1,
+      3
+    ],
+    "actions_sha256": "80d0b719b48bcb0c6c482fbfd6b6229ad1add7b4f222d501aa04869ac201d30c",
+    "one_timer_requests": 5,
+    "deliberate_events": [
+      {
+        "frame": 6951,
+        "clock": 20,
+        "receiver": 1
+      }
+    ]
+  },
+  "after": {
+    "frames": 8980,
+    "goals": [
+      2,
+      0
+    ],
+    "shots": [
+      6,
+      3
+    ],
+    "one_timers": [
+      5,
+      0
+    ],
+    "actions_sha256": "07467865eb22cf059292f6b97a9a939f2afe23c0735a574856c4f45e2a3f98d2",
+    "one_timer_requests": 7,
+    "deliberate_events": [
+      {
+        "frame": 1414,
+        "clock": 251,
+        "receiver": 0
+      },
+      {
+        "frame": 3966,
+        "clock": 164,
+        "receiver": 2
+      },
+      {
+        "frame": 5514,
+        "clock": 125,
+        "receiver": 3
+      },
+      {
+        "frame": 6546,
+        "clock": 82,
+        "receiver": 0
+      },
+      {
+        "frame": 8627,
+        "clock": 24,
+        "receiver": 0
+      }
+    ]
+  },
+  "sources": {
+    "nhl94_ai/agents/classic_v1.py": "6dc9a6a9b7baecea69e1869e4fb91cc312dd3d5ced951e2aad49ed5b6a29c032",
+    "nhl94_ai/agents/offense.py": "2be10b4e9728816f75938ce9970d008d7fe8e2488ddfdc7db94a63176d2d7d57",
+    "nhl94_ai/agents/passing.py": "da68fb03ff7c29d6e596d6395fbf2e24af44f14d35b8a183497e26afd2ace235",
+    "nhl94_ai/game/ram.py": "b110eae4fb854e3bed8cff6bb4a43ee4d6e3b80a2c1cec04f78e75dafbc5ed24",
+    "nhl94_ai/game/state.py": "861656f088e75c88b2a8d8924885f3d9c51748d3d5f5cb9d7f8d9f56e8fcb1cf",
+    "nhl94_ai/env/factory.py": "9be1a5ec7582d6ca181211519bfde376805d56a9c9c6ca61e05a0446d3d8ff56",
+    "nhl94_ai/env/observation.py": "6535e22ce52ad471cda5c56ad143bee4f96fbfcd1b4437c95d671b58c5c2bbe9",
+    "nhl94_ai/evaluation/play.py": "97da8c1aaeca3cc5d7d379b0a0be3b20a67724355d3637481afce584475f04dc",
+    "nhl94_ai/evaluation/benchmark.py": "59cf319f95c0dcfccbdc94da758114345d83aefc525d13ca0fd87dec789e5be5",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "c15156825c9fd1d2848f9727bb7bf4670a48f17f4c7d6c8d3d0bb23bb4be064d",
+    "tests/integration/penguins_play.py": "f7a4c27514f50191a2990df40fbf524ab1e7a68eaf5c7b574cbb7ceb65fc3d9d"
+  }
+}

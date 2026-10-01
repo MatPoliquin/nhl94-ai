@@ -27,16 +27,20 @@ def evaluate(agent, config, *, env):
     configure_scripted_frames(agent, env)
     rewards, lengths, terminations, truncations, exhausted = [], [], [], [], []
     defense_episodes = []
+    offense_episodes = []
     for episode in range(config.episodes):
         observation, _ = env.reset(seed=config.seed + episode)
         agent.reset()
         total = 0.0
         last_defense = {}
+        last_offense = {}
         for step in (range(config.max_steps) if config.max_steps is not None else count()):
             action = agent.act(AgentInput(get_game_state(env), observation), config.deterministic).action
             observation, reward, terminated, truncated, info = env.step(action)
             if info.get('classic_defense'):
                 last_defense = info['classic_defense']
+            if info.get('classic_offense'):
+                last_offense = info['classic_offense']
             total += float(reward)
             if terminated or truncated:
                 break
@@ -46,9 +50,12 @@ def evaluate(agent, config, *, env):
         truncations.append(bool(truncated))
         exhausted.append(not (terminated or truncated))
         defense_episodes.append(last_defense)
+        offense_episodes.append(last_offense)
     metadata = asdict(config)
     if any(defense_episodes):
         metadata['last_defense_by_episode'] = defense_episodes
+    if any(offense_episodes):
+        metadata['last_offense_by_episode'] = offense_episodes
     return EvaluationResult(rewards, lengths, terminations, truncations, exhausted, metadata)
 
 

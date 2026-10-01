@@ -59,6 +59,9 @@ class Player:
     has_anim: float = 0.0
     # Optional live ROM attribute; deliberately absent from neural encodings.
     shot_accuracy: int | None = None
+    passing: int | None = None
+    stick_x: int | None = None
+    stick_y: int | None = None
     # Position integration uses signed velocity * 17 per elapsed game tick.
     # These optional values are not part of the historical neural encoding.
     motion_x: float | None = None
@@ -145,6 +148,7 @@ class GoalieStats:
 class EngineState:
     puck_owner: int = -1
     puck_owner_known: bool = False
+    offsides_enabled: bool | None = None
     pass_target: int | None = None
     last_puck_player: int | None = None
     shot_player: int = -1
@@ -197,6 +201,7 @@ class Team():
         self.goalie_haspuck = False
         self.defense_control = None
         self.defense_goalie = None
+        self.pass_attempts = None
 
         # for model input
         self.nz_players = [Player() for _ in range(num_players)]
@@ -312,6 +317,7 @@ class Team():
         self.goalie_stats.weight = info.get(f"{prefix}weight", 0) or 0
 
     def _load_defense_fields(self, info):
+        self.pass_attempts = info.get(f'p{self.controller}_pass_attempts')
         self.defense_control = None
         self.defense_goalie = None
         if 'defense_control1' not in info:
@@ -324,7 +330,9 @@ class Team():
         bonus = 2 if flags & 0x40 or info.get('defense_skill_boost', 0) & 2 else 0
         for index, player in enumerate(self.players):
             prefix = f'defense_{self.skater_scnum_base() + index}_'
-            for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'checking', 'endurance'):
+            player.stick_x = info.get(f'offense_{self.skater_scnum_base() + index}_stick_x')
+            player.stick_y = info.get(f'offense_{self.skater_scnum_base() + index}_stick_y')
+            for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'checking', 'endurance', 'passing'):
                 setattr(player, name, info.get(prefix + name))
             player.unavailable = info.get(prefix + 'unavailable', 0)
             player.selection_flags = info.get(prefix + 'flags')
@@ -427,7 +435,7 @@ class Team():
                 if self.has_control(self.players[p].x, self.players[p].y):
                     self.control = p + 1
 
-        # Only target-mode environments register this authoritative controller field.
+        # Explicit controller fields opt into authoritative slot handling.
         control_slot = info.get(f'{self.ram_var_prefix}control_slot')
         if control_slot is not None:
             base = self.skater_scnum_base()
@@ -596,6 +604,8 @@ class NHL94GameState(TacticalFeatures):
 
         self.engine.puck_owner = -1 if puck_owner is None else puck_owner
         self.engine.puck_owner_known = puck_owner is not None
+        rules = info.get('offense_rule_flags')
+        self.engine.offsides_enabled = None if rules is None else bool(rules & 0x20)
         self.engine.pass_target = info.get('pass_target')
         self.engine.last_puck_player = info.get('last_puck_player')
         self.engine.shot_player = -1 if shot_player is None else shot_player

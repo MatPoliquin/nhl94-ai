@@ -50,8 +50,11 @@ def _position(info, side, slot):
     return info[prefix + 'x'], info[prefix + 'y']
 
 
-def update_state(state, info):
+def update_state(state, info, env=None):
     """Resolve both teams' possession/control from slots, not misaddressed stars."""
+    if env is not None:
+        from nhl94_ai.game.ram import pass_geometry_info
+        info = pass_geometry_info(env, info)
     info = dict(info)
     owner = info['puck_owner']
     for side, team in enumerate((state.team1, state.team2), 1):
@@ -103,7 +106,7 @@ def match(fixture):
         digest = hashlib.sha256()
         budget = seconds * 120 + 6000  # Also bounds stoppages/replays with a frozen clock.
         while info['bench_clock'] > 0 and not (terminated or truncated) and frames < budget:
-            update_state(state, info)
+            update_state(state, info, env)
             actions = []
             for index, view in enumerate((state, away_view(state))):
                 start = perf_counter_ns()
@@ -113,8 +116,10 @@ def match(fixture):
                 calls[index] += 1
                 new_pass = agents[index]._tick != before_tick and agents[index]._last_decision == 'one-timer-pass'
                 setups[index] += new_pass
-                if new_pass:
-                    passes[index].start(frames, info, *agents[index]._one_timer[:2])
+                request = agents[index]._last_pass_request
+                if request and request['frame'] != getattr(passes[index], 'last_request_frame', None):
+                    passes[index].start(frames, info, request['passer'], request['receiver'], request['purpose'])
+                    passes[index].last_request_frame = request['frame']
             buttons = np.asarray(actions, dtype=np.int8)
             digest.update(buttons.tobytes())
             _, _, terminated, truncated, info = env.step(buttons)
@@ -204,7 +209,8 @@ def run(args):
                                   'lines': len(path.read_text(encoding='utf-8').splitlines())}
     root = Path(__file__).resolve().parents[1]
     for name in ('game/state.py', 'game/ram.py', 'game/geometry.py', 'env/factory.py',
-                 'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'evaluation/pass_outcomes.py'):
+                 'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/offense.py',
+                 'agents/passing.py', 'evaluation/pass_outcomes.py'):
         path = root / name
         sources[name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
                          'lines': len(path.read_text(encoding='utf-8').splitlines())}

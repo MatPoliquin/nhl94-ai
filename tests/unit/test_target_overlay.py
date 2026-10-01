@@ -51,6 +51,28 @@ class TargetOverlayTests(unittest.TestCase):
         pygame.init()
         self.addCleanup(pygame.quit)
 
+    def test_world_view_overlays_mark_the_away_skater_not_home(self):
+        import pygame
+        from nhl94_ai.ui.targets import CYAN, GREEN, draw_offense_overlay, draw_target_overlay
+        from tests.unit.test_classic_defense import defense_state
+        state = defense_state()
+        details = dict(target=(0, 200), destination=(0, 200), waypoint=(0, 200),
+                       actual_slot=6, desired_slot=7, mode='tracking')
+        surface = pygame.Surface((600, 700))
+        font = pygame.font.Font(None, 16)
+        def transform(x, y):
+            return round(300 + x), round(350 - y)
+        with patch('nhl94_ai.ui.targets.pygame.draw.circle', wraps=pygame.draw.circle) as draw:
+            draw_target_overlay(surface, transform, state, details, font)
+        player = state.team2.players[0]
+        desired = state.team2.players[1]
+        draw.assert_any_call(surface, GREEN, transform(player.x, player.y), 12, 3)
+        draw.assert_any_call(surface, CYAN, transform(desired.x, desired.y), 16, 2)
+        details.update(phase='offense', reason='advance')
+        with patch('nhl94_ai.ui.targets.pygame.draw.circle', wraps=pygame.draw.circle) as draw:
+            draw_offense_overlay(surface, transform, state, details, font, (12, 12))
+        draw.assert_any_call(surface, GREEN, transform(player.x, player.y), 12, 3)
+
     def test_marker_is_a_hollow_green_square_not_a_cross(self):
         import pygame
         from nhl94_ai.ui.targets import draw_target_box, TARGET_GREEN
@@ -157,6 +179,72 @@ class TargetOverlayTests(unittest.TestCase):
                 display.step([np.zeros(12, dtype=np.int8)])
                 pixels = pygame.surfarray.array3d(display.game_surf)
                 self.assertEqual(bool(np.any(np.all(pixels == TARGET_GREEN, axis=2))), not terminal)
+
+    def test_classic_overlay_draws_covered_open_and_selected_shooting_lanes(self):
+        import pygame
+        from nhl94_ai.agents.defense import DefenseController
+        from nhl94_ai.ui.targets import CYAN, GREEN, PURPLE, draw_target_overlay
+        from tests.unit.test_classic_defense import defense_state
+        state = defense_state()
+        planner = DefenseController()
+        planner.step(state)
+        details = planner.diagnostics
+        surface = pygame.Surface((600, 700))
+        def transform(x, y):
+            return round(300 + x), round(350 - y)
+        font = pygame.font.Font(None, 16)
+        with patch('nhl94_ai.ui.targets.pygame.draw.line', wraps=pygame.draw.line) as draw:
+            draw_target_overlay(surface, transform, state, details, font)
+        for lane in details['lanes']:
+            draw.assert_any_call(surface, GREEN if lane['blockers'] else PURPLE,
+                                 transform(*lane['origin']), transform(*lane['goal']), 1)
+        draw.assert_any_call(surface, CYAN, transform(*details['lanes'][-1]['origin']),
+                             transform(*details['shot_goal']), 2)
+
+    def test_body_check_gate_and_estimate_are_visible(self):
+        import pygame
+        from nhl94_ai.agents.defense import DefenseController
+        from nhl94_ai.ui.targets import draw_target_overlay
+        from tests.unit.test_classic_defense import defense_state
+        planner = DefenseController()
+        state = defense_state()
+        planner.step(state)
+        planner.diagnostics['check'] = {'status': 'ready', 'impact_estimate': 21, 'weight_threshold': 8}
+        font = pygame.font.Font(None, 16)
+        rendered = []
+        wrapped_font = SimpleNamespace(
+            get_linesize=font.get_linesize,
+            render=lambda text, *args: (rendered.append(text), font.render(text, *args))[1])
+        draw_target_overlay(pygame.Surface((600, 700)), lambda x, y: (300 + x, 350 - y),
+                            state, planner.diagnostics, wrapped_font)
+        self.assertIn('Body check: ready; impact/threshold: 21/8', rendered)
+
+    def test_offensive_target_is_amber_and_clears_on_vector_reset(self):
+        import pygame
+        from stable_baselines3.common.vec_env import DummyVecEnv
+        from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
+        from nhl94_ai.ui.debug import NHL94DebugDisplay
+        from nhl94_ai.ui.targets import OFFENSE_AMBER, TARGET_GREEN
+        from tests.unit.test_environment_contracts import wrapped
+        from tests.unit.test_classic_offense import offense_state
+        for terminal in (False, True):
+            with self.subTest(terminal=terminal):
+                inner = wrapped()
+                inner.unwrapped.render_mode = 'rgb_array'
+                inner.env.truncate = terminal
+                inner.env.info.update(defense_scroll_x=-64, defense_scroll_y=30)
+                vector = DummyVecEnv([lambda inner=inner: inner])
+                self.addCleanup(vector.close)
+                vector.reset()
+                model = ClassicAIV1Model()
+                model.predict_frame(offense_state())
+                args = target_args(nn='ClassicAIV1', action_type='FILTERED', mode='model_vs_game')
+                display = NHL94DebugDisplay(vector, args, 0, 'ClassicAIV1', [])
+                display.set_ai_sys_info(SimpleNamespace(last_diagnostics={'classic_offense': model.offense_diagnostics}))
+                display.step([np.zeros(12, dtype=np.int8)])
+                pixels = pygame.surfarray.array3d(display.game_surf)
+                self.assertEqual(bool(np.any(np.all(pixels == OFFENSE_AMBER, axis=2))), not terminal)
+                self.assertFalse(np.any(np.all(pixels == TARGET_GREEN, axis=2)))
 
     def test_live_game_image_has_marker_and_auto_reset_clears_it(self):
         import pygame

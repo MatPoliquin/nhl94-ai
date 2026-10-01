@@ -48,7 +48,7 @@ there is no mutable singleton wrapper manager.
   remain explicit in the orchestrator.
 
 Classic V1 is registered as `ClassicAIV1` / `classic-v1` (also `classic`).
-It retains the former V4 offensive decision tree and adds reactive defense in
+It retains the former V4 finishing/one-timer machinery and adds reactive defense in
 `agents/defense.py`: select a tactical target, select a reachable skater, then
 execute skating/checking. `agents/motion.py` shares arrival/puck prediction
 between planning and selection. Read-only live attributes and motion are decoded
@@ -57,7 +57,14 @@ The original V1–V3 controllers and their legacy import aliases are removed;
 `classic-v2`, `classic-v3`, and `classic-v4` are no longer supported names.
 Historical benchmark reports retain their original version labels and hashes.
 The paired benchmark now defaults to V1 versus its `classic-v1-direct`
-one-timer-disabled ablation. Both variants use the same new defense.
+one-timer-disabled ablation. Both variants use the same defense and progression
+planner. `agents/offense.py` selects advancement/positional passes, verified
+breakaway carries and bounded opportunity-creating cuts; `agents/passing.py`
+predicts the ROM-selected receiver, motion-backed flight and reception risk.
+Live cut planning resolves goalie-safe routes before predicting the resulting
+opportunity, and execution uses that exact validated target. Fresh routing changes
+cancel the old opportunity rather than silently rewriting its movement. Goalkeeper
+braking and post-cut projection share the same short-horizon motion helper.
 Agent services reset the controller and pending sequences between episodes.
 
 Play, evaluation, collection, DAgger, and inference-only guards consume the same
@@ -146,11 +153,77 @@ each request; failed requests back off and retry rather than permanently disabli
 switching. Read-only `Player.selection_flags` comes from object byte `+0x62`,
 separate from the legacy animation flags, without changing normalized inputs.
 
+Classic's teammate coverage uses `agents.motion.blocks_shot_lane` on the shared
+three goal-mouth targets. It checks body-sized segment coverage and known
+velocity over a bounded shot-arrival window, rather than treating any central,
+goal-side teammate as cover. `DefensePlan.lanes`, `shot_goal` and
+`reserved_slots` connect target planning to player selection and the overlay:
+the selected mover cannot be a supporting skater the plan relies on to keep
+another lane covered. Current/pending movers are excluded from that supporting
+coverage. Partial cover redirects to a goal-mouth gap; dependable complete
+carrier cover can redirect to a predicted receiver's uncovered lane. Target
+hysteresis retains a nearby point, never stale coverage diagnostics.
+The normal per-frame agent path provides this behavior to all callers without
+changing neural inputs, action schemas, offensive rules or learned
+`TARGET_POSITION` behavior. See [Classic V1](CLASSIC_V1.md#teammate-shooting-lane-coverage)
+for the model's assumptions and the measured performance regression.
+
+Classic's close-carrier C branch uses `agents.motion.check_approach` to estimate
+a facing-directed burst collision, then applies the joystick-specific,
+byte-wrapped weight threshold, impact minimum and coverage/route guards.
+Favorable body checks precede B pokes; C shares the existing boost cooldown and
+gets bounded neutral follow-through so switching/braking cannot immediately
+cancel the contact attempt. Ownership/control changes cancel that commitment.
+`classic_defense.check` exposes eligibility and estimated impact/threshold;
+`check-request` is not success attribution. Both filtered buttons and the
+existing `HOCKEY_INTENT_NOOP` plus boost field transmit the same C pulse:
+there is no new action ID, observation field or learned-controller behavior.
+See [deliberate C body checks](CLASSIC_V1.md#deliberate-c-body-checks) for the
+Genesis weight bug, prediction limits and isolated ROM outcome evidence.
+
 Hockey-intent ownership gates prefer the engine's owner slot over visual stars
 when `EngineState.puck_owner_known` is true. Negative owners mean a loose puck;
 only absent ownership telemetry falls back to the historical star flags. This
 prevents stale stars from suppressing defensive switches or sustaining offensive
 macros after a turnover. It does not alter the observation or action schema.
+
+Classic offense retains its configured decision interval, normally four frames.
+Advancement deadlines and cut cooldowns use the same elapsed emulator-frame
+clock as defense; ownership feedback cancels an in-flight commitment promptly.
+The historical shot/one-timer decision timers and C-edge machinery remain.
+Offensive `classic_offense` diagnostics accompany `classic_defense` through
+agents, frame-skip traces, UI and evaluation metadata. Amber marks the offensive
+destination, independently of the green defensive target.
+
+The new safety model uses optional skater `passing`, sprite stick offsets and
+read-only offside-rule feedback, plus existing motion/energy/facing fields. These never enter normalized
+neural arrays. Goalie velocity aliases use variant-specific goalie slots.
+`game.ram.pass_geometry_info` decodes `GetHot` from the actual emulator ROM's
+verified table and live sprite/flip fields, reading only existing skater slots.
+The table is cached in memory; unsupported routines fail explicitly. It runs at
+the observation reset/step boundary and in raw benchmark/replay state updates,
+so watched and measured play use the same geometry without modifying integration
+files, ROMs or saved model schemas. The nominal pass rating is not its full
+launch vector: `agents.passing.rom_pass_vector` preserves signed word arithmetic
+and quantized lead timing. Live launch and collision deadlines share the
+two-frame release estimate and flight friction; without sprite feedback the
+compatibility estimate remains explicit in diagnostics.
+Intent pass recipient mapping prefers actual control feedback over stale stars
+without adding action IDs. The estimator reuses net-segment geometry, not a
+player route search for a puck that cannot route around an obstruction.
+Fixed seeded movement scenarios measure robustness, not pass completion odds.
+One-timer eligibility uses the projected stick-contact position, not current
+receiver geometry. Ordinary receptions retain the stick-handling speed gate;
+one-timers follow the ROM's separate shot-contact branch. Relative-motion
+segments sweep bodies and live friendly/opposing stick offsets between flight
+samples. Stronger same-side shots
+and bounded `one-timer-setup` cuts are separate from ordinary reception/settling.
+`evaluation.offense_metrics` and purpose-tagged `PassOutcomes` distinguish
+zone entries, ordinary receptions, interceptions and recorded one-timers.
+See [progressive offense](CLASSIC_V1.md#progressive-offense) for limitations and
+the measured scoring regression; executing more passes is not proof of strength.
+The later one-timer recovery sample improved scoring but also increased
+concessions; its before/after reports preserve the separate measurements.
 
 `player_vs_model` uses the normal debug display, not the older PvP display.
 The AI keeps controller 1; the display samples keyboard input for controller 2
@@ -165,6 +238,29 @@ collection and self-play retain their existing routing and action schemas.
 `python -m tests.integration.human_play` checks the full playback/display/ROM path
 in all three variants, including key releases, actual away-skater movement and
 the visible defensive target.
+
+Full-team Classic `model_vs_game` playback also accepts `--side away`, with
+`FILTERED` buttons and `PostPlay`. On every reset, the shared CPU-side RAM helper
+transfers the single joystick from home to away and restores CPU selection flags
+on the released home skater. Saves assigning a second controller are rejected.
+During play, a ROM one-timer reassignment can incorrectly give that joystick a
+home skater while retaining its away-team assignment. The shared scoped guard
+releases that home skater back to the CPU, restores the corresponding away slot,
+refreshes all RAM aliases and emits a warning plus `away_control_restored_from`.
+The raw CPU benchmark uses the same guard for away trials. Invalid team
+assignments or unsupported selection feedback still fail explicitly. A selected
+away skater can briefly lack the joystick flag during assignment restoration:
+the ROM check permits at most four new-assignment frames, or a single
+animation-restoration frame, never an active home joystick.
+Classic receives swapped team references with physical coordinates, slot identities
+and goal ends unchanged; the display retains the home/away world view. Existing
+home playback and learned-policy schemas are unchanged. The Montreal example uses
+`CanadiensVsNordiques.start`: Classic is Quebec and Montreal remains the CPU.
+`python -m tests.integration.away_play` checks the real watched playback path,
+controller flags, actual away control, reset persistence, and the green target.
+Scripted playback feeds the first decision with `VecEnv.reset_infos`, and does
+the same after automatic resets. It does not submit an initial four-frame blind
+neutral action. Learned playback keeps its original initialization and cadence.
 
 Learner and opponent macros have separate state. Reset reconstructs game state,
 clears macro cooldowns, initializes the task, and repopulates sequence history.

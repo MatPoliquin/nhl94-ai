@@ -15,6 +15,7 @@ from nhl94_ai.env.perspective import OpponentPerspective
 from nhl94_ai.game.specs import get_game
 from nhl94_ai.agents.multi_model import NHL94AISystem
 from nhl94_ai.game.state import NHL94GameState
+from nhl94_ai.game.ram import controller_team_info, pass_geometry_info, restore_away_control, select_cpu_side
 from nhl94_ai.models.factory import load_model_for_inference
 
 
@@ -34,6 +35,7 @@ class NHL94Observation2PEnv(gym.Wrapper):
 
         self.nn = args.nn
         self.env_name = args.env
+        self.play_side = getattr(args, 'side', 'home')
         self.action_type = getattr(args, 'action_type', 'FILTERED').upper()
         self.selfplay_enabled = bool(getattr(args, 'selfplay', False))
         self.selfplay_role = self._resolve_selfplay_role(args, rf_name)
@@ -221,6 +223,8 @@ class NHL94Observation2PEnv(gym.Wrapper):
         state, info = self.env.reset(**kwargs)
 
         self.init_function(self.env, self.env_name)
+        if self.play_side == 'away':
+            select_cpu_side(self.env.data, self.env.data.lookup_all(), 2)
         if self.target_controller is not None:
             self.target_info = self.env.data.lookup_all()
 
@@ -229,6 +233,11 @@ class NHL94Observation2PEnv(gym.Wrapper):
             reset_action = np.concatenate([reset_action, reset_action])
 
         state, _, _, _, info = self.env.step(reset_action)
+        info = pass_geometry_info(self.env, info)
+        if self.play_side == 'away' and (info.get('defense_team1'), info.get('defense_team2')) != (2, 0):
+            raise ValueError('Away playback did not leave the home team under CPU control.')
+        if self.play_side == 'away':
+            info = controller_team_info(info)
         if self.external_opponent and (info.get('defense_team1'), info.get('defense_team2')) != (1, 2):
             raise ValueError('player_vs_model requires a two-controller save with P1 home and P2 away; use a compatible .2P state')
 
@@ -387,6 +396,9 @@ class NHL94Observation2PEnv(gym.Wrapper):
             ac2 = np.concatenate([learner_action, opponent_action])
 
         ob, rew, terminated, truncated, info = self.env.step(ac2)
+        info = pass_geometry_info(self.env, info)
+        if self.play_side == 'away':
+            info = controller_team_info(restore_away_control(self.env.data, info))
         if 'defense_scroll_x' in self.defense_camera:
             info['target_camera_x'] = -64 - self.defense_camera['defense_scroll_x']
             info['target_camera_y'] = -self.defense_camera['defense_scroll_y']

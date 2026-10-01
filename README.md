@@ -22,6 +22,9 @@ python -m pip install -e '.[display,vision,export]'
 # Watch a scripted agent; requires the display extra.
 nhl94 play --agent classic-v1 --env NHL94-Genesis-v0
 
+# Watch Classic as Quebec against Montreal's built-in CPU.
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --state CanadiensVsNordiques.start --side away --max_playback_speed 1.0
+
 # Play against Classic v1 at half speed (you control the away team).
 nhl94 play --agent classic-v1 --mode player_vs_model --env NHL94-Genesis-v0 --max_playback_speed 0.5
 
@@ -49,8 +52,18 @@ against that file's directory. Explicit CLI flags override file settings.
 The sole scripted controller is [Classic V1](docs/CLASSIC_V1.md), formerly V4.
 Its defense chooses a safe lane/recovery target before selecting a skater and
 reacts every emulator frame. The target appears as a green square on the ice.
-Offensive tactics and decision timing are unchanged. `classic` is also an alias
+Offense now evaluates advancement passes and purposeful cuts, with an amber
+offensive target; its configured decision interval is unchanged. The initial
+progressive-offense change regressed from 42 to 28 goals in the matched 50-period
+comparison. The later one-timer fix increased scoring from 20 to 30 goals in
+24 matched periods, but concessions also rose from 13 to 18; this is not evidence
+of universally stronger play. `classic` is also an alias
 for it; the original V1–V3 controllers have been removed.
+
+For full-team Classic AI-versus-CPU playback, `--side away` transfers controller 1
+to the away team and releases the home skater to the built-in CPU. Use a
+single-controller home save, not a `.2P` save. Home remains the default; away
+playback currently requires `FILTERED` buttons and the `PostPlay` task.
 
 In `player_vs_model`, Classic controls P1/home and the keyboard controls P2/away.
 Use **arrow keys** to skate, **X** to pass/switch/poke, **C** to shoot/boost/check,
@@ -110,7 +123,8 @@ Unit tests require no ROM. Emulator regression traces cover all three variants
 and replay frozen inputs to preserve the original observations, rewards, and
 timing. `python -m tests.integration.classic_defense` checks live movement
 telemetry and per-frame/interval execution parity; `python -m
-tests.integration.play_v1` checks deterministic defensive playback.
+tests.integration.classic_offense` verifies actual advancement receptions and
+cut movement; `python -m tests.integration.play_v1` checks deterministic playback.
 
 - [Architecture and extension points](docs/ARCHITECTURE.md)
 - [Artifact and runtime export contracts](docs/ARTIFACTS.md)

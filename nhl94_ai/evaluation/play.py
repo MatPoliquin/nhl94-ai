@@ -33,6 +33,8 @@ def build_parser():
     # Common arguments
     parser.add_argument('--env', type=str, default='NHL941on1-Genesis-v0')
     parser.add_argument('--state', type=str, default=None)
+    parser.add_argument('--side', choices=['home', 'away'], default='home',
+                       help='Classic team in model_vs_game; away uses a home-only full-team save')
     parser.add_argument('--num_players', type=int, default=2)
     parser.add_argument('--num_env', type=int, default=1)
     parser.add_argument('--output_basedir', type=str, default='~/OUTPUT')
@@ -89,6 +91,15 @@ class NHL94Player:
             args.num_players = 2
         self.logger = logger
         self.need_display = need_display
+        if getattr(args, 'side', 'home') != 'home':
+            requirements = (
+                args.side == 'away', args.mode == 'model_vs_game', args.nn in CONTROLLERS,
+                args.env == 'NHL94-Genesis-v0', args.action_type.upper() == 'FILTERED',
+                args.rf == 'PostPlay', not args.model_2,
+            )
+            if not all(requirements):
+                raise ValueError('--side away requires full-team Classic model_vs_game playback '
+                                 'with FILTERED buttons, PostPlay, and one agent')
         self.max_playback_speed = max(0.1, min(float(getattr(args, 'max_playback_speed', 2.0)), 2.0))
         self.display_frame_interval = 1.0 / (60.0 * self.max_playback_speed) if need_display else 0.0
         self.next_display_frame_time = None
@@ -235,10 +246,10 @@ class NHL94Player:
         state = self.display_env.reset()
         self._reset_playback_timer()
         total_rewards = 0
-        info = None
+        scripted = self.args.nn in CONTROLLERS and self.args.mode != 'player_vs_game'
+        info = self._scripted_reset_info() if scripted else None
 
         while True:
-            scripted = self.args.nn in CONTROLLERS and self.args.mode != 'player_vs_game'
             initialized = info is not None
             if self.args.mode == 'player_vs_game':
                 # Player vs Game mode - just use player inputs
@@ -285,9 +296,15 @@ class NHL94Player:
                         state = self.display_env.reset()
                         self._reset_playback_timer()
                     if scripted:
-                        info = None
+                        info = self._scripted_reset_info()
                 else:
                     return info, total_rewards
+
+    def _scripted_reset_info(self):
+        vector = self.display_env.env if self.need_display else self.display_env
+        if not vector.reset_infos or not vector.reset_infos[0]:
+            raise ValueError('Scripted playback requires fresh RAM feedback from reset.')
+        return vector.reset_infos
 
 def main(argv):
     return run(parse_cmdline(argv[1:]))
@@ -313,6 +330,8 @@ def run(args):
         com_print('Arrows: skate | X: pass/switch | C: shoot/check | Z: clear/hold | Enter: pause | ESC: quit')
     if args.mode == 'player_vs_model':
         com_print('AI: controller 1 / home team. Keyboard: controller 2 / away team.')
+    elif args.mode == 'model_vs_game':
+        com_print(f"AI: controller 1 / {getattr(args, 'side', 'home')} team. Opponent: built-in CPU.")
 
     try:
         player.play(continuous=not args.single_session, need_reset=False)

@@ -44,6 +44,14 @@ acts only every four frames cannot reproduce every reactive button edge; use
 `--no_frame_skip` consistently in collection/BC/DAgger for a one-frame clone.
 Existing datasets and saved policies keep their original timing contracts.
 
+Progressive Classic offense uses the same action/observation schemas and
+configured offensive decision interval. Optional live passing/rule feedback is
+not encoded into neural inputs. `AgentOutput.diagnostics` and recorded substeps
+add `classic_offense` alongside `classic_defense`; this is diagnostic metadata,
+not another training-array field or a target-policy schema revision.
+Old demonstrations remain compatible, but retain the old teacher's offensive
+behavior rather than becoming labels for the new strategy.
+
 ## Live-training snapshots
 
 Live-display runs keep a separate `_latest_live.zip` and `.zip.json` sidecar,

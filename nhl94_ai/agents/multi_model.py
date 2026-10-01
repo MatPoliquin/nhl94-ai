@@ -5,9 +5,11 @@ from nhl94_ai.agents.registry import CONTROLLERS
 
 import math
 import random
+from copy import copy
 import numpy as np
 from nhl94_ai.game.constants import GameConsts
 from nhl94_ai.game.state import NHL94GameState
+from nhl94_ai.game.ram import controller_team_info
 from nhl94_ai.models.factory import init_model, get_num_parameters, get_model_probabilities
 
 
@@ -87,7 +89,11 @@ class NHL94AISystem():
             agent = LearnedAgent(model, self.args.action_type)
         else:
             agent = model
-        result = agent.act(AgentInput(self.game_state, model_input), deterministic)
+        game_state = self.game_state
+        if getattr(self.args, 'side', 'home') == 'away':
+            game_state = copy(game_state)
+            game_state.Flip()
+        result = agent.act(AgentInput(game_state, model_input), deterministic)
         p1_actions = result.action
         self.last_diagnostics = result.diagnostics
 
@@ -155,7 +161,10 @@ class NHL94AISystem():
             p1_actions = [[0] * GameConsts.INPUT_MAX]
             return p1_actions
 
-        self.game_state.BeginFrame(info[0], [0] * 6)
+        frame_info = info[0]
+        if getattr(self.args, 'side', 'home') == 'away':
+            frame_info = controller_team_info(frame_info)
+        self.game_state.BeginFrame(frame_info, [0] * 6)
 
         if self.num_models == 1:
             p1_actions = self.Predict(self.model_in_use, state, deterministic)

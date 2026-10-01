@@ -513,7 +513,17 @@ Only the requested direction and neighboring 45-degree sectors survive the angul
 
 If a suitable teammate is found, `passto` aims at an interception point, using the recipient’s velocity and sprite-dependent stick hotspot. It solves an integer interception calculation, rather than firing at the teammate’s current body center.
 
-If no recipient is found, the fallback sends the puck along the selected direction, includes the passer’s velocity in the X/Y calculation, and adds randomized loft. This is a different result from the targeted pass path.
+The integer details matter to a pass predictor. `passto` uses quarter-scaled
+distance/velocity intermediates, retains signed word operations in the
+quadratic, and solves with the ROM's integer `sroot`. Its selected time is in
+eighth-second increments, with zero changed to one and a three-second cap.
+The final velocity divides the led displacement by that quantized time. It can
+therefore differ substantially from an ideal continuous intercept using the
+nominal speed. `GetHot` also changes with sprite frame and flips, not just facing.
+Classic's live pass model uses these inputs; future sprite/assignment changes
+and contact remain predictions rather than guarantees.
+
+If no recipient is found, the fallback sends the puck along the selected direction, includes the passer's velocity in the X/Y calculation, and adds randomized loft. This is a different result from the targeted pass path.
 
 Sources: [setpassmode/passmode](/home/mat/github/nhl94-disassembly/nhl94.bin.lst:36891), [passto](/home/mat/github/nhl94-disassembly/nhl94.bin.lst:37073).
 
@@ -548,10 +558,23 @@ Sources: [GetHot](/home/mat/github/nhl94-disassembly/nhl94.bin.lst:43280), [puck
 For an ordinary loose puck/pass, the speed threshold for clean stick collection uses:
 
 ```text
-catch_speed_threshold = 13000 + 350 * effective_stick_handling
+catch_speed_threshold = 13000 + 350 * live_stick_handling
 ```
 
-The code compares squared horizontal puck speed with the square of that threshold. If the puck is marked as a shot, it skips the stick-handling addition in this branch. If collection fails, it produces a deflection and a cooldown.
+Here `live_stick_handling` is the on-ice object's `+0x71` byte, not the displayed
+player-card rating. It already includes the loader's attribute conversion and
+applicable bonuses. This receiving branch does not call `makepde` or apply an
+additional energy multiplier; the energy-scaled stealing path below is separate.
+
+The code compares squared horizontal puck speed with the square of that threshold,
+in raw ROM velocity units, and accepts equality. If the puck is marked as a shot,
+it skips the stick-handling addition in this branch. If collection fails, it
+produces a deflection and a cooldown.
+
+A receiver already in the one-timer state branches to `onetimershot` before
+this normal collection-speed comparison. It does not need to catch the pass
+first. Do not apply the ordinary stick-handling speed limit to a planned
+one-timer; the pass still needs valid stick contact and one-timer activation.
 
 When stealing from a skater, both players’ energy-adjusted stick handling contribute:
 
@@ -917,6 +940,20 @@ mass = stored_weight + 140
 It resolves normal/tangential velocity components with a restitution term. This is separate from `CCStart` deciding whether a check causes a knockdown. A player can lose momentum or be displaced without the same result as a full fall.
 
 Source: [checkcx mass arithmetic](/home/mat/github/nhl94-disassembly/nhl94.bin.lst:48712).
+
+For opposing-player contact within the combined 16-unit body radius, `checkcx`
+projects relative **raw full-word velocity** onto the separation vector.
+Negative closing dot products do not collide. It shifts the nonnegative dot
+product right by four, takes the low word, then shifts right by eight to form
+the impact increment (minimum five), adding it to both players' `+0x32` impact
+words. Burst checking additionally requires that increment to be at least 20.
+The shift instructions divide by 16 and 256, despite misleading adjacent
+disassembly comments. Ordinary nonwrapping motion therefore gives approximately
+`dot(relative_rink_velocity, separation) / (4096 * (17 / 65536))`.
+This is a contact-time estimate, not an exact prediction of future accumulated
+impact or a knockdown probability.
+
+Source: [checkcx contact/impact arithmetic](/home/mat/github/nhl94-disassembly/nhl94.bin.lst:48625).
 
 ### 8.5 The weight bug, precisely
 

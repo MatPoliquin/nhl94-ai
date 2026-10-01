@@ -13,11 +13,11 @@ class PassOutcomes:
         self.pending = None
         self.events = []
 
-    def start(self, frame, info, passer, intended):
+    def start(self, frame, info, passer, intended, purpose='one-timer'):
         if self.pending is not None:
             self.finish(frame, info, 'superseded')
         self.pending = {
-            'frame': frame, 'passer': passer, 'intended': intended, 'actual': None,
+            'frame': frame, 'passer': passer, 'intended': intended, 'actual': None, 'purpose': purpose,
             'launched': False,
             'passes_before': info[f'p{self.side}_pass_attempts'],
             'one_timers_before': info[f'bench_one_timers{self.side}'],

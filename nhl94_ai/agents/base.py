@@ -46,7 +46,8 @@ class ScriptedAgent:
         self.last_output = AgentOutput(np.asarray(action), {'plan': getattr(plan, 'name', None),
             'decision': getattr(self.controller, '_last_decision', ''),
             'target': getattr(self.controller, '_last_target', (0, 0)),
-            'classic_defense': getattr(self.controller, 'defense_diagnostics', {})})
+            'classic_defense': getattr(self.controller, 'defense_diagnostics', {}),
+            'classic_offense': getattr(self.controller, 'offense_diagnostics', {})})
         return self.last_output
 
     # Existing integrations use these inference methods while callers migrate.

@@ -14,7 +14,9 @@ from nhl94_ai.agents.registry import ALIASES, create_scripted
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.evaluation.benchmark import RAM, away_view, update_state
 from nhl94_ai.game.state import NHL94GameState
+from nhl94_ai.game.ram import pass_geometry_info, restore_away_control, select_cpu_side
 from nhl94_ai.evaluation.pass_outcomes import PassOutcomes
+from nhl94_ai.evaluation.offense_metrics import OffenseMetrics
 
 
 MATCHUPS = {
@@ -40,15 +42,7 @@ def select_side(data, info, side):
     """
     if (info['bench_team1'], info['bench_team2'], info['period']) != (1, 0, 0):
         raise ValueError('CPU benchmark requires a first-period, home-only joystick save.')
-    if side == 2:
-        previous = info['bench_control1']
-        if not 0 <= previous < 6:
-            raise ValueError('Invalid initial home controller slot.')
-        target = previous + 6
-        data.set_value('bench_team1', 2)
-        data.set_value('bench_control1', target)
-        data.set_value(f'cpu_{previous}_flags', (info[f'cpu_{previous}_flags'] & ~8) | 2)
-        data.set_value(f'cpu_{target}_flags', info[f'cpu_{target}_flags'] | 8)
+    select_cpu_side(data, info, side, controller_prefix='bench', player_prefix='cpu', slots=6)
 
 
 def lineup(info, rom):
@@ -106,15 +100,20 @@ def cpu_match(fixture):
         defense_frames, defense_requests = Counter(), Counter()
         controlled_recoveries = 0
         passes = PassOutcomes(side)
+        offense = OffenseMetrics()
         budget = seconds * 120 + 6000
         while info['bench_clock'] > 0 and frames < budget:
+            info = pass_geometry_info(env, info)
             view = cpu_view(state, info, side)
+            offense.observe(frames, view)
             before_tick = agent._tick
             action = agent.predict_game_state(view)[0]
             if agent._tick != before_tick:
                 decisions[agent._last_decision] += 1
-            if agent._tick != before_tick and agent._last_decision == 'one-timer-pass':
-                passes.start(frames, info, *agent._one_timer[:2])
+            request = agent._last_pass_request
+            if request and request['frame'] != getattr(passes, 'last_request_frame', None):
+                passes.start(frames, info, request['passer'], request['receiver'], request['purpose'])
+                passes.last_request_frame = request['frame']
             diagnostics = agent.defense_diagnostics
             if diagnostics:
                 defense_frames[diagnostics['decision']] += 1
@@ -128,6 +127,8 @@ def cpu_match(fixture):
             digest.update(np.asarray(buttons, dtype=np.int8).tobytes())
             before_owner = info['puck_owner']
             *_, info = env.step(buttons)
+            if side == 2:
+                info = restore_away_control(env.data, info, controller_prefix='bench', player_prefix='cpu', slots=6)
             if diagnostics and before_owner != info['puck_owner'] == diagnostics['acting_slot']:
                 controlled_recoveries += 1
             frames += 1
@@ -143,6 +144,7 @@ def cpu_match(fixture):
             'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
             'controlled_recoveries': controlled_recoveries,
             'pass_outcomes': passes.summary(), 'pass_events': passes.events,
+            'offense_metrics': offense.summary(), 'zone_entries': offense.entries,
             'clock_remaining': info['bench_clock'], 'completed': info['bench_clock'] == 0,
             'teams': [info['home_team'], info['away_team']], 'lineup': starting_lineup,
             'actions_sha256': digest.hexdigest(),
@@ -171,6 +173,16 @@ def summarize(results):
             outcomes.update(row.get('pass_outcomes', {}).get('outcomes', {}))
         summary[matchup]['pass_outcomes'] = dict(outcomes)
         summary[matchup]['wrong_recipient'] = sum(r.get('pass_outcomes', {}).get('wrong_recipient', 0) for r in rows)
+        metrics = Counter()
+        for row in rows:
+            metrics.update(row.get('offense_metrics', {}))
+        summary[matchup]['offense_metrics'] = dict(metrics)
+        summary[matchup]['passes_by_purpose'] = {
+            purpose: dict(Counter(event['outcome'] for row in rows for event in row.get('pass_events', [])
+                                  if event.get('purpose', 'one-timer') == purpose))
+            for purpose in sorted({event.get('purpose', 'one-timer') for row in rows
+                                   for event in row.get('pass_events', [])})
+        }
     return summary
 
 
@@ -197,14 +209,14 @@ def run(args):
     fixtures = [(args.agent, matchup, seed, args.seconds, args.frame_skip, args.action_type)
                 for matchup in args.matchups for seed in range(args.seed, args.seed + args.trials)]
     controller = create_scripted(args.agent, SimpleNamespace(action_type=args.action_type)).controller
-    files = {Path(__file__), Path(inspect.getfile(PassOutcomes)),
+    files = {Path(__file__), Path(inspect.getfile(PassOutcomes)), Path(inspect.getfile(OffenseMetrics)),
              Path(inspect.getfile(HockeyActionController)), Path(inspect.getfile(NHL94GameState)),
              Path(inspect.getfile(update_state))}
     files.update(Path(inspect.getfile(cls)) for cls in type(controller).__mro__ if cls is not object)
     root = Path(__file__).resolve().parents[2]
     files.update(root / 'nhl94_ai' / name for name in (
         'game/ram.py', 'game/geometry.py', 'env/factory.py',
-        'agents/base.py', 'agents/defense.py', 'agents/motion.py'))
+        'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/offense.py', 'agents/passing.py'))
     sources = {str(path.relative_to(root)):
                hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
     if args.workers == 1:

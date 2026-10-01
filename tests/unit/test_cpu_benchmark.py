@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from nhl94_ai.evaluation.cpu_benchmark import build_parser, lineup, run, select_side, summarize
-from nhl94_ai.game.ram import register_goalie_motion, register_pass_state, register_skater_ratings
+from nhl94_ai.game.ram import register_goalie_motion, register_pass_state, register_skater_ratings, restore_away_control
 from nhl94_ai.game.state import NHL94GameState
 
 
@@ -44,6 +44,20 @@ class CpuBenchmarkContracts(unittest.TestCase):
         with self.assertRaises(ValueError):
             select_side(data, dict(info, bench_team2=2), 2)
 
+    def test_away_restoration_uses_benchmark_aliases_and_refreshes_shared_feedback(self):
+        info = dict(bench_team1=2, bench_team2=0, bench_control1=3,
+                    cpu_3_flags=0xA8, cpu_9_flags=0x40, defense_control1=3)
+        data = Mock()
+        data.set_value.side_effect = info.__setitem__
+        data.update_ram.side_effect = lambda: info.update(defense_control1=info['bench_control1'])
+        data.lookup_all.side_effect = lambda: dict(info)
+        with self.assertWarns(RuntimeWarning):
+            corrected = restore_away_control(data, info, controller_prefix='bench', player_prefix='cpu', slots=6)
+        self.assertEqual(corrected['bench_control1'], 9)
+        self.assertEqual(corrected['defense_control1'], 9)
+        self.assertEqual(corrected['cpu_3_flags'], 0xA2)
+        self.assertEqual(corrected['cpu_9_flags'], 0x48)
+
     def test_missing_accuracy_is_distinct_from_a_real_zero(self):
         info = json.loads((Path(__file__).resolve().parents[1] /
                            'fixtures/NHL94-Genesis-v0.json').read_text(encoding='utf-8'))
@@ -66,6 +80,13 @@ class CpuBenchmarkContracts(unittest.TestCase):
                                        'p2_shot_accuracy', 'p2_2_shot_accuracy'})
         self.assertEqual(fields['p2_2_shot_accuracy'],
                          {'address': 0xFFB04A + 7 * 0x80 + 0x6D, 'type': '|u1'})
+
+    def test_reduced_variant_goalie_motion_uses_live_goalie_slot(self):
+        env = Mock()
+        register_goalie_motion(env, 2)
+        fields = dict(call.args for call in env.data.set_variable.call_args_list)
+        self.assertEqual(fields['g1_live_vel_x'], {'address': 0xFFB04A + 2 * 0x80 + 0x28, 'type': '>i2'})
+        self.assertEqual(fields['g2_live_vel_y'], {'address': 0xFFB04A + 8 * 0x80 + 0x2A, 'type': '>i2'})
 
     def test_lineup_names_follow_roster_indices(self):
         rom = bytearray(128)

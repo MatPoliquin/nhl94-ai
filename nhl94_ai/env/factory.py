@@ -97,9 +97,10 @@ def make_retro(
         inttype=inttype,
     )
     if game in GAMES:
+        env.pass_geometry_rom = stable_retro.data.get_romfile_path(game, inttype)
         register_skater_ratings(env, GAMES[game].skaters_per_team)
         register_pass_state(env)
-        register_goalie_motion(env)
+        register_goalie_motion(env, GAMES[game].skaters_per_team)
         register_defense_state(env, GAMES[game].skaters_per_team)
     #env = NHL94Discretizer(env)
     #if max_episode_steps is not None:

@@ -104,6 +104,7 @@ class ClassicV1Contracts(unittest.TestCase):
         for away in (False, True):
             state = shooting_state()
             state.team1.players[0].y = state.team2.players[0].y = 0
+            state.team1.goalie.y, state.team2.goalie.y = state.team1.net.y, state.team2.net.y
             state.engine.puck_owner = 6 if away else 0
             view = away_view(state) if away else state
             action = ClassicAIV1Model().predict_game_state(view)[0]

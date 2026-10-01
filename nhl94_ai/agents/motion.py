@@ -5,12 +5,47 @@ from nhl94_ai.env.target_control import project_target, route_waypoint
 
 
 VELOCITY_SCALE = 17 / 65536
+LANE_HORIZON = 32
+SHOT_SPEED_RANGE = (3.0, 6.0)
+BLOCK_RADIUS = 8
 
 
 def velocity(player):
     if player.motion_x is None or player.motion_y is None:
         return player.vx * 256 * VELOCITY_SCALE, player.vy * 256 * VELOCITY_SCALE
     return player.motion_x, player.motion_y
+
+
+def blocks_shot_lane(player, start, goal, delay=0):
+    """Conservative low-shot cover, not a promise of a ROM collision.
+
+    Require an existing body-sized block to survive a short release window and
+    a range of shot speeds. Never assume an uncontrolled teammate will brake.
+    """
+    if player.motion_x is None or player.motion_y is None:
+        return False
+    dx, dy = goal[0] - start[0], goal[1] - start[1]
+    length = math.hypot(dx, dy)
+    if length < 1:
+        return False
+    ux, uy = dx / length, dy / length
+    px, py = player.x - start[0], player.y - start[1]
+    along, across = px * ux + py * uy, px * uy - py * ux
+    if not 0 < along < length or abs(across) > BLOCK_RADIUS:
+        return False
+    vx, vy = velocity(player)
+    forward, sideways = vx * ux + vy * uy, vx * uy - vy * ux
+    for launch in (delay, delay + 4):
+        for speed in SHOT_SPEED_RANGE:
+            if speed <= forward:
+                return False
+            travel = (along + forward * launch) / (speed - forward)
+            time = launch + travel
+            if not 0 < speed * travel < length or time > LANE_HORIZON:
+                return False
+            if abs(across + sideways * time) > BLOCK_RADIUS:
+                return False
+    return True
 
 
 def skating(player, optimistic=False):
@@ -39,6 +74,52 @@ def facing(player):
 def boost_impulse(player):
     _, _, energy = skating(player)
     return max(0, energy - 204) // 128 * 200 * VELOCITY_SCALE
+
+
+def burst_velocity(player):
+    fx, fy = facing(player)
+    vx, vy = velocity(player)
+    impulse = boost_impulse(player)
+    return vx + fx * impulse, vy + fy * impulse
+
+
+def stop_projection(player, frames):
+    """Skater stopna subtracts 150 raw units per axis, without reversing velocity."""
+    x, y = float(player.x), float(player.y)
+    vx, vy = velocity(player)
+    for _ in range(frames):
+        vx = math.copysign(max(0, abs(vx) - 150 * VELOCITY_SCALE), vx) * 63 / 64
+        vy = math.copysign(max(0, abs(vy) - 150 * VELOCITY_SCALE), vy) * 63 / 64
+        x, y = x + vx, y + vy
+    return (x, y), (vx, vy)
+
+
+def check_approach(player, carrier):
+    """Predict first body contact after a facing-directed burst, within eight frames."""
+    vx, vy = burst_velocity(player)
+    tx, ty = velocity(carrier)
+    dx, dy = carrier.x - player.x, carrier.y - player.y
+    rx, ry = tx - vx, ty - vy
+    if max(abs(rx), abs(ry)) >= 32768 * VELOCITY_SCALE:
+        return None
+    speed2, dot = rx * rx + ry * ry, dx * rx + dy * ry
+    if speed2 < 0.01 or dot >= 0:
+        return None
+    distance2 = dx * dx + dy * dy
+    discriminant = dot * dot - speed2 * (distance2 - 16**2)
+    if discriminant < 0:
+        return None
+    time = max(0, (-dot - math.sqrt(discriminant)) / speed2)
+    if time > 8:
+        return None
+    time = math.ceil(time)
+    separation = dx + rx * time, dy + ry * time
+    if math.hypot(*separation) > 16:
+        return None
+    # checkcx: ((relative raw velocity dot separation) >> 4) >> 8.
+    # Ignore accumulated impact; it may decay before this new collision.
+    impact = max(0, int(-(rx * separation[0] + ry * separation[1]) / (4096 * VELOCITY_SCALE)))
+    return time, (player.x + vx * time, player.y + vy * time), impact
 
 
 def boost_safe(player, target):
