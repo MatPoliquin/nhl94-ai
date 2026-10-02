@@ -283,6 +283,16 @@ Scripted playback feeds the first decision with `VecEnv.reset_infos`, and does
 the same after automatic resets. It does not submit an initial four-frame blind
 neutral action. Learned playback keeps its original initialization and cadence.
 
+`nhl94 play --seed N` opts into an `EpisodeROMSeed` wrapper directly around
+Retro, before observation/task initialization. Every explicit or vector
+automatic reset loads the save, writes the NHL94 uint32 RNG at `0xFFD066`,
+then advances the seed modulo `2**32`. Reset and step feedback carry the
+initial `episode_seed`, separate from the changing live RNG. The seed sequence
+also applies to image and target-policy playback; auxiliary policy-loading
+environments and training do not receive this wrapper. Omitting the option
+preserves fixed-save playback. ROMs, integrations, saved positions, neural
+input ordering and agent tactics are unchanged.
+
 Learner and opponent macros have separate state. Reset reconstructs game state,
 clears macro cooldowns, initializes the task, and repopulates sequence history.
 Opponent perspective copies the state, exchanges teams, and applies the existing

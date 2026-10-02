@@ -12,6 +12,11 @@ nhl94 play --agent classic-v1 --env NHL942on2-Genesis-v0
 nhl94 play --agent classic-v1 --env NHL94-Genesis-v0
 ```
 
+Add `--seed 12000` for reproducibly varied episodes: ROM seeds start at 12000
+and increment on every reset. Omit it to replay the save's original RNG state.
+This changes randomness, not the saved lineup or positions, and works with
+home/away play and the opt-in manual goalie policy.
+
 ## Train a scoring policy
 
 ```bash

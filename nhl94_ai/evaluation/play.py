@@ -21,6 +21,8 @@ from nhl94_ai.env.factory import init_env, init_play_env
 from nhl94_ai.models.factory import init_model, get_model_probabilities, get_num_parameters
 import nhl94_ai.env.components as games
 from nhl94_ai.config import load_hyperparams, resolve_hyperparams_for_model
+from nhl94_ai.game.ram import validate_rom_seed
+from nhl94_ai.game.specs import get_game
 
 def build_parser():
     parser = argparse.ArgumentParser(description='Play with your model in different modes')
@@ -33,6 +35,8 @@ def build_parser():
     # Common arguments
     parser.add_argument('--env', type=str, default='NHL941on1-Genesis-v0')
     parser.add_argument('--state', type=str, default=None)
+    parser.add_argument('--seed', type=int, default=None,
+                       help='Opt-in NHL94 ROM seed; each episode uses the next uint32 seed. Omit to retain the saved RNG.')
     parser.add_argument('--side', choices=['home', 'away'], default='home',
                        help='Classic team in model_vs_game; away uses a home-only full-team save')
     parser.add_argument('--goalie-policy', choices=['off', 'selective', 'always'], default='off',
@@ -93,6 +97,9 @@ class NHL94Player:
             args.num_players = 2
         self.logger = logger
         self.need_display = need_display
+        if getattr(args, 'seed', None) is not None:
+            validate_rom_seed(args.seed)
+            get_game(args.env)
         if getattr(args, 'goalie_policy', 'off') != 'off':
             EnvironmentConfig.from_args(args)
             if args.mode not in ('model_vs_game', 'player_vs_model') or args.model_2:
@@ -124,6 +131,7 @@ class NHL94Player:
         self.p1_env = init_env(
             None, 1, self.args.state, 1, self.args, self.args.hyperparams_dict,
             use_sticky_action=False, use_frame_skip=False,
+            episode_rom_seed=getattr(self.args, 'seed', None),
         )
         try:
             model = init_model(None, self.args.model_1, self.args.alg, self.args, self.p1_env,

@@ -9,14 +9,14 @@ import stable_retro as retro
 import stable_retro.data
 import nhl94_ai.env.components as games
 import cv2
-from nhl94_ai.env.wrappers import StochasticFrameSkip, WarpFrameDict, RewardClipper
+from nhl94_ai.env.wrappers import EpisodeROMSeed, StochasticFrameSkip, WarpFrameDict, RewardClipper
 from nhl94_ai.config import EnvironmentConfig, resolve_clip_reward, resolve_sticky_action_settings
 
 
-from nhl94_ai.game.specs import GAMES
+from nhl94_ai.game.specs import GAMES, get_game
 from nhl94_ai.game.ram import (
     register_defense_state, register_goalie_control, register_goalie_motion, register_pass_state,
-    register_skater_ratings, register_target_state,
+    register_skater_ratings, register_target_state, validate_rom_seed,
 )
 NHL94_DEFAULT_STATES = {name: spec.default_state for name, spec in GAMES.items()}
 
@@ -125,8 +125,12 @@ def build_single_nhl94_env(
     use_frame_skip=True,
     monitor=False,
     action_seed=None,
+    episode_rom_seed=None,
 ):
     EnvironmentConfig.from_args(args)
+    if episode_rom_seed is not None:
+        validate_rom_seed(episode_rom_seed)
+        get_game(args.env)
     target_mode = getattr(args, 'action_type', '').upper() == 'TARGET_POSITION'
     if target_mode and num_players != 1:
         raise ValueError('TARGET_POSITION requires one emulator controller')
@@ -144,6 +148,8 @@ def build_single_nhl94_env(
         num_players=num_players,
         goalie_policy=getattr(args, 'goalie_policy', 'off'),
     )
+    if episode_rom_seed is not None:
+        env = EpisodeROMSeed(env, episode_rom_seed)
     if target_mode:
         register_target_state(env)
 
@@ -187,6 +193,8 @@ def init_env(
     use_sticky_action=True,
     use_display=False,
     use_frame_skip=True,
+    *,
+    episode_rom_seed=None,
 ):
     EnvironmentConfig.from_args(args)
     args.hyperparams_dict = hyperparams
@@ -204,6 +212,8 @@ def init_env(
     frame_skip = max(1, int(hyperparams.get('frame_skip', 4)))
 
     seed = getattr(args, "seed", 0)
+    if seed is None:
+        seed = 0
     start_index = 0
     start_method = os.environ.get('RETRO_VECENV_START_METHOD')
     allow_early_resets=True
@@ -223,6 +233,7 @@ def init_env(
                 output_path=output_path and os.path.join(output_path, str(rank)),
                 use_sticky_action=use_sticky_action, use_frame_skip=use_frame_skip,
                 monitor=True, action_seed=seed + rank,
+                episode_rom_seed=episode_rom_seed,
             )
             return env
         return _thunk
@@ -288,6 +299,7 @@ def init_play_env(args, num_players, hyperparams, is_pvp_display=False, need_dis
         use_sticky_action=False,
         use_display=False,
         use_frame_skip=use_frame_skip,
+        episode_rom_seed=getattr(args, 'seed', None),
     )
 
     if not need_display:

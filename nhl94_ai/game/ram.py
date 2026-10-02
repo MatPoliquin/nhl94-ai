@@ -4,6 +4,14 @@ from functools import lru_cache
 from pathlib import Path
 
 
+ROM_RNG_ADDRESS = 0xFFD066
+
+
+def validate_rom_seed(seed):
+    if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed < 2**32:
+        raise ValueError('ROM seed must be a uint32 integer (0..4294967295).')
+
+
 def select_cpu_side(data, info, side, *, controller_prefix='defense', player_prefix='defense', slots=5):
     """Transfer a home-only joystick without leaving an idle human opponent."""
     if side not in (1, 2):

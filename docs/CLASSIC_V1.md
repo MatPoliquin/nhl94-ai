@@ -55,6 +55,14 @@ This controls Buffalo against the Mighty Ducks CPU. Use `--side away` to
 control Anaheim against Buffalo. No ROM, integration file or save is modified.
 The supplied save must be installed in Retro's NHL94 data directory.
 
+Add `--seed 12000` to vary repeated playback episodes reproducibly. The first
+episode writes ROM seed 12000, the next 12001, and so on (wrapping at uint32).
+The write happens after loading the save and before task setup and its first
+emulator frame, including automatic episode resets. Without `--seed`, playback
+retains the save's RNG state and deterministic replay behavior. Only randomness
+changes: starting positions, rosters, goalie settings and the PostPlay cutoff
+remain unchanged. These are repeated saved starts, not successive game periods.
+
 `--goalie-policy off` is the default and retains the existing controller.
 `selective` keeps useful skater defense and takes the goalie only for a
 reachable projected threat without a useful controlled skater contest/block.
@@ -150,6 +158,79 @@ Selective's concession reduction is encouraging, but does not establish reliable
 superiority over the CPU goalie. More frequent manual actions were not better:
 always-manual conceded more and scored less here. The report preserves source
 hashes, action hashes, starting-state hashes, lineups and per-seed outcomes.
+
+### Buffalo/Anaheim: 50 CPU periods per side
+
+The [100-period report](benchmarks/classic-v1-ducks-sabres-selective-100-periods.json)
+uses selective goalie control, `FILTERED` buttons and offense frame skip 4.
+Both matchups use the same 50 ROM seeds, 20261002-20261051, from
+`SabresVsMightyDucks.ManualGoalie.Start`. All periods reach the five-minute
+first-period clock cutoff; wins/draws/losses compare scores at that cutoff.
+Buffalo remains the home team and Anaheim the away team. Starting lineups and
+ratings are fixed, with Grant Fuhr and Guy Hebert in goal.
+
+Wins/draws/losses are from Classic's perspective. Paired statistic columns
+show **Classic / CPU** totals; one-timers are ROM-counted attempts, not just
+requested passes.
+
+| Classic team | Periods | Wins | Draws | Losses | Goals | Shots | One-timers | One-timer goals |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Anaheim vs Buffalo CPU | 50 | 23 | 19 | 8 | 51 / 26 | 357 / 217 | 103 / 69 | 31 / 6 |
+| Buffalo vs Anaheim CPU | 50 | 39 | 7 | 4 | 105 / 16 | 415 / 141 | 121 / 49 | 67 / 8 |
+| Combined | 100 | 62 | 26 | 12 | 156 / 42 | 772 / 358 | 224 / 118 | 98 / 14 |
+
+Classic averages 7.72 shots and 2.24 one-timers per period, versus the CPU's
+3.58 shots and 1.18 one-timers. It outperforms the built-in opponent in both
+directions of this fixed matchup with selective goalie control. This is not
+a full-game win rate or evidence of superiority across all teams, lineups,
+goalie policies or game settings.
+
+```bash
+nhl94 benchmark-cpu --agent classic-v1 \
+  --matchups ducks-sabres-manual sabres-ducks-manual \
+  --goalie-policy selective --trials 50 --seed 20261002 --seconds 300 \
+  --frame-skip 4 --action-type FILTERED --workers 4 \
+  --output docs/benchmarks/classic-v1-ducks-sabres-selective-100-periods.json
+```
+
+### Anaheim/Campbell: 50 CPU periods per side
+
+The [100-period Campbell report](benchmarks/classic-v1-ducks-campbell-selective-100-periods.json)
+repeats the same protocol and ROM seeds, 20261002-20261051, with
+`MightyDucksVsAllStarCampbell.ManualGoalie.Start`. Anaheim is home and
+Campbell is away; goalies are Guy Hebert and Ed Belfour. The single-controller
+save is used for both sides, with live RAM controller transfer for away trials.
+All 100 five-minute first periods complete. Agent/gameplay source hashes match
+the Buffalo/Anaheim report; only the CPU benchmark's opt-in matchup list changed.
+
+Wins/draws/losses are from Classic's perspective. Statistic pairs show
+**Classic / CPU** totals, including ROM-counted one-timer attempts.
+
+| Classic team | Periods | Wins | Draws | Losses | Goals | Shots | One-timers | One-timer goals |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Anaheim vs Campbell CPU | 50 | 19 | 22 | 9 | 47 / 33 | 359 / 240 | 112 / 62 | 27 / 16 |
+| Campbell vs Anaheim CPU | 50 | 41 | 9 | 0 | 122 / 15 | 426 / 138 | 141 / 46 | 88 / 7 |
+| Combined | 100 | 60 | 31 | 9 | 169 / 48 | 785 / 378 | 253 / 108 | 115 / 23 |
+
+Classic again wins more than it loses in both directions, with no losses when
+controlling Campbell. The Ducks' outcome is tighter than against Buffalo:
+19/22/9 wins/draws/losses and goals 47/33, versus 23/19/8 and goals 51/26.
+Its shot totals are similar, 359 versus 357, while opposing shots rise from
+217 to 240 and opposing one-timer goals from 6 to 16.
+
+This compares two fixed saved setups, not opponent strength in isolation:
+the Ducks are home here but away against Buffalo, and their saved effective
+ratings differ. Post-load ROM seeding does not regenerate initial ratings or
+saved hot/cold tables. Neither report establishes full-game win rates or
+performance across arbitrary lineups and settings.
+
+```bash
+nhl94 benchmark-cpu --agent classic-v1 \
+  --matchups ducks-campbell-manual campbell-ducks-manual \
+  --goalie-policy selective --trials 50 --seed 20261002 --seconds 300 \
+  --frame-skip 4 --action-type FILTERED --workers 4 \
+  --output docs/benchmarks/classic-v1-ducks-campbell-selective-100-periods.json
+```
 
 ## Target-first defense
 

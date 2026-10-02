@@ -19,12 +19,13 @@ import numpy as np
 
 from nhl94_ai.agents.registry import ALIASES, create_scripted
 from nhl94_ai.game.state import NHL94GameState
+from nhl94_ai.game.ram import ROM_RNG_ADDRESS
 from nhl94_ai.evaluation.pass_outcomes import PassOutcomes
 
 
 # NHL94 Genesis RAM symbols: random, SCnum[], teamselect[], clock, shots.
 RAM = {
-    'bench_rng': (0xFFD066, '>u4'),
+    'bench_rng': (ROM_RNG_ADDRESS, '>u4'),
     'bench_control1': (0xFFC320, '>i2'), 'bench_control2': (0xFFC322, '>i2'),
     'bench_team1': (0xFFC328, '>u2'), 'bench_team2': (0xFFC32A, '>u2'),
     'bench_clock': (0xFFC468, '>u2'),

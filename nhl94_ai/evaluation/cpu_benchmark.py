@@ -28,6 +28,8 @@ DEFAULT_MATCHUPS = list(MATCHUPS)
 MATCHUPS.update({
     'sabres-ducks-manual': ('SabresVsMightyDucks.ManualGoalie.Start', 1),
     'ducks-sabres-manual': ('SabresVsMightyDucks.ManualGoalie.Start', 2),
+    'ducks-campbell-manual': ('MightyDucksVsAllStarCampbell.ManualGoalie.Start', 1),
+    'campbell-ducks-manual': ('MightyDucksVsAllStarCampbell.ManualGoalie.Start', 2),
 })
 CPU_RAM = {
     **RAM,

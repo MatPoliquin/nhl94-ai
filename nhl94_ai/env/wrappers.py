@@ -6,6 +6,36 @@ from stable_baselines3.common.monitor import Monitor
 import gymnasium as gym
 import stable_retro as retro
 import cv2
+from nhl94_ai.game.ram import ROM_RNG_ADDRESS, validate_rom_seed
+
+
+class EpisodeROMSeed(gym.Wrapper):
+    """Apply successive ROM seeds after loading each save, before task setup."""
+
+    def __init__(self, env, seed):
+        super().__init__(env)
+        validate_rom_seed(seed)
+        self.next_seed = seed
+        self.episode_seed = None
+
+    @property
+    def data(self):
+        return self.unwrapped.data
+
+    @property
+    def buttons(self):
+        return self.unwrapped.buttons
+
+    def reset(self, **kwargs):
+        observation, info = self.env.reset(**kwargs)
+        self.data.memory.assign(ROM_RNG_ADDRESS, '>u4', self.next_seed)
+        self.episode_seed = self.next_seed
+        self.next_seed = (self.next_seed + 1) % 2**32
+        return observation, {**info, 'episode_seed': self.episode_seed}
+
+    def step(self, action, **kwargs):
+        observation, reward, terminated, truncated, info = self.env.step(action, **kwargs)
+        return observation, reward, terminated, truncated, {**info, 'episode_seed': self.episode_seed}
 
 
 class RewardClipper(gym.RewardWrapper):
