@@ -1,0 +1,3907 @@
+{
+  "protocol": "nhl94-cpu-first-period-v2",
+  "settings": {
+    "agent": "classic-v1",
+    "matchups": [
+      "penguins-senators",
+      "senators-penguins",
+      "nordiques-canadiens"
+    ],
+    "trials": 8,
+    "seed": 290900,
+    "seconds": 300,
+    "frame_skip": 4,
+    "action_type": "FILTERED",
+    "workers": 2,
+    "output": "docs/benchmarks/classic-v1-defense-after.json",
+    "config": null
+  },
+  "sources": {
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/game/ram.py": "f6e732c4125b34dd5e026a35ba3a00d4052ac8c7a8050b21bd5508ff5f6335df",
+    "nhl94_ai/env/factory.py": "5810f5ed826999d65aaebcde4b4aaa5b3f29b75768fba6542064a8d884084c4e",
+    "nhl94_ai/agents/base.py": "be6f0f345a059de0dd871a82878cf1491d7ea5e995af5bf8ffa13ef5b81836a9",
+    "nhl94_ai/agents/classic_v1.py": "c84f899a156bf706d62e041aeda605afa068ef004d60ca21389940b33b9fd666",
+    "nhl94_ai/agents/defense.py": "fe969c1addb86a8061979f9619480d5bcec5b848ec6fd5a160c8a7187da1f133",
+    "nhl94_ai/game/state.py": "10e84cdfa0ffb98f1fbecf8f38ea5fd213f2c2004fd5972c0b97c48ccffd674f",
+    "nhl94_ai/env/actions.py": "d973f306d64f343f8d5893c943d6009ba6427fc2ed4cb1a75e5bad688c45a235",
+    "nhl94_ai/evaluation/pass_outcomes.py": "4c9b54f3f3eb4569a45ffa260e127bef14b3ad9f2d9c754dc87f25f539c27c4c",
+    "nhl94_ai/agents/motion.py": "3cc9350450b3e9d280ff7aa589a8e6b1736e1d9b48c676163bd35a64a742c249",
+    "nhl94_ai/evaluation/benchmark.py": "8e480f9ec4a67b172156e6878b795853723575692043e8f7aa4b4f1a324291da",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "a4d8f5fb4e7e2f06820e602b292a07ebfbe5f5af7951068bcdc93c9a49434b36"
+  },
+  "versions": {
+    "nhl94-ai": "0.1.0",
+    "stable-retro": "1.0.1",
+    "numpy": "2.5.1"
+  },
+  "limitations": [
+    "Fixed starting rosters, first periods only; not full-game win rates.",
+    "Away trials transfer the joystick to the away team and correct RAM control observations.",
+    "Defense uses authoritative control slots; offensive inference is unchanged.",
+    "Defense reacts each frame; frame-skip controls the offensive decision interval.",
+    "Team changes also change opponents; this does not isolate any individual rating effect."
+  ],
+  "summary": {
+    "penguins-senators": {
+      "periods": 8,
+      "wins": 3,
+      "draws": 4,
+      "losses": 1,
+      "goals_for": 8,
+      "goals_against": 2,
+      "one_timer_setups": 20,
+      "one_timers": 8,
+      "one_timer_goals": 4,
+      "periods_without_one_timers": 1,
+      "pass_outcomes": {
+        "one_timer_shot": 8,
+        "received_without_shot": 3,
+        "intercepted": 9
+      },
+      "wrong_recipient": 4
+    },
+    "senators-penguins": {
+      "periods": 8,
+      "wins": 6,
+      "draws": 1,
+      "losses": 1,
+      "goals_for": 10,
+      "goals_against": 3,
+      "one_timer_setups": 20,
+      "one_timers": 12,
+      "one_timer_goals": 8,
+      "periods_without_one_timers": 3,
+      "pass_outcomes": {
+        "one_timer_shot": 12,
+        "flight_timeout": 1,
+        "intercepted": 6,
+        "superseded": 1
+      },
+      "wrong_recipient": 1
+    },
+    "nordiques-canadiens": {
+      "periods": 8,
+      "wins": 3,
+      "draws": 4,
+      "losses": 1,
+      "goals_for": 8,
+      "goals_against": 6,
+      "one_timer_setups": 16,
+      "one_timers": 7,
+      "one_timer_goals": 4,
+      "periods_without_one_timers": 3,
+      "pass_outcomes": {
+        "intercepted": 4,
+        "received_without_shot": 3,
+        "one_timer_shot": 7,
+        "returned_to_passer": 2
+      },
+      "wrong_recipient": 1
+    }
+  },
+  "matches": [
+    {
+      "agent": "classic-v1",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 290900,
+      "goals": [
+        4,
+        0
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        2,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 717,
+        "recover-safe": 84,
+        "protect-lane": 1003,
+        "carry": 769,
+        "shoot": 10,
+        "shot-follow-through": 50,
+        "contain-boards": 69,
+        "goalie-outlet": 8,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 17,
+        "one-timer-wait": 18,
+        "recover": 2,
+        "intercept-pass": 5,
+        "one-timer-setup": 13,
+        "switch": 2
+      },
+      "frames": 11079,
+      "defense_frames": {
+        "deny-reception": 2863,
+        "recover-safe": 339,
+        "protect-lane": 3993,
+        "contain-boards": 284,
+        "intercept-pass": 20
+      },
+      "defense_requests": {
+        "poke-request": 141,
+        "boost-request": 28,
+        "switch-request": 53
+      },
+      "controlled_recoveries": 8,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 2,
+          "received_without_shot": 1
+        },
+        "wrong_recipient": 1
+      },
+      "pass_events": [
+        {
+          "frame": 3349,
+          "passer": 4,
+          "intended": 0,
+          "actual": 0,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 13,
+          "final_owner": -252
+        },
+        {
+          "frame": 6741,
+          "passer": 4,
+          "intended": 1,
+          "actual": 1,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 1,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 6,
+          "final_owner": 1
+        },
+        {
+          "frame": 9265,
+          "passer": 0,
+          "intended": 1,
+          "actual": 2,
+          "launched": true,
+          "passes_before": 4,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 7,
+          "final_owner": -256
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "f2e99ee7c138437514ba1904ddde5b861e9a1580c54e938a7365b7d67121f3e9",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 290901,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        2,
+        5
+      ],
+      "one_timers": [
+        1,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 786,
+        "carry": 574,
+        "protect-lane": 931,
+        "intercept-pass": 6,
+        "contain-boards": 145,
+        "shoot": 9,
+        "shot-follow-through": 41,
+        "recover-safe": 141,
+        "one-timer-setup": 27,
+        "goalie-outlet": 14,
+        "switch": 1,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 8,
+        "one-timer-wait": 13,
+        "recover": 2
+      },
+      "frames": 10805,
+      "defense_frames": {
+        "deny-reception": 3144,
+        "recover-safe": 570,
+        "protect-lane": 3714,
+        "intercept-pass": 19,
+        "contain-boards": 582
+      },
+      "defense_requests": {
+        "poke-request": 149,
+        "switch-request": 100,
+        "boost-request": 25
+      },
+      "controlled_recoveries": 12,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 2,
+          "one_timer_shot": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 6529,
+          "passer": 2,
+          "intended": 0,
+          "actual": 0,
+          "launched": true,
+          "passes_before": 4,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 12,
+          "final_owner": 10
+        },
+        {
+          "frame": 8085,
+          "passer": 1,
+          "intended": 2,
+          "actual": 2,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 12,
+          "final_owner": -255
+        },
+        {
+          "frame": 10473,
+          "passer": 3,
+          "intended": 0,
+          "actual": 0,
+          "launched": true,
+          "passes_before": 6,
+          "one_timers_before": 1,
+          "outcome": "intercepted",
+          "elapsed_frames": 9,
+          "final_owner": 10
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "94e06a1e2774add1bd1a5b369635ce8fa1f9ef9867b8ead84cda72744ca9de93",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 290902,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        5
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 465,
+        "protect-lane": 736,
+        "contain-boards": 139,
+        "switch": 1,
+        "carry": 549,
+        "recover-safe": 114,
+        "one-timer-setup": 13,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 2,
+        "shoot": 4,
+        "shot-follow-through": 16,
+        "goalie-outlet": 27,
+        "recover": 1,
+        "intercept-pass": 10
+      },
+      "frames": 8317,
+      "defense_frames": {
+        "deny-reception": 1870,
+        "protect-lane": 2947,
+        "contain-boards": 557,
+        "recover-safe": 441,
+        "intercept-pass": 44
+      },
+      "defense_requests": {
+        "poke-request": 64,
+        "switch-request": 81,
+        "boost-request": 37
+      },
+      "controlled_recoveries": 6,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 1805,
+          "passer": 4,
+          "intended": 1,
+          "actual": 1,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 14,
+          "final_owner": 6
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "bc3933cce5757ef06ec802a1533c5a77d4a6f2e9c78b15f4d5ad72be590d47a1",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 290903,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        3
+      ],
+      "one_timers": [
+        1,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 386,
+        "protect-lane": 606,
+        "carry": 718,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 6,
+        "one-timer-wait": 29,
+        "recover": 2,
+        "switch": 1,
+        "shoot": 7,
+        "shot-follow-through": 42,
+        "recover-safe": 32,
+        "contain-boards": 87,
+        "intercept-pass": 3,
+        "one-timer-setup": 7,
+        "goalie-outlet": 25
+      },
+      "frames": 7817,
+      "defense_frames": {
+        "deny-reception": 1532,
+        "protect-lane": 2425,
+        "recover-safe": 132,
+        "contain-boards": 347,
+        "intercept-pass": 12
+      },
+      "defense_requests": {
+        "poke-request": 42,
+        "switch-request": 63,
+        "boost-request": 28
+      },
+      "controlled_recoveries": 7,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1,
+          "one_timer_shot": 1,
+          "received_without_shot": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 785,
+          "passer": 4,
+          "intended": 2,
+          "actual": 2,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 54,
+          "final_owner": 6
+        },
+        {
+          "frame": 993,
+          "passer": 4,
+          "intended": 1,
+          "actual": 1,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 19,
+          "final_owner": -252
+        },
+        {
+          "frame": 1693,
+          "passer": 1,
+          "intended": 2,
+          "actual": 2,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 1,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 22,
+          "final_owner": 0
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "fc59ba1dd28c7cb242469ac372498c6a56e9b96beb47cbc83bc29626cb3eafbe",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 290904,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        6
+      ],
+      "one_timers": [
+        1,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 468,
+        "recover-safe": 83,
+        "carry": 590,
+        "shoot": 7,
+        "shot-follow-through": 42,
+        "protect-lane": 818,
+        "contain-boards": 80,
+        "goalie-outlet": 32,
+        "one-timer-pass": 4,
+        "one-timer-wait": 20,
+        "one-timer-shoot": 10,
+        "switch": 4,
+        "intercept-pass": 3,
+        "one-timer-setup": 32,
+        "recover": 3
+      },
+      "frames": 8785,
+      "defense_frames": {
+        "deny-reception": 1870,
+        "recover-safe": 350,
+        "protect-lane": 3244,
+        "contain-boards": 321,
+        "intercept-pass": 11
+      },
+      "defense_requests": {
+        "poke-request": 80,
+        "switch-request": 74,
+        "boost-request": 34
+      },
+      "controlled_recoveries": 11,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 2,
+          "one_timer_shot": 1,
+          "received_without_shot": 1
+        },
+        "wrong_recipient": 2
+      },
+      "pass_events": [
+        {
+          "frame": 2149,
+          "passer": 4,
+          "intended": 2,
+          "actual": null,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 9,
+          "final_owner": 10
+        },
+        {
+          "frame": 4465,
+          "passer": 3,
+          "intended": 0,
+          "actual": 2,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 4,
+          "final_owner": 7
+        },
+        {
+          "frame": 6629,
+          "passer": 0,
+          "intended": 1,
+          "actual": 2,
+          "launched": true,
+          "passes_before": 7,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 11,
+          "final_owner": -256
+        },
+        {
+          "frame": 7221,
+          "passer": 0,
+          "intended": 2,
+          "actual": 2,
+          "launched": true,
+          "passes_before": 8,
+          "one_timers_before": 1,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 105,
+          "final_owner": 3
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "eb015aad2b4854932e2d4f3c4c480229d60341e9883d71ea250319a13e3a6c7e",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 290905,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        3
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 837,
+        "protect-lane": 990,
+        "contain-boards": 62,
+        "recover-safe": 107,
+        "switch": 3,
+        "carry": 443,
+        "goalie-outlet": 21,
+        "one-timer-setup": 27,
+        "intercept-pass": 2,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 2,
+        "one-timer-wait": 15,
+        "shoot": 4,
+        "shot-follow-through": 19,
+        "recover": 3
+      },
+      "frames": 10145,
+      "defense_frames": {
+        "deny-reception": 3356,
+        "protect-lane": 3958,
+        "contain-boards": 245,
+        "recover-safe": 437,
+        "intercept-pass": 7
+      },
+      "defense_requests": {
+        "poke-request": 134,
+        "switch-request": 85,
+        "boost-request": 37
+      },
+      "controlled_recoveries": 13,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 2437,
+          "passer": 3,
+          "intended": 0,
+          "actual": 0,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 36,
+          "final_owner": -253
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "0cd6bba4c77a39cedc09d0f29dcec2dbfa480387f923bb425b257bdd79a9bd6c",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 290906,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        5,
+        6
+      ],
+      "one_timers": [
+        1,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 516,
+        "recover-safe": 91,
+        "protect-lane": 689,
+        "contain-boards": 75,
+        "carry": 625,
+        "recover": 3,
+        "shoot": 13,
+        "shot-follow-through": 59,
+        "one-timer-setup": 24,
+        "goalie-outlet": 37,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 16
+      },
+      "frames": 8598,
+      "defense_frames": {
+        "deny-reception": 2031,
+        "recover-safe": 367,
+        "protect-lane": 2755,
+        "contain-boards": 305
+      },
+      "defense_requests": {
+        "poke-request": 79,
+        "switch-request": 61,
+        "boost-request": 35
+      },
+      "controlled_recoveries": 11,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 4565,
+          "passer": 1,
+          "intended": 0,
+          "actual": 0,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 52,
+          "final_owner": -255
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "f1fdbdc53dc07eecb049ea2635afa7952fdee405d176c406ad3a26e5da116ce6",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 290907,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        3,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 734,
+        "protect-lane": 733,
+        "carry": 689,
+        "shoot": 10,
+        "shot-follow-through": 47,
+        "recover-safe": 136,
+        "one-timer-setup": 17,
+        "one-timer-pass": 4,
+        "one-timer-shoot": 14,
+        "one-timer-wait": 24,
+        "recover": 1,
+        "contain-boards": 84,
+        "switch": 4,
+        "goalie-outlet": 1
+      },
+      "frames": 9991,
+      "defense_frames": {
+        "deny-reception": 2959,
+        "recover-safe": 530,
+        "protect-lane": 2906,
+        "contain-boards": 337,
+        "intercept-pass": 6
+      },
+      "defense_requests": {
+        "poke-request": 119,
+        "switch-request": 63,
+        "boost-request": 21
+      },
+      "controlled_recoveries": 14,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 1,
+          "intercepted": 3
+        },
+        "wrong_recipient": 1
+      },
+      "pass_events": [
+        {
+          "frame": 1101,
+          "passer": 0,
+          "intended": 1,
+          "actual": 1,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 23,
+          "final_owner": -256
+        },
+        {
+          "frame": 6393,
+          "passer": 0,
+          "intended": 4,
+          "actual": 4,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 1,
+          "outcome": "intercepted",
+          "elapsed_frames": 45,
+          "final_owner": 7
+        },
+        {
+          "frame": 7945,
+          "passer": 1,
+          "intended": 2,
+          "actual": 2,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 1,
+          "outcome": "intercepted",
+          "elapsed_frames": 35,
+          "final_owner": 7
+        },
+        {
+          "frame": 9665,
+          "passer": 3,
+          "intended": 0,
+          "actual": 4,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 1,
+          "outcome": "intercepted",
+          "elapsed_frames": 9,
+          "final_owner": 7
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "e995b397e7bde65df31c70e93387f560c3226373ae2b1b0b12579e8421e8f52d",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 290900,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "one_timers": [
+        1,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        2
+      ],
+      "decisions": {
+        "deny-reception": 837,
+        "intercept-pass": 8,
+        "protect-lane": 667,
+        "carry": 747,
+        "one-timer-pass": 5,
+        "one-timer-shoot": 25,
+        "one-timer-wait": 53,
+        "recover": 1,
+        "recover-safe": 64,
+        "contain-boards": 20,
+        "shoot": 5,
+        "shot-follow-through": 27,
+        "one-timer-setup": 24,
+        "switch": 3,
+        "goalie-outlet": 20
+      },
+      "frames": 10023,
+      "defense_frames": {
+        "deny-reception": 3336,
+        "intercept-pass": 36,
+        "protect-lane": 2673,
+        "recover-safe": 262,
+        "contain-boards": 75
+      },
+      "defense_requests": {
+        "poke-request": 109,
+        "switch-request": 77,
+        "boost-request": 30
+      },
+      "controlled_recoveries": 10,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 3,
+          "flight_timeout": 1,
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 709,
+          "passer": 9,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 14,
+          "final_owner": -247
+        },
+        {
+          "frame": 3621,
+          "passer": 9,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 1,
+          "outcome": "flight_timeout",
+          "elapsed_frames": 120,
+          "final_owner": -247
+        },
+        {
+          "frame": 3865,
+          "passer": 7,
+          "intended": 9,
+          "actual": 9,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 1,
+          "outcome": "intercepted",
+          "elapsed_frames": 43,
+          "final_owner": 1
+        },
+        {
+          "frame": 7613,
+          "passer": 10,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 28,
+          "final_owner": -246
+        },
+        {
+          "frame": 8637,
+          "passer": 6,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 6,
+          "one_timers_before": 2,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 16,
+          "final_owner": -250
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "32da44d8af5d0c2fd30fd61629df6b941ed657f43192c134a32b68169720a0c7",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 290901,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 617,
+        "protect-lane": 787,
+        "carry": 640,
+        "recover-safe": 15,
+        "one-timer-setup": 10,
+        "shoot": 5,
+        "shot-follow-through": 23,
+        "contain-boards": 36,
+        "intercept-pass": 6,
+        "goalie-outlet": 2,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 2,
+        "one-timer-wait": 5
+      },
+      "frames": 8594,
+      "defense_frames": {
+        "deny-reception": 2486,
+        "intercept-pass": 16,
+        "protect-lane": 3152,
+        "recover-safe": 57,
+        "contain-boards": 138
+      },
+      "defense_requests": {
+        "poke-request": 59,
+        "switch-request": 72,
+        "boost-request": 33
+      },
+      "controlled_recoveries": 7,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 6909,
+          "passer": 7,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 29,
+          "final_owner": 4
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "6dc9d3aa9243a6551b01d7f3ca1baf72906df7ae4b1120431a8f86fb9ffa451f",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 290902,
+      "goals": [
+        1,
+        3
+      ],
+      "shots": [
+        5,
+        3
+      ],
+      "one_timers": [
+        0,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        3
+      ],
+      "decisions": {
+        "deny-reception": 571,
+        "protect-lane": 933,
+        "carry": 786,
+        "recover-safe": 15,
+        "one-timer-setup": 25,
+        "shoot": 2,
+        "shot-follow-through": 8,
+        "intercept-pass": 8,
+        "goalie-outlet": 12,
+        "contain-boards": 85,
+        "one-timer-pass": 4,
+        "one-timer-shoot": 22,
+        "one-timer-wait": 32,
+        "switch": 2,
+        "recover": 1
+      },
+      "frames": 10023,
+      "defense_frames": {
+        "deny-reception": 2259,
+        "intercept-pass": 32,
+        "protect-lane": 3741,
+        "recover-safe": 68,
+        "contain-boards": 338
+      },
+      "defense_requests": {
+        "poke-request": 101,
+        "switch-request": 66,
+        "boost-request": 32
+      },
+      "controlled_recoveries": 11,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 3,
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 2561,
+          "passer": 8,
+          "intended": 10,
+          "actual": 10,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 16,
+          "final_owner": -248
+        },
+        {
+          "frame": 4129,
+          "passer": 7,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 13,
+          "final_owner": -249
+        },
+        {
+          "frame": 5753,
+          "passer": 6,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 4,
+          "one_timers_before": 2,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 6,
+          "final_owner": -250
+        },
+        {
+          "frame": 9429,
+          "passer": 10,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 3,
+          "outcome": "intercepted",
+          "elapsed_frames": 16,
+          "final_owner": 4
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "5ad7cf3621e107fed50b44033b40155795cabd7879a1bed71b30f56e7cd91aaa",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 290903,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        4,
+        5
+      ],
+      "one_timers": [
+        5,
+        2
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "decisions": {
+        "deny-reception": 715,
+        "protect-lane": 728,
+        "carry": 603,
+        "one-timer-pass": 4,
+        "one-timer-shoot": 12,
+        "one-timer-wait": 24,
+        "recover": 1,
+        "contain-boards": 92,
+        "intercept-pass": 5,
+        "one-timer-setup": 32,
+        "shoot": 9,
+        "shot-follow-through": 52,
+        "recover-safe": 38,
+        "switch": 1,
+        "goalie-outlet": 16
+      },
+      "frames": 9328,
+      "defense_frames": {
+        "deny-reception": 2824,
+        "protect-lane": 2941,
+        "contain-boards": 364,
+        "intercept-pass": 23,
+        "recover-safe": 157
+      },
+      "defense_requests": {
+        "poke-request": 81,
+        "switch-request": 85,
+        "boost-request": 31
+      },
+      "controlled_recoveries": 14,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 2,
+          "intercepted": 2
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 461,
+          "passer": 8,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 21,
+          "final_owner": -248
+        },
+        {
+          "frame": 3049,
+          "passer": 7,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 1,
+          "outcome": "intercepted",
+          "elapsed_frames": 10,
+          "final_owner": 3
+        },
+        {
+          "frame": 5113,
+          "passer": 7,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 1,
+          "outcome": "intercepted",
+          "elapsed_frames": 4,
+          "final_owner": 4
+        },
+        {
+          "frame": 5273,
+          "passer": 7,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 12,
+          "final_owner": -249
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "6078a5eafefb2cb9cde70bbc7d10f482af252bd1bc59724357ebe4f18b9a7744",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 290904,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        5,
+        0
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 418,
+        "protect-lane": 758,
+        "carry": 675,
+        "contain-boards": 69,
+        "goalie-outlet": 40,
+        "recover-safe": 44,
+        "shoot": 3,
+        "shot-follow-through": 18,
+        "one-timer-setup": 16,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 6,
+        "intercept-pass": 6
+      },
+      "frames": 8218,
+      "defense_frames": {
+        "deny-reception": 1679,
+        "intercept-pass": 25,
+        "protect-lane": 3029,
+        "contain-boards": 272,
+        "recover-safe": 169
+      },
+      "defense_requests": {
+        "poke-request": 54,
+        "switch-request": 67,
+        "boost-request": 40
+      },
+      "controlled_recoveries": 5,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 1841,
+          "passer": 9,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 30,
+          "final_owner": 4
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "d8acc89b1f62a9ae7cf6309fa45e43f907698a351ec1077ec772fb169489472a",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 290905,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 497,
+        "protect-lane": 865,
+        "carry": 462,
+        "intercept-pass": 17,
+        "contain-boards": 143,
+        "recover-safe": 35,
+        "shoot": 3,
+        "shot-follow-through": 10
+      },
+      "frames": 8126,
+      "defense_frames": {
+        "deny-reception": 1958,
+        "intercept-pass": 76,
+        "protect-lane": 3476,
+        "contain-boards": 573,
+        "recover-safe": 138
+      },
+      "defense_requests": {
+        "poke-request": 56,
+        "switch-request": 66,
+        "boost-request": 38
+      },
+      "controlled_recoveries": 5,
+      "pass_outcomes": {
+        "outcomes": {},
+        "wrong_recipient": 0
+      },
+      "pass_events": [],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "df22806832d0dbc137b63460ceb67a5ffc0ebf9bb3910ffbea81271b43b46954",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 290906,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        4
+      ],
+      "one_timers": [
+        0,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "deny-reception": 621,
+        "protect-lane": 755,
+        "carry": 555,
+        "contain-boards": 71,
+        "shoot": 9,
+        "shot-follow-through": 45,
+        "one-timer-setup": 18,
+        "intercept-pass": 2,
+        "recover-safe": 77,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 13,
+        "one-timer-wait": 38,
+        "recover": 2,
+        "goalie-outlet": 6
+      },
+      "frames": 8860,
+      "defense_frames": {
+        "deny-reception": 2498,
+        "intercept-pass": 9,
+        "protect-lane": 3019,
+        "contain-boards": 281,
+        "recover-safe": 303
+      },
+      "defense_requests": {
+        "poke-request": 76,
+        "switch-request": 75,
+        "boost-request": 37
+      },
+      "controlled_recoveries": 12,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 2,
+          "superseded": 1
+        },
+        "wrong_recipient": 1
+      },
+      "pass_events": [
+        {
+          "frame": 2309,
+          "passer": 7,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 28,
+          "final_owner": -249
+        },
+        {
+          "frame": 6253,
+          "passer": 8,
+          "intended": 6,
+          "actual": null,
+          "launched": false,
+          "passes_before": 1,
+          "one_timers_before": 1,
+          "outcome": "superseded",
+          "elapsed_frames": 96,
+          "final_owner": 8
+        },
+        {
+          "frame": 6349,
+          "passer": 8,
+          "intended": 7,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 29,
+          "final_owner": -248
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "52d85fbcdff4fcc3e43f36afc871cf6444156a04365d37237d88b9952485b450",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 290907,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        5,
+        3
+      ],
+      "one_timers": [
+        2,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "deny-reception": 753,
+        "protect-lane": 682,
+        "carry": 673,
+        "goalie-outlet": 25,
+        "recover-safe": 108,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 8,
+        "one-timer-wait": 18,
+        "intercept-pass": 5,
+        "contain-boards": 50,
+        "shoot": 2,
+        "shot-follow-through": 9,
+        "one-timer-setup": 19,
+        "recover": 1
+      },
+      "frames": 9421,
+      "defense_frames": {
+        "deny-reception": 3020,
+        "intercept-pass": 23,
+        "protect-lane": 2731,
+        "recover-safe": 414,
+        "contain-boards": 203
+      },
+      "defense_requests": {
+        "poke-request": 104,
+        "switch-request": 64,
+        "boost-request": 35
+      },
+      "controlled_recoveries": 6,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 2
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 2501,
+          "passer": 7,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 29,
+          "final_owner": -249
+        },
+        {
+          "frame": 7205,
+          "passer": 8,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 15,
+          "final_owner": -248
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "23f7ede59b900cae6e2c399826724e99a95bc400ef431f873342be8f54ea0ab6",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 290900,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        5,
+        2
+      ],
+      "one_timers": [
+        1,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "deny-reception": 476,
+        "intercept-pass": 3,
+        "carry": 622,
+        "protect-lane": 793,
+        "contain-boards": 15,
+        "goalie-outlet": 25,
+        "one-timer-setup": 27,
+        "shoot": 4,
+        "shot-follow-through": 18,
+        "recover-safe": 66,
+        "one-timer-pass": 5,
+        "one-timer-shoot": 8,
+        "one-timer-wait": 36,
+        "switch": 1
+      },
+      "frames": 8395,
+      "defense_frames": {
+        "deny-reception": 1903,
+        "intercept-pass": 14,
+        "protect-lane": 3163,
+        "contain-boards": 56,
+        "recover-safe": 271
+      },
+      "defense_requests": {
+        "poke-request": 57,
+        "switch-request": 64,
+        "boost-request": 35
+      },
+      "controlled_recoveries": 9,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1,
+          "received_without_shot": 2,
+          "one_timer_shot": 2
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 4049,
+          "passer": 10,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 9,
+          "final_owner": 3
+        },
+        {
+          "frame": 4521,
+          "passer": 6,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 4,
+          "one_timers_before": 0,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 29,
+          "final_owner": 7
+        },
+        {
+          "frame": 4621,
+          "passer": 7,
+          "intended": 10,
+          "actual": 10,
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 0,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 49,
+          "final_owner": 8
+        },
+        {
+          "frame": 4741,
+          "passer": 8,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 6,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 33,
+          "final_owner": -248
+        },
+        {
+          "frame": 6913,
+          "passer": 6,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 7,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 21,
+          "final_owner": -250
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "667b3e9dc15a7ed0d7fb3f45a4c6615804de7739f58d33eda284fbeeabb0051e",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 290901,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        7,
+        3
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 539,
+        "protect-lane": 935,
+        "carry": 669,
+        "shoot": 5,
+        "shot-follow-through": 24,
+        "contain-boards": 82,
+        "recover-safe": 133,
+        "goalie-outlet": 8,
+        "intercept-pass": 6,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 15
+      },
+      "frames": 9673,
+      "defense_frames": {
+        "deny-reception": 2158,
+        "intercept-pass": 31,
+        "protect-lane": 3734,
+        "contain-boards": 327,
+        "recover-safe": 526
+      },
+      "defense_requests": {
+        "poke-request": 89,
+        "boost-request": 32,
+        "switch-request": 66
+      },
+      "controlled_recoveries": 10,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 5133,
+          "passer": 9,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 65,
+          "final_owner": 3
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "2e845992beac65427cfa4b57100933121a86edf4a18149d0dc7cb6ca16491c66",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 290902,
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        8,
+        3
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        2,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 900,
+        "protect-lane": 831,
+        "contain-boards": 133,
+        "intercept-pass": 20,
+        "carry": 571,
+        "shoot": 6,
+        "shot-follow-through": 16,
+        "recover-safe": 98,
+        "one-timer-setup": 34,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 5,
+        "one-timer-wait": 12,
+        "switch": 1,
+        "goalie-outlet": 20
+      },
+      "frames": 10591,
+      "defense_frames": {
+        "deny-reception": 3600,
+        "protect-lane": 3323,
+        "contain-boards": 532,
+        "intercept-pass": 77,
+        "recover-safe": 392
+      },
+      "defense_requests": {
+        "poke-request": 124,
+        "switch-request": 85,
+        "boost-request": 30
+      },
+      "controlled_recoveries": 14,
+      "pass_outcomes": {
+        "outcomes": {
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 1545,
+          "passer": 8,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 108,
+          "final_owner": 2
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "216f8fe2f6d59765cbd94a3ab9cff75cc1223792226d61dd710d6fd7733a979f",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 290903,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        5,
+        4
+      ],
+      "one_timers": [
+        0,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "deny-reception": 628,
+        "protect-lane": 911,
+        "contain-boards": 127,
+        "intercept-pass": 16,
+        "carry": 509,
+        "recover-safe": 119,
+        "goalie-outlet": 17,
+        "shoot": 6,
+        "shot-follow-through": 22,
+        "one-timer-setup": 15,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 9,
+        "one-timer-wait": 19,
+        "switch": 1
+      },
+      "frames": 9602,
+      "defense_frames": {
+        "deny-reception": 2512,
+        "protect-lane": 3622,
+        "contain-boards": 521,
+        "intercept-pass": 62,
+        "recover-safe": 474
+      },
+      "defense_requests": {
+        "poke-request": 108,
+        "switch-request": 83,
+        "boost-request": 19
+      },
+      "controlled_recoveries": 8,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 2
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 2053,
+          "passer": 10,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 35,
+          "final_owner": -246
+        },
+        {
+          "frame": 7729,
+          "passer": 9,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 8,
+          "final_owner": -247
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "7f7c180583e3d15b06b0858bb54711cd96f642c212b60c2ae0228129e90361a2",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 290904,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        0
+      ],
+      "one_timers": [
+        1,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 647,
+        "protect-lane": 558,
+        "carry": 590,
+        "recover-safe": 131,
+        "goalie-outlet": 19,
+        "contain-boards": 120,
+        "shoot": 3,
+        "shot-follow-through": 8,
+        "intercept-pass": 13,
+        "one-timer-pass": 3,
+        "one-timer-wait": 28,
+        "one-timer-shoot": 6,
+        "one-timer-setup": 8,
+        "recover": 1
+      },
+      "frames": 8539,
+      "defense_frames": {
+        "deny-reception": 2538,
+        "protect-lane": 2260,
+        "recover-safe": 558,
+        "contain-boards": 462,
+        "intercept-pass": 52
+      },
+      "defense_requests": {
+        "poke-request": 71,
+        "boost-request": 34,
+        "switch-request": 97
+      },
+      "controlled_recoveries": 6,
+      "pass_outcomes": {
+        "outcomes": {
+          "returned_to_passer": 1,
+          "one_timer_shot": 1,
+          "received_without_shot": 1
+        },
+        "wrong_recipient": 1
+      },
+      "pass_events": [
+        {
+          "frame": 4585,
+          "passer": 10,
+          "intended": 7,
+          "actual": null,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "returned_to_passer",
+          "elapsed_frames": 72,
+          "final_owner": 10
+        },
+        {
+          "frame": 5457,
+          "passer": 6,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 35,
+          "final_owner": -250
+        },
+        {
+          "frame": 6821,
+          "passer": 9,
+          "intended": 7,
+          "actual": 10,
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 1,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 4,
+          "final_owner": 10
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "a5e010945da0c649471265b331d3e991edec8846cb23bc7f09dcf2210268a44b",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 290905,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        3
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "deny-reception": 564,
+        "protect-lane": 795,
+        "carry": 571,
+        "contain-boards": 13,
+        "one-timer-setup": 39,
+        "recover-safe": 110,
+        "shoot": 6,
+        "shot-follow-through": 20,
+        "intercept-pass": 26,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 4,
+        "one-timer-wait": 20,
+        "recover": 1,
+        "goalie-outlet": 17
+      },
+      "frames": 8751,
+      "defense_frames": {
+        "deny-reception": 2269,
+        "protect-lane": 3165,
+        "recover-safe": 441,
+        "contain-boards": 50,
+        "intercept-pass": 110
+      },
+      "defense_requests": {
+        "poke-request": 92,
+        "boost-request": 31,
+        "switch-request": 79
+      },
+      "controlled_recoveries": 13,
+      "pass_outcomes": {
+        "outcomes": {
+          "returned_to_passer": 1,
+          "intercepted": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 5461,
+          "passer": 6,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "returned_to_passer",
+          "elapsed_frames": 33,
+          "final_owner": 6
+        },
+        {
+          "frame": 7853,
+          "passer": 9,
+          "intended": 8,
+          "actual": 8,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "intercepted",
+          "elapsed_frames": 29,
+          "final_owner": 1
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "6bf13aee53bde178fd8f6aa579c3a8c9e0ce3d94e69541a22f792e8c168e8af4",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 290906,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "one_timers": [
+        2,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "decisions": {
+        "deny-reception": 724,
+        "intercept-pass": 6,
+        "protect-lane": 927,
+        "carry": 508,
+        "shoot": 5,
+        "shot-follow-through": 20,
+        "recover-safe": 126,
+        "one-timer-setup": 31,
+        "contain-boards": 168,
+        "goalie-outlet": 6,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 4,
+        "one-timer-wait": 13,
+        "recover": 1
+      },
+      "frames": 10161,
+      "defense_frames": {
+        "deny-reception": 2890,
+        "intercept-pass": 26,
+        "protect-lane": 3714,
+        "recover-safe": 513,
+        "contain-boards": 664
+      },
+      "defense_requests": {
+        "poke-request": 116,
+        "switch-request": 80,
+        "boost-request": 32
+      },
+      "controlled_recoveries": 6,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 6473,
+          "passer": 8,
+          "intended": 7,
+          "actual": 7,
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 36,
+          "final_owner": -248
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "42eebc6ea133ab252e78c52cbb2f93d00b96652c6e4c4afb788eeea899240e3c",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v1",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 290907,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timers": [
+        3,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "decisions": {
+        "deny-reception": 451,
+        "protect-lane": 892,
+        "contain-boards": 128,
+        "carry": 619,
+        "recover-safe": 93,
+        "shoot": 5,
+        "shot-follow-through": 25,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 6,
+        "one-timer-wait": 11,
+        "switch": 1,
+        "intercept-pass": 6,
+        "goalie-outlet": 23
+      },
+      "frames": 9044,
+      "defense_frames": {
+        "deny-reception": 1773,
+        "protect-lane": 3589,
+        "contain-boards": 515,
+        "recover-safe": 380,
+        "intercept-pass": 21
+      },
+      "defense_requests": {
+        "poke-request": 85,
+        "switch-request": 69,
+        "boost-request": 26
+      },
+      "controlled_recoveries": 3,
+      "pass_outcomes": {
+        "outcomes": {
+          "one_timer_shot": 1
+        },
+        "wrong_recipient": 0
+      },
+      "pass_events": [
+        {
+          "frame": 3037,
+          "passer": 8,
+          "intended": 6,
+          "actual": 6,
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 22,
+          "final_owner": -248
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "4f7e5b29d92f4a7b09e6aa4b6e68c830812be8fbb7f9ca5b39a88b9711efaefa",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    }
+  ]
+}

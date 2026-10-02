@@ -1,0 +1,1280 @@
+{
+  "protocol": "nhl94-manual-goalie-ablations-v1",
+  "sources": {
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/evaluation/offense_metrics.py": "2a3a92e0b28589fc3a4b8fe4a0b8866860cb773627c2191e01c054cc42dae598",
+    "nhl94_ai/agents/motion.py": "4ca5c2e5485ce3be6556bec6f2fecd4f34310fb1c19bd4dbce972ca58a958615",
+    "nhl94_ai/agents/classic_v1.py": "9f0b13ea3243a06f25f52e4a06a201c68a7490badc093d78a2a964a2d5569de4",
+    "nhl94_ai/game/state.py": "73f1f0de26162fdd39c12173f38ac2b7e6f819ea5dce6ad18d0e24882d446842",
+    "nhl94_ai/agents/base.py": "c63fad330377fdcf6dc5329b1810b41d2e58bc963f143b01f4903e0fe0030792",
+    "nhl94_ai/agents/passing.py": "cbdd4ee07ffca96abb94006aebd57a29ad47e48aaf7d479a3cd2e3a2402df174",
+    "nhl94_ai/agents/offense.py": "2be10b4e9728816f75938ce9970d008d7fe8e2488ddfdc7db94a63176d2d7d57",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/env/factory.py": "005275319a596587ee721278bf65f4d89d1649e4c2f5e4e9fdcfda3cc9e2a47a",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "b9ef81c32f93fe1598268a882b520ada02cc5cac149d3820c90b934a98a02ec5",
+    "nhl94_ai/agents/goalie.py": "d015c316ec8f2b50b20178454aefbf91f768ba4f56476e82f4c5b618630f4803",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146",
+    "nhl94_ai/agents/defense.py": "5cc642ad5414c509658ff32d7c6082133573d0cc145d2af068d10a681bbf980e",
+    "nhl94_ai/evaluation/benchmark.py": "59cf319f95c0dcfccbdc94da758114345d83aefc525d13ca0fd87dec789e5be5",
+    "nhl94_ai/game/ram.py": "e46073118d2182d512feb3a1fefbb37e52e13e23638121ec4537a1c0f02298d6"
+  },
+  "versions": {
+    "nhl94-ai": "0.1.0",
+    "stable-retro": "1.0.1",
+    "numpy": "2.5.1"
+  },
+  "limitations": [
+    "Six five-minute first periods per policy: seeds 9100-9102 with each physical team controlled.",
+    "Small fixed-roster development cohort, not a 50-period held-out test or full-game win-rate estimate.",
+    "Off means Classic skater control with the ROM CPU goalie, using the same manual-available save.",
+    "Always requests goalie control in eligible defensive-zone situations; selective also checks skater usefulness and takeover/reach deadlines.",
+    "Animations are confirmed ROM actions, not saved-shot or prevented-goal counts.",
+    "Manual catch attribution excludes CPU offscreen assistance; clear_possession_ended is not a confirmed pass counter.",
+    "Only fixture RNG, clock and starting side are set in benchmarks; gameplay handoffs use buttons, not forced goalie RAM."
+  ],
+  "lineups": {
+    "sabres-ducks-manual": [
+      {
+        "slot": 0,
+        "name": "Alexnder Mogilny",
+        "shot_accuracy": 26
+      },
+      {
+        "slot": 1,
+        "name": "Dale Hawerchuk",
+        "shot_accuracy": 5
+      },
+      {
+        "slot": 2,
+        "name": "Pat LaFontaine",
+        "shot_accuracy": 22
+      },
+      {
+        "slot": 3,
+        "name": "Petr Svoboda",
+        "shot_accuracy": 3
+      },
+      {
+        "slot": 4,
+        "name": "Doug Bodger",
+        "shot_accuracy": 8
+      },
+      {
+        "slot": 5,
+        "name": "Grant Fuhr",
+        "shot_accuracy": null
+      },
+      {
+        "slot": 6,
+        "name": "Anatoli Semenov",
+        "shot_accuracy": 12
+      },
+      {
+        "slot": 7,
+        "name": "Troy Loney",
+        "shot_accuracy": 3
+      },
+      {
+        "slot": 8,
+        "name": "Terry Yake",
+        "shot_accuracy": 16
+      },
+      {
+        "slot": 9,
+        "name": "Randy Ladouceur",
+        "shot_accuracy": 2
+      },
+      {
+        "slot": 10,
+        "name": "Alexei Kasatonov",
+        "shot_accuracy": 0
+      },
+      {
+        "slot": 11,
+        "name": "Guy Hebert",
+        "shot_accuracy": null
+      }
+    ],
+    "ducks-sabres-manual": [
+      {
+        "slot": 0,
+        "name": "Alexnder Mogilny",
+        "shot_accuracy": 26
+      },
+      {
+        "slot": 1,
+        "name": "Dale Hawerchuk",
+        "shot_accuracy": 5
+      },
+      {
+        "slot": 2,
+        "name": "Pat LaFontaine",
+        "shot_accuracy": 22
+      },
+      {
+        "slot": 3,
+        "name": "Petr Svoboda",
+        "shot_accuracy": 3
+      },
+      {
+        "slot": 4,
+        "name": "Doug Bodger",
+        "shot_accuracy": 8
+      },
+      {
+        "slot": 5,
+        "name": "Grant Fuhr",
+        "shot_accuracy": null
+      },
+      {
+        "slot": 6,
+        "name": "Anatoli Semenov",
+        "shot_accuracy": 12
+      },
+      {
+        "slot": 7,
+        "name": "Troy Loney",
+        "shot_accuracy": 3
+      },
+      {
+        "slot": 8,
+        "name": "Terry Yake",
+        "shot_accuracy": 16
+      },
+      {
+        "slot": 9,
+        "name": "Randy Ladouceur",
+        "shot_accuracy": 2
+      },
+      {
+        "slot": 10,
+        "name": "Alexei Kasatonov",
+        "shot_accuracy": 0
+      },
+      {
+        "slot": 11,
+        "name": "Guy Hebert",
+        "shot_accuracy": null
+      }
+    ]
+  },
+  "policies": {
+    "off": {
+      "settings": {
+        "agent": "classic-v1",
+        "matchups": [
+          "sabres-ducks-manual",
+          "ducks-sabres-manual"
+        ],
+        "goalie_policy": "off",
+        "trials": 3,
+        "seed": 9100,
+        "seconds": 300,
+        "frame_skip": 4,
+        "action_type": "FILTERED",
+        "workers": 2,
+        "config": null
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 3,
+          "wins": 3,
+          "draws": 0,
+          "losses": 0,
+          "goals_for": 7,
+          "goals_against": 0,
+          "one_timer_setups": 17,
+          "one_timers": 12,
+          "one_timer_goals": 5,
+          "periods_without_one_timers": 0,
+          "pass_outcomes": {
+            "received_without_shot": 50,
+            "one_timer_shot": 12,
+            "intercepted": 8,
+            "flight_timeout": 2
+          },
+          "wrong_recipient": 0,
+          "offense_metrics": {
+            "entries": 27,
+            "controlled_entries": 27,
+            "entry_frames_total": 5297,
+            "entry_threats_total": 0,
+            "turnovers": 29,
+            "zone_turnovers": 18,
+            "possession_losses": 38,
+            "zone_possession_losses": 27
+          },
+          "goalie_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 43,
+              "intercepted": 4
+            },
+            "one-timer": {
+              "one_timer_shot": 12,
+              "intercepted": 3,
+              "received_without_shot": 1,
+              "flight_timeout": 1
+            },
+            "position-pass": {
+              "received_without_shot": 6,
+              "flight_timeout": 1,
+              "intercepted": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 3,
+          "wins": 0,
+          "draws": 2,
+          "losses": 1,
+          "goals_for": 1,
+          "goals_against": 2,
+          "one_timer_setups": 3,
+          "one_timers": 1,
+          "one_timer_goals": 0,
+          "periods_without_one_timers": 2,
+          "pass_outcomes": {
+            "received_without_shot": 32,
+            "flight_timeout": 3,
+            "period_ended": 1,
+            "one_timer_shot": 1,
+            "returned_to_passer": 2,
+            "intercepted": 1
+          },
+          "wrong_recipient": 1,
+          "offense_metrics": {
+            "entries": 24,
+            "controlled_entries": 24,
+            "entry_frames_total": 4178,
+            "entry_threats_total": 2,
+            "turnovers": 15,
+            "zone_turnovers": 10,
+            "possession_losses": 37,
+            "zone_possession_losses": 32
+          },
+          "goalie_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 29,
+              "flight_timeout": 2,
+              "period_ended": 1,
+              "returned_to_passer": 1,
+              "intercepted": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 1,
+              "received_without_shot": 1,
+              "returned_to_passer": 1
+            },
+            "position-pass": {
+              "flight_timeout": 1,
+              "received_without_shot": 2
+            }
+          }
+        }
+      },
+      "matches": [
+        {
+          "agent": "classic-v1",
+          "matchup": "sabres-ducks-manual",
+          "side": 1,
+          "seed": 9100,
+          "goals": [
+            1,
+            0
+          ],
+          "shots": [
+            7,
+            4
+          ],
+          "one_timers": [
+            4,
+            2
+          ],
+          "one_timer_goals": [
+            1,
+            0
+          ],
+          "frames": 7952,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "off",
+          "goalie_metrics": {},
+          "actions_sha256": "d8672f15c2c6fb414c226311e7fa5d3a289f872bceb4bf6b459435984b9b1481",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "sabres-ducks-manual",
+          "side": 1,
+          "seed": 9101,
+          "goals": [
+            2,
+            0
+          ],
+          "shots": [
+            5,
+            2
+          ],
+          "one_timers": [
+            4,
+            1
+          ],
+          "one_timer_goals": [
+            2,
+            0
+          ],
+          "frames": 8582,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "off",
+          "goalie_metrics": {},
+          "actions_sha256": "1601d5d5e03f82acdabf69caa765cec1cf1ae2c722a1968b798adf1e751da9b3",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "sabres-ducks-manual",
+          "side": 1,
+          "seed": 9102,
+          "goals": [
+            4,
+            0
+          ],
+          "shots": [
+            8,
+            1
+          ],
+          "one_timers": [
+            4,
+            1
+          ],
+          "one_timer_goals": [
+            2,
+            0
+          ],
+          "frames": 10205,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "off",
+          "goalie_metrics": {},
+          "actions_sha256": "a30a1e6156cc6826d8acc982c0a397677148cfeafd947350574cf035144dbea9",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "ducks-sabres-manual",
+          "side": 2,
+          "seed": 9100,
+          "goals": [
+            0,
+            0
+          ],
+          "shots": [
+            5,
+            6
+          ],
+          "one_timers": [
+            2,
+            0
+          ],
+          "one_timer_goals": [
+            0,
+            0
+          ],
+          "frames": 8692,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "off",
+          "goalie_metrics": {},
+          "actions_sha256": "199c07aa6a1ab26152ba5a678c9d8303c967078fc1b8b680cf92b03fec3172d5",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "ducks-sabres-manual",
+          "side": 2,
+          "seed": 9101,
+          "goals": [
+            1,
+            1
+          ],
+          "shots": [
+            2,
+            13
+          ],
+          "one_timers": [
+            1,
+            1
+          ],
+          "one_timer_goals": [
+            1,
+            0
+          ],
+          "frames": 9404,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "off",
+          "goalie_metrics": {},
+          "actions_sha256": "14227a9d488a7578b675617e8e6f592fb35e4a377f16c79b86b5d64bd88d1bb6",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "ducks-sabres-manual",
+          "side": 2,
+          "seed": 9102,
+          "goals": [
+            1,
+            0
+          ],
+          "shots": [
+            3,
+            7
+          ],
+          "one_timers": [
+            0,
+            0
+          ],
+          "one_timer_goals": [
+            0,
+            0
+          ],
+          "frames": 7998,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "off",
+          "goalie_metrics": {},
+          "actions_sha256": "99a7fa4ad40253188bc9117cfedda786df9405dcaa1ccec5ddc999616b804ea5",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        }
+      ]
+    },
+    "selective": {
+      "settings": {
+        "agent": "classic-v1",
+        "matchups": [
+          "sabres-ducks-manual",
+          "ducks-sabres-manual"
+        ],
+        "goalie_policy": "selective",
+        "trials": 3,
+        "seed": 9100,
+        "seconds": 300,
+        "frame_skip": 4,
+        "action_type": "FILTERED",
+        "workers": 2,
+        "config": null
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 3,
+          "wins": 3,
+          "draws": 0,
+          "losses": 0,
+          "goals_for": 5,
+          "goals_against": 0,
+          "one_timer_setups": 16,
+          "one_timers": 11,
+          "one_timer_goals": 3,
+          "periods_without_one_timers": 0,
+          "pass_outcomes": {
+            "received_without_shot": 35,
+            "one_timer_shot": 10,
+            "intercepted": 6,
+            "not_released": 1
+          },
+          "wrong_recipient": 0,
+          "offense_metrics": {
+            "entries": 25,
+            "controlled_entries": 25,
+            "entry_frames_total": 3632,
+            "entry_threats_total": 2,
+            "turnovers": 22,
+            "zone_turnovers": 18,
+            "possession_losses": 31,
+            "zone_possession_losses": 27
+          },
+          "goalie_metrics": {
+            "takeover_requests": 16,
+            "takeovers": 16,
+            "save_requests": 5,
+            "save_animations": 5,
+            "automatic_handoffs": 12,
+            "outlet_requests": 7,
+            "outlets_launched": 6,
+            "outlet_receptions": 3,
+            "cpu_fallback_frames": 172,
+            "return_requests": 3,
+            "returns": 3,
+            "controlled_catches": 5,
+            "outlet_other_owner": 2,
+            "outlet_timeouts": 1,
+            "clear_requests": 3,
+            "clear_possession_ended": 3,
+            "dive_requests": 1,
+            "dive_animations": 1,
+            "outlet_interrupted": 1
+          },
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 32,
+              "intercepted": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 10,
+              "intercepted": 4,
+              "received_without_shot": 1,
+              "not_released": 1
+            },
+            "position-pass": {
+              "received_without_shot": 2,
+              "intercepted": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 3,
+          "wins": 2,
+          "draws": 1,
+          "losses": 0,
+          "goals_for": 3,
+          "goals_against": 0,
+          "one_timer_setups": 8,
+          "one_timers": 4,
+          "one_timer_goals": 1,
+          "periods_without_one_timers": 1,
+          "pass_outcomes": {
+            "one_timer_shot": 4,
+            "received_without_shot": 35,
+            "returned_to_passer": 1,
+            "intercepted": 8,
+            "period_ended": 1
+          },
+          "wrong_recipient": 1,
+          "offense_metrics": {
+            "entries": 24,
+            "controlled_entries": 24,
+            "entry_frames_total": 4501,
+            "entry_threats_total": 1,
+            "turnovers": 20,
+            "zone_turnovers": 10,
+            "possession_losses": 40,
+            "zone_possession_losses": 30
+          },
+          "goalie_metrics": {
+            "clear_requests": 1,
+            "clear_possession_ended": 1,
+            "cpu_fallback_frames": 143,
+            "automatic_handoffs": 13,
+            "takeover_requests": 19,
+            "takeovers": 19,
+            "save_requests": 7,
+            "save_animations": 7,
+            "controlled_catches": 5,
+            "outlet_requests": 6,
+            "outlets_launched": 6,
+            "outlet_receptions": 5,
+            "return_requests": 2,
+            "returns": 2,
+            "outlet_other_owner": 1
+          },
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 29,
+              "intercepted": 6
+            },
+            "one-timer": {
+              "one_timer_shot": 4,
+              "received_without_shot": 1,
+              "returned_to_passer": 1,
+              "intercepted": 2
+            },
+            "position-pass": {
+              "received_without_shot": 5,
+              "period_ended": 1
+            }
+          }
+        }
+      },
+      "matches": [
+        {
+          "agent": "classic-v1",
+          "matchup": "sabres-ducks-manual",
+          "side": 1,
+          "seed": 9100,
+          "goals": [
+            1,
+            0
+          ],
+          "shots": [
+            5,
+            3
+          ],
+          "one_timers": [
+            4,
+            1
+          ],
+          "one_timer_goals": [
+            1,
+            0
+          ],
+          "frames": 8442,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "selective",
+          "goalie_metrics": {
+            "takeover_requests": 5,
+            "takeovers": 5,
+            "save_requests": 2,
+            "save_animations": 2,
+            "automatic_handoffs": 3,
+            "outlet_requests": 3,
+            "outlets_launched": 3,
+            "outlet_receptions": 1,
+            "cpu_fallback_frames": 26,
+            "return_requests": 1,
+            "returns": 1,
+            "controlled_catches": 2,
+            "outlet_other_owner": 1,
+            "outlet_timeouts": 1
+          },
+          "actions_sha256": "0a6189f552f1494c931b0ec985cf19215ba8a951ee33a835aeeb2864a2008db2",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "sabres-ducks-manual",
+          "side": 1,
+          "seed": 9101,
+          "goals": [
+            2,
+            0
+          ],
+          "shots": [
+            6,
+            0
+          ],
+          "one_timers": [
+            6,
+            0
+          ],
+          "one_timer_goals": [
+            1,
+            0
+          ],
+          "frames": 8566,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "selective",
+          "goalie_metrics": {
+            "takeover_requests": 4,
+            "takeovers": 4,
+            "automatic_handoffs": 3,
+            "clear_requests": 1,
+            "clear_possession_ended": 1,
+            "cpu_fallback_frames": 101,
+            "return_requests": 1,
+            "returns": 1,
+            "save_requests": 1,
+            "save_animations": 1,
+            "controlled_catches": 1,
+            "outlet_requests": 1,
+            "outlets_launched": 1,
+            "outlet_receptions": 1
+          },
+          "actions_sha256": "ea53e2635cc96f4f2eaab9e80f05d9adbabf9cf81792714b38a6d093305c4508",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "sabres-ducks-manual",
+          "side": 1,
+          "seed": 9102,
+          "goals": [
+            2,
+            0
+          ],
+          "shots": [
+            6,
+            4
+          ],
+          "one_timers": [
+            1,
+            0
+          ],
+          "one_timer_goals": [
+            1,
+            0
+          ],
+          "frames": 8657,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "selective",
+          "goalie_metrics": {
+            "takeover_requests": 7,
+            "takeovers": 7,
+            "dive_requests": 1,
+            "dive_animations": 1,
+            "automatic_handoffs": 6,
+            "controlled_catches": 2,
+            "clear_requests": 2,
+            "clear_possession_ended": 2,
+            "cpu_fallback_frames": 45,
+            "return_requests": 1,
+            "returns": 1,
+            "save_requests": 2,
+            "save_animations": 2,
+            "outlet_requests": 3,
+            "outlets_launched": 2,
+            "outlet_other_owner": 1,
+            "outlet_receptions": 1,
+            "outlet_interrupted": 1
+          },
+          "actions_sha256": "9adc641233c65c67af5620e0e083022b774876c76d938ce1cacb92f9b2ec05b0",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "ducks-sabres-manual",
+          "side": 2,
+          "seed": 9100,
+          "goals": [
+            0,
+            2
+          ],
+          "shots": [
+            2,
+            11
+          ],
+          "one_timers": [
+            1,
+            3
+          ],
+          "one_timer_goals": [
+            0,
+            1
+          ],
+          "frames": 9028,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "selective",
+          "goalie_metrics": {
+            "clear_requests": 1,
+            "clear_possession_ended": 1,
+            "cpu_fallback_frames": 97,
+            "automatic_handoffs": 3,
+            "takeover_requests": 4,
+            "takeovers": 4,
+            "save_requests": 2,
+            "save_animations": 2,
+            "controlled_catches": 2,
+            "outlet_requests": 2,
+            "outlets_launched": 2,
+            "outlet_receptions": 2
+          },
+          "actions_sha256": "27db7bd0eb75dced1b6c77b15a9d3aaf88e1ce3fab3595abff8f37af087757fe",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "ducks-sabres-manual",
+          "side": 2,
+          "seed": 9101,
+          "goals": [
+            0,
+            0
+          ],
+          "shots": [
+            2,
+            7
+          ],
+          "one_timers": [
+            0,
+            1
+          ],
+          "one_timer_goals": [
+            0,
+            0
+          ],
+          "frames": 7341,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "selective",
+          "goalie_metrics": {
+            "takeover_requests": 9,
+            "takeovers": 9,
+            "save_requests": 2,
+            "save_animations": 2,
+            "automatic_handoffs": 6,
+            "cpu_fallback_frames": 41,
+            "return_requests": 2,
+            "returns": 2,
+            "controlled_catches": 1,
+            "outlet_requests": 1,
+            "outlets_launched": 1,
+            "outlet_receptions": 1
+          },
+          "actions_sha256": "588787379ad5ff5dc020c6a35d62dfcf75e75678f0d1866fce41c3adfd00dbbb",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "ducks-sabres-manual",
+          "side": 2,
+          "seed": 9102,
+          "goals": [
+            0,
+            1
+          ],
+          "shots": [
+            2,
+            9
+          ],
+          "one_timers": [
+            2,
+            0
+          ],
+          "one_timer_goals": [
+            0,
+            0
+          ],
+          "frames": 7973,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "selective",
+          "goalie_metrics": {
+            "takeover_requests": 6,
+            "takeovers": 6,
+            "automatic_handoffs": 4,
+            "outlet_requests": 3,
+            "outlets_launched": 3,
+            "outlet_receptions": 2,
+            "save_requests": 3,
+            "save_animations": 3,
+            "cpu_fallback_frames": 5,
+            "controlled_catches": 2,
+            "outlet_other_owner": 1
+          },
+          "actions_sha256": "f98d645064ce9b40aa95b8107bb93db2a3b8c12fdc42afc6b1345bac89286805",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        }
+      ]
+    },
+    "always": {
+      "settings": {
+        "agent": "classic-v1",
+        "matchups": [
+          "sabres-ducks-manual",
+          "ducks-sabres-manual"
+        ],
+        "goalie_policy": "always",
+        "trials": 3,
+        "seed": 9100,
+        "seconds": 300,
+        "frame_skip": 4,
+        "action_type": "FILTERED",
+        "workers": 2,
+        "config": null
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 3,
+          "wins": 2,
+          "draws": 1,
+          "losses": 0,
+          "goals_for": 5,
+          "goals_against": 1,
+          "one_timer_setups": 14,
+          "one_timers": 11,
+          "one_timer_goals": 3,
+          "periods_without_one_timers": 0,
+          "pass_outcomes": {
+            "received_without_shot": 41,
+            "one_timer_shot": 10,
+            "intercepted": 6,
+            "returned_to_passer": 1
+          },
+          "wrong_recipient": 1,
+          "offense_metrics": {
+            "entries": 26,
+            "controlled_entries": 26,
+            "entry_frames_total": 4514,
+            "entry_threats_total": 1,
+            "turnovers": 21,
+            "zone_turnovers": 15,
+            "possession_losses": 32,
+            "zone_possession_losses": 26
+          },
+          "goalie_metrics": {
+            "takeover_requests": 25,
+            "takeovers": 24,
+            "save_requests": 8,
+            "save_animations": 8,
+            "automatic_handoffs": 16,
+            "cpu_fallback_frames": 110,
+            "return_requests": 3,
+            "returns": 3,
+            "controlled_catches": 6,
+            "outlet_requests": 5,
+            "outlets_launched": 5,
+            "outlet_timeouts": 1,
+            "outlet_receptions": 4,
+            "dive_requests": 1,
+            "dive_animations": 1,
+            "takeover_cancelled": 1,
+            "clear_requests": 3,
+            "clear_possession_ended": 3
+          },
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 38,
+              "intercepted": 3,
+              "returned_to_passer": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 10,
+              "intercepted": 3,
+              "received_without_shot": 1
+            },
+            "position-pass": {
+              "received_without_shot": 2
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 3,
+          "wins": 0,
+          "draws": 1,
+          "losses": 2,
+          "goals_for": 1,
+          "goals_against": 3,
+          "one_timer_setups": 9,
+          "one_timers": 6,
+          "one_timer_goals": 1,
+          "periods_without_one_timers": 0,
+          "pass_outcomes": {
+            "received_without_shot": 38,
+            "one_timer_shot": 6,
+            "flight_timeout": 3,
+            "intercepted": 5,
+            "superseded": 1,
+            "period_ended": 1
+          },
+          "wrong_recipient": 1,
+          "offense_metrics": {
+            "entries": 27,
+            "controlled_entries": 27,
+            "entry_frames_total": 6379,
+            "entry_threats_total": 2,
+            "turnovers": 23,
+            "zone_turnovers": 13,
+            "possession_losses": 38,
+            "zone_possession_losses": 28
+          },
+          "goalie_metrics": {
+            "takeover_requests": 29,
+            "takeovers": 27,
+            "save_requests": 20,
+            "save_animations": 20,
+            "automatic_handoffs": 15,
+            "dive_requests": 3,
+            "dive_animations": 3,
+            "takeover_cancelled": 2,
+            "controlled_catches": 8,
+            "outlet_requests": 7,
+            "outlets_launched": 7,
+            "outlet_receptions": 4,
+            "outlet_other_owner": 3,
+            "cpu_fallback_frames": 83,
+            "return_requests": 2,
+            "returns": 2,
+            "clear_requests": 1,
+            "clear_possession_ended": 1
+          },
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 37,
+              "flight_timeout": 3,
+              "intercepted": 3,
+              "superseded": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 6,
+              "received_without_shot": 1,
+              "intercepted": 1,
+              "period_ended": 1
+            },
+            "position-pass": {
+              "intercepted": 1
+            }
+          }
+        }
+      },
+      "matches": [
+        {
+          "agent": "classic-v1",
+          "matchup": "sabres-ducks-manual",
+          "side": 1,
+          "seed": 9100,
+          "goals": [
+            3,
+            0
+          ],
+          "shots": [
+            8,
+            7
+          ],
+          "one_timers": [
+            6,
+            4
+          ],
+          "one_timer_goals": [
+            3,
+            0
+          ],
+          "frames": 10681,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "always",
+          "goalie_metrics": {
+            "takeover_requests": 9,
+            "takeovers": 8,
+            "save_requests": 3,
+            "save_animations": 3,
+            "automatic_handoffs": 6,
+            "cpu_fallback_frames": 16,
+            "return_requests": 1,
+            "returns": 1,
+            "controlled_catches": 2,
+            "outlet_requests": 2,
+            "outlets_launched": 2,
+            "outlet_timeouts": 1,
+            "outlet_receptions": 1,
+            "dive_requests": 1,
+            "dive_animations": 1,
+            "takeover_cancelled": 1
+          },
+          "actions_sha256": "eec43cfd0ba3bddb7f69f5002b81e692a1a767b72c5616c0e9f29a05336ac159",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "sabres-ducks-manual",
+          "side": 1,
+          "seed": 9101,
+          "goals": [
+            0,
+            0
+          ],
+          "shots": [
+            4,
+            2
+          ],
+          "one_timers": [
+            4,
+            0
+          ],
+          "one_timer_goals": [
+            0,
+            0
+          ],
+          "frames": 7809,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "always",
+          "goalie_metrics": {
+            "takeover_requests": 9,
+            "takeovers": 9,
+            "automatic_handoffs": 6,
+            "save_requests": 2,
+            "save_animations": 2,
+            "controlled_catches": 2,
+            "outlet_requests": 1,
+            "outlets_launched": 1,
+            "outlet_receptions": 1,
+            "clear_requests": 3,
+            "clear_possession_ended": 3,
+            "cpu_fallback_frames": 82,
+            "return_requests": 2,
+            "returns": 2
+          },
+          "actions_sha256": "92920fb9eae960d97a8a5caab41c3cf0efa62437d5198f193fbe0c28cecf25c7",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "sabres-ducks-manual",
+          "side": 1,
+          "seed": 9102,
+          "goals": [
+            2,
+            1
+          ],
+          "shots": [
+            9,
+            3
+          ],
+          "one_timers": [
+            1,
+            1
+          ],
+          "one_timer_goals": [
+            0,
+            1
+          ],
+          "frames": 9259,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "always",
+          "goalie_metrics": {
+            "takeover_requests": 7,
+            "takeovers": 7,
+            "cpu_fallback_frames": 12,
+            "save_requests": 3,
+            "save_animations": 3,
+            "automatic_handoffs": 4,
+            "controlled_catches": 2,
+            "outlet_requests": 2,
+            "outlets_launched": 2,
+            "outlet_receptions": 2
+          },
+          "actions_sha256": "1c8b43acb6cfe854c4b33a02a19cbed4096c1817e3e73a12948c8cef564d4f1a",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "ducks-sabres-manual",
+          "side": 2,
+          "seed": 9100,
+          "goals": [
+            1,
+            1
+          ],
+          "shots": [
+            8,
+            4
+          ],
+          "one_timers": [
+            1,
+            2
+          ],
+          "one_timer_goals": [
+            0,
+            1
+          ],
+          "frames": 9071,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "always",
+          "goalie_metrics": {
+            "takeover_requests": 13,
+            "takeovers": 11,
+            "save_requests": 8,
+            "save_animations": 8,
+            "automatic_handoffs": 8,
+            "dive_requests": 1,
+            "dive_animations": 1,
+            "takeover_cancelled": 2,
+            "controlled_catches": 2,
+            "outlet_requests": 2,
+            "outlets_launched": 2,
+            "outlet_receptions": 2
+          },
+          "actions_sha256": "d112f2d8005044883deb71fa1c51c4fec97b761f141778e3658cb98dd0a9294e",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "ducks-sabres-manual",
+          "side": 2,
+          "seed": 9101,
+          "goals": [
+            1,
+            0
+          ],
+          "shots": [
+            6,
+            11
+          ],
+          "one_timers": [
+            1,
+            2
+          ],
+          "one_timer_goals": [
+            0,
+            0
+          ],
+          "frames": 7984,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "always",
+          "goalie_metrics": {
+            "takeover_requests": 9,
+            "takeovers": 9,
+            "save_requests": 6,
+            "save_animations": 6,
+            "automatic_handoffs": 4,
+            "controlled_catches": 3,
+            "outlet_requests": 2,
+            "outlets_launched": 2,
+            "outlet_other_owner": 1,
+            "cpu_fallback_frames": 83,
+            "outlet_receptions": 1,
+            "dive_requests": 1,
+            "dive_animations": 1,
+            "return_requests": 2,
+            "returns": 2,
+            "clear_requests": 1,
+            "clear_possession_ended": 1
+          },
+          "actions_sha256": "a0e855b33465f9c0d3db669ca7d383ac5d15883f48371c6615667a3b2473c3a5",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        },
+        {
+          "agent": "classic-v1",
+          "matchup": "ducks-sabres-manual",
+          "side": 2,
+          "seed": 9102,
+          "goals": [
+            1,
+            0
+          ],
+          "shots": [
+            5,
+            7
+          ],
+          "one_timers": [
+            2,
+            2
+          ],
+          "one_timer_goals": [
+            1,
+            0
+          ],
+          "frames": 8923,
+          "completed": true,
+          "clock_remaining": 0,
+          "goalie_policy": "always",
+          "goalie_metrics": {
+            "takeover_requests": 7,
+            "takeovers": 7,
+            "save_requests": 6,
+            "save_animations": 6,
+            "controlled_catches": 3,
+            "outlet_requests": 3,
+            "outlets_launched": 3,
+            "outlet_other_owner": 2,
+            "outlet_receptions": 1,
+            "automatic_handoffs": 3,
+            "dive_requests": 1,
+            "dive_animations": 1
+          },
+          "actions_sha256": "ca36073c44742b9b98c86c4d99f9392fbe9f517702b0dc8ed623af1e31f5243a",
+          "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f"
+        }
+      ]
+    }
+  }
+}

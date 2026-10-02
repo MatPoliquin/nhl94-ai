@@ -1,0 +1,2470 @@
+{
+  "protocol": "nhl94-paired-first-period-v1",
+  "protocol_sha256": "8a47163f1248868705a72c39bbc3b751ed8be09aa78e22f5a653c97954551417",
+  "game": "NHL94-Genesis-v0",
+  "settings": {
+    "agent": "classic-v4",
+    "opponents": [
+      "classic-v2",
+      "classic-v3"
+    ],
+    "seed": 2000,
+    "pairs": 20,
+    "seconds": 300,
+    "frame_skip": 4,
+    "workers": 4,
+    "output": "docs/benchmarks/classic-v4.json",
+    "config": null
+  },
+  "sources": {
+    "classic_v4.py": {
+      "sha256": "868bb567642ba9212add7404edd3e3cb2f7f3bd4075775519236d402650260f1",
+      "lines": 126
+    },
+    "classic_v2.py": {
+      "sha256": "11b0068a30e7ae2d40ab714dafefb0c1a7537554c64b09e48cfe39e0f586d60a",
+      "lines": 820
+    },
+    "geometry.py": {
+      "sha256": "cdcf80a65c4f2ab9c06f4f81daec3a791d18df1aadaa37f28d98b77a65d920bd",
+      "lines": 9
+    },
+    "classic_v3.py": {
+      "sha256": "1203e9f453f92781d4433d775b3864dc68188e2339e37c6eda4858cd121feecd",
+      "lines": 347
+    }
+  },
+  "versions": {
+    "nhl94-ai": "0.1.0",
+    "stable-retro": "1.0.1",
+    "numpy": "2.5.1"
+  },
+  "summary": {
+    "classic-v2": {
+      "games": 40,
+      "wins": 19,
+      "draws": 13,
+      "losses": 8,
+      "goals_for": 29,
+      "goals_against": 15,
+      "mean_decision_us": {
+        "classic-v4": 25.58,
+        "classic-v2": 241.1
+      }
+    },
+    "classic-v3": {
+      "games": 40,
+      "wins": 19,
+      "draws": 12,
+      "losses": 9,
+      "goals_for": 36,
+      "goals_against": 21,
+      "mean_decision_us": {
+        "classic-v4": 25.51,
+        "classic-v3": 271.35
+      }
+    }
+  },
+  "matches": [
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2000,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11278,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        81803236,
+        640110593
+      ],
+      "decisions": [
+        2820,
+        2820
+      ],
+      "actions_sha256": "8593a71f90a5b349210de7c23ad1f1502ebe383f41b5374047ba85def84c579a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2000,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 9318,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        558091198,
+        55678209
+      ],
+      "decisions": [
+        2330,
+        2330
+      ],
+      "actions_sha256": "17bc3ec011a602b341e1a007c30b2fabb7319920b0eaa4ee78aff9a970543b84",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2000,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        0,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 9205,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        62345475,
+        656545934
+      ],
+      "decisions": [
+        2301,
+        2301
+      ],
+      "actions_sha256": "e2aa9f66704c0b7fea78165dc4f4c743d85ff13cc753335b22ca379d864a647a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2000,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 8700,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        536101887,
+        52186247
+      ],
+      "decisions": [
+        2175,
+        2175
+      ],
+      "actions_sha256": "62ae6432b963ae1b5382946a51a07317a431a99b4772a0f77dda1ac8545e22a2",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2001,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        6,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 9561,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        64950454,
+        589629647
+      ],
+      "decisions": [
+        2390,
+        2390
+      ],
+      "actions_sha256": "16df15afca4477c4e0c6f32263e00afb8f8ef56c240ec61b366f66357795992f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2001,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 8509,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        545295659,
+        51044236
+      ],
+      "decisions": [
+        2127,
+        2127
+      ],
+      "actions_sha256": "41119277fb39fa23bc5d4878f95bb13003a4d17be9dee19ae1b1a1eaf439b973",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2001,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        2,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 10059,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        69816396,
+        701392902
+      ],
+      "decisions": [
+        2515,
+        2515
+      ],
+      "actions_sha256": "c8b343d28c29d8507dfd8ab36c81c7aa06b0dbacd17f91fef483e7cc983afcc0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2001,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        6,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 9633,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        712822971,
+        58976928
+      ],
+      "decisions": [
+        2408,
+        2408
+      ],
+      "actions_sha256": "2b15cc5e863f9fa13a3abf5b6cfabd7c0878a238a0bc1f79b91edf276d61f5b2",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2002,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 9437,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        66562980,
+        563790570
+      ],
+      "decisions": [
+        2359,
+        2359
+      ],
+      "actions_sha256": "d5f39721f170b9e86d6d09582c73e2df7fa0b595d47d207ee48238052112043f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2002,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 10202,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        630999697,
+        63328819
+      ],
+      "decisions": [
+        2551,
+        2551
+      ],
+      "actions_sha256": "89493f095048ab76a46ef0d7220473aa98ed3a83b4d73accf52f0cbc253435c3",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2002,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 8966,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        63322691,
+        626920465
+      ],
+      "decisions": [
+        2242,
+        2242
+      ],
+      "actions_sha256": "af3ceabd435509b4f8786b3a105f88230d18bb3bd15d08bc8051d6f1257cc06b",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2002,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 8887,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        600509438,
+        52896419
+      ],
+      "decisions": [
+        2222,
+        2222
+      ],
+      "actions_sha256": "287b59f676998e40df65b925e3318b21e9803ab7648c1f51b67eb0639763dcef",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2003,
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        7,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11271,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        74764468,
+        705295198
+      ],
+      "decisions": [
+        2818,
+        2818
+      ],
+      "actions_sha256": "f24a5b289eadcb065ba7b8c0ed7934bd5ca1893e290842a546f1b54271394e03",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2003,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 7785,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        480183304,
+        45674907
+      ],
+      "decisions": [
+        1946,
+        1946
+      ],
+      "actions_sha256": "44069e448b08894dfc6308f4bf8fb8570aca855d099c099dc3e4bf4e66fd1c0d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2003,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 9306,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        62722083,
+        635998654
+      ],
+      "decisions": [
+        2327,
+        2327
+      ],
+      "actions_sha256": "4641e6b2cf295400adca1eded3595ce770102f573f488c768353713cca6597d7",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2003,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        4,
+        5
+      ],
+      "clock_remaining": 0,
+      "frames": 9365,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        584542139,
+        55833303
+      ],
+      "decisions": [
+        2341,
+        2341
+      ],
+      "actions_sha256": "40b5b7525b1b2b56456af8e105e0c0e6febcb542670c71d5ffb2f13e799f3382",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2004,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        0,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 10653,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        71714976,
+        661173864
+      ],
+      "decisions": [
+        2663,
+        2663
+      ],
+      "actions_sha256": "fe4f08aaac0e20916a109d250592c4eb23f62263ad0cbbee40d7f358585683a3",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2004,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        4,
+        5
+      ],
+      "clock_remaining": 0,
+      "frames": 11114,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        625702092,
+        66416872
+      ],
+      "decisions": [
+        2779,
+        2779
+      ],
+      "actions_sha256": "52f11e3cf4ed831f64f9e95d39cbfbc12de764487cf621154fd1f919ba42666e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2004,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 8604,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        56341189,
+        619918747
+      ],
+      "decisions": [
+        2151,
+        2151
+      ],
+      "actions_sha256": "7f824847a783ebc0293c36efb5a9dbfd48fe3ee1e3b71607cebdbab8eea7055d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2004,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        7,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9563,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        668065756,
+        56057106
+      ],
+      "decisions": [
+        2391,
+        2391
+      ],
+      "actions_sha256": "aabe9f3cb03093458615b7ee489b052a5a4e7a6ab59baea0a9c292ea08be4c5b",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2005,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9402,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        62466458,
+        566885804
+      ],
+      "decisions": [
+        2351,
+        2351
+      ],
+      "actions_sha256": "caaa4d79fc3ab997dc03cd9dbd0a4a3210998163dd7a1cb23db0835d720f2c2d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2005,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9090,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        546625455,
+        53242819
+      ],
+      "decisions": [
+        2273,
+        2273
+      ],
+      "actions_sha256": "68a6092bff6ab9901e66a546a34c33806f557bb478c817ddf92605f24dc429a1",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2005,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        6,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11440,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        75568764,
+        776532968
+      ],
+      "decisions": [
+        2860,
+        2860
+      ],
+      "actions_sha256": "91a392cd940513a1f8638a92cf32d6a4cd9a2272e616deb85f15b9e9020c30b6",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2005,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 9298,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        660818931,
+        56036956
+      ],
+      "decisions": [
+        2325,
+        2325
+      ],
+      "actions_sha256": "4c437ece68be2863543a7d942b8e4034ede0f86124745d85e865f8e1ac096219",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2006,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 9255,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        60462611,
+        593673814
+      ],
+      "decisions": [
+        2314,
+        2314
+      ],
+      "actions_sha256": "52c32a824a6729d03b1cb2c9bf8ed3dc0020d9f892dc39d06e00f80b62806b8a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2006,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        4,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 11485,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        688626864,
+        68941750
+      ],
+      "decisions": [
+        2871,
+        2871
+      ],
+      "actions_sha256": "e1d65306df09a0a0fe4214b2025b148f47710b6b686e4a7ea94e010548677a52",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2006,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9636,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        61873098,
+        616793987
+      ],
+      "decisions": [
+        2409,
+        2409
+      ],
+      "actions_sha256": "d9503bd2b53e4c731eb8ed63d8dc5b048981895fb924d7a39498ecb338430b37",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2006,
+      "goals": [
+        2,
+        2
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 11308,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        756385846,
+        67338284
+      ],
+      "decisions": [
+        2827,
+        2827
+      ],
+      "actions_sha256": "6c1e434f5f4509bf228dbf5606c70b83e419664df8fd437cf1f8b009d9fb35c7",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2007,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 9417,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        61524190,
+        576154321
+      ],
+      "decisions": [
+        2354,
+        2354
+      ],
+      "actions_sha256": "e01cf05647a22f9645b2f5a5d218020e2a5bfbd0f6aa9791cba53c1f528e377c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2007,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        5,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 9575,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        597793886,
+        56844876
+      ],
+      "decisions": [
+        2394,
+        2394
+      ],
+      "actions_sha256": "c582d6536491da1a005368a6ff7baf5e041a5676715ffc8e7e11054f172aa144",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2007,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 10156,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        64964831,
+        632717631
+      ],
+      "decisions": [
+        2539,
+        2539
+      ],
+      "actions_sha256": "9effcb25232907f0f59aba4e5aa5239b80edfee3b415b36ea4890def7d7e1c19",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2007,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        4,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 10014,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        673767530,
+        60306762
+      ],
+      "decisions": [
+        2504,
+        2504
+      ],
+      "actions_sha256": "cc1ac500ffcbcf76827b842857fdd18c8294ff8c4963829cb5e33fa460185281",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2008,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 8987,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        58034421,
+        509722930
+      ],
+      "decisions": [
+        2247,
+        2247
+      ],
+      "actions_sha256": "5f962c5cb7ba8a34ebd073a6b1ee403516c204dd7b644f5189a7659727e18ba6",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2008,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8202,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        460658231,
+        48631154
+      ],
+      "decisions": [
+        2051,
+        2051
+      ],
+      "actions_sha256": "bf951e9640c4ecf53b0e9be1e271c6b0b351bf79245ed56ca439dd00fcfff441",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2008,
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        8,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 10262,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        66507996,
+        687592303
+      ],
+      "decisions": [
+        2566,
+        2566
+      ],
+      "actions_sha256": "c404ebc8f5a81307a875b9160cfb54a0a94f52478e8843a20e15b74e5c7ddd9e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2008,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8381,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        536728793,
+        50906498
+      ],
+      "decisions": [
+        2095,
+        2095
+      ],
+      "actions_sha256": "2b14d8cbdc7fac65d08c28ccbf7df57298230a0b2c43f361c70bfa21c668fae3",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2009,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 10328,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        67775201,
+        615041496
+      ],
+      "decisions": [
+        2582,
+        2582
+      ],
+      "actions_sha256": "263c57a5e40be6b8ded6af1fe5f0642cb795c886bc6086b0f27ff102b8a2a077",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2009,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 9627,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        594675215,
+        59170026
+      ],
+      "decisions": [
+        2407,
+        2407
+      ],
+      "actions_sha256": "a2a108ad3c3606e9be897d0330941ba1e78541c61b924ad9a83911f462547719",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2009,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        3,
+        5
+      ],
+      "clock_remaining": 0,
+      "frames": 9529,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        64998597,
+        656889215
+      ],
+      "decisions": [
+        2382,
+        2382
+      ],
+      "actions_sha256": "85262d7946a3432fed003cfc075e7e3df3609150cc629e37752c3728ce27a7ac",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2009,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9378,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        702156930,
+        60275739
+      ],
+      "decisions": [
+        2345,
+        2345
+      ],
+      "actions_sha256": "2b77f5371bf4306f4d90ba7c8b539fda5d4fe86761a14a32df1c9cff9cdb4f5a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2010,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        5,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 10673,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        78049519,
+        572554997
+      ],
+      "decisions": [
+        2668,
+        2668
+      ],
+      "actions_sha256": "4048f15cfdfdb15ba4bc3bf58111c1ced673c7280625a2d80ccaed954fbab47c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2010,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8756,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        539614416,
+        55545036
+      ],
+      "decisions": [
+        2189,
+        2189
+      ],
+      "actions_sha256": "56493a01221a05f513cbb5e854f0bd29c67e3ea0707f0d568a8390b351793374",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2010,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        6,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11002,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        76598246,
+        754953967
+      ],
+      "decisions": [
+        2751,
+        2751
+      ],
+      "actions_sha256": "312e2efe3883ece50e03c7ac6d63f2e7b14df170a1dd5fc3b1f8cef456e21872",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2010,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9268,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        619967323,
+        57810115
+      ],
+      "decisions": [
+        2317,
+        2317
+      ],
+      "actions_sha256": "ff9b0edd5fb57ffda5cd022f63bb405be3b8e43708b6fe4be8fae0445b97d4e1",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2011,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        0,
+        5
+      ],
+      "clock_remaining": 0,
+      "frames": 8030,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        53009880,
+        478923286
+      ],
+      "decisions": [
+        2008,
+        2008
+      ],
+      "actions_sha256": "a238ad59bd757158d9bc4e23b8082b266887239b1158d5f3b80ac2336ff793c2",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2011,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        1,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 10242,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        655399014,
+        60260702
+      ],
+      "decisions": [
+        2561,
+        2561
+      ],
+      "actions_sha256": "f3ba16bcad87177f3145a59601fc9333d113bda9e7657445c48541133dd33c22",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2011,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 8722,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        56998022,
+        600406516
+      ],
+      "decisions": [
+        2181,
+        2181
+      ],
+      "actions_sha256": "09b4aa629432aef37ba585b247fc570edc2c4ff79168b96ee82491d6b9374126",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2011,
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9226,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        673866178,
+        56187586
+      ],
+      "decisions": [
+        2307,
+        2307
+      ],
+      "actions_sha256": "a7f289fc7f55f7abb46e14076948d84941bcf74cfc929537d0c37400c0c53f0c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2012,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 9832,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        68493744,
+        608292615
+      ],
+      "decisions": [
+        2458,
+        2458
+      ],
+      "actions_sha256": "5a3e3919453596026d41cbbba577cc25b7cf049e7a22f507428762b300f14192",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2012,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 8464,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        533325004,
+        50948459
+      ],
+      "decisions": [
+        2116,
+        2116
+      ],
+      "actions_sha256": "7871b35fd0ec9c6d2dac5027a82cee281d86fb31c3d636b5c1f02ecc4cdfb4f3",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2012,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        5
+      ],
+      "clock_remaining": 0,
+      "frames": 9434,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        65425502,
+        589957366
+      ],
+      "decisions": [
+        2359,
+        2359
+      ],
+      "actions_sha256": "c3243229dc5f364d67c91dec08fbc9fb72139dd94cdca39812bc3b1fe74b376e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2012,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8517,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        605221629,
+        52475433
+      ],
+      "decisions": [
+        2129,
+        2129
+      ],
+      "actions_sha256": "db29ff157ca5ca69207aa04ec0386594446368907ba71d6b99f0baf90be4c681",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2013,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9394,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        62319305,
+        538532055
+      ],
+      "decisions": [
+        2349,
+        2349
+      ],
+      "actions_sha256": "cb3fbe668f26b1506a27e32dccbb01b0822325a88600f906c89b089211c0346d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2013,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 8886,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        507991743,
+        52455318
+      ],
+      "decisions": [
+        2222,
+        2222
+      ],
+      "actions_sha256": "1961dd74a32bbbbd4cd44181bba3ce1a1d7e0dc9b291b7af85d837ec82e810c3",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2013,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        8,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 10010,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        66198252,
+        712853971
+      ],
+      "decisions": [
+        2503,
+        2503
+      ],
+      "actions_sha256": "bc5bb8eb3ae7c367deddd4a66233a6b3dd607db821a49c4bf7da4663e4ed29b4",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2013,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 8430,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        541664865,
+        50210666
+      ],
+      "decisions": [
+        2108,
+        2108
+      ],
+      "actions_sha256": "b949f94cbb0aad1be55d50f827ec8e2c91c2aa098ab9fbeebdf3d8eaca1a3da0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2014,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        5
+      ],
+      "clock_remaining": 0,
+      "frames": 9563,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        62413702,
+        556449476
+      ],
+      "decisions": [
+        2391,
+        2391
+      ],
+      "actions_sha256": "abe5dbda3f97e1c659337076eb157553ec526dadd4cbdd2fcd28a22959cdc5e5",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2014,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8918,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        525043452,
+        52735810
+      ],
+      "decisions": [
+        2230,
+        2230
+      ],
+      "actions_sha256": "281fb747f0df908fdb3aefe35382060911964633da1f18b2aee1830cdf868b5c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2014,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 10242,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        67923857,
+        689654510
+      ],
+      "decisions": [
+        2561,
+        2561
+      ],
+      "actions_sha256": "1116a6c4b20be4af92333c211fdc7ee70f999849c61c8b8ead09c6eb787a078c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2014,
+      "goals": [
+        0,
+        3
+      ],
+      "shots": [
+        4,
+        6
+      ],
+      "clock_remaining": 0,
+      "frames": 10648,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        731935796,
+        63771134
+      ],
+      "decisions": [
+        2662,
+        2662
+      ],
+      "actions_sha256": "9ce587cb202e34fc765f1768133617e57ae1086765c14e8178cc9b81607840ba",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2015,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 9674,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        65899875,
+        542606164
+      ],
+      "decisions": [
+        2419,
+        2419
+      ],
+      "actions_sha256": "3cc05197d340178e9543cc693b0a38c18b6d6f75fddb0e55e300c47c84c0bb11",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2015,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8480,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        536116531,
+        53052913
+      ],
+      "decisions": [
+        2120,
+        2120
+      ],
+      "actions_sha256": "e780a13fcd1c535257741f1017546b20f331c309c99f1fcef68cb28914cb59c0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2015,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 9025,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        61693244,
+        587084064
+      ],
+      "decisions": [
+        2256,
+        2256
+      ],
+      "actions_sha256": "87ef7162026f540f9a6cf00538d5803b492cb957017e6ecbc503dd8c8129c000",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2015,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        1,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 11548,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        778764396,
+        72218470
+      ],
+      "decisions": [
+        2887,
+        2887
+      ],
+      "actions_sha256": "3c1a67ea55491c417f536529887e4806de2ca4326309732784beea408aa97bd7",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2016,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11126,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        78083663,
+        682864457
+      ],
+      "decisions": [
+        2782,
+        2782
+      ],
+      "actions_sha256": "7eaaccd5395fa18318bdfee220563e96270a27468474c1a26a784fde2db0aac8",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2016,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7393,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        441162907,
+        44415337
+      ],
+      "decisions": [
+        1848,
+        1848
+      ],
+      "actions_sha256": "62b251b82ebe5f8ca0d91463f6fe071dfaf4969c7cfe7f5c7f7884f235900977",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2016,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8303,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        56811719,
+        577961024
+      ],
+      "decisions": [
+        2076,
+        2076
+      ],
+      "actions_sha256": "9e579d9cace6d6aabe5cbc646313dd7f6988834e2711615884ebe63fd20d07de",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2016,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9805,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        685891144,
+        60791777
+      ],
+      "decisions": [
+        2451,
+        2451
+      ],
+      "actions_sha256": "0078f79a1f5f18bb817640d062477bcb79b5ceab42e9bb7e1d33b31a7db08d23",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2017,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        4,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 9941,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        67049755,
+        590882395
+      ],
+      "decisions": [
+        2485,
+        2485
+      ],
+      "actions_sha256": "8ad55c2c7ce1a2af498a23f0a7cc78188b3a681e5cd8846d14f7722f8e00dd20",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2017,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9102,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        578217843,
+        54804234
+      ],
+      "decisions": [
+        2276,
+        2276
+      ],
+      "actions_sha256": "0b699a870a900a026f2194287f0ae7a5b26cb43691e9734c60b59c6bfe66df26",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2017,
+      "goals": [
+        3,
+        0
+      ],
+      "shots": [
+        3,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11287,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        75695185,
+        802938205
+      ],
+      "decisions": [
+        2822,
+        2822
+      ],
+      "actions_sha256": "2400e62a3e04a0caed6c3e782d08ced5a2d43f00bc2f3adf17dc78f3e615ae7a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2017,
+      "goals": [
+        2,
+        2
+      ],
+      "shots": [
+        6,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 10879,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        688040945,
+        65112090
+      ],
+      "decisions": [
+        2720,
+        2720
+      ],
+      "actions_sha256": "d13dbe5514e28d250bcd0f2841eae0d66267da1e7f2205337e78d8d9de1e173c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2018,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 10293,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        67906271,
+        621902696
+      ],
+      "decisions": [
+        2573,
+        2573
+      ],
+      "actions_sha256": "0c7397c70d80f5ebb10effbfcf49ff58e768df3ffa2aefcb843c516fda5f13d1",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2018,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 8457,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        508375885,
+        50657102
+      ],
+      "decisions": [
+        2114,
+        2114
+      ],
+      "actions_sha256": "8f2dae46e7dbd0e5464deb1c5634aa1324b5eb7a727359c8f97b021795d75cf1",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2018,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        6,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 10511,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        67365440,
+        701089079
+      ],
+      "decisions": [
+        2628,
+        2628
+      ],
+      "actions_sha256": "df717e4fe2caa3ce10e7077867d104a9c1825d1cbf829d36117bc813e9c900e2",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2018,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "clock_remaining": 0,
+      "frames": 9859,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        626779866,
+        57799825
+      ],
+      "decisions": [
+        2465,
+        2465
+      ],
+      "actions_sha256": "f80b80d7bab35a301daf3f0916702ba255cdf06900616b41cece3974b643889a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 2019,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8454,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        54950098,
+        528273178
+      ],
+      "decisions": [
+        2114,
+        2114
+      ],
+      "actions_sha256": "3b278901512524a9cecdc7b923527c88295ccc4c4802464e0df8e65b54c507c4",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 2019,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 9698,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        601984897,
+        57626085
+      ],
+      "decisions": [
+        2425,
+        2425
+      ],
+      "actions_sha256": "4bd4160c85f074a4acb9b26c683e74853e63be65a24538d300f95a8ae17ecfcf",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 2019,
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        5,
+        4
+      ],
+      "clock_remaining": 0,
+      "frames": 10762,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        71460359,
+        699892962
+      ],
+      "decisions": [
+        2691,
+        2691
+      ],
+      "actions_sha256": "9885426d24cbf0de39702ca7041330875d92a45b6b4b27df7cb0f4e226e48bc6",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 2019,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        4,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 10116,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        697490984,
+        61471475
+      ],
+      "decisions": [
+        2529,
+        2529
+      ],
+      "actions_sha256": "8f30e751fb2be37a6f7ab6635952dc61e3cc8cf7e5013293c1e1a4a44d68f060",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    }
+  ]
+}

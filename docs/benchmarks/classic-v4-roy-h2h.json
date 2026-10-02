@@ -1,0 +1,6871 @@
+{
+  "protocol": "nhl94-paired-first-period-v1",
+  "protocol_sha256": "e3512fbfe8fcd271c9cc174e36f280a8be961401eede0bc99094fbe20959d586",
+  "game": "NHL94-Genesis-v0",
+  "settings": {
+    "agent": "classic-v4",
+    "opponents": [
+      "classic-v2",
+      "classic-v3"
+    ],
+    "seed": 12000,
+    "pairs": 20,
+    "seconds": 300,
+    "frame_skip": 4,
+    "workers": 8,
+    "output": "docs/benchmarks/classic-v4-roy-h2h.json",
+    "config": null
+  },
+  "sources": {
+    "classic_v4.py": {
+      "sha256": "764d3a41244664f6ddfd0899770c1b71b4b30059cc70094efdc216efa1f06690",
+      "lines": 256
+    },
+    "classic_v2.py": {
+      "sha256": "11b0068a30e7ae2d40ab714dafefb0c1a7537554c64b09e48cfe39e0f586d60a",
+      "lines": 820
+    },
+    "geometry.py": {
+      "sha256": "cdcf80a65c4f2ab9c06f4f81daec3a791d18df1aadaa37f28d98b77a65d920bd",
+      "lines": 9
+    },
+    "classic_v3.py": {
+      "sha256": "1203e9f453f92781d4433d775b3864dc68188e2339e37c6eda4858cd121feecd",
+      "lines": 347
+    },
+    "game/state.py": {
+      "sha256": "684240c340b5b7c0fcb92f3af06def6ced378a45a3c3ed0cab7488356a498f8a",
+      "lines": 716
+    },
+    "game/ram.py": {
+      "sha256": "cace11a789d5b2d4c16f65dde0b1bd9c8c9e04949341b053c47d6ce26de2542e",
+      "lines": 31
+    },
+    "game/geometry.py": {
+      "sha256": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+      "lines": 16
+    },
+    "env/factory.py": {
+      "sha256": "4a32e70c582843bb80527da0a50667a1be17597d10fd8434adec9881a3bc2685",
+      "lines": 276
+    },
+    "evaluation/pass_outcomes.py": {
+      "sha256": "4c9b54f3f3eb4569a45ffa260e127bef14b3ad9f2d9c754dc87f25f539c27c4c",
+      "lines": 62
+    }
+  },
+  "versions": {
+    "nhl94-ai": "0.1.0",
+    "stable-retro": "1.0.1",
+    "numpy": "2.5.1"
+  },
+  "summary": {
+    "classic-v2": {
+      "games": 40,
+      "wins": 20,
+      "draws": 14,
+      "losses": 6,
+      "goals_for": 35,
+      "goals_against": 16,
+      "mean_decision_us": {
+        "classic-v4": 46.9,
+        "classic-v2": 372.14
+      },
+      "one_timer_setups": {
+        "classic-v4": 77,
+        "classic-v2": 0
+      },
+      "one_timers": {
+        "classic-v4": 31,
+        "classic-v2": 242
+      },
+      "one_timer_goals": {
+        "classic-v4": 14,
+        "classic-v2": 12
+      }
+    },
+    "classic-v3": {
+      "games": 40,
+      "wins": 22,
+      "draws": 12,
+      "losses": 6,
+      "goals_for": 38,
+      "goals_against": 14,
+      "mean_decision_us": {
+        "classic-v4": 44.49,
+        "classic-v3": 423.86
+      },
+      "one_timer_setups": {
+        "classic-v4": 90,
+        "classic-v3": 0
+      },
+      "one_timers": {
+        "classic-v4": 35,
+        "classic-v3": 220
+      },
+      "one_timer_goals": {
+        "classic-v4": 16,
+        "classic-v3": 9
+      }
+    }
+  },
+  "matches": [
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12000,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 1,
+            "period_ended": 1
+          },
+          "wrong_recipient": 1
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 4253,
+            "passer": 2,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 15,
+            "final_owner": -254
+          },
+          {
+            "frame": 9545,
+            "passer": 3,
+            "intended": 0,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 1,
+            "outcome": "period_ended",
+            "elapsed_frames": 16,
+            "final_owner": -253
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9561,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        201391355,
+        1259967317
+      ],
+      "decisions": [
+        2390,
+        2390
+      ],
+      "actions_sha256": "f069058154cb8c92f6711ebae69a4e57f08026bd64beada5a6d83653b4305b5f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12000,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        6,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 3269,
+            "passer": 7,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 8,
+            "final_owner": -249
+          }
+        ]
+      ],
+      "one_timers": [
+        7,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9622,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1125446105,
+        140968121
+      ],
+      "decisions": [
+        2406,
+        2406
+      ],
+      "actions_sha256": "07d2cd7ce2b509f341e6c031ae164c16bb4ec4635be3409a6e03ada4128e31df",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12000,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        7,
+        0
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 1
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 1213,
+            "passer": 4,
+            "intended": 1,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 11,
+            "final_owner": 7
+          },
+          {
+            "frame": 8317,
+            "passer": 4,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 6,
+            "final_owner": -252
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        2
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10238,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        118755612,
+        1145912589
+      ],
+      "decisions": [
+        2560,
+        2560
+      ],
+      "actions_sha256": "86ac68f7c1136ff1e7448b30f9bc833a56d87e1f07e90fedd8e9e4ae5ff1f70a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12000,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        6
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "received_without_shot": 1,
+            "intercepted": 4,
+            "superseded": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 3413,
+            "passer": 9,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 12,
+            "final_owner": 7
+          },
+          {
+            "frame": 4013,
+            "passer": 8,
+            "intended": 10,
+            "actual": 10,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 19,
+            "final_owner": 0
+          },
+          {
+            "frame": 4173,
+            "passer": 10,
+            "intended": 8,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 20,
+            "final_owner": 4
+          },
+          {
+            "frame": 4297,
+            "passer": 8,
+            "intended": 6,
+            "actual": null,
+            "launched": false,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "superseded",
+            "elapsed_frames": 104,
+            "final_owner": 8
+          },
+          {
+            "frame": 4401,
+            "passer": 8,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 30,
+            "final_owner": 5
+          },
+          {
+            "frame": 6397,
+            "passer": 6,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 5,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 19,
+            "final_owner": 5
+          }
+        ]
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8943,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1242275727,
+        112641160
+      ],
+      "decisions": [
+        2236,
+        2236
+      ],
+      "actions_sha256": "4ab9eb3edd65820eeef866f6d65520303dfae1a7b894e90e81bdc0085aaf147f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12001,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        3,
+        3
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 1
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 949,
+            "passer": 3,
+            "intended": 1,
+            "actual": -255,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 2,
+            "final_owner": 8
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10122,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        154807567,
+        1157973857
+      ],
+      "decisions": [
+        2531,
+        2531
+      ],
+      "actions_sha256": "9d7fafb20d12b9ffc345a44b1d1a0166e60bb7c6a4aa50b3ca00af1797f26e8b",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12001,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        5
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "lost_before_release": 1,
+            "one_timer_shot": 3,
+            "received_without_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 1505,
+            "passer": 6,
+            "intended": 7,
+            "actual": null,
+            "launched": false,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "lost_before_release",
+            "elapsed_frames": 78,
+            "final_owner": 5
+          },
+          {
+            "frame": 2789,
+            "passer": 7,
+            "intended": 9,
+            "actual": 9,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 87,
+            "final_owner": -249
+          },
+          {
+            "frame": 4417,
+            "passer": 7,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 28,
+            "final_owner": -249
+          },
+          {
+            "frame": 5621,
+            "passer": 8,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 2,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 14,
+            "final_owner": 7
+          },
+          {
+            "frame": 6081,
+            "passer": 7,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 2,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 26,
+            "final_owner": -249
+          }
+        ]
+      ],
+      "one_timers": [
+        6,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8541,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1283295980,
+        140190430
+      ],
+      "decisions": [
+        2135,
+        2135
+      ],
+      "actions_sha256": "a1ac66d045ecec2bf144e7742dc3f3ec650e41da5820b4635d5b49a1310267ae",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12001,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        5
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "returned_to_passer": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 5381,
+            "passer": 3,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "returned_to_passer",
+            "elapsed_frames": 27,
+            "final_owner": 3
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        10
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9285,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        146816672,
+        1055748558
+      ],
+      "decisions": [
+        2321,
+        2321
+      ],
+      "actions_sha256": "5c400c814922364480b6eb609e3911136de3e9c25d157dde1f0c0127c207ef78",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12001,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        8,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        3
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "received_without_shot": 1,
+            "not_released": 1,
+            "intercepted": 1
+          },
+          "wrong_recipient": 1
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 2653,
+            "passer": 8,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 37,
+            "final_owner": 7
+          },
+          {
+            "frame": 7765,
+            "passer": 8,
+            "intended": 6,
+            "actual": null,
+            "launched": false,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "not_released",
+            "elapsed_frames": 120,
+            "final_owner": -248
+          },
+          {
+            "frame": 8017,
+            "passer": 9,
+            "intended": 6,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 18,
+            "final_owner": 3
+          }
+        ]
+      ],
+      "one_timers": [
+        8,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9868,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1068494282,
+        101851255
+      ],
+      "decisions": [
+        2467,
+        2467
+      ],
+      "actions_sha256": "f431f343d6fb35a52ef9976f1738b400fc2bdbb7544e3ec4076028fa335ab420",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12002,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        1
+      ],
+      "one_timer_setups": [
+        3,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1,
+            "one_timer_shot": 2
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 2177,
+            "passer": 0,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 16,
+            "final_owner": 10
+          },
+          {
+            "frame": 3581,
+            "passer": 0,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 14,
+            "final_owner": -256
+          },
+          {
+            "frame": 8385,
+            "passer": 3,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 6,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 28,
+            "final_owner": -253
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        2,
+        6
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9301,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        182026620,
+        1141522096
+      ],
+      "decisions": [
+        2325,
+        2325
+      ],
+      "actions_sha256": "9dd1b5e54a7ed23c5bd3ed86373131320f146dce388ee9bd6286eb7210c8808d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12002,
+      "goals": [
+        0,
+        3
+      ],
+      "shots": [
+        4,
+        7
+      ],
+      "one_timer_setups": [
+        0,
+        5
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 3,
+            "intercepted": 2
+          },
+          "wrong_recipient": 1
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 3969,
+            "passer": 8,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 25,
+            "final_owner": -248
+          },
+          {
+            "frame": 4605,
+            "passer": 8,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 11,
+            "final_owner": 3
+          },
+          {
+            "frame": 9397,
+            "passer": 10,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 7,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 31,
+            "final_owner": -246
+          },
+          {
+            "frame": 10101,
+            "passer": 8,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 8,
+            "one_timers_before": 2,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 21,
+            "final_owner": -248
+          },
+          {
+            "frame": 11737,
+            "passer": 9,
+            "intended": 7,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 9,
+            "one_timers_before": 3,
+            "outcome": "intercepted",
+            "elapsed_frames": 3,
+            "final_owner": 1
+          }
+        ]
+      ],
+      "one_timers": [
+        6,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11942,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1365474642,
+        142962600
+      ],
+      "decisions": [
+        2986,
+        2986
+      ],
+      "actions_sha256": "77a2dd5e81efdf2347972dc5300b94d1e0a2484ab4cc2c1f7a5cce942220995a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12002,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        []
+      ],
+      "one_timers": [
+        0,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9868,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        181782767,
+        1579320916
+      ],
+      "decisions": [
+        2467,
+        2467
+      ],
+      "actions_sha256": "6a9b665e8660f3caac2916553ef831756f7d8a474f4d7b149f04a46289bceb50",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12002,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 1
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 5049,
+            "passer": 6,
+            "intended": 7,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 16,
+            "final_owner": 5
+          }
+        ]
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8988,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1311764034,
+        131610023
+      ],
+      "decisions": [
+        2247,
+        2247
+      ],
+      "actions_sha256": "bf7ace1f792f9fa2f4718c3705f5366da7471a0a70912d782fe3c5bf4ed43271",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12003,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        0,
+        2
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1,
+            "flight_timeout": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 8085,
+            "passer": 2,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 62,
+            "final_owner": 7
+          },
+          {
+            "frame": 8713,
+            "passer": 3,
+            "intended": 1,
+            "actual": null,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "flight_timeout",
+            "elapsed_frames": 120,
+            "final_owner": -253
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9925,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        128121854,
+        805053574
+      ],
+      "decisions": [
+        2481,
+        2481
+      ],
+      "actions_sha256": "d0a60bd731083107091ddfba04c0d7d403af503b5de6f68e8e175dc6d70467de",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12003,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        1,
+        6
+      ],
+      "one_timer_setups": [
+        0,
+        3
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 3
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 609,
+            "passer": 10,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 14,
+            "final_owner": -246
+          },
+          {
+            "frame": 5101,
+            "passer": 9,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 44,
+            "final_owner": -247
+          },
+          {
+            "frame": 9501,
+            "passer": 10,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 6,
+            "one_timers_before": 2,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 28,
+            "final_owner": -246
+          }
+        ]
+      ],
+      "one_timers": [
+        3,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 10556,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        814495264,
+        85706491
+      ],
+      "decisions": [
+        2639,
+        2639
+      ],
+      "actions_sha256": "783d8841211ff40118245cd7079f63b4760c35c622abb87c9e0a70bfe1dc832d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12003,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 1
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 5865,
+            "passer": 4,
+            "intended": 1,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 9,
+            "final_owner": 8
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        8
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10909,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        200088384,
+        1636512442
+      ],
+      "decisions": [
+        2727,
+        2727
+      ],
+      "actions_sha256": "282d1f759d76a274d2384c736bfadf1881287a142bc5d61254bc044b12ef814e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12003,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        3
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 2,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 1089,
+            "passer": 7,
+            "intended": 6,
+            "actual": null,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 41,
+            "final_owner": 5
+          },
+          {
+            "frame": 7533,
+            "passer": 9,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 8,
+            "final_owner": -247
+          },
+          {
+            "frame": 9001,
+            "passer": 6,
+            "intended": 8,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 13,
+            "final_owner": 4
+          }
+        ]
+      ],
+      "one_timers": [
+        5,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9451,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1212184019,
+        96342226
+      ],
+      "decisions": [
+        2363,
+        2363
+      ],
+      "actions_sha256": "67b91dfa420c80ea666fd9c35c982579b23049f3fc491e75d3c64db40ba240be",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12004,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "received_without_shot": 1
+          },
+          "wrong_recipient": 1
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 2109,
+            "passer": 0,
+            "intended": 2,
+            "actual": 4,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 15,
+            "final_owner": 2
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        4
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10929,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        212492995,
+        1476237153
+      ],
+      "decisions": [
+        2732,
+        2732
+      ],
+      "actions_sha256": "03bbc46ffb94279ee1f26a8176b32f6e320d9e1fcab2be45c046f3cc49472188",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12004,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        []
+      ],
+      "one_timers": [
+        5,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8886,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        718948165,
+        75746886
+      ],
+      "decisions": [
+        2222,
+        2222
+      ],
+      "actions_sha256": "eaff043e9bf9e959da0ecf7eba880eb2667f5887a383669003035233cbcb9183",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12004,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "returned_to_passer": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 6237,
+            "passer": 1,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "returned_to_passer",
+            "elapsed_frames": 30,
+            "final_owner": 1
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9512,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        124105983,
+        1048059382
+      ],
+      "decisions": [
+        2378,
+        2378
+      ],
+      "actions_sha256": "b98e80c565a0fafcd463ea27a141a620969cccf2d5f0ad2e9602e5a62d81a351",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12004,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        3
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "returned_to_passer": 1,
+            "intercepted": 2
+          },
+          "wrong_recipient": 1
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 581,
+            "passer": 9,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "returned_to_passer",
+            "elapsed_frames": 19,
+            "final_owner": 9
+          },
+          {
+            "frame": 1013,
+            "passer": 9,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 16,
+            "final_owner": 5
+          },
+          {
+            "frame": 2641,
+            "passer": 9,
+            "intended": 7,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 62,
+            "final_owner": 1
+          }
+        ]
+      ],
+      "one_timers": [
+        6,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9955,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1184913859,
+        96854542
+      ],
+      "decisions": [
+        2489,
+        2489
+      ],
+      "actions_sha256": "c554ff5398147399eeaf409890fc799510f34e2d06e45f5ff65e2c6034f88e4c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12005,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "not_released": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 5597,
+            "passer": 2,
+            "intended": 1,
+            "actual": null,
+            "launched": false,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "not_released",
+            "elapsed_frames": 120,
+            "final_owner": 2
+          },
+          {
+            "frame": 8321,
+            "passer": 1,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 44,
+            "final_owner": -255
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9739,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        122721200,
+        721238664
+      ],
+      "decisions": [
+        2435,
+        2435
+      ],
+      "actions_sha256": "5da5b322642f3400d8a82faaf025a788d3113699592eed9f01e322cb75fd8fbf",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12005,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 413,
+            "passer": 8,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 7,
+            "final_owner": -248
+          }
+        ]
+      ],
+      "one_timers": [
+        2,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8034,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        706586837,
+        67664048
+      ],
+      "decisions": [
+        2009,
+        2009
+      ],
+      "actions_sha256": "5dcd615e330e3738606b7130ce1393f9fb43c6b96681313ff564d68d9b6da6e6",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12005,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "one_timer_setups": [
+        3,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1,
+            "one_timer_shot": 2
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 5349,
+            "passer": 0,
+            "intended": 1,
+            "actual": null,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 82,
+            "final_owner": 7
+          },
+          {
+            "frame": 6017,
+            "passer": 3,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 9,
+            "final_owner": -253
+          },
+          {
+            "frame": 7817,
+            "passer": 4,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 30,
+            "final_owner": -252
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        2,
+        3
+      ],
+      "one_timer_goals": [
+        2,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9111,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        141374304,
+        1238143128
+      ],
+      "decisions": [
+        2278,
+        2278
+      ],
+      "actions_sha256": "3364e151838e1142c298a473f9d7054e6b085bb091e8087cf548cb4aade380ad",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12005,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        8,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        3
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 2,
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 3169,
+            "passer": 9,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 40,
+            "final_owner": -247
+          },
+          {
+            "frame": 3889,
+            "passer": 8,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 9,
+            "final_owner": 3
+          },
+          {
+            "frame": 4945,
+            "passer": 6,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 5,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 67,
+            "final_owner": -250
+          }
+        ]
+      ],
+      "one_timers": [
+        8,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10528,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1229549378,
+        103043583
+      ],
+      "decisions": [
+        2632,
+        2632
+      ],
+      "actions_sha256": "d64c9bdb083454fc4b2a086c974b893a54711d5356da7d759b8d447b9f7b4729",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12006,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        0,
+        11
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "returned_to_passer": 1,
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 5369,
+            "passer": 2,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 6,
+            "one_timers_before": 0,
+            "outcome": "returned_to_passer",
+            "elapsed_frames": 54,
+            "final_owner": 2
+          },
+          {
+            "frame": 6633,
+            "passer": 0,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 8,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 3,
+            "final_owner": 10
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        14
+      ],
+      "one_timer_goals": [
+        0,
+        2
+      ],
+      "clock_remaining": 0,
+      "frames": 10119,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        208328802,
+        1218873131
+      ],
+      "decisions": [
+        2530,
+        2530
+      ],
+      "actions_sha256": "bb1e34b0da823942d5762290bc90484709dd878ffd9adba5f99a7180e7c41c7e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12006,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        5,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "received_without_shot": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 3293,
+            "passer": 6,
+            "intended": 9,
+            "actual": 9,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 66,
+            "final_owner": 7
+          },
+          {
+            "frame": 5245,
+            "passer": 8,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 23,
+            "final_owner": -248
+          }
+        ]
+      ],
+      "one_timers": [
+        5,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8552,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1071584928,
+        120795840
+      ],
+      "decisions": [
+        2138,
+        2138
+      ],
+      "actions_sha256": "d1d30b5b14eed65b625689afff3a24fd0ccc8aaa2f43e959199e10755667e86d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12006,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        6
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 7589,
+            "passer": 0,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 5,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 21,
+            "final_owner": -256
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        10
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8501,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        109671473,
+        918473902
+      ],
+      "decisions": [
+        2125,
+        2125
+      ],
+      "actions_sha256": "0151dfb295f5d5f46178970dd4d0c75d594082b03252f4177fb92f3d12a1bf89",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12006,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        []
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 7855,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        645377499,
+        65006700
+      ],
+      "decisions": [
+        1964,
+        1964
+      ],
+      "actions_sha256": "65ed688423a9bca36d2172a3e5f5387abba3ef7acbf942820ac2c5ca6710aed2",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12007,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        4,
+        1
+      ],
+      "one_timer_setups": [
+        3,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "received_without_shot": 1,
+            "intercepted": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 1
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 5941,
+            "passer": 4,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 12,
+            "final_owner": 2
+          },
+          {
+            "frame": 6045,
+            "passer": 0,
+            "intended": 1,
+            "actual": null,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 95,
+            "final_owner": 11
+          },
+          {
+            "frame": 7737,
+            "passer": 3,
+            "intended": 2,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 22,
+            "final_owner": -253
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8729,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        153920053,
+        1163296923
+      ],
+      "decisions": [
+        2182,
+        2182
+      ],
+      "actions_sha256": "2aa7e189b8d077e19cdd51cc28bfd2cd02061dfb1ffc8296ac092a962108320e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12007,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 6893,
+            "passer": 9,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 61,
+            "final_owner": 1
+          }
+        ]
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8022,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        649127138,
+        63607948
+      ],
+      "decisions": [
+        2006,
+        2006
+      ],
+      "actions_sha256": "92720f4b36961f05a6e11be269d97bd2559f8deaddaea7651c8e9af405f796ab",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12007,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "one_timer_setups": [
+        6,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 4,
+            "intercepted": 2
+          },
+          "wrong_recipient": 1
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 3541,
+            "passer": 0,
+            "intended": 2,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 24,
+            "final_owner": -256
+          },
+          {
+            "frame": 3709,
+            "passer": 1,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 38,
+            "final_owner": 8
+          },
+          {
+            "frame": 5033,
+            "passer": 3,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 5,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 25,
+            "final_owner": -253
+          },
+          {
+            "frame": 5741,
+            "passer": 2,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 6,
+            "one_timers_before": 2,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 18,
+            "final_owner": -254
+          },
+          {
+            "frame": 7301,
+            "passer": 2,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 7,
+            "one_timers_before": 3,
+            "outcome": "intercepted",
+            "elapsed_frames": 5,
+            "final_owner": 9
+          },
+          {
+            "frame": 7529,
+            "passer": 3,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 8,
+            "one_timers_before": 3,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 45,
+            "final_owner": -253
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        4,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8772,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        172519338,
+        1153413854
+      ],
+      "decisions": [
+        2193,
+        2193
+      ],
+      "actions_sha256": "9818a2bc6ed871885a828476563eb0a6809567c442d72c23d7c0d9553ac4e8e6",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12007,
+      "goals": [
+        1,
+        3
+      ],
+      "shots": [
+        7,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 941,
+            "passer": 7,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 17,
+            "final_owner": 4
+          },
+          {
+            "frame": 7165,
+            "passer": 6,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 13,
+            "final_owner": -250
+          }
+        ]
+      ],
+      "one_timers": [
+        9,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 10868,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1325723108,
+        126501017
+      ],
+      "decisions": [
+        2717,
+        2717
+      ],
+      "actions_sha256": "0fcd833e0f5e2b03d4853bfa696137e0ed575d5737d7e2c3ba425eb971cc8aa0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12008,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        4
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 3797,
+            "passer": 2,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 11,
+            "final_owner": 9
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9159,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        198090668,
+        1191605796
+      ],
+      "decisions": [
+        2290,
+        2290
+      ],
+      "actions_sha256": "adaf29e56bc354440e9b3b0782d071611b8bfd72f0d843d2aa10387af44ceacd",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12008,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        2,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 2
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 4817,
+            "passer": 10,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 38,
+            "final_owner": -246
+          },
+          {
+            "frame": 8589,
+            "passer": 10,
+            "intended": 8,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 11,
+            "final_owner": -246
+          }
+        ]
+      ],
+      "one_timers": [
+        7,
+        2
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 10035,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1317385181,
+        151760294
+      ],
+      "decisions": [
+        2509,
+        2509
+      ],
+      "actions_sha256": "a065603294133be009cc84cfa6472da07cca7c70cccdc015934ad5e3e1c8eef7",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12008,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        3,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 1,
+            "intercepted": 2
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 2617,
+            "passer": 4,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 42,
+            "final_owner": -252
+          },
+          {
+            "frame": 8185,
+            "passer": 1,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 7,
+            "final_owner": 10
+          },
+          {
+            "frame": 9505,
+            "passer": 3,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 5,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 11,
+            "final_owner": 9
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        4
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9545,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        209930669,
+        1668308899
+      ],
+      "decisions": [
+        2386,
+        2386
+      ],
+      "actions_sha256": "2a9a35e19b0b865e58b9ba16ef48b617eb252ba3d304aa046fb933c0e5279be0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12008,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        9,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 1,
+            "received_without_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 5425,
+            "passer": 8,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 22,
+            "final_owner": -248
+          },
+          {
+            "frame": 5521,
+            "passer": 8,
+            "intended": 7,
+            "actual": null,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 51,
+            "final_owner": 6
+          }
+        ]
+      ],
+      "one_timers": [
+        13,
+        1
+      ],
+      "one_timer_goals": [
+        2,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8619,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1344942273,
+        114505068
+      ],
+      "decisions": [
+        2155,
+        2155
+      ],
+      "actions_sha256": "6b6a93061ee3c918525a91c2bf72e0e4ecb22a77a7d82b3f5fa2e7c8f740b5fc",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12009,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "one_timer_setups": [
+        4,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 3,
+            "received_without_shot": 1
+          },
+          "wrong_recipient": 2
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 4241,
+            "passer": 4,
+            "intended": 2,
+            "actual": null,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 102,
+            "final_owner": 11
+          },
+          {
+            "frame": 5093,
+            "passer": 3,
+            "intended": 1,
+            "actual": -256,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 3,
+            "final_owner": 0
+          },
+          {
+            "frame": 6921,
+            "passer": 3,
+            "intended": 1,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 50,
+            "final_owner": 6
+          },
+          {
+            "frame": 8749,
+            "passer": 0,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 9,
+            "final_owner": 6
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        4
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10200,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        141943103,
+        979640517
+      ],
+      "decisions": [
+        2550,
+        2550
+      ],
+      "actions_sha256": "14db2ab7ae2d4310e0f9eb376a932434426b7775b0ff2b9e197d5be342050bbb",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12009,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        6,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 2
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 2617,
+            "passer": 10,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 23,
+            "final_owner": 2
+          },
+          {
+            "frame": 6497,
+            "passer": 8,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 7,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 10,
+            "final_owner": 3
+          }
+        ]
+      ],
+      "one_timers": [
+        5,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8001,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        711832217,
+        87772138
+      ],
+      "decisions": [
+        2000,
+        2000
+      ],
+      "actions_sha256": "e18b0ced3d4fd32a21df99ac4f1c6534b224c5decfe8e844bcb1023126513716",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12009,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 3805,
+            "passer": 3,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 9,
+            "final_owner": -253
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        6
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9124,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        179302272,
+        1560239026
+      ],
+      "decisions": [
+        2281,
+        2281
+      ],
+      "actions_sha256": "fb07720f77e7e2d765768edc1b100101aa2d2f18fb817c884de86ab7ce6221c9",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12009,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        6,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 1,
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 5605,
+            "passer": 8,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 34,
+            "final_owner": -248
+          },
+          {
+            "frame": 6389,
+            "passer": 8,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 9,
+            "final_owner": 4
+          }
+        ]
+      ],
+      "one_timers": [
+        5,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8350,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        784399336,
+        76061465
+      ],
+      "decisions": [
+        2088,
+        2088
+      ],
+      "actions_sha256": "c6b21c9a5b220bc0c6394bca01242f26eec4b6e9d7085b5149cdbeb438be423d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12010,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        4
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 8993,
+            "passer": 4,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 15,
+            "final_owner": 11
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        4
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10345,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        168498135,
+        1228977514
+      ],
+      "decisions": [
+        2586,
+        2586
+      ],
+      "actions_sha256": "410d15def22f61ede8aaa2745ce1d77a9c1d1f6d1261f956faacfa2d9c15b837",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12010,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        5,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "not_released": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 8413,
+            "passer": 6,
+            "intended": 8,
+            "actual": null,
+            "launched": false,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "not_released",
+            "elapsed_frames": 120,
+            "final_owner": 6
+          }
+        ]
+      ],
+      "one_timers": [
+        8,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9124,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        917636693,
+        116723230
+      ],
+      "decisions": [
+        2281,
+        2281
+      ],
+      "actions_sha256": "14b9de9cf25360e34459cd4c74b6e2acfddc1892f47b78b194477f7b847d08be",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12010,
+      "goals": [
+        3,
+        0
+      ],
+      "shots": [
+        6,
+        2
+      ],
+      "one_timer_setups": [
+        3,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "flight_timeout": 1,
+            "intercepted": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 4281,
+            "passer": 2,
+            "intended": 0,
+            "actual": null,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "flight_timeout",
+            "elapsed_frames": 120,
+            "final_owner": -254
+          },
+          {
+            "frame": 4725,
+            "passer": 0,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 19,
+            "final_owner": 10
+          },
+          {
+            "frame": 6509,
+            "passer": 2,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 9,
+            "final_owner": -254
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        3,
+        4
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11699,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        176133173,
+        1623638849
+      ],
+      "decisions": [
+        2925,
+        2925
+      ],
+      "actions_sha256": "5467d55ee3a8f2a9f56fcf2743b6c8299b3be0d54ab961d04169fe90a8331494",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12010,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        0,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 1,
+            "received_without_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 2329,
+            "passer": 7,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 4,
+            "final_owner": 4
+          },
+          {
+            "frame": 5493,
+            "passer": 6,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 12,
+            "final_owner": 8
+          }
+        ]
+      ],
+      "one_timers": [
+        2,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8337,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        643763649,
+        62580706
+      ],
+      "decisions": [
+        2084,
+        2084
+      ],
+      "actions_sha256": "83b8b805c4e178ff0632b9c31e805ec7d02fad58aa92df053a205948e231826f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12011,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        3,
+        5
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 1,
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 2237,
+            "passer": 0,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 14,
+            "final_owner": -256
+          },
+          {
+            "frame": 9993,
+            "passer": 2,
+            "intended": 0,
+            "actual": null,
+            "launched": true,
+            "passes_before": 7,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 22,
+            "final_owner": 7
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        9
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10557,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        166803250,
+        1085387242
+      ],
+      "decisions": [
+        2639,
+        2639
+      ],
+      "actions_sha256": "1c8f75708372098a3d6e42cbcdb25c25ffb0b4c8da9ac5cc1ec204857196a77d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12011,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        3,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "received_without_shot": 1,
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 6041,
+            "passer": 8,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 88,
+            "final_owner": 6
+          },
+          {
+            "frame": 6777,
+            "passer": 9,
+            "intended": 8,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 21,
+            "final_owner": 3
+          }
+        ]
+      ],
+      "one_timers": [
+        8,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8532,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        966066456,
+        76682497
+      ],
+      "decisions": [
+        2133,
+        2133
+      ],
+      "actions_sha256": "b0ca6b3c1e4f0ab6653104a67c090a5636c709d67984cd6ec66f3adac061591d",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12011,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 2
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 1201,
+            "passer": 0,
+            "intended": 4,
+            "actual": 4,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 19,
+            "final_owner": -256
+          },
+          {
+            "frame": 3821,
+            "passer": 0,
+            "intended": 3,
+            "actual": 3,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 20,
+            "final_owner": -256
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        2,
+        5
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9581,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        147913700,
+        1198493829
+      ],
+      "decisions": [
+        2395,
+        2395
+      ],
+      "actions_sha256": "36df81e2257dfff1b8d42b95471028805f5debf979799cc9aa09bda712303c68",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12011,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        []
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9764,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        722094103,
+        67396389
+      ],
+      "decisions": [
+        2441,
+        2441
+      ],
+      "actions_sha256": "e460f575c44d66f8cf7cf1bfe67a763ac75ad90e9118e0c6aab45efea59b4541",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12012,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "lost_before_release": 1,
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 5669,
+            "passer": 2,
+            "intended": 1,
+            "actual": null,
+            "launched": false,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "lost_before_release",
+            "elapsed_frames": 87,
+            "final_owner": 11
+          },
+          {
+            "frame": 8301,
+            "passer": 4,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 18,
+            "final_owner": 6
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8350,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        66255475,
+        590927999
+      ],
+      "decisions": [
+        2088,
+        2088
+      ],
+      "actions_sha256": "5ebca0ccb569bcebdc0d3934f8e667c4814b66146d5284124e64222f70248039",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12012,
+      "goals": [
+        1,
+        4
+      ],
+      "shots": [
+        4,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 3521,
+            "passer": 10,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 9,
+            "final_owner": -246
+          }
+        ]
+      ],
+      "one_timers": [
+        7,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11438,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        1123814400,
+        116262562
+      ],
+      "decisions": [
+        2860,
+        2860
+      ],
+      "actions_sha256": "51d56b038e4f9ab9aac1d0c70f0a7085f20174224105cbe45d4c542393ef9dd6",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12012,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        3
+      ],
+      "one_timer_setups": [
+        3,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 3
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 881,
+            "passer": 0,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 34,
+            "final_owner": 7
+          },
+          {
+            "frame": 5089,
+            "passer": 1,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 10,
+            "final_owner": 9
+          },
+          {
+            "frame": 9613,
+            "passer": 1,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 17,
+            "final_owner": 10
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10746,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        96075970,
+        970736610
+      ],
+      "decisions": [
+        2687,
+        2687
+      ],
+      "actions_sha256": "1b9c90e90bf610da9b51fb011e2b8f301315f2309c09db27f8a148983584b82e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12012,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        5,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        5
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 2,
+            "one_timer_shot": 2,
+            "returned_to_passer": 1
+          },
+          "wrong_recipient": 2
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 1089,
+            "passer": 9,
+            "intended": 7,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 11,
+            "final_owner": 1
+          },
+          {
+            "frame": 2357,
+            "passer": 8,
+            "intended": 7,
+            "actual": null,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 74,
+            "final_owner": 5
+          },
+          {
+            "frame": 2613,
+            "passer": 10,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 21,
+            "final_owner": -246
+          },
+          {
+            "frame": 3489,
+            "passer": 7,
+            "intended": 8,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 16,
+            "final_owner": -249
+          },
+          {
+            "frame": 9777,
+            "passer": 7,
+            "intended": 6,
+            "actual": 9,
+            "launched": true,
+            "passes_before": 6,
+            "one_timers_before": 2,
+            "outcome": "returned_to_passer",
+            "elapsed_frames": 41,
+            "final_owner": 7
+          }
+        ]
+      ],
+      "one_timers": [
+        4,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9935,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        831119740,
+        85760669
+      ],
+      "decisions": [
+        2484,
+        2484
+      ],
+      "actions_sha256": "f83b999be93b85cf1a2e0b8e3663664a5bb84391bc5eccf9bd3725d8cd172ad5",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12013,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 8461,
+            "passer": 1,
+            "intended": 2,
+            "actual": null,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 118,
+            "final_owner": 11
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        6
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9255,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        91171996,
+        656819462
+      ],
+      "decisions": [
+        2314,
+        2314
+      ],
+      "actions_sha256": "5ad6d439cd3a035f4b4c84006f40cd5f725145752e3d38ae464967e51f63f7d5",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12013,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 1265,
+            "passer": 7,
+            "intended": 10,
+            "actual": null,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 55,
+            "final_owner": 5
+          }
+        ]
+      ],
+      "one_timers": [
+        7,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9534,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        691149203,
+        68850539
+      ],
+      "decisions": [
+        2384,
+        2384
+      ],
+      "actions_sha256": "441b8b2dded3c660bf95b77fe95e584c5bfbfefe62fa483b7afa80d9958b301b",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12013,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        6
+      ],
+      "one_timer_setups": [
+        6,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 3,
+            "one_timer_shot": 2,
+            "received_without_shot": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 553,
+            "passer": 1,
+            "intended": 2,
+            "actual": null,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 77,
+            "final_owner": 10
+          },
+          {
+            "frame": 857,
+            "passer": 1,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 8,
+            "final_owner": -255
+          },
+          {
+            "frame": 2597,
+            "passer": 3,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 1,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 65,
+            "final_owner": 0
+          },
+          {
+            "frame": 3553,
+            "passer": 0,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 64,
+            "final_owner": 11
+          },
+          {
+            "frame": 5773,
+            "passer": 4,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 6,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 17,
+            "final_owner": 10
+          },
+          {
+            "frame": 7669,
+            "passer": 4,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 11,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 29,
+            "final_owner": -252
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        2,
+        5
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9447,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        84362761,
+        718937303
+      ],
+      "decisions": [
+        2362,
+        2362
+      ],
+      "actions_sha256": "917fa636b0f609bc6a38b454d517537adfc9547718ebe858c7ae77add9482e16",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12013,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        5,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        3
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "received_without_shot": 1,
+            "lost_before_release": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 6113,
+            "passer": 8,
+            "intended": 6,
+            "actual": null,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 100,
+            "final_owner": 6
+          },
+          {
+            "frame": 6325,
+            "passer": 7,
+            "intended": 6,
+            "actual": null,
+            "launched": false,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "lost_before_release",
+            "elapsed_frames": 107,
+            "final_owner": 4
+          },
+          {
+            "frame": 6941,
+            "passer": 6,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 17,
+            "final_owner": -250
+          }
+        ]
+      ],
+      "one_timers": [
+        5,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8579,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        753693557,
+        65013422
+      ],
+      "decisions": [
+        2145,
+        2145
+      ],
+      "actions_sha256": "a77af214539d6c9dbbcfcf0656447869af54ed38a7fcba89c96fdebcc9d8a47c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12014,
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        4,
+        3
+      ],
+      "one_timer_setups": [
+        4,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 3,
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 1405,
+            "passer": 0,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 14,
+            "final_owner": -256
+          },
+          {
+            "frame": 3877,
+            "passer": 0,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 46,
+            "final_owner": -256
+          },
+          {
+            "frame": 4089,
+            "passer": 0,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 2,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 32,
+            "final_owner": -256
+          },
+          {
+            "frame": 4829,
+            "passer": 4,
+            "intended": 2,
+            "actual": null,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 3,
+            "outcome": "intercepted",
+            "elapsed_frames": 49,
+            "final_owner": 6
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        3,
+        5
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 10686,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        80795820,
+        686269787
+      ],
+      "decisions": [
+        2672,
+        2672
+      ],
+      "actions_sha256": "56d7a43157ea7ef3c5991120bbacab92e48c8314857675926a1387319114982e",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12014,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        7,
+        3
+      ],
+      "one_timer_setups": [
+        0,
+        3
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 2,
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 2025,
+            "passer": 7,
+            "intended": 8,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 8,
+            "final_owner": -249
+          },
+          {
+            "frame": 3233,
+            "passer": 7,
+            "intended": 8,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 21,
+            "final_owner": -249
+          },
+          {
+            "frame": 9401,
+            "passer": 6,
+            "intended": 8,
+            "actual": null,
+            "launched": true,
+            "passes_before": 7,
+            "one_timers_before": 2,
+            "outcome": "intercepted",
+            "elapsed_frames": 22,
+            "final_owner": 5
+          }
+        ]
+      ],
+      "one_timers": [
+        9,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9519,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        673271811,
+        69558709
+      ],
+      "decisions": [
+        2380,
+        2380
+      ],
+      "actions_sha256": "c4c3b34c3216b91eb893ab49eb746816ae21cc95af12d258d4adc941d6213273",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12014,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        4
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 2
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 3489,
+            "passer": 0,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 31,
+            "final_owner": 6
+          },
+          {
+            "frame": 8157,
+            "passer": 4,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 13,
+            "final_owner": 9
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        8
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10333,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        98378469,
+        775281512
+      ],
+      "decisions": [
+        2583,
+        2583
+      ],
+      "actions_sha256": "48ac17a5d1d4848e1772d3e1f3ee1cbb1cc8cdc40cfec183a4b4e8b3e6feb4c7",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12014,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 3181,
+            "passer": 7,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 46,
+            "final_owner": 0
+          }
+        ]
+      ],
+      "one_timers": [
+        6,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8941,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        647322519,
+        63366306
+      ],
+      "decisions": [
+        2235,
+        2235
+      ],
+      "actions_sha256": "81d02b9ba7fd1459e7c240b8d52c2cce917f6a16e7ec24373837ce963d807162",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12015,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        1,
+        2
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "received_without_shot": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 3341,
+            "passer": 2,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 23,
+            "final_owner": 0
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9730,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        82912021,
+        652870089
+      ],
+      "decisions": [
+        2433,
+        2433
+      ],
+      "actions_sha256": "bd512e26ab844704bbf1abaec1e92d0005eaff387051b3ca1ea312015266e7eb",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12015,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        []
+      ],
+      "one_timers": [
+        6,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8298,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        542092290,
+        59282260
+      ],
+      "decisions": [
+        2075,
+        2075
+      ],
+      "actions_sha256": "916b60f9d510ad61c78d7e383ca3cb84c11e3041d22112ec5ff21172e65f0c26",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12015,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        8,
+        2
+      ],
+      "one_timer_setups": [
+        0,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        []
+      ],
+      "one_timers": [
+        0,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11861,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        102913981,
+        905496919
+      ],
+      "decisions": [
+        2965,
+        2965
+      ],
+      "actions_sha256": "d165428f12253ec3cb4c5f3ddef9f4a5a31d25c714a9178797854db5d7bdbc91",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12015,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 2621,
+            "passer": 9,
+            "intended": 8,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 83,
+            "final_owner": 3
+          },
+          {
+            "frame": 8801,
+            "passer": 6,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 37,
+            "final_owner": -250
+          }
+        ]
+      ],
+      "one_timers": [
+        5,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9004,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        855186161,
+        68162434
+      ],
+      "decisions": [
+        2251,
+        2251
+      ],
+      "actions_sha256": "587f218c6c50ddb5a8de97ea15f06fb1245dd24e69d541363a8fd2d92defe070",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12016,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        1,
+        3
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 11189,
+            "passer": 1,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 5,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 23,
+            "final_owner": 11
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        9
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11422,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        87398901,
+        727125452
+      ],
+      "decisions": [
+        2856,
+        2856
+      ],
+      "actions_sha256": "2804ced4f80c89385420120c8428c9be119036763bd45593c8ae2b83dab06845",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12016,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 5193,
+            "passer": 9,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 7,
+            "final_owner": -247
+          }
+        ]
+      ],
+      "one_timers": [
+        7,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 7969,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        510600947,
+        53355867
+      ],
+      "decisions": [
+        1992,
+        1992
+      ],
+      "actions_sha256": "0f4f1229a6e79dae89c695bab435b43a1a6793e197ba0347e365169afae722cb",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12016,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        4,
+        1
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 2
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 2565,
+            "passer": 2,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 27,
+            "final_owner": -254
+          },
+          {
+            "frame": 5405,
+            "passer": 4,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 12,
+            "final_owner": -252
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        2,
+        5
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9151,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        69787470,
+        671280258
+      ],
+      "decisions": [
+        2288,
+        2288
+      ],
+      "actions_sha256": "865545615892943c2bafc344a7e5c595a2cb93a9f13970cc27af1adacdb165cc",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12016,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        1,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 1,
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 437,
+            "passer": 8,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 13,
+            "final_owner": -248
+          },
+          {
+            "frame": 6801,
+            "passer": 8,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 9,
+            "final_owner": 3
+          }
+        ]
+      ],
+      "one_timers": [
+        5,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 10605,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        879853233,
+        72603486
+      ],
+      "decisions": [
+        2651,
+        2651
+      ],
+      "actions_sha256": "fece8fc85f62056880f1b7bb03fa597160178dbf63de3b0779d5591c0e0cf19f",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12017,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        2
+      ],
+      "one_timer_setups": [
+        3,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 1,
+            "intercepted": 2
+          },
+          "wrong_recipient": 1
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 3737,
+            "passer": 3,
+            "intended": 1,
+            "actual": 1,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 22,
+            "final_owner": -253
+          },
+          {
+            "frame": 6069,
+            "passer": 1,
+            "intended": 0,
+            "actual": 3,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 108,
+            "final_owner": 8
+          },
+          {
+            "frame": 10641,
+            "passer": 1,
+            "intended": 2,
+            "actual": null,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 93,
+            "final_owner": 11
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        6
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 10865,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        80203846,
+        658441478
+      ],
+      "decisions": [
+        2716,
+        2716
+      ],
+      "actions_sha256": "bf7dd832243b915aaa3e2cba0676b7daa834b001195d824554f6bea3d72a8be0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12017,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        9,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 4033,
+            "passer": 6,
+            "intended": 8,
+            "actual": null,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 98,
+            "final_owner": 2
+          }
+        ]
+      ],
+      "one_timers": [
+        9,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9052,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        581661486,
+        59686773
+      ],
+      "decisions": [
+        2263,
+        2263
+      ],
+      "actions_sha256": "787a782546b968e0f217d067fd3965a34c99f1915da831771d54cb28c57e92a8",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12017,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        5
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 2693,
+            "passer": 1,
+            "intended": 4,
+            "actual": 4,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 18,
+            "final_owner": -255
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        8
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11558,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        86749672,
+        846701307
+      ],
+      "decisions": [
+        2890,
+        2890
+      ],
+      "actions_sha256": "9d6823ec190ed2871ca912a1b6c723b11822ff415ece155397ce4d153878e790",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12017,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        3,
+        1
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "intercepted": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 1249,
+            "passer": 7,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 29,
+            "final_owner": 4
+          },
+          {
+            "frame": 6749,
+            "passer": 10,
+            "intended": 8,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 13,
+            "final_owner": -246
+          }
+        ]
+      ],
+      "one_timers": [
+        6,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 8980,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        657495864,
+        64407515
+      ],
+      "decisions": [
+        2245,
+        2245
+      ],
+      "actions_sha256": "0691ab3d1123be62f7c68ca23fc988207f15e3394bfd8edb3934f9cae0146fe4",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12018,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        4,
+        3
+      ],
+      "one_timer_setups": [
+        5,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 2,
+            "flight_timeout": 1,
+            "superseded": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 1
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 2333,
+            "passer": 0,
+            "intended": 1,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 60,
+            "final_owner": 9
+          },
+          {
+            "frame": 7505,
+            "passer": 2,
+            "intended": 0,
+            "actual": null,
+            "launched": true,
+            "passes_before": 5,
+            "one_timers_before": 0,
+            "outcome": "flight_timeout",
+            "elapsed_frames": 120,
+            "final_owner": -254
+          },
+          {
+            "frame": 7937,
+            "passer": 0,
+            "intended": 4,
+            "actual": null,
+            "launched": false,
+            "passes_before": 5,
+            "one_timers_before": 0,
+            "outcome": "superseded",
+            "elapsed_frames": 96,
+            "final_owner": 0
+          },
+          {
+            "frame": 8033,
+            "passer": 0,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 5,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 22,
+            "final_owner": -256
+          },
+          {
+            "frame": 8233,
+            "passer": 0,
+            "intended": 4,
+            "actual": null,
+            "launched": true,
+            "passes_before": 6,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 85,
+            "final_owner": 6
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        11
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8623,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        61561591,
+        537009252
+      ],
+      "decisions": [
+        2156,
+        2156
+      ],
+      "actions_sha256": "8ca2bfb16fce3e7ec1061b43faafe899a4d7a71b1b1e292b8375e58d9c78d9c2",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12018,
+      "goals": [
+        2,
+        2
+      ],
+      "shots": [
+        3,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 2
+          },
+          "wrong_recipient": 2
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 6961,
+            "passer": 6,
+            "intended": 8,
+            "actual": 10,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 14,
+            "final_owner": -250
+          },
+          {
+            "frame": 10333,
+            "passer": 7,
+            "intended": 6,
+            "actual": 10,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 1,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 26,
+            "final_owner": -249
+          }
+        ]
+      ],
+      "one_timers": [
+        4,
+        2
+      ],
+      "one_timer_goals": [
+        2,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 11178,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        717201101,
+        72369952
+      ],
+      "decisions": [
+        2795,
+        2795
+      ],
+      "actions_sha256": "24decb63778cc721038ee27e0bdac4f525a8700908dcb2f0c45bb1b68068ab43",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12018,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        1
+      ],
+      "one_timer_setups": [
+        3,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "flight_timeout": 1,
+            "intercepted": 2
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 3793,
+            "passer": 1,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "flight_timeout",
+            "elapsed_frames": 120,
+            "final_owner": -255
+          },
+          {
+            "frame": 8233,
+            "passer": 0,
+            "intended": 2,
+            "actual": null,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 81,
+            "final_owner": 11
+          },
+          {
+            "frame": 8349,
+            "passer": 1,
+            "intended": 2,
+            "actual": 2,
+            "launched": true,
+            "passes_before": 4,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 65,
+            "final_owner": 10
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9094,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        64457757,
+        607118060
+      ],
+      "decisions": [
+        2274,
+        2274
+      ],
+      "actions_sha256": "e668f503d7b3bc594fa2ab71fe3ea5609b5de781b86e608808432e2e00d7ef92",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12018,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        4,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        2
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 1,
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 4773,
+            "passer": 6,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 37,
+            "final_owner": -250
+          },
+          {
+            "frame": 7253,
+            "passer": 8,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 28,
+            "final_owner": 5
+          }
+        ]
+      ],
+      "one_timers": [
+        7,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "clock_remaining": 0,
+      "frames": 9031,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        659603378,
+        59687923
+      ],
+      "decisions": [
+        2258,
+        2258
+      ],
+      "actions_sha256": "b9ec745ed3188d4724b72cd7554e24fb4c75affe0b8b86fa66eab404c7dba9f9",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v2"
+      ],
+      "seed": 12019,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        4
+      ],
+      "one_timer_setups": [
+        1,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "intercepted": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 3493,
+            "passer": 3,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 0,
+            "outcome": "intercepted",
+            "elapsed_frames": 27,
+            "final_owner": 9
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        0,
+        7
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9682,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        69351412,
+        625856130
+      ],
+      "decisions": [
+        2421,
+        2421
+      ],
+      "actions_sha256": "c6f9ec2f841c2c7e28418559a2af5891b2b61176ad2e128a459917d5ebaf9ba2",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v2",
+        "classic-v4"
+      ],
+      "seed": 12019,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "one_timer_setups": [
+        0,
+        1
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "not_released": 1
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 669,
+            "passer": 7,
+            "intended": 6,
+            "actual": null,
+            "launched": false,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "not_released",
+            "elapsed_frames": 120,
+            "final_owner": 7
+          }
+        ]
+      ],
+      "one_timers": [
+        5,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 8318,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        531556914,
+        55845533
+      ],
+      "decisions": [
+        2080,
+        2080
+      ],
+      "actions_sha256": "b12bacc01707e52c0e77cb29cd87b8d082537d06a7dac6860a48911e9893d1d0",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v4",
+        "classic-v3"
+      ],
+      "seed": 12019,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timer_setups": [
+        2,
+        0
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {
+            "received_without_shot": 1,
+            "one_timer_shot": 1
+          },
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [
+          {
+            "frame": 5025,
+            "passer": 4,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 0,
+            "outcome": "received_without_shot",
+            "elapsed_frames": 5,
+            "final_owner": 0
+          },
+          {
+            "frame": 5933,
+            "passer": 1,
+            "intended": 0,
+            "actual": 0,
+            "launched": true,
+            "passes_before": 2,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 18,
+            "final_owner": -255
+          }
+        ],
+        []
+      ],
+      "one_timers": [
+        1,
+        4
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 9533,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        74734209,
+        760522411
+      ],
+      "decisions": [
+        2383,
+        2383
+      ],
+      "actions_sha256": "60db6673c865bf83e4160586eca1a94847ea943839740aa5fa9d901d35c24d1a",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    },
+    {
+      "agents": [
+        "classic-v3",
+        "classic-v4"
+      ],
+      "seed": 12019,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        4,
+        4
+      ],
+      "one_timer_setups": [
+        0,
+        3
+      ],
+      "pass_outcomes": [
+        {
+          "outcomes": {},
+          "wrong_recipient": 0
+        },
+        {
+          "outcomes": {
+            "one_timer_shot": 1,
+            "intercepted": 2
+          },
+          "wrong_recipient": 0
+        }
+      ],
+      "pass_events": [
+        [],
+        [
+          {
+            "frame": 1857,
+            "passer": 9,
+            "intended": 8,
+            "actual": 8,
+            "launched": true,
+            "passes_before": 0,
+            "one_timers_before": 0,
+            "outcome": "one_timer_shot",
+            "elapsed_frames": 16,
+            "final_owner": -247
+          },
+          {
+            "frame": 2477,
+            "passer": 10,
+            "intended": 7,
+            "actual": 7,
+            "launched": true,
+            "passes_before": 1,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 32,
+            "final_owner": 0
+          },
+          {
+            "frame": 9373,
+            "passer": 10,
+            "intended": 6,
+            "actual": 6,
+            "launched": true,
+            "passes_before": 3,
+            "one_timers_before": 1,
+            "outcome": "intercepted",
+            "elapsed_frames": 58,
+            "final_owner": 4
+          }
+        ]
+      ],
+      "one_timers": [
+        6,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "clock_remaining": 0,
+      "frames": 11888,
+      "completed": true,
+      "terminated": false,
+      "truncated": false,
+      "decision_ns": [
+        859393398,
+        78556473
+      ],
+      "decisions": [
+        2972,
+        2972
+      ],
+      "actions_sha256": "35b91e20fb95a31b94ee9847c7565543801d39eec27c89bc4cf7ad7a92e5853c",
+      "initial_state_sha256": "e2dbe4aff0d838916b074bf46721e6e0f79e3d740d35b5048976c060ff3791e0"
+    }
+  ]
+}
