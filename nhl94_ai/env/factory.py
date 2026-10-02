@@ -15,7 +15,7 @@ from nhl94_ai.config import EnvironmentConfig, resolve_clip_reward, resolve_stic
 
 from nhl94_ai.game.specs import GAMES
 from nhl94_ai.game.ram import (
-    register_defense_state, register_goalie_motion, register_pass_state,
+    register_defense_state, register_goalie_control, register_goalie_motion, register_pass_state,
     register_skater_ratings, register_target_state,
 )
 NHL94_DEFAULT_STATES = {name: spec.default_state for name, spec in GAMES.items()}
@@ -70,6 +70,7 @@ def make_retro(
     num_players,
     max_episode_steps=4500,
     action_type='FILTERED',
+    goalie_policy='off',
     inttype=retro.data.Integrations.ALL,
     **kwargs,
 ):
@@ -85,6 +86,12 @@ def make_retro(
         'MULTI_DISCRETE': retro.Actions.MULTI_DISCRETE
     }
     action_enum = action_map.get(action_type.upper(), retro.Actions.FILTERED)
+    if goalie_policy != 'off':
+        if goalie_policy not in ('selective', 'always') or game != 'NHL94-Genesis-v0' or action_type.upper() != 'FILTERED':
+            raise ValueError('Manual goalie buttons require full-team FILTERED controls')
+        # The integration's FILTERED button group omits A (dives and clears).
+        # ALL has the same 12 binary fields; the opt-in controller owns button edges.
+        action_enum = retro.Actions.ALL
     state = resolve_retro_state_name(game, state, num_players, inttype)
 
     env = retro.make(
@@ -101,6 +108,7 @@ def make_retro(
         register_skater_ratings(env, GAMES[game].skaters_per_team)
         register_pass_state(env)
         register_goalie_motion(env, GAMES[game].skaters_per_team)
+        register_goalie_control(env, GAMES[game].skaters_per_team)
         register_defense_state(env, GAMES[game].skaters_per_team)
     #env = NHL94Discretizer(env)
     #if max_episode_steps is not None:
@@ -134,6 +142,7 @@ def build_single_nhl94_env(
         action_type=backend_action_type,
         state=args.state,
         num_players=num_players,
+        goalie_policy=getattr(args, 'goalie_policy', 'off'),
     )
     if target_mode:
         register_target_state(env)
@@ -238,6 +247,8 @@ def get_button_names(args):
     }
     backend_action_type = resolve_backend_action_type(args, 2 if getattr(args, 'selfplay', False) else args.num_players)
     action_enum = action_map.get(backend_action_type.upper(), retro.Actions.FILTERED)
+    if getattr(args, 'goalie_policy', 'off') != 'off':
+        action_enum = retro.Actions.ALL
     state = resolve_default_state(args.env, args.state)
     if getattr(args, 'state', None) is None and state is not None:
         args.state = state

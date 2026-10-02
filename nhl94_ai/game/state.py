@@ -82,6 +82,12 @@ class Player:
     height: float | None = None
     motion_z: float | None = None
     friction: float = 511 / 512
+    live_anim: int | None = None
+    live_anim_frame: int | None = None
+    animation_timer: int | None = None
+    live_state_flags: int | None = None
+    assignment: int | None = None
+    cover_timer: int | None = None
 
     def debug_print(self, prefix="Player"):
         print(f"{prefix} - x: {self.x}, y: {self.y}, vx: {self.vx}, vy: {self.vy}, "
@@ -168,6 +174,12 @@ class EngineState:
     breakaway_context: float = 0.0
     controlled_is_shooter: float = 0.0
     goalie_box_small: float = 0.0
+    goalie_modes: tuple | None = None
+    goalie_hold_counts: tuple | None = None
+    controller_teams: tuple | None = None
+    input_block: int | None = None
+    clock_stopped: bool | None = None
+    camera: tuple | None = None
 
     def debug_print(self, prefix="EngineState"):
         print(
@@ -320,6 +332,11 @@ class Team():
         self.pass_attempts = info.get(f'p{self.controller}_pass_attempts')
         self.defense_control = None
         self.defense_goalie = None
+        for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing',
+                     'selection_flags', 'live_anim', 'live_anim_frame', 'animation_timer',
+                     'live_state_flags', 'cover_timer', 'assignment', 'energy'):
+            setattr(self.goalie, name, None)
+        self.goalie.unavailable = 0
         if 'defense_control1' not in info:
             return
         self.defense_goalie = self.skater_scnum_base() + self.num_players
@@ -343,6 +360,21 @@ class Team():
                 velocity = info.get(prefix + 'v' + axis)
                 if velocity is not None:
                     setattr(player, 'motion_' + axis, velocity * 17 / 65536)
+        goalie = self.goalie
+        prefix = f'g{self.controller}_control_'
+        for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing'):
+            setattr(goalie, name, info.get(prefix + name))
+        goalie.selection_flags = info.get(prefix + 'flags')
+        goalie.unavailable = info.get(prefix + 'unavailable', 0)
+        goalie.movement_bonus = bonus
+        goalie.energy = 4096 if flags & 0x10 else info.get(
+            f'defense_energy_{self.controller}_{info.get(prefix + "roster")}')
+        goalie.live_anim, goalie.live_anim_frame = info.get(prefix + 'anim'), info.get(prefix + 'anim_frame')
+        goalie.animation_timer = info.get(prefix + 'anim_timer')
+        goalie.live_state_flags = info.get(prefix + 'state_flags')
+        goalie.cover_timer = info.get(prefix + 'cover_timer')
+        index = info.get(prefix + 'assignment_index')
+        goalie.assignment = info.get(prefix + f'assignment_{index}') if index in range(8) else None
 
     def has_puck(self, pos_x, pos_y):
         return (abs(pos_x - self.stats.fullstar_x) < self.HAS_PUCK_TRESHOLD and abs(pos_y - self.stats.fullstar_y) < self.HAS_PUCK_TRESHOLD)
@@ -599,6 +631,16 @@ class NHL94GameState(TacticalFeatures):
         self.nz_puck = Player()
 
     def _update_engine_state(self, info: Dict[str, Any]) -> None:
+        self.engine.goalie_modes = tuple(info[f'goalie_mode_{i}'] for i in (1, 2)) if all(
+            f'goalie_mode_{i}' in info for i in (1, 2)) else None
+        self.engine.goalie_hold_counts = tuple(info[f'goalie_hold_b_{i}'] for i in (1, 2)) if all(
+            f'goalie_hold_b_{i}' in info for i in (1, 2)) else None
+        self.engine.controller_teams = tuple(info[f'defense_team{i}'] for i in (1, 2)) if all(
+            f'defense_team{i}' in info for i in (1, 2)) else None
+        self.engine.input_block = info.get('goalie_input_block')
+        self.engine.clock_stopped = bool(info['goalie_clock_flags'] & 1) if 'goalie_clock_flags' in info else None
+        self.engine.camera = (-64 - info['defense_scroll_x'], -info['defense_scroll_y']) if all(
+            f'defense_scroll_{axis}' in info for axis in ('x', 'y')) else None
         puck_owner = info.get("puck_owner")
         shot_player = info.get("shot_player")
 

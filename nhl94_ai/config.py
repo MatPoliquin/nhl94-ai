@@ -53,6 +53,14 @@ class EnvironmentConfig:
         from nhl94_ai.agents.registry import CONTROLLERS
         if config.nn not in MODEL_BUILDERS and config.nn not in CONTROLLERS:
             raise ValueError(f'Unknown policy or agent: {config.nn}')
+        goalie_policy = getattr(args, 'goalie_policy', 'off')
+        if goalie_policy not in ('off', 'selective', 'always'):
+            raise ValueError('goalie_policy must be off, selective or always')
+        goalie_supported = (config.nn in CONTROLLERS and config.env == 'NHL94-Genesis-v0'
+                            and config.action_type == 'FILTERED' and not config.selfplay
+                            and getattr(args, 'rf', 'PostPlay') == 'PostPlay')
+        if goalie_policy != 'off' and not goalie_supported:
+            raise ValueError('Manual goalie AI requires full-team Classic FILTERED PostPlay without self-play')
         if getattr(args, 'mode', None) == 'player_vs_model' and (
                 config.action_type != 'FILTERED' or config.selfplay):
             raise ValueError('player_vs_model requires FILTERED buttons without self-play')

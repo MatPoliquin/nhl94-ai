@@ -130,6 +130,8 @@ class StochasticFrameSkip(gym.Wrapper):
             if self.frame_agent is not None:
                 info['classic_defense'] = diagnostics.get('classic_defense', {})
                 info['classic_offense'] = diagnostics.get('classic_offense', {})
+                if 'classic_goalie' in diagnostics:
+                    info['classic_goalie'] = diagnostics['classic_goalie']
                 if self.record_scripted_frames:
                     traces.append((np.asarray(before).copy(), np.asarray(self.curac).copy(), rew,
                                    bool(terminated or truncated), diagnostics))

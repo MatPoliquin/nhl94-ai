@@ -75,6 +75,7 @@ class NHL94DebugDisplay:
         self.model_in_use = None
         self.classic_defense = {}
         self.classic_offense = {}
+        self.classic_goalie = {}
         self.key_action_map = {
             pygame.K_UP: GameConsts.INPUT_UP,
             pygame.K_DOWN: GameConsts.INPUT_DOWN,
@@ -144,6 +145,7 @@ class NHL94DebugDisplay:
         self.model_in_use = getattr(ai_sys, 'model_in_use', None)
         self.classic_defense = getattr(ai_sys, 'last_diagnostics', {}).get('classic_defense', {})
         self.classic_offense = getattr(ai_sys, 'last_diagnostics', {}).get('classic_offense', {})
+        self.classic_goalie = getattr(ai_sys, 'last_diagnostics', {}).get('classic_goalie', {})
 
     def _normalize_env_action(self, action):
         if getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION':
@@ -196,6 +198,7 @@ class NHL94DebugDisplay:
     def reset(self, **kwargs):
         self.classic_defense = {}
         self.classic_offense = {}
+        self.classic_goalie = {}
         return self.env.reset(**kwargs)
 
     def get_human_input(self):
@@ -235,8 +238,11 @@ class NHL94DebugDisplay:
         if np.any(done):
             self.classic_defense = {}
             self.classic_offense = {}
+            self.classic_goalie = {}
         render_info = [{}] if np.any(done) else info
-        if self.classic_defense and (human_vs_model or not self.human_control):
+        if self.classic_goalie.get('target') is not None and (human_vs_model or not self.human_control):
+            render_info = [dict(render_info[0], classic_goalie=self.classic_goalie)]
+        elif self.classic_defense and (human_vs_model or not self.human_control):
             render_info = [dict(render_info[0], classic_defense=self.classic_defense)]
         elif self.classic_offense and (human_vs_model or not self.human_control):
             render_info = [dict(render_info[0], classic_offense=self.classic_offense)]
@@ -671,8 +677,8 @@ class NHL94DebugDisplay:
 
         # Draw action info if available
         frame_info = info[0] if isinstance(info, (list, tuple)) else info
-        diagnostics = (frame_info.get('target_control') or frame_info.get('classic_defense')
-                       or frame_info.get('classic_offense'))
+        from nhl94_ai.ui.targets import select_target
+        diagnostics = select_target(frame_info)
         if getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION' or diagnostics:
             from nhl94_ai.ui.targets import draw_game_target, draw_target_overlay
             draw_target_overlay(self.debug_surf, self._transform_coords, self.game_state,

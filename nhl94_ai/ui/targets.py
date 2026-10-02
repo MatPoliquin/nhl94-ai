@@ -11,6 +11,12 @@ PURPLE = (175, 80, 220)
 OFFENSE_AMBER = (255, 165, 0)
 
 
+def select_target(info):
+    """An inactive diagnostic must not hide another controller's live target."""
+    return next((info[name] for name in ('target_control', 'classic_goalie', 'classic_defense', 'classic_offense')
+                 if info.get(name) and info[name].get('target') is not None), None)
+
+
 def draw_target_box(surface, position, size=16, color=TARGET_GREEN):
     rect = pygame.Rect(0, 0, size, size)
     rect.center = round(position[0]), round(position[1])
@@ -19,7 +25,7 @@ def draw_target_box(surface, position, size=16, color=TARGET_GREEN):
 
 def draw_game_target(surface, rect, frame_size, info):
     """Draw the policy target on the supported vertical-view NHL94 framebuffer."""
-    diagnostics = info.get('target_control') or info.get('classic_defense') or info.get('classic_offense')
+    diagnostics = select_target(info)
     if not diagnostics or diagnostics['target'] is None:
         return
     x, y = diagnostics['target']
@@ -32,6 +38,8 @@ def draw_game_target(surface, rect, frame_size, info):
     surface.set_clip(rect.clip(previous_clip))
     if diagnostics.get('phase') == 'offense':
         draw_target_box(surface, position, max(10, round(14 * min(scale_x, scale_y))), OFFENSE_AMBER)
+    elif diagnostics.get('phase') == 'goalie':
+        draw_target_box(surface, position, max(10, round(14 * min(scale_x, scale_y))), CYAN)
     else:
         draw_target_box(surface, position, max(10, round(14 * min(scale_x, scale_y))))
     surface.set_clip(previous_clip)
@@ -51,6 +59,9 @@ def draw_target_overlay(surface, transform, state, diagnostics, font, origin=(12
         return
     if diagnostics.get('phase') == 'offense':
         draw_offense_overlay(surface, transform, state, diagnostics, font, origin)
+        return
+    if diagnostics.get('phase') == 'goalie':
+        draw_goalie_overlay(surface, transform, state, diagnostics, font, origin)
         return
     target, destination = diagnostics['target'], diagnostics['destination']
     waypoint = diagnostics['waypoint']
@@ -114,6 +125,22 @@ def draw_target_overlay(surface, transform, state, diagnostics, font, origin=(12
         if receiver is not None:
             pygame.draw.line(surface, PURPLE, transform(*receiver), transform(0, team.net.y), 1)
     draw_target_box(surface, transform(*target))
+
+
+def draw_goalie_overlay(surface, transform, state, diagnostics, font, origin):
+    lines = (
+        diagnostics['mode'], diagnostics['reason'], 'Cyan square: goalie target',
+        f"Control: {diagnostics['actual_slot']} -> {diagnostics['desired_slot']}; B: {diagnostics['hold_count']}",
+        f"Crossing: {diagnostics['crossing_frames']}; reach: {diagnostics['reach_frames']:.1f} frames",
+        f"Animation: {diagnostics['animation']:#x}; CPU fallback: {diagnostics['cpu_fallback']}",
+    )
+    for index, text in enumerate(lines):
+        surface.blit(font.render(text, True, (15, 20, 30), (230, 242, 249)),
+                     (origin[0], origin[1] + index * (font.get_linesize() + 1)))
+    goalie = _target_team(state, diagnostics).goalie
+    pygame.draw.circle(surface, CYAN, transform(goalie.x, goalie.y), 12, 2)
+    pygame.draw.line(surface, CYAN, transform(goalie.x, goalie.y), transform(*diagnostics['target']), 2)
+    draw_target_box(surface, transform(*diagnostics['target']), color=CYAN)
 
 
 def draw_offense_overlay(surface, transform, state, diagnostics, font, origin):

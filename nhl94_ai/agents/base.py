@@ -48,6 +48,8 @@ class ScriptedAgent:
             'target': getattr(self.controller, '_last_target', (0, 0)),
             'classic_defense': getattr(self.controller, 'defense_diagnostics', {}),
             'classic_offense': getattr(self.controller, 'offense_diagnostics', {})})
+        if getattr(self.controller, 'goalie', None) is not None:
+            self.last_output.diagnostics['classic_goalie'] = self.controller.goalie_diagnostics
         return self.last_output
 
     # Existing integrations use these inference methods while callers migrate.

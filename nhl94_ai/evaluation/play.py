@@ -35,6 +35,8 @@ def build_parser():
     parser.add_argument('--state', type=str, default=None)
     parser.add_argument('--side', choices=['home', 'away'], default='home',
                        help='Classic team in model_vs_game; away uses a home-only full-team save')
+    parser.add_argument('--goalie-policy', choices=['off', 'selective', 'always'], default='off',
+                        help='Opt-in Classic manual goalie AI; requires full-team FILTERED controls and a manual-goalie save')
     parser.add_argument('--num_players', type=int, default=2)
     parser.add_argument('--num_env', type=int, default=1)
     parser.add_argument('--output_basedir', type=str, default='~/OUTPUT')
@@ -91,6 +93,10 @@ class NHL94Player:
             args.num_players = 2
         self.logger = logger
         self.need_display = need_display
+        if getattr(args, 'goalie_policy', 'off') != 'off':
+            EnvironmentConfig.from_args(args)
+            if args.mode not in ('model_vs_game', 'player_vs_model') or args.model_2:
+                raise ValueError('Manual goalie AI supports one Classic agent versus CPU or human')
         if getattr(args, 'side', 'home') != 'home':
             requirements = (
                 args.side == 'away', args.mode == 'model_vs_game', args.nn in CONTROLLERS,

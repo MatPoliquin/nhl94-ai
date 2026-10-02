@@ -225,6 +225,27 @@ the measured scoring regression; executing more passes is not proof of strength.
 The later one-timer recovery sample improved scoring but also increased
 concessions; its before/after reports preserve the separate measurements.
 
+Classic's optional `--goalie-policy off|selective|always` delegates exclusive
+per-frame input to `agents/goalie.py` before the existing skater decision path.
+The default is off. Enabled policies require full-team `FILTERED`/`PostPlay`
+and manual settings verified from live RAM for both joystick and physical team.
+Read-only goalie mode/countdown, assignment-ring, animation/lock, availability
+and movement aliases are registered per actual variant goalie slot; they do not
+enter normalized neural arrays. Goalie acceleration/braking and fixed-base pass
+speed are distinct from skater estimates. B hold/tap handoffs use actual slot
+feedback, not a timer assumption or RAM-forced assignment.
+
+Enabled environments allow the backend's A button, normally removed by Retro's
+FILTERED preset, without changing the public binary field order/shape. Goalie
+actions release stale skater caches, respect animations and CPU offscreen
+assistance, preserve ordinary skater faceoffs, and protect goalie outlets until
+observed reception/expiry. `classic_goalie` diagnostics reach playback,
+frame-skip feedback and CPU benchmarks; cyan distinguishes the goalie target.
+Target rendering chooses a non-null target rather than letting inactive
+diagnostics suppress another controller's overlay. See
+[manual goalie usage](CLASSIC_V1.md#opt-in-manual-goalie-ai) for save constraints,
+handoff budgets, actual-ROM checks and measurement limitations.
+
 `player_vs_model` uses the normal debug display, not the older PvP display.
 The AI keeps controller 1; the display samples keyboard input for controller 2
 on every emulator frame. The match environment alone exposes `MultiBinary(24)`,

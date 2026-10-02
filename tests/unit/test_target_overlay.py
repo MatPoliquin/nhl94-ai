@@ -51,6 +51,24 @@ class TargetOverlayTests(unittest.TestCase):
         pygame.init()
         self.addCleanup(pygame.quit)
 
+    def test_goalie_target_is_cyan_and_inactive_diagnostics_do_not_hide_defense(self):
+        import pygame
+        from nhl94_ai.agents.goalie import GoalieController
+        from nhl94_ai.ui.targets import CYAN, TARGET_GREEN, draw_game_target, select_target
+        from tests.unit.test_manual_goalie import goalie_state
+        manager = GoalieController('selective')
+        manager.step(goalie_state(True))
+        surface = pygame.Surface((256, 224))
+        info = {'classic_goalie': manager.diagnostics, 'target_camera_x': 0, 'target_camera_y': -200}
+        draw_game_target(surface, surface.get_rect(), (256, 224), info)
+        self.assertTrue(np.any(np.all(pygame.surfarray.array3d(surface) == CYAN, axis=2)))
+        defense = {'phase': 'defense', 'target': (0, -200)}
+        info.update(classic_goalie={'target': None}, classic_defense=defense)
+        self.assertIs(select_target(info), defense)
+        surface.fill((0, 0, 0))
+        draw_game_target(surface, surface.get_rect(), (256, 224), info)
+        self.assertTrue(np.any(np.all(pygame.surfarray.array3d(surface) == TARGET_GREEN, axis=2)))
+
     def test_world_view_overlays_mark_the_away_skater_not_home(self):
         import pygame
         from nhl94_ai.ui.targets import CYAN, GREEN, draw_offense_overlay, draw_target_overlay

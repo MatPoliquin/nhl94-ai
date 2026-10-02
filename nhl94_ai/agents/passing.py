@@ -71,10 +71,13 @@ def pass_speed(passer):
     """Nominal rating-derived speed; live launch vectors include ROM quantization."""
     if passer.passing is None:
         return None
-    speed = 160 + 2 * passer.passing
-    if passer.passing & 1:
-        speed += speed // 16
+    speed = _nominal_speed(passer.passing, passer.role == 0)
     return speed * 65536 / (16 * 60) * VELOCITY_SCALE
+
+
+def _nominal_speed(passing, goalie=False):
+    speed = 160 + 2 * (8 if goalie else passing)
+    return speed + speed // 16 if passing & 1 else speed
 
 
 def _word(value):
@@ -109,11 +112,9 @@ def _rom_sqrt(value):
     return guess
 
 
-def rom_pass_vector(dx, dy, vx, vy, passing):
+def rom_pass_vector(dx, dy, vx, vy, passing, *, goalie=False):
     """passto's signed word arithmetic and eighth-second lead quantization."""
-    speed = 160 + 2 * passing
-    if passing & 1:
-        speed += speed // 16
+    speed = _nominal_speed(passing, goalie)
     qx, qy = _word((vx * 240) >> 16), _word((vy * 240) >> 16)
     ax, ay = dx >> 2, dy >> 2
     j = _word(2 * _word(qx * ax + qy * ay))
@@ -146,7 +147,8 @@ def _live_pass_contact(puck, passer, receiver, delay):
     target = (math.floor(receiver.x + vx * delay) + receiver.stick_x,
               math.floor(receiver.y + vy * delay) + receiver.stick_y)
     vector = rom_pass_vector(target[0] - start[0], target[1] - start[1],
-                             round(vx / VELOCITY_SCALE), round(vy / VELOCITY_SCALE), passer.passing)
+                             round(vx / VELOCITY_SCALE), round(vy / VELOCITY_SCALE), passer.passing,
+                             goalie=passer.role == 0)
     if vector is None:
         return None
     sx, sy = (component * VELOCITY_SCALE for component in vector)

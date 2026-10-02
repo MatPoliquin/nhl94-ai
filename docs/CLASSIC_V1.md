@@ -43,6 +43,114 @@ Optional read-only goalie motion observations from the experiment remain
 available. V1 uses goalie position for aim and motion for collision avoidance. Legacy velocity
 fields and neural input arrays remain unchanged.
 
+## Opt-in manual goalie AI
+
+```bash
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 \
+  --mode model_vs_game --state SabresVsMightyDucks.ManualGoalie.Start \
+  --side home --goalie-policy selective --max_playback_speed 1.0
+```
+
+This controls Buffalo against the Mighty Ducks CPU. Use `--side away` to
+control Anaheim against Buffalo. No ROM, integration file or save is modified.
+The supplied save must be installed in Retro's NHL94 data directory.
+
+`--goalie-policy off` is the default and retains the existing controller.
+`selective` keeps useful skater defense and takes the goalie only for a
+reachable projected threat without a useful controlled skater contest/block.
+`always` is a defensive-zone takeover ablation, not continuous goalie selection
+during attacks. Both enabled policies require full-team Classic, `FILTERED`,
+`PostPlay`, no self-play, and Manual goalie settings for the physical team
+**and** its joystick index. Automatic-goalie saves fail explicitly.
+CPU and human opponents are supported; human play additionally requires the
+usual two-controller save. Reduced-player games and intent/learned policies
+are not supported by this option.
+
+`agents/goalie.py` chooses a **cyan square** target before generating movement.
+Green skater-defense and amber offense targets are unchanged. The diagnostic
+shows the target, actual/desired slot, B countdown, reach/crossing estimates,
+animation, CPU fallback and request/result counters. Inactive goalie diagnostics
+do not hide a live skater target.
+
+Released-puck prediction uses full signed motion, friction, height and the
+crease/goal planes; it stops at uncertain wall contacts. A geometrically
+reachable incoming receiver moves the angle target before reception. Carrier
+release deadlines remain estimates, not promises about an attacker's next move.
+Selective takeover budgets 24 frames for selection plus goalie travel and a
+six-frame response margin. It keeps close skater contests and existing shooting
+lane blocks. It does not interrupt a pending skater pass, one-timer, shot,
+switch or body check.
+
+The controller runs every emulator frame. It releases old buttons, holds B
+until the goalie slot **and joystick flag** confirm selection, releases B, and
+then sends goalie input. A new short B press/release requests a skater; only an
+actual skater slot confirms return. Handoff attempts time out after 60 frames
+with a warning and bounded backoff. Movement uses goalie-specific acceleration
+and strong neutral braking, rather than skater turning/boost estimates. Targets
+remain near the crease; pulled/unavailable goalies are not takeover candidates.
+Animation locks are respected. Offscreen CPU assistance receives neutral input
+and its catches are not counted as manual catches.
+
+Fresh C requests the ROM's save selection. Rare low-shot emergencies can request
+A plus direction for a dive. Request counters are separate from confirmed save/
+dive animation counters; neither is a count of prevented goals. On possession,
+the AI considers safety-scored B outlets with the correct goalie pass base/parity,
+waits for a fresh pass counter and observed reception, and protects that flight
+from skater switching or boosting. If no safe outlet opens, a bounded hold
+ends in an A clear. **A clears; it does not freeze.** Neutral manual holding is
+not assumed to run the CPU cover timer.
+
+The installed Retro `FILTERED` preset omits A. Opted-in environments therefore
+use the backend's unfiltered binary buttons to deliver dives/clears, retaining
+the same ordered 12-button public interface (24 for human matches). Classic
+emits exclusive A/B/C edges; the default backend/filter and all saved-model
+schemas remain unchanged.
+
+Focused native verification:
+
+```bash
+python -m tests.integration.manual_goalie
+```
+
+This checks actual B selection/return, D-pad movement/braking, C save contact,
+A dive, low-speed catch, safe outlet/reception and A clear, then exercises the
+actual watched home/away command. Contact fixtures write only the test emulator
+after selection has been obtained by B; production handoffs never force RAM.
+
+Matched first-period ablations can be run with:
+
+```bash
+nhl94 benchmark-cpu --agent classic-v1 \
+  --matchups sabres-ducks-manual ducks-sabres-manual \
+  --goalie-policy selective --trials 3 --seed 9100 --seconds 300 \
+  --workers 2 --output manual-goalie-selective.json
+```
+
+Repeat with `off` and `always`. These manual matchups are opt-in; the existing
+default three-matchup cohort is unchanged.
+
+The [manual-goalie report](benchmarks/classic-v1-manual-goalie.json) records
+three matched seeds (9100-9102), each with Buffalo and Anaheim controlled:
+**six five-minute first periods per policy**, not full games.
+
+| Policy | Goals for / against | Confirmed takeovers | Save / dive animations |
+| --- | --- | --- | --- |
+| `off` (CPU goalie) | 8 / 2 | 0 | Not manually attributed |
+| `selective` | 8 / 0 | 35 | 12 / 1 |
+| `always` | 6 / 4 | 51 | 28 / 4 |
+
+Selective recorded ten controlled catches and eight requested-recipient outlet
+receptions. All 35 requested takeovers confirmed. Always cancelled three of its
+54 requests when friendly possession returned during the hold. Neither enabled
+policy had a handoff timeout. Save/dive animations are not prevented-goal counts;
+CPU fallback and interrupted/expired outlets remain separately recorded.
+
+This is a small **development cohort**, not a 50-period held-out comparison.
+Selective's concession reduction is encouraging, but does not establish reliable
+superiority over the CPU goalie. More frequent manual actions were not better:
+always-manual conceded more and scored less here. The report preserves source
+hashes, action hashes, starting-state hashes, lineups and per-seed outcomes.
+
 ## Target-first defense
 
 `agents/defense.py` keeps target selection separate from player selection:

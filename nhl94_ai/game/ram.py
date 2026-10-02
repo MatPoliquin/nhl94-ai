@@ -129,6 +129,30 @@ def register_goalie_motion(env, skaters=5):
             })
 
 
+def register_goalie_control(env, skaters=5):
+    """Manual availability and goalie state are optional, read-only feedback."""
+    fields = {
+        'goalie_mode_1': (0xFFD05A, '>u2'), 'goalie_mode_2': (0xFFD05C, '>u2'),
+        'goalie_hold_b_1': (0xFFBF06, '|u1'), 'goalie_hold_b_2': (0xFFBF07, '|u1'),
+        'goalie_input_block': (0xFFD412, '>u2'), 'goalie_clock_flags': (0xFFC2EA, '|u1'),
+    }
+    for side, slot in ((1, skaters), (2, 6 + skaters)):
+        base = 0xFFB04A + slot * 0x80
+        for name, offset, kind in (
+            ('role', 0x34, '>i2'), ('facing', 0x54, '>u2'), ('flags', 0x62, '|u1'),
+            ('unavailable', 0x63, '|u1'), ('state_flags', 0x64, '|u1'),
+            ('speed', 0x69, '|u1'), ('agility', 0x68, '|u1'), ('weight', 0x67, '|u1'),
+            ('roster', 0x66, '|u1'), ('stick', 0x71, '|u1'), ('passing', 0x6E, '|u1'),
+            ('anim', 0x58, '>u2'), ('anim_frame', 0x5A, '>u2'), ('anim_timer', 0x5C, '|i1'),
+            ('sprite', 6, '>i2'), ('assignment_index', 0x36, '>u2'), ('cover_timer', 0x48, '>i2'),
+        ):
+            fields[f'g{side}_control_{name}'] = base + offset, kind
+        for index in range(8):
+            fields[f'g{side}_control_assignment_{index}'] = base + 0x38 + index, '|u1'
+    for name, (address, kind) in fields.items():
+        env.data.set_variable(name, {'address': address, 'type': kind})
+
+
 def register_skater_ratings(env, skaters):
     """Live effective accuracy (0–30), including the ROM's roster adjustments.
 

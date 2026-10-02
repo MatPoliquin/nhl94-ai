@@ -9,6 +9,7 @@ import numpy as np
 
 from nhl94_ai.agents.defense import DefenseController, owns_puck
 from nhl94_ai.agents.defense import controlled_slot
+from nhl94_ai.agents.goalie import GoalieController
 from nhl94_ai.agents.offense import (
     GOALIE_HORIZON, GOALIE_SHOT_CLEARANCE, OffenseController, goalie_avoidance, goalie_contact_time,
 )
@@ -56,6 +57,13 @@ class ClassicAIV1Model:
         self._frame_action = np.zeros((1, self._size), dtype=np.int8)
         self._defense_elapsed = 4
         self._was_defending = False
+        goalie_policy = getattr(args, 'goalie_policy', 'off')
+        if goalie_policy not in ('off', 'selective', 'always'):
+            raise ValueError('goalie_policy must be off, selective or always')
+        if goalie_policy != 'off' and getattr(args, 'action_type', 'FILTERED').upper() != 'FILTERED':
+            raise ValueError('Manual goalie AI requires FILTERED buttons')
+        self.goalie = None if goalie_policy == 'off' else GoalieController(goalie_policy)
+        self.goalie_diagnostics = {}
 
     def predict(self, _observation, deterministic=True):
         return np.zeros((1, self._size), dtype=np.int8), None
@@ -70,6 +78,34 @@ class ClassicAIV1Model:
         raise NotImplementedError('ClassicAIV1 does not produce a trainable checkpoint.')
 
     def predict_game_state(self, state, deterministic=True):
+        goalie_action = self._goalie_frame(state)
+        if goalie_action is not None:
+            return goalie_action
+        return self._predict_decision(state, deterministic)
+
+    def _goalie_frame(self, state):
+        if self.goalie is None:
+            return None
+        blocked = (self._one_timer is not None or self.offense.pending is not None
+                   or self._tick < self._shot_until or self.defense.pending_check is not None
+                   or self.defense.pending_switch is not None)
+        action = self.goalie.step(state, blocked=blocked)
+        self.goalie_diagnostics = self.goalie.diagnostics
+        if action is None:
+            return None
+        self.defense.idle(1)
+        self.defense_diagnostics = self.offense_diagnostics = {}
+        self._one_timer = None
+        self._shot_until = self._setup_until = 0
+        self._setup_slot = None
+        self.offense.cancel()
+        self._frame_remaining = 0
+        self._was_defending = False
+        self._last_decision = 'goalie-' + self.goalie.phase
+        self._last_target = self.goalie_diagnostics['target']
+        return self._encode(action, HOCKEY_INTENT_NOOP)
+
+    def _predict_decision(self, state, deterministic=True):
         self._tick += 1
         action, intent = self._decide(state)
         if not self.defense_diagnostics:
@@ -131,10 +167,14 @@ class ClassicAIV1Model:
         if frame_skip < 1:
             raise ValueError('Scripted decision interval must be positive')
         self._defense_elapsed = 1
+        goalie_action = self._goalie_frame(state)
+        if goalie_action is not None:
+            self._defense_elapsed = frame_skip
+            return goalie_action
         self.offense.observe(state, self.defense.frames)
         defending = self._defending(state)
         if self._frame_remaining == 0:
-            self._frame_action = self.predict_game_state(state, deterministic)
+            self._frame_action = self._predict_decision(state, deterministic)
             defending = bool(self.defense_diagnostics)
             self._frame_remaining = frame_skip
         elif defending:

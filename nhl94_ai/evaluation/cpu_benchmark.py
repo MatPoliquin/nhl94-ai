@@ -24,6 +24,11 @@ MATCHUPS = {
     'senators-penguins': ('PenguinsVsSenators.start', 2),
     'nordiques-canadiens': ('CanadiensVsNordiques.start', 2),
 }
+DEFAULT_MATCHUPS = list(MATCHUPS)
+MATCHUPS.update({
+    'sabres-ducks-manual': ('SabresVsMightyDucks.ManualGoalie.Start', 1),
+    'ducks-sabres-manual': ('SabresVsMightyDucks.ManualGoalie.Start', 2),
+})
 CPU_RAM = {
     **RAM,
     'home_team': (0xFFC330, '>u2'), 'away_team': (0xFFC332, '>u2'),
@@ -75,9 +80,12 @@ def cpu_view(state, info, side):
 def cpu_match(fixture):
     from nhl94_ai.env.factory import make_retro
     from stable_retro.data import get_romfile_path
-    agent_name, matchup, seed, seconds, frame_skip, schema = fixture
+    agent_name, matchup, seed, seconds, frame_skip, schema, *options = fixture
+    goalie_policy = options[0] if options else 'off'
+    if goalie_policy != 'off' and schema != 'FILTERED':
+        raise ValueError('Manual goalie CPU trials require FILTERED buttons')
     state_name, side = MATCHUPS[matchup]
-    env = make_retro(game='NHL94-Genesis-v0', state=state_name, num_players=1)
+    env = make_retro(game='NHL94-Genesis-v0', state=state_name, num_players=1, goalie_policy=goalie_policy)
     try:
         for name, (address, kind) in CPU_RAM.items():
             env.data.set_variable(name, {'address': address, 'type': kind})
@@ -90,7 +98,7 @@ def cpu_match(fixture):
         starting_lineup = lineup(info, Path(get_romfile_path('NHL94-Genesis-v0')).read_bytes())
         if (info['bench_team1'], info['bench_team2']) != (side, 0):
             raise ValueError('CPU opponent still has a joystick assigned.')
-        agent = create_scripted(agent_name, SimpleNamespace(action_type=schema))
+        agent = create_scripted(agent_name, SimpleNamespace(action_type=schema, goalie_policy=goalie_policy))
         agent.frame_skip = frame_skip
         state, frames = NHL94GameState(5), 1
         context = SimpleNamespace(action_type=schema, game_state=state)
@@ -149,6 +157,8 @@ def cpu_match(fixture):
             'teams': [info['home_team'], info['away_team']], 'lineup': starting_lineup,
             'actions_sha256': digest.hexdigest(),
             'initial_state_sha256': hashlib.sha256(env.initial_state).hexdigest(),
+            'goalie_policy': goalie_policy,
+            'goalie_metrics': dict(agent.goalie.metrics) if agent.goalie else {},
         }
     finally:
         env.close()
@@ -177,6 +187,10 @@ def summarize(results):
         for row in rows:
             metrics.update(row.get('offense_metrics', {}))
         summary[matchup]['offense_metrics'] = dict(metrics)
+        goalie_metrics = Counter()
+        for row in rows:
+            goalie_metrics.update(row.get('goalie_metrics', {}))
+        summary[matchup]['goalie_metrics'] = dict(goalie_metrics)
         summary[matchup]['passes_by_purpose'] = {
             purpose: dict(Counter(event['outcome'] for row in rows for event in row.get('pass_events', [])
                                   if event.get('purpose', 'one-timer') == purpose))
@@ -189,7 +203,8 @@ def summarize(results):
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--agent', choices=ALIASES, default='classic-v1')
-    parser.add_argument('--matchups', choices=MATCHUPS, nargs='+', default=list(MATCHUPS))
+    parser.add_argument('--matchups', choices=MATCHUPS, nargs='+', default=DEFAULT_MATCHUPS)
+    parser.add_argument('--goalie-policy', choices=['off', 'selective', 'always'], default='off')
     parser.add_argument('--trials', type=int, default=20)
     parser.add_argument('--seed', type=int, default=8000)
     parser.add_argument('--seconds', type=int, default=300)
@@ -206,7 +221,9 @@ def run(args):
         raise ValueError('Use positive counts, a uint16 clock, and uint32 ROM seeds.')
     if len(set(args.matchups)) != len(args.matchups):
         raise ValueError('Choose distinct matchups.')
-    fixtures = [(args.agent, matchup, seed, args.seconds, args.frame_skip, args.action_type)
+    if args.goalie_policy != 'off' and args.action_type != 'FILTERED':
+        raise ValueError('Manual goalie CPU trials require FILTERED buttons')
+    fixtures = [(args.agent, matchup, seed, args.seconds, args.frame_skip, args.action_type, args.goalie_policy)
                 for matchup in args.matchups for seed in range(args.seed, args.seed + args.trials)]
     controller = create_scripted(args.agent, SimpleNamespace(action_type=args.action_type)).controller
     files = {Path(__file__), Path(inspect.getfile(PassOutcomes)), Path(inspect.getfile(OffenseMetrics)),
@@ -216,7 +233,8 @@ def run(args):
     root = Path(__file__).resolve().parents[2]
     files.update(root / 'nhl94_ai' / name for name in (
         'game/ram.py', 'game/geometry.py', 'env/factory.py',
-        'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/offense.py', 'agents/passing.py'))
+        'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/offense.py', 'agents/passing.py',
+        'agents/goalie.py'))
     sources = {str(path.relative_to(root)):
                hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
     if args.workers == 1:
