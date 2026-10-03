@@ -6,9 +6,10 @@ Play modes:
 - Model vs Game
 - Player vs Game (new mode)
 """
-from nhl94_ai.agents.registry import CONTROLLERS
+from nhl94_ai.agents.registry import CONTROLLERS, add_classic_arguments
 
 from nhl94_ai.config import default_config_path, EnvironmentConfig
+from nhl94_ai.model_inputs import add_model_input_arguments
 from nhl94_ai.agents.base import AgentInput, LearnedAgent, FrameRepeatAgent
 
 import sys
@@ -76,7 +77,7 @@ def build_parser():
                        choices=['FILTERED', 'DISCRETE', 'MULTI_DISCRETE', 'HOCKEY_INTENT_DPAD', 'TARGET_POSITION'],
                        help='Buttons, hockey intents, or target-only positioning')
 
-    return parser
+    return add_classic_arguments(add_model_input_arguments(parser))
 
 
 def parse_cmdline(argv):
@@ -100,6 +101,8 @@ class NHL94Player:
         if getattr(args, 'seed', None) is not None:
             validate_rom_seed(args.seed)
             get_game(args.env)
+        if getattr(args, 'cross_crease', False):
+            EnvironmentConfig.from_args(args)
         if getattr(args, 'goalie_policy', 'off') != 'off':
             EnvironmentConfig.from_args(args)
             if args.mode not in ('model_vs_game', 'player_vs_model') or args.model_2:

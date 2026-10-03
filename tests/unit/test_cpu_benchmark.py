@@ -37,6 +37,21 @@ class CpuBenchmarkContracts(unittest.TestCase):
             for matchup in matchups for seed in (7, 8)])
         self.assertEqual([report['summary'][matchup]['periods'] for matchup in matchups], [2, 2])
 
+    def test_cross_crease_option_reaches_each_trial_and_report(self):
+        args = build_parser().parse_args(['--cross-crease', '--trials', '1'])
+        fixtures = []
+        def match(fixture):
+            fixtures.append(fixture)
+            return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                        goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
+                        cross_crease_metrics={'attempts': 2, 'recorded_shots': 1})
+        with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+            report = run(args)
+        self.assertTrue(all(fixture[-1] is True for fixture in fixtures))
+        self.assertTrue(report['settings']['cross_crease'])
+        for row in report['summary'].values():
+            self.assertEqual(row['cross_crease_metrics'], {'attempts': 2, 'recorded_shots': 1})
+
     def test_optional_goalie_motion_and_pass_fields_do_not_replace_legacy_velocity(self):
         env = Mock()
         register_pass_state(env)

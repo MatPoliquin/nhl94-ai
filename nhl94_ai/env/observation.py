@@ -9,13 +9,13 @@ import gymnasium as gym
 from gymnasium import spaces
 from nhl94_ai.game.constants import GameConsts
 from nhl94_ai.env.intents import HOCKEY_INTENT_DPAD_ACTIONS, HOCKEY_INTENT_DPAD_ACTION_SPACE, HOCKEY_INTENT_CARRY_PUCK, HOCKEY_INTENT_NORMAL_SHOOT, HOCKEY_INTENT_SLAPSHOT, HOCKEY_INTENT_ONE_TIMER, HOCKEY_INTENT_POKE_CHECK, HOCKEY_INTENT_CHANGE_PLAYER, HOCKEY_INTENT_PASS_START
-from nhl94_ai.tasks.registry import get_task
+from nhl94_ai.tasks.registry import get_task, resolve_task_model_input
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.env.perspective import OpponentPerspective
 from nhl94_ai.game.specs import get_game
 from nhl94_ai.agents.multi_model import NHL94AISystem
 from nhl94_ai.game.state import NHL94GameState
-from nhl94_ai.game.ram import controller_team_info, pass_geometry_info, restore_away_control, select_cpu_side
+from nhl94_ai.game.ram import compact_input_info, controller_team_info, pass_geometry_info, restore_away_control, select_cpu_side
 from nhl94_ai.models.factory import load_model_for_inference
 
 
@@ -41,10 +41,11 @@ class NHL94Observation2PEnv(gym.Wrapper):
         self.selfplay_role = self._resolve_selfplay_role(args, rf_name)
         self.deterministic = bool(getattr(args, 'deterministic', True))
         self.opponent_model_alg = getattr(args, 'alg', 'ppo2')
-        self.model_input_config = (getattr(args, 'hyperparams_dict', {}) or {}).get('model_input')
 
         self.rf_name = rf_name
         self.task = get_task(self.rf_name)
+        params = resolve_task_model_input(args, getattr(args, 'hyperparams_dict', {}), task=self.task)
+        self.model_input_config = params['model_input']
         self.init_function = self.task.initialize
         self.reward_function = self.task.reward
         self.done_function = self.task.done
@@ -55,6 +56,7 @@ class NHL94Observation2PEnv(gym.Wrapper):
         self.opponent_agent = None
         self.opponent_model_path = ''
         self.opponent_set_model_input = None
+        self.opponent_encoder = None
         self.opponent_input_overide = None
 
         self.num_players_per_team = get_game(args.env).skaters_per_team
@@ -168,7 +170,11 @@ class NHL94Observation2PEnv(gym.Wrapper):
         self.selfplay_role = role
         opponent_rf = 'DefenseZone' if role == 'offense' else 'ScoreGoal'
         opponent_task = get_task(opponent_rf)
-        self.opponent_set_model_input = opponent_task.encode
+        from nhl94_ai.env.encoding import ObservationEncoder
+        metadata = getattr(self.opponent_model, '_nhl94_metadata', {})
+        config = metadata.get('hyperparams', {}).get('model_input')
+        self.opponent_encoder = ObservationEncoder(opponent_task, self.num_players_per_team, config)
+        self.opponent_set_model_input = self.opponent_encoder.encode
         self.opponent_input_overide = opponent_task.restrict_action
         return self.selfplay_role
 
@@ -189,6 +195,7 @@ class NHL94Observation2PEnv(gym.Wrapper):
         from nhl94_ai.agents.base import LearnedAgent
         self.opponent_agent = LearnedAgent(self.opponent_model, self.action_type)
         self.opponent_model_path = path
+        self.set_selfplay_role(self.selfplay_role)
         return self.opponent_model_path
 
     def _get_scalar_state_array(self):
@@ -199,6 +206,14 @@ class NHL94Observation2PEnv(gym.Wrapper):
         if self.target_controller is not None:
             return np.concatenate((encoded, self.target_controller.observation())).astype(np.float32)
         return encoded
+
+    def _model_input_info(self, info):
+        configs = [self.model_input_config]
+        if self.opponent_encoder is not None:
+            configs.append(self.opponent_encoder.config or {})
+        if any(config.get('layout') == 'player-goalie-v1' for config in configs):
+            return compact_input_info(self.env, info, self.num_players_per_team)
+        return info
 
     def _reset_frame_buffer(self):
         if not self.uses_sequence_obs:
@@ -234,6 +249,7 @@ class NHL94Observation2PEnv(gym.Wrapper):
 
         state, _, _, _, info = self.env.step(reset_action)
         info = pass_geometry_info(self.env, info)
+        info = self._model_input_info(info)
         if self.play_side == 'away' and (info.get('defense_team1'), info.get('defense_team2')) != (2, 0):
             raise ValueError('Away playback did not leave the home team under CPU control.')
         if self.play_side == 'away':
@@ -397,6 +413,7 @@ class NHL94Observation2PEnv(gym.Wrapper):
 
         ob, rew, terminated, truncated, info = self.env.step(ac2)
         info = pass_geometry_info(self.env, info)
+        info = self._model_input_info(info)
         if self.play_side == 'away':
             info = controller_team_info(restore_away_control(self.env.data, info))
         if 'defense_scroll_x' in self.defense_camera:

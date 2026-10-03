@@ -27,6 +27,9 @@ def _json_value(value):
 def run_metadata(args, hyperparams=None):
     options = dict(vars(args)) if hasattr(args, '__dict__') else dict(args)
     params = hyperparams if hyperparams is not None else options.get('hyperparams_dict', {})
+    from types import SimpleNamespace
+    from nhl94_ai.tasks.registry import resolve_task_model_input
+    params = resolve_task_model_input(SimpleNamespace(**options), params)
     from nhl94_ai.env.encoding import _normalize_model_input_config
     schema = {
         'game': options.get('env'), 'policy': options.get('nn'),
@@ -34,8 +37,10 @@ def run_metadata(args, hyperparams=None):
         'observation_schema_version': (params.get('model_input') or {}).get('schema_version', 1),
         'action_type': options.get('action_type', 'FILTERED'),
         'seq_len': options.get('seq_len', 16), 'frame_skip': 1 if options.get('no_frame_skip', False) else params.get('frame_skip', 4),
-        'normalization': 'nhl94-game-constants-v1',
+        'normalization': params['model_input'].get('normalization', 'nhl94-game-constants-v1'),
     }
+    if params['model_input'].get('layout'):
+        schema['observation_layout'] = params['model_input']['layout']
     if schema['action_type'].upper() == 'TARGET_POSITION':
         from nhl94_ai.env.target_control import target_schema
         from nhl94_ai.tasks.registry import get_task

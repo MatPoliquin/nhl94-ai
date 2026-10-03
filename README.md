@@ -31,6 +31,9 @@ nhl94 play --agent classic-v1 --mode player_vs_model --env NHL94-Genesis-v0 --ma
 # Train without a display. Add --live to watch progress.
 nhl94 train --config configs/training/default.json --num_env 1
 
+# Train Ducks versus the CPU shootout goalie.
+nhl94 train --config configs/training/pvg.json
+
 # Run bounded evaluation against the game's built-in opponent.
 nhl94 evaluate --agent classic-v1 --episodes 1 --max_steps 100
 
@@ -48,6 +51,27 @@ work outside the checkout. Relative paths in a JSON options file are resolved
 against that file's directory. Explicit CLI flags override file settings.
 `--config` accepts either hyperparameters or an options object; see
 [configuration](docs/ARCHITECTURE.md#configuration).
+
+The `PvG` (Player vs Goalie) example uses
+`MightyDucksVsAllStarCampbell.Shootout.NearGoalie.Start`, not a manual-goalie or
+`.2P` save. Its named `pvg` input has 52 features: the selected player, opposing
+goalie and net, with player-centered, rink-aligned geometry and live attributes
+for both participants. Input variants are defined in `configs/model_input.json`;
+`--model_input NAME` lets other tasks reuse them. The existing full-team input is
+named `default`. The example trains a fresh `[128, 128]` MLP with PPO; environment
+count and timestep budget are configured in `configs/training/pvg.json`.
+A home goal gives +1, and creating a usable net opening before shot release
+gives +0.05 at most once per episode. Windup while holding C remains eligible.
+Failures have no penalty. C-pressed status and hold duration are included in
+the player input. Each episode ends when the ROM finishes that shootout attempt.
+Starts slightly vary player/goalie positions and player velocity around the
+save, keeping the puck with its carrier; explicit seeds reproduce the variations.
+Mean reward includes shaping; use goal totals divided by attempts for goal rate.
+Add `--live` to watch, or `--num_env 1` to reduce parallelism. Checkpoints and logs
+are saved under `~/OUTPUT/pvg/`. See [PvG](docs/ARCHITECTURE.md#pvg-player-vs-goalie).
+Earlier 310-input PvG checkpoints require `--model_input default`; 50-input
+checkpoints use `--model_input pvg-v3`. Start a fresh model for the 52-input
+schema rather than reinterpreting those weights.
 
 The sole scripted controller is [Classic V1](docs/CLASSIC_V1.md), formerly V4.
 Its defense chooses a safe lane/recovery target before selecting a skater and

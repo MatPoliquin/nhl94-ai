@@ -6,6 +6,7 @@ not change the emulator save state. RAM corrections below are applied equally
 to every controller, without changing its tactics or the installed integration.
 """
 import argparse
+from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 from copy import copy
 import hashlib
@@ -35,12 +36,14 @@ RAM = {
 }
 
 # Benchmark-only ablation of the same controller, without the pass/one-timer branch.
-AGENTS = [*ALIASES, 'classic-v1-direct']
+AGENTS = [*ALIASES, 'classic-v1-direct', 'classic-v1-cross-crease']
 
 
 def make_agent(name):
-    args = SimpleNamespace(action_type='FILTERED', one_timers=name != 'classic-v1-direct')
-    return create_scripted('classic-v1' if name == 'classic-v1-direct' else name, args)
+    args = SimpleNamespace(action_type='FILTERED', one_timers=name != 'classic-v1-direct',
+                           cross_crease=name == 'classic-v1-cross-crease')
+    return create_scripted('classic-v1' if name in (
+        'classic-v1-direct', 'classic-v1-cross-crease') else name, args)
 
 
 def _position(info, side, slot):
@@ -144,6 +147,9 @@ def match(fixture):
             'decision_ns': durations, 'decisions': calls,
             'actions_sha256': digest.hexdigest(),
             'initial_state_sha256': hashlib.sha256(env.initial_state).hexdigest(),
+            'cross_crease_metrics': [dict(agent.cross_crease.metrics) if agent.cross_crease else {}
+                                     for agent in agents],
+            'cross_crease_events': [agent.cross_crease.events if agent.cross_crease else [] for agent in agents],
         }
     finally:
         env.close()
@@ -170,6 +176,11 @@ def summarize(results, candidate, opponents):
                 name: sum(r.get(field, [0, 0])[r['agents'].index(name)] for r in rows)
                 for name in (candidate, opponent)
             }
+        summary[opponent]['cross_crease_metrics'] = {
+            name: dict(sum((Counter(r.get('cross_crease_metrics', [{}, {}])[r['agents'].index(name)])
+                            for r in rows), Counter()))
+            for name in (candidate, opponent)
+        }
     return summary
 
 
@@ -212,6 +223,10 @@ def run(args):
     for name in ('game/state.py', 'game/ram.py', 'game/geometry.py', 'env/factory.py',
                  'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/offense.py',
                  'agents/passing.py', 'evaluation/pass_outcomes.py'):
+        path = root / name
+        sources[name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+                         'lines': len(path.read_text(encoding='utf-8').splitlines())}
+    for name in ('agents/cross_crease.py', 'agents/goalie.py', 'agents/registry.py'):
         path = root / name
         sources[name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
                          'lines': len(path.read_text(encoding='utf-8').splitlines())}

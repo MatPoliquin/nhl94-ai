@@ -156,6 +156,12 @@ def draw_offense_overlay(surface, transform, state, diagnostics, font, origin):
     if last:
         lines.append(f"Last pass: {last['outcome']}; intended/actual: "
                      f"{last['receiver']}/{last['actual_receiver']}")
+    crossing = diagnostics.get('cross_crease')
+    if crossing:
+        lines.append(f"Cross-crease: {crossing.get('phase', crossing.get('status', '-'))}; "
+                     f"commit: {crossing.get('committed', False)}")
+        if crossing.get('release_reason'):
+            lines.append(f"C release: {crossing['release_reason']}")
     for index, text in enumerate(lines):
         surface.blit(font.render(text, True, (15, 20, 30), (230, 242, 249)),
                      (origin[0], origin[1] + index * (font.get_linesize() + 1)))

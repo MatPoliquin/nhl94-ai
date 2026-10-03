@@ -76,6 +76,10 @@ class OpponentPerspective:
 
         if hasattr(player, 'orientation'):
             player.orientation = (player.orientation + 4) % 8
+        if player.input_state is not None:
+            player.input_state['vx'] = -player.input_state['vx']
+            player.input_state['vy'] = -player.input_state['vy']
+            player.input_state['facing'] = (player.input_state['facing'] + 4) % 8
 
     def _rotate_team_180(self, team):
         for player in list(team.players) + [team.goalie]:
@@ -130,6 +134,8 @@ class OpponentPerspective:
         else:
             mirrored_state.action = list(self.opponent_action_state['last_gamestate_action'])
         mirrored_state.slapshot_frames_held = self.opponent_action_state['slapshot_frames']
+        mirrored_state.c_pressed = bool(mirrored_state.action[5])
+        mirrored_state.c_frames_held = self.opponent_action_state['slapshot_frames']
 
         self._refresh_derived_state(mirrored_state)
         return mirrored_state

@@ -53,14 +53,15 @@ def _sample_formation(rng):
 
 
 def _place_object(memory, slot, position):
+    """Reset current/previous 16.16 coordinates, motion and contact state."""
     base = _OBJECTS + slot * _STRIDE
     for value, current, previous, velocity in (
         (position[0], 0x00, 0x1C, 0x28),
         (position[1], 0x14, 0x20, 0x2A),
         (0, 0x18, 0x24, 0x2C),
     ):
-        memory.assign(base + current, '>i4', value * 65536)
-        memory.assign(base + previous, '>i4', value * 65536)
+        memory.assign(base + current, '>i4', int(value * 65536))
+        memory.assign(base + previous, '>i4', int(value * 65536))
         memory.assign(base + velocity, '>i2', 0)
     memory.assign(base + 0x2E, '>i2', -1)
     memory.assign(base + 0x30, '>u4', 0)

@@ -96,6 +96,13 @@ class BenchmarkContracts(unittest.TestCase):
         self.assertTrue(candidate._one_timers)
         self.assertFalse(baseline._one_timers)
 
+    def test_cross_crease_ablation_keeps_one_timers_and_default_controller(self):
+        candidate, baseline = make_agent('classic-v1-cross-crease'), make_agent('classic-v1')
+        self.assertIs(type(candidate.controller), type(baseline.controller))
+        self.assertTrue(candidate._one_timers and baseline._one_timers)
+        self.assertIsNotNone(candidate.cross_crease)
+        self.assertIsNone(baseline.cross_crease)
+
     def test_one_timer_counters_follow_the_agents_when_sides_swap(self):
         common = {'completed': True, 'goals': [0, 0], 'decision_ns': [1, 1], 'decisions': [1, 1]}
         rows = [dict(common, agents=['candidate', 'base'], one_timers=[2, 1], one_timer_goals=[1, 0]),

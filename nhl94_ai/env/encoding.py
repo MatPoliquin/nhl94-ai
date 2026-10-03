@@ -7,11 +7,12 @@ features. Control and possession are represented as per-entity flags.
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 from nhl94_ai.game.constants import GameConsts
+from nhl94_ai.model_inputs import load_model_input
 
 
 FeatureList = List[float]
 FeatureVector = Tuple[float, ...]
-ModelInputConfig = Optional[Dict[str, Any]]
+ModelInputConfig = Optional[Dict[str, Any] | str]
 FieldGetter = Callable[[Any, Any], float]
 
 GOALIE_STAT_FIELDS = [
@@ -204,10 +205,18 @@ MODEL_INPUT_FIELD_GETTERS: Dict[str, Dict[str, FieldGetter]] = {
 
 
 def _normalize_model_input_config(model_input_config: ModelInputConfig) -> Dict[str, List[str]]:
+    if isinstance(model_input_config, str):
+        model_input_config = load_model_input(model_input_config)
     if model_input_config is None:
-        return {group: list(fields) for group, fields in DEFAULT_MODEL_INPUT_GROUPS.items()}
+        model_input_config = load_model_input('legacy')
     if not isinstance(model_input_config, dict):
         raise TypeError("model_input must be a JSON object when provided")
+    layout = model_input_config.get('layout')
+    if layout == 'player-goalie-v1':
+        from nhl94_ai.env.compact_input import normalize_groups
+        return normalize_groups(model_input_config)
+    if layout is not None:
+        raise ValueError(f'Unsupported model input layout: {layout!r}')
 
     groups_config = model_input_config.get("groups", model_input_config)
     if not isinstance(groups_config, dict):
@@ -262,6 +271,8 @@ def _append_fields(
 def init_model(num_players: int, model_input_config: ModelInputConfig = None) -> int:
     """Return the size of the canonical scalar observation vector."""
     groups = _normalize_model_input_config(model_input_config)
+    if 'player' in groups:
+        return sum(len(fields) for fields in groups.values())
     return (
         (num_players * len(groups["friendly_player"]))
         + len(groups["friendly_goalie"])
@@ -328,6 +339,10 @@ def _hidden_state_features(game_state, model_input_config: ModelInputConfig) -> 
 
 def set_model_input(game_state, model_input_config: ModelInputConfig = None) -> FeatureVector:
     """Build the canonical scalar observation vector."""
+    groups = _normalize_model_input_config(model_input_config)
+    if 'player' in groups:
+        from nhl94_ai.env.compact_input import encode
+        return encode(game_state, groups)
     features = _base_features(game_state, model_input_config)
     features.extend(_button_features(game_state, model_input_config))
     features.extend(_hidden_state_features(game_state, model_input_config))
@@ -338,6 +353,8 @@ def set_model_input(game_state, model_input_config: ModelInputConfig = None) -> 
 class ObservationEncoder:
     """Task-selected encoding with a declared observation schema."""
     def __init__(self, task, skaters_per_team, config=None):
+        if isinstance(config, str):
+            config = load_model_input(config)
         self.task = task
         self.config = config
         self.size = task.observation_size(skaters_per_team, config)

@@ -28,6 +28,8 @@ from nhl94_ai.training.logging import com_print, create_output_dir, get_model_fi
 from nhl94_ai.env.factory import get_button_names, init_env
 from nhl94_ai.models.factory import get_model_probabilities, init_model
 from nhl94_ai.config import load_hyperparams, resolve_hyperparams_for_model
+from nhl94_ai.model_inputs import add_model_input_arguments
+from nhl94_ai.tasks.registry import resolve_task_model_input
 import nhl94_ai.env.components as games
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.evaluation.metrics import LiveTeamTotals, LiveEvaluationResult, evaluate_policy_with_totals
@@ -373,7 +375,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument("--seed", type=int, default=0, help="Environment random seed")
     parser.add_argument("--policy_seed", type=int, default=None, help="Optional PPO initialization seed")
-    return parser
+    return add_model_input_arguments(parser)
 
 
 def parse_cmdline(argv: Sequence[str]) -> argparse.Namespace:
@@ -396,6 +398,7 @@ def prepare_args(args: argparse.Namespace, *, hyperparams_base_dir: Optional[str
         if not getattr(args, "load_opponent_model", ""):
             args.load_opponent_model = getattr(args, "load_p1_model", "")
 
+    args.hyperparams_dict = resolve_task_model_input(args, args.hyperparams_dict)
     return args
 
 

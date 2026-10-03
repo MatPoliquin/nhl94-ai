@@ -1,5 +1,5 @@
 """Bounded headless matches for any gameplay agent."""
-from nhl94_ai.agents.registry import ALIASES
+from nhl94_ai.agents.registry import ALIASES, add_classic_arguments
 from dataclasses import asdict, dataclass
 import argparse
 import json
@@ -9,6 +9,7 @@ from nhl94_ai.agents.base import AgentInput, LearnedAgent, configure_scripted_fr
 from nhl94_ai.agents.registry import create_scripted
 from nhl94_ai.artifacts import load_policy, run_metadata
 from nhl94_ai.config import EvaluationConfig, default_config_path, load_hyperparams, resolve_hyperparams_for_model
+from nhl94_ai.model_inputs import add_model_input_arguments
 from nhl94_ai.env.factory import build_single_nhl94_env
 from nhl94_ai.training.datasets import get_game_state
 
@@ -75,10 +76,12 @@ def build_parser():
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--hyperparams', default=default_config_path('nhl94'))
     parser.add_argument('--output', default=None)
-    return parser
+    return add_classic_arguments(add_model_input_arguments(parser))
 
 
 def run(args):
+    if getattr(args, 'cross_crease', False) and args.model:
+        raise ValueError('--cross-crease selects a Classic tactic, not a learned policy')
     if args.action_type.upper() == 'TARGET_POSITION' and not args.model:
         raise ValueError('TARGET_POSITION evaluation requires --model with a target-policy checkpoint')
     config = EvaluationConfig(args.episodes, args.max_steps, args.seed)

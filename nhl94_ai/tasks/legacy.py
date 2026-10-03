@@ -12,6 +12,7 @@ from nhl94_ai.tasks.getpuck import init_getpuck, init_getpuck_az, init_getpuck_d
 from nhl94_ai.tasks.keeppuck import init_keeppuck, isdone_keeppuck, rf_keeppuck
 from nhl94_ai.tasks.passing import isdone_passing, rf_passing
 from nhl94_ai.tasks.postplay import init_postplay, isdone_postplay, rf_postplay
+from nhl94_ai.tasks.pvg import init_pvg, isdone_pvg, rf_pvg
 from nhl94_ai.tasks.scoregoal import isdone_crosscrease_v2, isdone_scoregoal, isdone_scoregoal_cc, isdone_scoregoal_ot, isdone_scoregoal_v4, isdone_scoregoal_v2, rf_crosscrease_v2, rf_scoregoal, rf_scoregoal_cc, rf_scoregoal_ot, rf_scoregoal_v4, rf_scoregoal_v2
 from nhl94_ai.tasks.selfplay import init_selfplay, init_selfplay_defense, init_selfplay_offense, isdone_selfplay, isdone_selfplay_defense, isdone_selfplay_offense, rf_selfplay, rf_selfplay_defense, rf_selfplay_offense
 
@@ -40,6 +41,7 @@ _reward_function_map = {
     "General": (init_general, rf_general, isdone_general, *MODEL_INPUT_FUNCTIONS, input_overide_empty),
     "GeneralV2": (init_general_v2, rf_general_v2, isdone_general_v2, *MODEL_INPUT_FUNCTIONS, input_overide_empty),
     "PostPlay": (init_postplay, rf_postplay, isdone_postplay, *MODEL_INPUT_FUNCTIONS, input_overide_empty),
+    "PvG": (init_pvg, rf_pvg, isdone_pvg, *MODEL_INPUT_FUNCTIONS, input_overide_empty),
     "SelfPlay": (init_selfplay, rf_selfplay, isdone_selfplay, *MODEL_INPUT_FUNCTIONS, input_overide_empty),
     "SelfPlayOffenseFinetune": (init_selfplay_offense, rf_selfplay_offense, isdone_selfplay_offense, *MODEL_INPUT_FUNCTIONS, input_overide_empty),
     "SelfPlayDefenseFinetune": (init_selfplay_defense, rf_selfplay_defense, isdone_selfplay_defense, *MODEL_INPUT_FUNCTIONS, input_overide_empty),

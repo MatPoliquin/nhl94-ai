@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from nhl94_ai.agents.registry import ALIASES, create_scripted
+from nhl94_ai.agents.registry import ALIASES, add_classic_arguments, create_scripted
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.evaluation.benchmark import RAM, away_view, update_state
 from nhl94_ai.game.state import NHL94GameState
@@ -84,6 +84,7 @@ def cpu_match(fixture):
     from stable_retro.data import get_romfile_path
     agent_name, matchup, seed, seconds, frame_skip, schema, *options = fixture
     goalie_policy = options[0] if options else 'off'
+    cross_crease = bool(options[1]) if len(options) > 1 else False
     if goalie_policy != 'off' and schema != 'FILTERED':
         raise ValueError('Manual goalie CPU trials require FILTERED buttons')
     state_name, side = MATCHUPS[matchup]
@@ -100,7 +101,8 @@ def cpu_match(fixture):
         starting_lineup = lineup(info, Path(get_romfile_path('NHL94-Genesis-v0')).read_bytes())
         if (info['bench_team1'], info['bench_team2']) != (side, 0):
             raise ValueError('CPU opponent still has a joystick assigned.')
-        agent = create_scripted(agent_name, SimpleNamespace(action_type=schema, goalie_policy=goalie_policy))
+        agent = create_scripted(agent_name, SimpleNamespace(
+            action_type=schema, goalie_policy=goalie_policy, cross_crease=cross_crease))
         agent.frame_skip = frame_skip
         state, frames = NHL94GameState(5), 1
         context = SimpleNamespace(action_type=schema, game_state=state)
@@ -161,6 +163,9 @@ def cpu_match(fixture):
             'initial_state_sha256': hashlib.sha256(env.initial_state).hexdigest(),
             'goalie_policy': goalie_policy,
             'goalie_metrics': dict(agent.goalie.metrics) if agent.goalie else {},
+            'cross_crease': cross_crease,
+            'cross_crease_metrics': dict(agent.cross_crease.metrics) if agent.cross_crease else {},
+            'cross_crease_events': agent.cross_crease.events if agent.cross_crease else [],
         }
     finally:
         env.close()
@@ -193,6 +198,10 @@ def summarize(results):
         for row in rows:
             goalie_metrics.update(row.get('goalie_metrics', {}))
         summary[matchup]['goalie_metrics'] = dict(goalie_metrics)
+        crossing_metrics = Counter()
+        for row in rows:
+            crossing_metrics.update(row.get('cross_crease_metrics', {}))
+        summary[matchup]['cross_crease_metrics'] = dict(crossing_metrics)
         summary[matchup]['passes_by_purpose'] = {
             purpose: dict(Counter(event['outcome'] for row in rows for event in row.get('pass_events', [])
                                   if event.get('purpose', 'one-timer') == purpose))
@@ -214,7 +223,7 @@ def build_parser():
     parser.add_argument('--action-type', choices=['FILTERED', 'HOCKEY_INTENT_DPAD'], default='FILTERED')
     parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--output')
-    return parser
+    return add_classic_arguments(parser)
 
 
 def run(args):
@@ -227,6 +236,8 @@ def run(args):
         raise ValueError('Manual goalie CPU trials require FILTERED buttons')
     fixtures = [(args.agent, matchup, seed, args.seconds, args.frame_skip, args.action_type, args.goalie_policy)
                 for matchup in args.matchups for seed in range(args.seed, args.seed + args.trials)]
+    if getattr(args, 'cross_crease', False):
+        fixtures = [(*fixture, True) for fixture in fixtures]
     controller = create_scripted(args.agent, SimpleNamespace(action_type=args.action_type)).controller
     files = {Path(__file__), Path(inspect.getfile(PassOutcomes)), Path(inspect.getfile(OffenseMetrics)),
              Path(inspect.getfile(HockeyActionController)), Path(inspect.getfile(NHL94GameState)),
@@ -234,9 +245,9 @@ def run(args):
     files.update(Path(inspect.getfile(cls)) for cls in type(controller).__mro__ if cls is not object)
     root = Path(__file__).resolve().parents[2]
     files.update(root / 'nhl94_ai' / name for name in (
-        'game/ram.py', 'game/geometry.py', 'env/factory.py',
+        'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
         'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/offense.py', 'agents/passing.py',
-        'agents/goalie.py'))
+        'agents/goalie.py', 'agents/cross_crease.py', 'agents/registry.py'))
     sources = {str(path.relative_to(root)):
                hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
     if args.workers == 1:

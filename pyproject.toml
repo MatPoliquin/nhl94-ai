@@ -30,7 +30,7 @@ include = ["nhl94_ai*"]
 exclude = ["tests*", "models*", "configs*"]
 
 [tool.setuptools.package-data]
-nhl94_ai = ["data/training/*.json"]
+nhl94_ai = ["data/*.json", "data/training/*.json"]
 
 [tool.pylint.messages_control]
 disable = [

@@ -16,6 +16,27 @@ def velocity(player):
     return player.motion_x, player.motion_y
 
 
+def skate_step(motion, heading, turning, pad, acceleration, limit):
+    """One frame of the shared conservative eight-way skating projection."""
+    (x, y), (vx, vy) = motion
+    ux, uy = pad
+    wanted = round(math.atan2(ux, uy) * 4 / math.pi) % 8 if ux or uy else heading
+    if wanted != heading:
+        turning = turning or 6
+        turning -= 1
+        if turning == 0:
+            difference = (wanted - heading + 4) % 8 - 4
+            heading = (heading + (1 if difference > 0 else -1)) % 8
+        ux = uy = 0
+    length = max(1, math.hypot(ux, uy))
+    nx, ny = vx * 63 / 64 + acceleration * ux / length, vy * 63 / 64 + acceleration * uy / length
+    if math.hypot(nx, ny) <= max(limit, math.hypot(vx, vy)):
+        vx, vy = nx, ny
+    else:
+        vx, vy = vx * 63 / 64, vy * 63 / 64
+    return ((x + vx, y + vy), (vx, vy)), heading, turning
+
+
 def blocks_shot_lane(player, start, goal, delay=0):
     """Conservative low-shot cover, not a promise of a ROM collision.
 

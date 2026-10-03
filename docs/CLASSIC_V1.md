@@ -43,6 +43,170 @@ Optional read-only goalie motion observations from the experiment remain
 available. V1 uses goalie position for aim and motion for collision avoidance. Legacy velocity
 fields and neural input arrays remain unchanged.
 
+## Opt-in held-C cross-crease finishing
+
+```bash
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 \
+  --state PenguinsVsSenators.start --cross-crease
+```
+
+`--cross-crease` is **off by default**. It is also available to headless
+evaluation, collection, DAgger teachers and CPU benchmarks. Full-team
+`FILTERED` and `HOCKEY_INTENT_DPAD` controls are supported; reduced variants,
+learned-only evaluation and self-play reject the option. Shootout states retain
+ordinary finishing instead of assuming the normal game's pre-release goalie
+save branch. No public action IDs, ordered observations or saved models change.
+
+`agents/cross_crease.py` separates evaluation from execution. From an
+offensive-zone wing it plans the approach and crossing, then compares the
+complete maneuver with immediate shooting, a currently available safe
+one-timer, positional passing/cutting and continued carry. Values are
+uncalibrated opportunity scores, **not goal probabilities**. A crossing must
+beat the best alternative by more than eight points; an already worthwhile
+crossing is preferred to additional setup movement for a higher estimated score.
+The comparison precedes Classic's normal finishing/one-timer priority.
+
+Candidates require known ownership/control, signed motion, shot power,
+handedness and animation feedback. Entry is within attacking depth **88-244**
+and absolute X **8-120**. Neither existing lateral speed nor a nearly horizontal
+velocity is an entry requirement. Up to 160 ordinary-skating frames can create
+the approach, turn and lateral momentum. Candidates include direct crossings
+and wing-ingress/crossing waypoints, projected with the shared velocity-aware
+steering and skating/stop helpers. Only the carrier must remain within the
+rink: an irrelevant skater's extrapolation through the boards does not veto it.
+
+Net-front traffic is not a blanket rejection. Swept body paths, imminent
+collisions, stationary occupants, net routing and defender shot lanes remain
+physical guards. Other actors' motion is extrapolated for at most 12 frames;
+later possible pursuit is a bounded score penalty, not an optimistic boosted-
+arrival veto. Pressure considers both carrier and carried puck. The potential
+goalie response uses a named windup-angle scenario rather than demanding that
+the current goalie already leave the eventual shooting lane clear. Its
+anticipated body sweep is checked separately. These forecasts cannot establish
+that a future ROM save will occur.
+
+Arming is based on the live reachable puck opening, not an instantaneous
+velocity cutoff. Power below 20 uses a shorter, 32-frame projected release
+window instead of the high-power 38-frame window. Both ends of a bounded
+release-hotspot interval contribute to the opportunity score. Future CPU
+decisions, turn timing and save geometry remain uncertain.
+
+Execution is `approach -> fresh C press -> hold/coast -> C release -> confirmed
+shot -> exit`. It runs every emulator frame while other offensive planning
+keeps its configured interval. **D-pad input during ShotMode is aim, not skating
+acceleration**; the crossing uses established inertia. C is held at most 24
+frames, with preparation and the swing/shot outcome bounded by a 240-frame
+sequence deadline. Preparation validates its proposed path, then checks fresh
+12-frame movement sweeps while following the current waypoint. Every 12
+approach frames it can explicitly replace the route with a freshly evaluated
+one; each change is recorded, and replanning cannot deepen the crossing lane.
+Failure to forecast a replacement alone does not invalidate a physically clear
+existing route. Actual obstruction, ownership/control loss or a missed window
+does. It can arm earlier when live momentum supports an immediately worthwhile
+crossing against the selection-time alternatives; the executed plan and actual
+charge position/frame are recorded separately. These alternatives are not a
+per-frame reranking of all ordinary actions.
+
+The native animation can force an earlier release. Save/dive animation,
+wrong-way lateral motion and an observed four-unit advance toward the charging
+skater during actual windup are separately identified commitment evidence.
+An advance is not counted as an accepted save animation or guaranteed opening.
+Early C release can jump directly to a two-frame native release instead of
+waiting for a full 14-frame swing; the early-opening check uses that shorter
+window and requires the body and puck to have crossed. The selected
+world-coordinate aim stays stable through release.
+
+The crossing projection and native-windup monitor use the ROM's combined
+16-unit player-body contact radius plus four units of uncertainty. Before an
+accepted windup, the live hold monitor retains the ordinary 24-unit shooting
+buffer. These maneuver-specific guards
+does not change the ordinary 32-unit movement or 24-unit shooting guards.
+An imminent obstruction, missing motion or an advancing animation forces C release;
+it does not turn a charged shot into a pass or silently redirect its aim.
+An invalidated setup is discarded. Turnover/control loss releases buttons
+before resuming ordinary defense. Manual goalie takeover cannot interrupt an
+active crossing.
+
+Diagnostics expose alternatives, candidate rejection reasons, the exact route
+and current waypoint, replans, charge position, phase, commitment kind and
+release reason. A submitted C press, accepted windup, fresh
+shooter-attributed shot and goal are recorded separately. Contacts require new
+native impact feedback, not a stale positive word or visual proximity.
+CPU reports include per-attempt events and cross-crease counters, plus
+`goalie_contact_impulses` in general offense metrics. The latter counts fresh
+controlled-player collision impulses, not unique collision episodes.
+
+```bash
+python -m tests.integration.cross_crease
+
+# Matched CPU ablation: repeat this command with --cross-crease.
+nhl94 benchmark-cpu --trials 3 --seed 48300 --seconds 300 --workers 2 \
+  --output cross-crease-off.json
+
+# Benchmark-only label: the same Classic controller, with one-timers retained.
+nhl94 benchmark --agent classic-v1-cross-crease --opponents classic-v1 \
+  --pairs 3 --seed 49000 --seconds 300 --workers 2
+```
+
+The isolated ROM checks cover both attacking ends, both crossing directions,
+both action formats, stationary wide-wing starts at X +/-100 and attacking
+depth 180, a deeper (-100, 160) approach and goal, live net-front pursuit,
+safe missed-window exit, and identical active near-net sequences at decision intervals
+1/4/10. They verify actual held-C travel, pre-release commitment, shooter-counted
+shots and absence of native goalie contact. In the coherent timing fixture,
+tap/low-power-held/high-power-held shots release at 6/32/38 frames for both
+handedness values; holding for 60 frames does not postpone the high-power shot
+beyond frame 38. These are fixture measurements, not universal timing constants
+or evidence of improved match strength.
+
+### Historical near-net selection measurement
+
+The [matched CPU report](benchmarks/classic-v1-cross-crease-cpu.json) retains
+an initial pilot on seeds 48000-48002 and a separate frozen evaluation on
+48100-48102. Each cohort has nine five-minute first periods per policy:
+three seeds each for Pittsburgh/Ottawa, Ottawa/Pittsburgh and Quebec/Montreal.
+The initial pilot selected no crossings; subsequent development added bounded
+momentum preparation, shorter low-power windows and evaluation/rejection counts.
+
+The frozen evaluation also selected **zero attempts**. Its 5,187 controlled-
+carrier decisions contained 4,529 outside the entry window, 619 without a safe
+crossing and 39 ineligible animation/shot states. All nine enabled action hashes
+equalled their matched disabled hashes. Both policies scored 13 goals and
+conceded five; one-timers, turnovers and goalie-contact impulses were unchanged.
+The initial pilot likewise had identical actions and scores, 12 goals for and
+three against per policy.
+
+These results belong to the superseded near-net evaluator, not the wing-origin
+planner, and do **not** establish improved normal-match scoring.
+
+### Wing-origin CPU measurement
+
+The [wing-origin report](benchmarks/classic-v1-cross-crease-wing-cpu.json)
+preserves a separate frozen comparison on unused seeds **48300-48302**, again
+nine five-minute periods per policy across the same three matchups. Sources,
+lineups and initial-state hashes match between policies; all nine action hashes
+now differ. Reproduce the CPU command above with `--seed 48300`, once without
+and once with `--cross-crease`.
+
+The enabled policy selected **71 plans, eight actual C attempts, eight accepted
+windups, eight attributed shots and one cross-crease goal**. Five attempts
+observed windup advance and one a pre-release save animation; none of the
+attempt events recorded goalie contact. Real approaches include
+(106, 219) -> (52, 193) over 38 frames and
+(111, -102) -> (36, -177) over 91 frames. Fifty plans were invalidated by fresh
+route guards, three missed their crossing window, eight lost possession, and
+one stopped with play; one plan remained active at period end.
+
+Overall enabled scoring was **12 for / six against**, versus **nine for / two
+against** disabled. General goalie-contact impulses rose from 28 to 66 and
+zone turnovers from 41 to 48, despite no contact on attributed attempts.
+The trajectories also change subsequent ordinary play; these are not causal
+per-attempt contact estimates. The small comparison demonstrates
+ordinary-game use and an attributed goal, **not a match-strength improvement**.
+The tactic remains experimental and off by default.
+Keep the tactic experimental and off by default rather than treating the
+isolated goal examples as a match-strength result.
+
 ## Opt-in manual goalie AI
 
 ```bash

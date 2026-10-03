@@ -5,6 +5,49 @@ from pathlib import Path
 
 
 ROM_RNG_ADDRESS = 0xFFD066
+SKATER_INPUT_ATTRIBUTES = {
+    'weight': (0x67, 120), 'agility': (0x68, 30), 'speed': (0x69, 30),
+    'offensive_delay': (0x6A, 15), 'defensive_delay': (0x6B, 15),
+    'shot_power': (0x6C, 30), 'shot_accuracy': (0x6D, 30), 'passing': (0x6E, 30),
+    'shot_bias': (0x70, 30), 'stick': (0x71, 30), 'endurance': (0x72, 30),
+    'aggression': (0x73, 15), 'checking': (0x75, 30), 'handedness': (0x76, 1),
+}
+GOALIE_INPUT_ATTRIBUTES = {
+    'weight': (0x67, 120), 'agility': (0x68, 30), 'speed': (0x69, 30),
+    'defensive_delay': (0x6B, 15), 'puck_control': (0x6C, 30),
+    'glove_right': (0x6E, 30), 'stick_left': (0x70, 30),
+    'stick_right': (0x72, 30), 'glove_left': (0x73, 15), 'handedness': (0x76, 1),
+}
+
+
+def compact_input_info(env, info, skaters):
+    """Read only selected skaters and goalies, without changing integration aliases."""
+    memory = env.data.memory
+    corrected = dict(info)
+    slots = {skaters, 6 + skaters}
+    for controller in (1, 2):
+        team = memory.extract(0xFFC328 + (controller - 1) * 2, '>u2')
+        slot = memory.extract(0xFFC320 + (controller - 1) * 2, '>i2')
+        corrected[f'defense_team{controller}'] = team
+        corrected[f'defense_control{controller}'] = slot
+        if team in (1, 2) and (team - 1) * 6 <= slot < (team - 1) * 6 + skaters:
+            slots.add(slot)
+    records = {}
+    for slot in slots:
+        base = 0xFFB04A + slot * 0x80
+        if memory.extract(base + 0x66, '|u1') >= 26:
+            records[slot] = None
+            continue
+        attributes = GOALIE_INPUT_ATTRIBUTES if slot in (skaters, 6 + skaters) else SKATER_INPUT_ATTRIBUTES
+        record = {name: memory.extract(base + offset, '|u1') for name, (offset, _) in attributes.items()}
+        record.update(
+            vx=memory.extract(base + 0x28, '>i2'), vy=memory.extract(base + 0x2A, '>i2'),
+            facing=memory.extract(base + 0x54, '>u2'),
+            has_puck=int(memory.extract(0xFFB7AA, '>i2') == slot),
+        )
+        records[slot] = record
+    corrected['model_input_players'] = records
+    return corrected
 
 
 def validate_rom_seed(seed):
@@ -83,6 +126,12 @@ def register_pass_state(env):
         env.data.set_variable(name, {'address': address, 'type': '>i2'})
 
 
+def register_shootout_scores(env):
+    """Native shootout counters update one frame before the ordinary scoreboard."""
+    for side, address in enumerate((0xFFD574, 0xFFD576), start=1):
+        env.data.set_variable(f'p{side}_score', {'address': address, 'type': '>u2'})
+
+
 @lru_cache(maxsize=3)
 def _stick_hotspots(game, rom_path=None):
     from stable_retro.data import get_romfile_path
@@ -152,6 +201,7 @@ def register_goalie_control(env, skaters=5):
             ('speed', 0x69, '|u1'), ('agility', 0x68, '|u1'), ('weight', 0x67, '|u1'),
             ('roster', 0x66, '|u1'), ('stick', 0x71, '|u1'), ('passing', 0x6E, '|u1'),
             ('anim', 0x58, '>u2'), ('anim_frame', 0x5A, '>u2'), ('anim_timer', 0x5C, '|i1'),
+            ('contact_player', 0x2E, '>i2'), ('contact_impact', 0x32, '>u2'),
             ('sprite', 6, '>i2'), ('assignment_index', 0x36, '>u2'), ('cover_timer', 0x48, '>i2'),
         ):
             fields[f'g{side}_control_{name}'] = base + offset, kind
@@ -226,6 +276,10 @@ def register_defense_state(env, skaters):
                 ('weight', 0x67, '|u1'), ('agility', 0x68, '|u1'),
                 ('speed', 0x69, '|u1'), ('stick', 0x71, '|u1'),
                 ('passing', 0x6E, '|u1'),
+                ('shot_power', 0x6C, '|u1'), ('handedness', 0x76, '|u1'),
+                ('live_anim', 0x58, '>u2'), ('live_anim_frame', 0x5A, '>u2'),
+                ('animation_timer', 0x5C, '|i1'),
+                ('contact_player', 0x2E, '>i2'), ('contact_impact', 0x32, '>u2'),
                 ('endurance', 0x72, '|u1'), ('checking', 0x75, '|u1'),
             ):
                 fields[prefix + name] = base + offset, kind

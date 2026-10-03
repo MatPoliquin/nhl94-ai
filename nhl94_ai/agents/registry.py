@@ -8,6 +8,12 @@ CONTROLLERS = {
 ALIASES = {'classic': 'ClassicAIV1', 'classic-v1': 'ClassicAIV1'}
 
 
+def add_classic_arguments(parser):
+    parser.add_argument('--cross-crease', action='store_true',
+                        help='Opt-in full-team Classic held-C cross-crease finishing (default: off)')
+    return parser
+
+
 def create_scripted(name, args, env=None):
     if getattr(args, 'action_type', '').upper() == 'TARGET_POSITION':
         raise ValueError('ClassicAI agents output buttons/intents, not TARGET_POSITION coordinates')

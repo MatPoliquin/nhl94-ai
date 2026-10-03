@@ -50,9 +50,17 @@ class EnvironmentConfig:
         if getattr(args, "alg", "ppo2") not in ("ppo2", "es"):
             raise ValueError("alg must be ppo2 or es")
         from nhl94_ai.models.factory import MODEL_BUILDERS
-        from nhl94_ai.agents.registry import CONTROLLERS
+        from nhl94_ai.agents.registry import CONTROLLERS, ALIASES
         if config.nn not in MODEL_BUILDERS and config.nn not in CONTROLLERS:
             raise ValueError(f'Unknown policy or agent: {config.nn}')
+        if getattr(args, 'rf', '') == 'PvG':
+            supported = (
+                config.env == 'NHL94-Genesis-v0', config.num_players == 1, not config.selfplay,
+                getattr(args, 'side', 'home') == 'home',
+                config.nn not in ('CnnPolicy', 'CustomCnnPolicy', 'ImpalaCnnPolicy', 'CnnTransformerPolicy', 'ViTPolicy'),
+            )
+            if not all(supported):
+                raise ValueError('PvG requires full-team NHL94 with one home controller and structured observations, without self-play')
         goalie_policy = getattr(args, 'goalie_policy', 'off')
         if goalie_policy not in ('off', 'selective', 'always'):
             raise ValueError('goalie_policy must be off, selective or always')
@@ -61,6 +69,12 @@ class EnvironmentConfig:
                             and getattr(args, 'rf', 'PostPlay') == 'PostPlay')
         if goalie_policy != 'off' and not goalie_supported:
             raise ValueError('Manual goalie AI requires full-team Classic FILTERED PostPlay without self-play')
+        if getattr(args, 'cross_crease', False):
+            agent = getattr(args, 'agent', None)
+            classic = config.nn in CONTROLLERS or agent in CONTROLLERS or agent in ALIASES
+            if (not classic or config.env != 'NHL94-Genesis-v0' or config.selfplay
+                    or config.action_type not in ('FILTERED', 'HOCKEY_INTENT_DPAD')):
+                raise ValueError('Cross-crease AI requires full-team Classic buttons/intents without self-play')
         if getattr(args, 'mode', None) == 'player_vs_model' and (
                 config.action_type != 'FILTERED' or config.selfplay):
             raise ValueError('player_vs_model requires FILTERED buttons without self-play')
@@ -177,7 +191,11 @@ def resolve_hyperparams_for_model(
         return {}
 
     if "common" not in hyperparams and "model_overrides" not in hyperparams:
-        return copy.deepcopy(hyperparams)
+        resolved = copy.deepcopy(hyperparams)
+        if isinstance(resolved.get('model_input'), str):
+            from nhl94_ai.model_inputs import load_model_input
+            resolved['model_input'] = load_model_input(resolved['model_input'])
+        return resolved
 
     common = hyperparams.get("common", {})
     if common is None:
@@ -200,6 +218,9 @@ def resolve_hyperparams_for_model(
     resolved = _deep_merge_dicts(common, model_override)
     if "model_input" in hyperparams:
         resolved["model_input"] = copy.deepcopy(hyperparams["model_input"])
+    if isinstance(resolved.get('model_input'), str):
+        from nhl94_ai.model_inputs import load_model_input
+        resolved['model_input'] = load_model_input(resolved['model_input'])
     return resolved
 
 
@@ -297,6 +318,7 @@ PATH_OPTIONS = frozenset({
     'hyperparams', 'output_basedir', 'output', 'output_dir', 'output_model',
     'model', 'model_1', 'model_2', 'load_model', 'load_p1_model', 'load_p2_model',
     'load_opponent_model', 'src', 'dest', 'video_path', 'datasets', 'base_datasets',
+    'model_input_config',
 })
 
 

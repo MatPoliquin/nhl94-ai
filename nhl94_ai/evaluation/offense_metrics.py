@@ -15,8 +15,17 @@ class OffenseMetrics:
         self.last_shots = None
         self.after_shot = False
         self.had_possession = False
+        self.last_goalie_impact = None
+        self.goalie_contact_impulses = 0
 
     def observe(self, frame, state):
+        goalie = state.team2.goalie
+        impact = goalie.contact_impact
+        if impact is not None:
+            if (self.last_goalie_impact is not None and impact > self.last_goalie_impact
+                    and goalie.contact_player == controlled_slot(state.team1)):
+                self.goalie_contact_impulses += 1
+            self.last_goalie_impact = impact
         shots = state.team1.stats.shots
         if shots is not None and self.last_shots is not None and shots > self.last_shots:
             self.after_shot = True
@@ -59,4 +68,5 @@ class OffenseMetrics:
             'entry_threats_total': sum(event['threatening_defenders'] for event in self.entries),
             'turnovers': self.turnovers, 'zone_turnovers': self.zone_turnovers,
             'possession_losses': self.possession_losses, 'zone_possession_losses': self.zone_possession_losses,
+            'goalie_contact_impulses': self.goalie_contact_impulses,
         }

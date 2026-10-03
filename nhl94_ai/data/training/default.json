@@ -16,5 +16,6 @@
   "dropout_prob": 0.3,
   "sticky_actions": true,
   "sticky_action_prob": 0.25,
-  "clip_reward": true
+  "clip_reward": true,
+  "model_input": "legacy"
 }

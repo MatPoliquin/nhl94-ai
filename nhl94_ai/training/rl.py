@@ -7,6 +7,7 @@ from nhl94_ai.agents.registry import CONTROLLERS
 from nhl94_ai.artifacts import save_checkpoint
 
 from nhl94_ai.config import default_config_path
+from nhl94_ai.model_inputs import add_model_input_arguments
 import os
 import sys
 import time
@@ -50,7 +51,7 @@ def build_parser():
 
     parser.add_argument("--seed", type=int, default=0, help="Environment random seed")
     parser.add_argument("--policy_seed", type=int, default=None, help="Optional PPO initialization seed")
-    return parser
+    return add_model_input_arguments(parser)
 
 
 def parse_cmdline(argv):

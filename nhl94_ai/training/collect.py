@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Collect NHL94 ClassicAI demonstrations for imitation learning."""
-from nhl94_ai.agents.registry import ALIASES
+from nhl94_ai.agents.registry import ALIASES, add_classic_arguments
 
 from nhl94_ai.config import default_config_path
+from nhl94_ai.model_inputs import add_model_input_arguments
 
 import argparse
 import json
@@ -43,7 +44,7 @@ def build_parser():
     parser.add_argument("--clip_reward", default=None, action="store_true")
     parser.add_argument("--no_clip_reward", dest="clip_reward", action="store_false")
     parser.add_argument("--agent", default="classic-v1", choices=list(ALIASES))
-    return parser
+    return add_classic_arguments(add_model_input_arguments(parser))
 
 
 def parse_cmdline(argv):

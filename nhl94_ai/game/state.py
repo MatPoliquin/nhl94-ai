@@ -59,6 +59,8 @@ class Player:
     has_anim: float = 0.0
     # Optional live ROM attribute; deliberately absent from neural encodings.
     shot_accuracy: int | None = None
+    shot_power: int | None = None
+    handedness: int | None = None
     passing: int | None = None
     stick_x: int | None = None
     stick_y: int | None = None
@@ -88,6 +90,10 @@ class Player:
     live_state_flags: int | None = None
     assignment: int | None = None
     cover_timer: int | None = None
+    contact_player: int | None = None
+    contact_impact: int | None = None
+    input_state: dict[str, int] | None = None
+    input_state_known: bool = False
 
     def debug_print(self, prefix="Player"):
         print(f"{prefix} - x: {self.x}, y: {self.y}, vx: {self.vx}, vy: {self.vy}, "
@@ -334,7 +340,8 @@ class Team():
         self.defense_goalie = None
         for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing',
                      'selection_flags', 'live_anim', 'live_anim_frame', 'animation_timer',
-                     'live_state_flags', 'cover_timer', 'assignment', 'energy'):
+                     'live_state_flags', 'cover_timer', 'assignment', 'energy',
+                     'contact_player', 'contact_impact'):
             setattr(self.goalie, name, None)
         self.goalie.unavailable = 0
         if 'defense_control1' not in info:
@@ -349,7 +356,9 @@ class Team():
             prefix = f'defense_{self.skater_scnum_base() + index}_'
             player.stick_x = info.get(f'offense_{self.skater_scnum_base() + index}_stick_x')
             player.stick_y = info.get(f'offense_{self.skater_scnum_base() + index}_stick_y')
-            for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'checking', 'endurance', 'passing'):
+            for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'checking', 'endurance', 'passing',
+                         'shot_power', 'handedness', 'live_anim', 'live_anim_frame', 'animation_timer',
+                         'contact_player', 'contact_impact'):
                 setattr(player, name, info.get(prefix + name))
             player.unavailable = info.get(prefix + 'unavailable', 0)
             player.selection_flags = info.get(prefix + 'flags')
@@ -371,6 +380,8 @@ class Team():
             f'defense_energy_{self.controller}_{info.get(prefix + "roster")}')
         goalie.live_anim, goalie.live_anim_frame = info.get(prefix + 'anim'), info.get(prefix + 'anim_frame')
         goalie.animation_timer = info.get(prefix + 'anim_timer')
+        goalie.contact_player = info.get(prefix + 'contact_player')
+        goalie.contact_impact = info.get(prefix + 'contact_impact')
         goalie.live_state_flags = info.get(prefix + 'state_flags')
         goalie.cover_timer = info.get(prefix + 'cover_timer')
         index = info.get(prefix + 'assignment_index')
@@ -410,6 +421,10 @@ class Team():
         self.goalie.vx = info.get(f"{self.ram_var_goalie_prefix}vel_x", 0)
         self.goalie.vy = info.get(f"{self.ram_var_goalie_prefix}vel_y", 0)
         self._load_hidden_player_fields(self.goalie, info, f"{self.ram_var_goalie_prefix}")
+        input_players = info.get('model_input_players', {})
+        goalie_slot = self.skater_scnum_base() + self.num_players
+        self.goalie.input_state_known = goalie_slot in input_players
+        self.goalie.input_state = input_players.get(goalie_slot)
 
         # Players
         for p in range(0, self.num_players):
@@ -430,6 +445,9 @@ class Team():
                 self._load_hidden_player_fields(self.players[p], info, f"{self.ram_var_prefix}{pi}_")
 
             # Convert orientation to vector
+            slot = self.skater_scnum_base() + p
+            self.players[p].input_state_known = slot in input_players
+            self.players[p].input_state = input_players.get(slot)
             angle = self.players[p].orientation * (2 * math.pi / 8)
             self.players[p].ori_x = math.cos(angle)
             self.players[p].ori_y = math.sin(angle)
@@ -616,6 +634,13 @@ class NHL94GameState(TacticalFeatures):
         self.team2 = Team(2, numPlayers)
         self.puck = Player()
         self.engine = EngineState()
+        self.is_shootout_active = False
+        self.is_shooting = False
+        self.has_released_shot = False
+        self.created_pre_shot_opening = False
+        self._shooting_opening_seen: bool | None = None
+        self.c_pressed = False
+        self.c_frames_held = 0
         self.period = 1
         self.time = 0
         self.last_time = 0
@@ -656,7 +681,10 @@ class NHL94GameState(TacticalFeatures):
         self.engine.goalie_chk_body = info.get("goalie_chk_body", 0) or 0
         self.engine.sflags = info.get("sflags", 0) or 0
         self.engine.sflags2 = info.get("sflags2", 0) or 0
+        self.is_shooting = bool(self.engine.sflags & 0x0800)
+        self.has_released_shot = self.has_released_shot or bool(self.engine.sflags2 & 0x1000)
         self.engine.ba_ps_flags = info.get("ba_ps_flags", 0) or 0
+        self.is_shootout_active = bool(self.engine.ba_ps_flags & 0x0400)
         self.engine.word_ffc2f6 = info.get("word_ffc2f6", 0) or 0
         self.engine.word_ffc2f8 = info.get("word_ffc2f8", 0) or 0
         self.engine.word_ffc2fa = info.get("word_ffc2fa", 0) or 0
@@ -730,6 +758,8 @@ class NHL94GameState(TacticalFeatures):
 
     def BeginFrame(self, info, action):
         self.action = action
+        self.c_pressed = bool(action[5])
+        self.c_frames_held = self.c_frames_held + 1 if self.c_pressed else 0
 
         # Handle slapshot frames
         if action[5]:  # C button pressed
@@ -778,6 +808,10 @@ class NHL94GameState(TacticalFeatures):
         # Compute passing lanes AFTER both teams are updated
         self._update_passing_lanes()
         self._update_shot_lanes()
+        opening = self.is_shootout_active and not self.has_released_shot and self._has_viable_shooting_opening()
+        # None marks the reset frame: an opening already in the save is not earned.
+        self.created_pre_shot_opening = self._shooting_opening_seen is False and opening
+        self._shooting_opening_seen = bool(self._shooting_opening_seen or opening)
 
         self._update_opponent_controlled_distances()
 
@@ -792,6 +826,7 @@ class NHL94GameState(TacticalFeatures):
 
     def EndFrame(self):
         self.last_time = self.time
+        self.created_pre_shot_opening = False
 
         self.team1.end_frame()
         self.team2.end_frame()

@@ -15,12 +15,14 @@ class TaskDefinition:
     restrict_action: Callable
     target_control: str | None = None
     target_bounds: tuple[float, float, float, float] | None = None
+    model_input_variant: str | None = None
 
 
 TASKS = {name: TaskDefinition(
             *functions, target_control='defense' if name == 'DefenseZone' else None,
             target_bounds=(-GameConsts.MAX_PLAYER_X, GameConsts.MAX_PLAYER_X,
                            -GameConsts.MAX_PLAYER_Y, GameConsts.DEFENSEZONE_POS_Y) if name == 'DefenseZone' else None,
+            model_input_variant='pvg' if name == 'PvG' else None,
          )
          for name, functions in _reward_function_map.items()}
 
@@ -38,3 +40,13 @@ def get_task(name):
         return TASKS[name]
     except KeyError as error:
         raise ValueError(f'Unsupported Reward Function: {name}') from error
+
+
+def resolve_task_model_input(args, hyperparams, *, task=None):
+    from nhl94_ai.env.encoding import _normalize_model_input_config
+    from nhl94_ai.model_inputs import resolve_model_input
+    if task is None and getattr(args, 'rf', None):
+        task = get_task(args.rf)
+    params = resolve_model_input(args, hyperparams, task=task)
+    params['model_input']['groups'] = _normalize_model_input_config(params['model_input'])
+    return params

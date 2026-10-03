@@ -181,6 +181,19 @@ class TacticalFeatures:
     def _has_open_net_shot(self, shooter: Player, team: Team, opponents: Team) -> bool:
         return self._get_open_net_shot_target(shooter, team, opponents) is not None
 
+    def _has_viable_shooting_opening(self, max_distance: float = 100) -> bool:
+        team = self.team1
+        controlled = team.defense_control if team.defense_control is not None else team.controlled_scnum()
+        shooter = team.get_player_by_scnum(controlled)
+        if shooter is None or shooter is team.goalie or self.engine.puck_owner != controlled:
+            return False
+        net = self._attacking_net_for_team(team)
+        return (
+            shooter.open_net_shot
+            and self._is_in_front_of_attacking_goal_line(shooter, team)
+            and math.hypot(shooter.x - (net.left + net.right) / 2, shooter.y - net.y) <= max_distance
+        )
+
     def _get_clear_one_timer_shot_target(self, shooter: Player, team: Team, opponents: Team) -> tuple[int, int] | None:
         shot_start = (shooter.x, shooter.y)
         attacking_net = self._attacking_net_for_team(team)

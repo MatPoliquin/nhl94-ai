@@ -55,7 +55,7 @@ class ClassicV1Contracts(unittest.TestCase):
                 parser = module.build_parser()
                 self.assertEqual(parser.get_default('agent'), 'classic-v1')
                 choices = next(action.choices for action in parser._actions if action.dest == 'agent')
-                expected = {*ALIASES, 'classic-v1-direct'} if module is benchmark else set(ALIASES)
+                expected = {*ALIASES, 'classic-v1-direct', 'classic-v1-cross-crease'} if module is benchmark else set(ALIASES)
                 self.assertEqual(set(choices), expected)
 
     def test_play_resolves_both_aliases_to_v1(self):

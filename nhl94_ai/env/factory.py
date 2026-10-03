@@ -11,6 +11,7 @@ import nhl94_ai.env.components as games
 import cv2
 from nhl94_ai.env.wrappers import EpisodeROMSeed, StochasticFrameSkip, WarpFrameDict, RewardClipper
 from nhl94_ai.config import EnvironmentConfig, resolve_clip_reward, resolve_sticky_action_settings
+from nhl94_ai.tasks.registry import resolve_task_model_input
 
 
 from nhl94_ai.game.specs import GAMES, get_game
@@ -128,6 +129,7 @@ def build_single_nhl94_env(
     episode_rom_seed=None,
 ):
     EnvironmentConfig.from_args(args)
+    hyperparams = resolve_task_model_input(args, hyperparams)
     if episode_rom_seed is not None:
         validate_rom_seed(episode_rom_seed)
         get_game(args.env)
@@ -197,6 +199,7 @@ def init_env(
     episode_rom_seed=None,
 ):
     EnvironmentConfig.from_args(args)
+    hyperparams = resolve_task_model_input(args, hyperparams)
     args.hyperparams_dict = hyperparams
     wrapper_kwargs = {}
 

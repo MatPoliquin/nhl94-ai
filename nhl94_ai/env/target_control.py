@@ -165,6 +165,19 @@ def route_waypoint(position, target):
     raise RuntimeError(f'No target route around nets: {position} -> {target}')
 
 
+def steering_direction(player, waypoint):
+    """Velocity-aware D-pad corrections shared by target and scripted routes."""
+    dx, dy = waypoint[0] - player.x, waypoint[1] - player.y
+    vx, vy = player.motion_x, player.motion_y
+    if math.hypot(dx, dy) <= SETTINGS.arrival_radius and math.hypot(vx, vy) < 0.2:
+        return (0, 0), 'holding'
+    corrections = dx - SETTINGS.braking_frames * vx, dy - SETTINGS.braking_frames * vy
+    pad = tuple(math.copysign(1, value) if abs(value) > SETTINGS.steering_deadzone else 0
+                for value in corrections)
+    mode = 'braking' if corrections[0] * vx + corrections[1] * vy < 0 else 'skating'
+    return pad, mode
+
+
 class TargetPositionController:
     """No tactical destinations: selection and local mechanics only."""
 
@@ -266,19 +279,13 @@ class TargetPositionController:
 
     def _steer(self, player):
         self.waypoint = route_waypoint((player.x, player.y), self.destination)
-        dx, dy = self.waypoint[0] - player.x, self.waypoint[1] - player.y
-        vx, vy = player.motion_x, player.motion_y
-        if math.hypot(dx, dy) <= SETTINGS.arrival_radius and math.hypot(vx, vy) < 0.2:
-            self.mode = 'holding'
-            return
-        corrections = (dx - SETTINGS.braking_frames * vx, dy - SETTINGS.braking_frames * vy)
+        pad, self.mode = steering_direction(player, self.waypoint)
         for correction, negative, positive in (
-            (corrections[0], Buttons.INPUT_LEFT, Buttons.INPUT_RIGHT),
-            (corrections[1], Buttons.INPUT_DOWN, Buttons.INPUT_UP),
+            (pad[0], Buttons.INPUT_LEFT, Buttons.INPUT_RIGHT),
+            (pad[1], Buttons.INPUT_DOWN, Buttons.INPUT_UP),
         ):
-            if abs(correction) > SETTINGS.steering_deadzone:
+            if correction:
                 self.buttons[positive if correction > 0 else negative] = 1
-        self.mode = 'braking' if corrections[0] * vx + corrections[1] * vy < 0 else 'skating'
 
     def step(self, action, state, info):
         if self.actual_slot is None:

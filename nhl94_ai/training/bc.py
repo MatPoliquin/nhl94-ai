@@ -5,6 +5,8 @@ from nhl94_ai.artifacts import load_policy
 from nhl94_ai.artifacts import save_checkpoint
 
 from nhl94_ai.config import default_config_path
+from nhl94_ai.model_inputs import add_model_input_arguments
+from nhl94_ai.tasks.registry import resolve_task_model_input
 
 import argparse
 import json
@@ -63,7 +65,7 @@ def build_parser():
     parser.add_argument("--clip_reward", default=None, action="store_true")
     parser.add_argument("--no_clip_reward", dest="clip_reward", action="store_false")
     parser.add_argument("--no_frame_skip", default=False, action="store_true")
-    return parser
+    return add_model_input_arguments(parser)
 
 
 def parse_cmdline(argv):
@@ -91,22 +93,24 @@ def _make_model(args, hyperparams, env, logger):
     return init_model(None, "", args.alg, args, env, logger, hyperparams)
 
 
-def _button_state_offset(num_players):
-    return 15 * int(num_players) + 15
-
-
-def _compute_element_weights(observations, actions, release_weight, num_players):
+def _compute_element_weights(observations, actions, release_weight, num_players, model_input_config=None):
     weights = np.ones_like(actions, dtype=np.float32)
     if release_weight <= 1.0:
         return weights
 
-    button_offset = _button_state_offset(num_players)
-    if observations.ndim != 2 or observations.shape[1] < button_offset + len(GAMESTATE_BUTTON_TO_ACTION_INDEX):
-        return weights
+    from nhl94_ai.env.encoding import _normalize_model_input_config, init_model as input_size
+    groups = _normalize_model_input_config(model_input_config)
+    fields = groups.get('buttons', [])
+    names = ('up', 'down', 'left', 'right', 'b', 'c')
+    if any(name not in fields for name in names):
+        raise ValueError('release_weight > 1 requires direction/B/C button fields in the model input.')
+    size = input_size(num_players, model_input_config)
+    if observations.ndim != 2 or observations.shape[1] != size:
+        raise ValueError('Release weighting requires observations matching the selected model input.')
+    button_offset = size - len(fields) - len(groups['hidden_state'])
 
-    previous_buttons = observations[:, button_offset : button_offset + len(GAMESTATE_BUTTON_TO_ACTION_INDEX)]
-    for button_state_index, action_index in enumerate(GAMESTATE_BUTTON_TO_ACTION_INDEX):
-        release_mask = (previous_buttons[:, button_state_index] > 0.5) & (actions[:, action_index] < 0.5)
+    for name, action_index in zip(names, GAMESTATE_BUTTON_TO_ACTION_INDEX):
+        release_mask = (observations[:, button_offset + fields.index(name)] > 0.5) & (actions[:, action_index] < 0.5)
         weights[release_mask, action_index] = float(release_weight)
     return weights
 
@@ -232,6 +236,7 @@ def _compute_hockey_intent_sample_weights(actions, rare_weight):
 
 
 def train_bc(args, hyperparams):
+    hyperparams = resolve_task_model_input(args, hyperparams)
     if args.epochs < 1 or args.batch_size < 1:
         raise ValueError("epochs and batch_size must be positive")
     if not 0 <= args.validation_fraction < 1:
@@ -253,11 +258,13 @@ def train_bc(args, hyperparams):
         if actions.ndim != 2 or actions.shape[1] != 12:
             raise ValueError(f"Expected FILTERED actions with shape (N, 12), got {actions.shape}")
         weights = compute_sample_weights(actions, args.rare_weight)
+        from nhl94_ai.game.specs import get_game
         element_weights = _compute_element_weights(
             observations,
             actions,
             args.release_weight,
-            args.num_players,
+            get_game(args.env).skaters_per_team,
+            hyperparams['model_input'],
         )
     else:
         expected_shape = len(HOCKEY_INTENT_DPAD_ACTION_SPACE)

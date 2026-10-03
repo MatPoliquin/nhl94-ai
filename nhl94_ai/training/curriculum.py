@@ -29,12 +29,12 @@ RUNNER_PHASE_METADATA = {
     "phase_type",
     "eval_episodes",
 }
-PATH_KEYS = ("hyperparams", "load_p1_model", "load_opponent_model", "output_basedir")
-COLLECT_DEMOS_PATH_KEYS = ("hyperparams", "output")
-BC_PRETRAIN_PATH_KEYS = ("hyperparams", "output_dir", "output_model", "load_model")
-DAGGER_PATH_KEYS = ("hyperparams", "output_dir", "model")
+PATH_KEYS = ("hyperparams", "model_input_config", "load_p1_model", "load_opponent_model", "output_basedir")
+COLLECT_DEMOS_PATH_KEYS = ("hyperparams", "model_input_config", "output")
+BC_PRETRAIN_PATH_KEYS = ("hyperparams", "model_input_config", "output_dir", "output_model", "load_model")
+DAGGER_PATH_KEYS = ("hyperparams", "model_input_config", "output_dir", "model")
 POST_PLAY_METADATA = {"enabled"}
-POST_PLAY_PATH_KEYS = ("hyperparams", "output_basedir", "model_1", "model_2", "load_p1_model", "load_p2_model")
+POST_PLAY_PATH_KEYS = ("hyperparams", "model_input_config", "output_basedir", "model_1", "model_2", "load_p1_model", "load_p2_model")
 POST_PLAY_ALLOWED_KEYS = {
     "mode",
     "env",
@@ -49,6 +49,8 @@ POST_PLAY_ALLOWED_KEYS = {
     "single_session",
     "rf",
     "hyperparams",
+    "model_input",
+    "model_input_config",
     "video",
     "video_path",
     "seq_len",

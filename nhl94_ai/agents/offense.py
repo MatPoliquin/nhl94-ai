@@ -4,7 +4,7 @@ from dataclasses import asdict
 import math
 
 from nhl94_ai.agents.defense import controlled_slot, eligible
-from nhl94_ai.agents.motion import arrival_time, facing, skating, stop_projection, velocity
+from nhl94_ai.agents.motion import arrival_time, facing, skate_step, skating, stop_projection, velocity
 from nhl94_ai.agents.passing import evaluate_pass, pressure_margin, rom_direction, shot_value
 from nhl94_ai.env.target_control import project_target, route_waypoint
 
@@ -25,21 +25,8 @@ def carry_projection(player, target, frames=FEINT_FRAMES):
         dx, dy = target[0] - x, target[1] - y
         ux = math.copysign(1, dx) if abs(dx) > 3 else 0
         uy = math.copysign(1, dy) if abs(dy) > 3 else 0
-        length = max(1, math.hypot(ux, uy))
-        wanted = round(math.atan2(ux, uy) * 4 / math.pi) % 8 if ux or uy else direction
-        if wanted != direction:
-            turn_left = turn_left or 6
-            turn_left -= 1
-            if turn_left == 0:
-                difference = (wanted - direction + 4) % 8 - 4
-                direction = (direction + (1 if difference > 0 else -1)) % 8
-            ux = uy = 0
-        nx, ny = vx * 63 / 64 + acceleration * ux / length, vy * 63 / 64 + acceleration * uy / length
-        if math.hypot(nx, ny) <= max(limit, math.hypot(vx, vy)):
-            vx, vy = nx, ny
-        else:
-            vx, vy = vx * 63 / 64, vy * 63 / 64
-        x, y = x + vx, y + vy
+        ((x, y), (vx, vy)), direction, turn_left = skate_step(
+            ((x, y), (vx, vy)), direction, turn_left, (ux, uy), acceleration, limit)
         if math.dist((x, y), project_target((x, y))) > 1e-6:
             return None
     return (x, y), (vx, vy)

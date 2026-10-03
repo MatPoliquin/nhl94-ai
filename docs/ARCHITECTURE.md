@@ -67,6 +67,27 @@ cancel the old opportunity rather than silently rewriting its movement. Goalkeep
 braking and post-cut projection share the same short-horizon motion helper.
 Agent services reset the controller and pending sequences between episodes.
 
+Classic's opt-in `--cross-crease` uses `agents/cross_crease.py` for planned
+wing-origin attacks and a bounded held-C state machine. Selection
+compares immediate shots, available one-timers, passes/cuts and continued carry
+before normal finishing priority. The planner creates the approach and lateral
+momentum rather than requiring them on entry. It projects the carrier with
+shared skating/stop and velocity-aware steering helpers, checks the relevant
+route and shot lanes, and costs uncertain pursuit without rejecting all
+net-front traffic or unrelated actors leaving the rink. Preparation follows
+explicit waypoints with live safety checks and recorded route replacements.
+Active execution reacts every emulator frame;
+ordinary offensive planning retains its decision interval. Read-only skater
+power/handedness/animation and fresh player/goalie impact feedback live outside
+the neural schema. Existing button/intent IDs and default Classic behavior are
+unchanged. Benchmarks expose requests, actual windups, attributed shots/goals,
+contacts and aborted attempts separately. Windup advance, wrong-way motion and
+save animation are distinct observed commitment types, not inferred goals.
+The wing-origin CPU report is separate from the historical zero-attempt
+near-net reports; increased selection has not established stronger match play. See
+[Classic V1](CLASSIC_V1.md#opt-in-held-c-cross-crease-finishing) for the guards,
+timing limits and isolated ROM checks.
+
 Play, evaluation, collection, DAgger, and inference-only guards consume the same
 agent registry, so adding a scripted controller does not require extending
 separate name lists in each command.
@@ -115,6 +136,88 @@ start a fresh run without `--load_p1_model`: loading a checkpoint restores its
 saved architecture and PPO settings rather than applying the new network size.
 The opt-in DefenseZone target example uses its own larger MLP configuration,
 described below; it does not change these shared defaults.
+
+## Model input variants
+
+`configs/model_input.json` is the shared registry of ordered observation
+definitions. It is mirrored at `nhl94_ai/data/model_input.json` for installed
+commands; keep the copies synchronized. Input definitions no longer need to be
+duplicated in hyperparameter files. `model_input: "default"` in the NHL94
+hyperparameters selects the existing schema-version-2 full-team input, preserving
+its exact field order and 310-input size. `legacy` retains the earlier
+schema-version-1 ordering for old generic defaults and low-level callers. Old
+inline `model_input` dictionaries remain supported without reinterpretation.
+
+Tasks may declare `TaskDefinition.model_input_variant`; `PvG` chooses `pvg`.
+An explicit `--model_input NAME` overrides that task default, so input variants
+are not tied to reward functions. Named hyperparameter selections apply when the
+task has no input default. Historical inline definitions retain their precedence
+unless a variant is explicitly requested. `--model_input_config FILE` selects an
+editable/custom registry; its path resolves relative to an options JSON or
+curriculum like other declared paths. The PvG example points to
+`../model_input.json`. Otherwise installed commands use the packaged registry.
+Train, play, evaluate, collection, BC and DAgger share the selector. Resolved
+definitions are snapshotted for the run and saved in artifact metadata.
+
+The `pvg` variant uses layout `player-goalie-v1`, schema version 4, and
+normalization `player-centered-rink-v1`. Its ordered blocks are:
+
+| Block | Features | Meaning |
+|---|---:|---|
+| `player` | 25 | Selected skater presence, velocity, facing, possession, falling/animation state, 14 live attributes, C status and hold duration |
+| `goalie` | 22 | Opposing goalie presence, relative position/velocity, facing, possession/save/animation state and 10 live attributes |
+| `net` | 5 | Both goal-post vectors from the player and net depth |
+
+The player is the origin; its absolute X/Y are not inputs. Goalie and post
+positions subtract the selected player's position and divide X/Y by 240/540.
+Axes stay aligned with the rink, not the player's facing, and these are relative
+Cartesian coordinates, not triangle barycentric weights. Player velocities use
+the complete signed ROM words divided by 32768. Goalie velocities subtract the
+player's full velocities and divide by 65536. Facing uses ROM direction 0 as
+positive Y (`sin/cos(direction * pi/4)`). Animation IDs divide by 65535 and frame
+indices by 32. Values are clipped to `[-1, 1]`; nonfinite values are errors.
+
+The last two player fields are `c_pressed` (0/1) and `c_frames_held`
+(`min(actual_held_frames / 60, 1)`). They describe the last applied C input,
+not whether the ROM accepted or released a shot. The actual counter resets
+only when C is released, never wraps at 60, and advances each emulator frame.
+These controller fields remain observable even without a selected skater.
+Opponent views use their own controller history. Legacy button-model charge
+features retain their previous timing behavior.
+
+Attributes are live gameplay encodings, not UI ratings. Ordinary skills divide
+by 30, stored weight by 120, awareness delays and masked aggression/glove-left
+values by 15; handedness remains 0/1. Smaller awareness delays mean faster CPU
+decisions. Goalie `+0x6C` is puck control, not skater shot power. Feedback reads
+the selected skaters and both goalies directly from this emulator instance,
+without adding integration aliases or changing the legacy neural inputs.
+Missing required feedback is an error. No selection or an absent entity has
+an explicit presence mask and zeroed undefined geometry; stale control stars
+are not used when canonical controller-slot feedback is available.
+
+No other skaters, home-goalie block, puck-position block, full button-history block,
+shot-lane shaping features or general engine-feature block enter `pvg`.
+Other tasks may reuse this same encoder, including subsets of its fields in
+new named definitions. New named definitions can also select subsets of the
+existing full-roster fields. Unknown names/layouts/fields fail explicitly.
+Opponent policies use their saved input definition; mirrored views preserve
+the compact frame and its live motion/facing/ownership feedback. BC release
+weighting requires actual button fields and cannot interpret compact attributes
+as previous buttons.
+
+```bash
+# PvG selects pvg automatically; the example also selects it explicitly.
+nhl94 train --config configs/training/pvg.json --live
+# Reuse the same input with a different task.
+nhl94 train --env NHL94-Genesis-v0 --rf ScoreGoal --nn MlpPolicy --model_input pvg
+```
+
+The named definition, ordered fields, layout and normalization are artifact
+contracts. `default` preserves existing version-2 checkpoints; `legacy` preserves
+version-1 ordering. Earlier 310-input PvG models require `--model_input default`.
+`pvg-v3` preserves the 50-input compact schema without C feedback.
+The 52-input model must start fresh. Matching tensor sizes alone do not
+permit a different field order or coordinate frame.
 
 ## Timing and reset
 
@@ -528,6 +631,90 @@ Boundary and randomized actions are checked through the real wrapper to ensure
 both requested targets and projected destinations stay inside the defensive zone.
 The camera check compares projected world positions with visible faceoff-dot
 pixels across scrolling game frames, without requiring display dependencies.
+
+## PvG (Player vs Goalie)
+
+`PvG` is a home shootout task for `NHL94-Genesis-v0`, with one
+emulator controller and the game's CPU controlling the away goalie. Use
+`MightyDucksVsAllStarCampbell.Shootout.NearGoalie.Start` for the Ducks versus
+Ed Belfour example; `MightyDucksVsAllStarCampbell.Shootout.Start` also works for
+the longer approach. Manual-goalie, `.2P`, ordinary match, reduced-player and
+away-learner configurations are not supported. The task assumes a compatible
+configured CPU-goalie save; its initializer does not inspect roster, possession
+or controller RAM to validate the save.
+
+Rewards are **+1 for a new home goal** and **+0.05 at most once per episode
+for creating a viable opening before shot release**. The controlled skater must
+own the puck, be in front of the goal and within 100 game units of its center,
+and have an open shot lane according to the existing net/goalie geometry.
+The first decoded reset frame is a baseline: an opening already present there
+does not earn a bonus. Staying open or closing/reopening the same lane cannot
+farm more bonuses. A same-frame goal takes priority and returns exactly +1.
+
+Holding C and winding up are not shot release and remain eligible. GameState
+decodes `is_shooting` from the shot-direction mode and latches
+`has_released_shot` from the actual ROM release flag, not C presses, stale stars
+or the recorded-shot counter. Once released, neither a goalie reaction nor
+regained possession/rebounds can earn the bonus. The event
+`created_pre_shot_opening` is cleared at frame end; the release/opening history
+resets with each new GameState episode. Flag masks and geometry remain outside
+the reward function. There is no separate goalie-commit bonus yet.
+
+All other frames give zero and failed attempts have no terminal penalty.
+A goal or the ROM's attempt-completion transition ends the
+episode before the next shooter. Rebounds remain playable until the native
+attempt ends; merely releasing a shot is not terminal. The ordinary game clock
+is stopped in shootouts and is not used as an episode cutoff. Tasks read
+`NHL94GameState.is_shootout_active`, a boolean decoded by GameState; ROM flag
+layout and masks stay out of task code.
+
+The native shootout goal counters at `0xFFD574/0xFFD576` increment before the
+active flag clears; the ordinary scoreboard follows one emulator frame later.
+The task calls `game.ram.register_shootout_scores` to register per-instance
+`p1_score/p2_score` aliases to those counters
+after each save restoration. This keeps sparse rewards, terminal-frame goal
+totals and reset baselines consistent without modifying the installed integration
+or any other task. Saved goals do not count as new rewards. Policy observations
+use the reusable `pvg` input variant described above (52 player/goalie/net
+features with live attributes), while FILTERED button actions are unchanged.
+
+After restoring the save, `tasks.pvg_setup.randomize_pvg_start` applies small
+uniform offsets around the saved geometry and motion, before the neutral reset
+frame. The near-goalie save retains a forward approach and a minimum separation
+of roughly 58 game units between the player and goalie along Y:
+
+| Quantity | Per-episode offset |
+|---|---|
+| Player X / Y | +/-12 / +/-8 game units |
+| Goalie X / Y | +/-6 / +/-3 game units |
+| Player X / Y velocity | +/-256 raw signed-word units per axis (about +/-0.066 game units per emulator frame) |
+
+The puck receives the same position and velocity offsets as its carrier,
+preserving the saved stick-relative geometry. Full fixed-point coordinates,
+previous positions and collision ordering are reset coherently; saved fractional
+coordinates and the goalie's velocity are preserved. Attributes, animations,
+assignments, ownership and controller selection remain unchanged. Both offsets
+and the ROM RNG seed use the environment RNG, so explicit seeds reproduce starts
+and ordinary resets vary them. Bounds are fixed small perturbations, not a
+difficulty curriculum. The existing observation/action contract is unchanged,
+so a current 52-input checkpoint can continue training with `--load_p1_model`.
+Shootout-specific aiming and goalie rules still apply; scoring here does not
+establish normal-match breakaway performance.
+
+```bash
+nhl94 train --config configs/training/pvg.json
+# Same run with the live viewer:
+nhl94 train --config configs/training/pvg.json --live
+```
+
+The example uses PPO, a fresh `[128, 128]` actor/critic MLP, frame skip 4 and
+50 attempts per evaluation; the worker count and timestep budget live in the
+editable training options. Total episode reward lies in `[0, 1.05]` and includes
+shaping, so mean reward is no longer goal rate. Goal rate is home goals divided
+by completed attempts, using the evaluation goal totals.
+Outputs go under `~/OUTPUT/pvg/`. No existing model binaries or shared training
+defaults are changed. Do not use `--load_p1_model` for the initial experiment.
+The explicit ROM contract check is `python -m tests.integration.pvg`.
 
 ## DefenseZone reward
 

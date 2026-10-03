@@ -10,9 +10,12 @@ import numpy as np
 from nhl94_ai.agents.defense import DefenseController, owns_puck
 from nhl94_ai.agents.defense import controlled_slot
 from nhl94_ai.agents.goalie import GoalieController
+from nhl94_ai.agents.cross_crease import CrossCreaseController, crossing_entry, evaluate_cross_crease
 from nhl94_ai.agents.offense import (
-    GOALIE_HORIZON, GOALIE_SHOT_CLEARANCE, OffenseController, goalie_avoidance, goalie_contact_time,
+    GOALIE_HORIZON, GOALIE_SHOT_CLEARANCE, OffenseController, carry_clear,
+    goalie_avoidance, goalie_contact_time, projected_state,
 )
+from nhl94_ai.agents.passing import shot_value
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
 from nhl94_ai.env.intents import (
@@ -50,6 +53,11 @@ class ClassicAIV1Model:
         self.defense_diagnostics = {}
         self.offense = OffenseController(one_timers=self._one_timers)
         self.offense_diagnostics = {}
+        cross_crease = getattr(args, 'cross_crease', False)
+        if cross_crease and (getattr(args, 'action_type', 'FILTERED').upper() not in (
+                'FILTERED', 'HOCKEY_INTENT_DPAD') or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
+            raise ValueError('Cross-crease AI requires full-team FILTERED or HOCKEY_INTENT_DPAD controls')
+        self.cross_crease = CrossCreaseController() if cross_crease else None
         self._last_pass_request = None
         self._one_timer_passes_before = None
         self._one_timer_actual = None
@@ -78,6 +86,8 @@ class ClassicAIV1Model:
         raise NotImplementedError('ClassicAIV1 does not produce a trainable checkpoint.')
 
     def predict_game_state(self, state, deterministic=True):
+        if self._observe_cross_crease(state):
+            return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
         goalie_action = self._goalie_frame(state)
         if goalie_action is not None:
             return goalie_action
@@ -87,6 +97,7 @@ class ClassicAIV1Model:
         if self.goalie is None:
             return None
         blocked = (self._one_timer is not None or self.offense.pending is not None
+                   or self.cross_crease is not None and self.cross_crease.plan is not None
                    or self._tick < self._shot_until or self.defense.pending_check is not None
                    or self.defense.pending_switch is not None)
         action = self.goalie.step(state, blocked=blocked)
@@ -133,7 +144,95 @@ class ClassicAIV1Model:
         if owns_puck(state.team1, owner):
             return False
         return owner >= 0 or (self._one_timer is None and self.offense.pending is None
+                              and (self.cross_crease is None or self.cross_crease.plan is None)
                               and self._tick >= self._shot_until)
+
+    def _observe_cross_crease(self, state):
+        if self.cross_crease is None:
+            return False
+        if state.numPlayers != 5:
+            raise ValueError('Cross-crease AI requires full-team NHL94')
+        plan = self.cross_crease.plan
+        self.cross_crease.observe(state, self.defense.frames)
+        if plan is not None and self.cross_crease.plan is None:
+            self._frame_remaining = 0
+            self.defense_diagnostics = {}
+            self._last_decision = 'cross-crease-ended'
+            self._last_target = self.cross_crease.diagnostics.get('waypoint', plan.target)
+            self.offense_diagnostics = {
+                'mode': self._last_decision, 'decision': self._last_decision,
+                'reason': self.cross_crease.diagnostics['outcome'],
+                'target': self._last_target, 'destination': plan.target, 'waypoint': self._last_target,
+                'actual_slot': controlled_slot(state.team1), 'desired_slot': plan.slot,
+                'receiver': None, 'cross_crease': dict(self.cross_crease.diagnostics),
+                'last_cross_crease': self.cross_crease.events[-1],
+                'buttons': [0] * Buttons.INPUT_MAX,
+            }
+            self.defense.idle(1)
+            return True
+        return False
+
+    def _cross_crease_action(self, state):
+        plan = self.cross_crease.plan
+        action = self.cross_crease.step(state, self.defense.frames, c_down=self._c_down)
+        self.defense_diagnostics = {}
+        self._last_decision = 'cross-crease-' + self.cross_crease.phase
+        self._last_target = self.cross_crease.diagnostics.get('waypoint', plan.target)
+        self.offense_diagnostics = {
+            'mode': self._last_decision, 'decision': self._last_decision,
+            'reason': (self.cross_crease.diagnostics.get('outcome')
+                       or self.cross_crease.diagnostics.get('reason')
+                       or self.cross_crease.diagnostics.get('release_reason', 'execute validated held-C crossing')),
+            'target': self._last_target, 'destination': plan.target, 'waypoint': self._last_target,
+            'actual_slot': controlled_slot(state.team1), 'desired_slot': plan.slot,
+            'receiver': None, 'cross_crease': dict(self.cross_crease.diagnostics),
+            'last_cross_crease': self.cross_crease.events[-1] if self.cross_crease.events else None,
+            'buttons': action.tolist(),
+        }
+        return action, HOCKEY_INTENT_NORMAL_SHOOT if action[Buttons.INPUT_C] else HOCKEY_INTENT_NOOP
+
+    def _choose_cross_crease(self, state, plan, one_timer):
+        controller = self.cross_crease
+        if controller is None or self.defense.frames < controller.retry_at:
+            return False
+        controller.metrics['evaluations'] += 1
+        player = state.team1.get_player_by_scnum(state.engine.puck_owner)
+        if not crossing_entry(state, player):
+            self.offense_diagnostics['cross_crease'] = {'status': 'outside-crossing-entry'}
+            controller.metrics['rejected-outside-crossing-entry'] += 1
+            return False
+        alternatives = {'shoot': shot_value(state, player)}
+        target = self.offense.carry_target(state, player)
+        if carry_clear(state, player, target):
+            future = projected_state(state, target)
+            if future is not None:
+                alternatives['carry'] = shot_value(
+                    future, future.team1.get_player_by_scnum(state.engine.puck_owner))
+        if one_timer is not None:
+            choices, _ = self.offense.passes(state, 'one-timer')
+            if choices:
+                alternatives['one-timer'] = choices[0].shot_value + min(choices[0].margin, 12)
+        if plan is not None:
+            mode, point, option = plan
+            if option is not None:
+                alternatives[mode] = option.shot_value + min(option.margin, 12)
+            else:
+                future = projected_state(state, point)
+                if future is not None:
+                    alternatives[mode] = shot_value(
+                        future, future.team1.get_player_by_scnum(state.engine.puck_owner))
+        crossing, diagnostics = evaluate_cross_crease(state, alternatives)
+        self.offense_diagnostics['cross_crease'] = diagnostics
+        for candidate in diagnostics['candidates']:
+            if candidate['status'] != 'feasible':
+                controller.metrics['candidate-rejected-' + candidate['status']] += 1
+        if crossing is None:
+            controller.metrics['rejected-' + diagnostics['status']] += 1
+            return False
+        self.offense.cancel()
+        controller.diagnostics = diagnostics
+        controller.start(crossing, state, self.defense.frames)
+        return True
 
     def _defend(self, state):
         self.offense.cancel()
@@ -166,11 +265,20 @@ class ClassicAIV1Model:
         """Reactive defense each frame, unchanged offensive decision interval."""
         if frame_skip < 1:
             raise ValueError('Scripted decision interval must be positive')
+        if self._observe_cross_crease(state):
+            self._was_defending = False
+            return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
         self._defense_elapsed = 1
         goalie_action = self._goalie_frame(state)
         if goalie_action is not None:
             self._defense_elapsed = frame_skip
             return goalie_action
+        if self.cross_crease is not None and self.cross_crease.plan is not None:
+            self.defense.idle(1)
+            self._frame_remaining = 0
+            self._was_defending = False
+            self._defense_elapsed = frame_skip
+            return self._encode(*self._cross_crease_action(state))
         self.offense.observe(state, self.defense.frames)
         defending = self._defending(state)
         if self._frame_remaining == 0:
@@ -286,6 +394,9 @@ class ClassicAIV1Model:
         self.defense_diagnostics = {}
         self.offense_diagnostics = {}
         self.offense.observe(state, self.defense.frames)
+        if self.cross_crease is not None and self.cross_crease.plan is not None:
+            self.defense.idle(self._defense_elapsed)
+            return self._cross_crease_action(state)
         if self._defending(state):
             return self._defend(state)
         self.defense.idle(self._defense_elapsed)
@@ -354,6 +465,8 @@ class ClassicAIV1Model:
                 player, opponents.goalie, clearance=GOALIE_SHOT_CLEARANCE) > GOALIE_HORIZON
             normal_finish = progress > shot_y and abs(player.x) < 48 and shot_safe
             target = self._one_timer_target(team, opponents, attack, state=state)
+            if self._choose_cross_crease(state, plan, target):
+                return self._cross_crease_action(state)
             if target is not None and not normal_finish:
                 if self._b_down:
                     self._last_decision = 'pass-button-release'

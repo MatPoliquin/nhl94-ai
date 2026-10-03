@@ -25,6 +25,7 @@ from nhl94_ai.env.target_control import CONTROLLER_FIELDS
 from nhl94_ai.training.datasets import load_demo_arrays, save_demo_shard
 from nhl94_ai.models.factory import MODEL_BUILDERS
 from nhl94_ai.models.mlp import SquashedMlpPolicy
+from nhl94_ai.model_inputs import load_model_input
 
 
 class PackageContracts(unittest.TestCase):
@@ -37,7 +38,7 @@ class PackageContracts(unittest.TestCase):
         params = resolve_hyperparams_for_model(config, 'MlpPolicy')
         self.assertEqual(params['frame_skip'], 4)
         self.assertEqual(params['net_arch'], {'pi': [128, 128], 'vf': [128, 128]})
-        self.assertEqual(params['model_input'], config['model_input'])
+        self.assertEqual(params['model_input'], load_model_input(config['model_input']))
         other = resolve_hyperparams_for_model(config, 'CustomMlpPolicy')
         self.assertEqual(other['net_arch'], {'pi': [512, 512, 256], 'vf': [512, 512, 256]})
         policy_name, kwargs = MODEL_BUILDERS['MlpPolicy'](512, params)

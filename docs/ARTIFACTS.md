@@ -15,6 +15,17 @@ shards use `.npz` plus `.npz.json`. `format_version: 1` records:
 configuration is supplied. Equal tensor lengths do not make different field
 orders compatible. Neural architectures may differ while sharing an input schema.
 
+Named model inputs from `model_input.json` are resolved into the saved
+hyperparameters, including their ordered groups and schema version; a registry
+name alone is not the schema. The compact `pvg` input additionally records
+`observation_layout: player-goalie-v1` and `normalization:
+player-centered-rink-v1`. Schema version 4 has 52 inputs, including C-pressed
+status and a hold-duration counter, and is incompatible with the prior 50-input
+schema version 3 and 310-input PvG model. Use `--model_input pvg-v3` for the
+50-input contract or `--model_input default` for the earlier 310-input contract;
+start fresh to train with C feedback. The `default` and `legacy` registry entries
+preserve the prior version-2 and version-1 field ordering respectively.
+
 Older artifacts remain usable. Missing or old unversioned metadata is explicitly
 `compatibility: unknown`; the loader does not infer an observation contract from
 tensor dimensions. `require_metadata=True` rejects such checkpoints. Resumed runs
