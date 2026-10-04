@@ -17,31 +17,262 @@ Offense uses accuracy-aware finishing and observed pass outcomes:
    less accurate shooters, unless continuing would enter the goalie's space.
    Brake or move aside before a collision-prone swing; finish earlier when the
    approach is unsafe but the shot's coasting clearance is safe. Generate a fresh
-   C press and hold aim through the swing.
+   C press and hold aim through the swing. Both finishing paths require the puck
+   and its estimated coasting release point to remain in front of the goal line.
 3. Otherwise, take a safe one-timer pass to a suitable shooter, using the
    projected contact position. Same-side passes must improve shooting value.
 4. Prefer a safe advancement pass outside finishing range, unless already on
    a verified breakaway. In the attacking zone, pass to a stronger shooting
    position or make a bounded cut only when it improves an opportunity over
-   continuing straight; otherwise carry toward the slot.
+   continuing straight; otherwise carry toward the slot only after checking
+   contact and interception clearance. An unsafe default route triggers a
+   bounded lateral escape, brake or retreat instead.
 5. Without possession, choose a defensive destination, then a skater to execute it.
 
 Possession comes from the engine's puck-owner slot. An opponent taking possession
-ends the shot follow-through. Aim stays stable until a new recorded shot and
+ends the shot follow-through. A different friendly carrier, including a live
+goalie slot in reduced variants, interrupts it on the next emulator frame and
+is evaluated immediately. Aim stays stable until a new recorded shot and
 loss of shooter possession confirm release, checking the shooter slot when
 available. A loose owner alone is insufficient. After release, the remaining
 six-decision follow-through can steer clear of the goalie instead of continuing
 to coast into them.
 Shot left/right refers to the physical goal mouth, even when
 attacking the lower net. There is no inheritance from other agents and no model asset.
-Shot and legacy one-timer timings use agent decisions, normally every four
-emulator frames. Advancement-pass and feint deadlines use emulator frames;
+Shot follow-through and legacy setup movement use agent decisions, normally every
+four emulator frames. One-timer execution/retry, advancement-pass and feint
+deadlines use emulator frames;
 offensive planning retains the configured decision interval.
 Defense and its cooldowns run every emulator frame.
 
 Optional read-only goalie motion observations from the experiment remain
 available. V1 uses goalie position for aim and motion for collision avoidance. Legacy velocity
 fields and neural input arrays remain unchanged.
+
+## Offensive correctness: staged Mighty Ducks/Sabres measurement
+
+Initial corrections to the seven reported control-flow/safety problems were measured in
+cumulative checkpoints against the built-in CPU. Each checkpoint uses the same
+20 ROM seeds, `20261004..20261023`, with the AI controlling Buffalo at home and
+Anaheim away in `SabresVsMightyDucks.ManualGoalie.Start`. The other team is the
+actual CPU, not an idle second human. Goalkeeper assistance and cross-crease
+finishing are off; controls are `FILTERED`, offensive decisions occur every four
+emulator frames, and each trial completes a 300-game-clock-second first period.
+There are **480 completed periods across 12 checkpoints**. Starting save hashes,
+physical teams, lineups and initial effective accuracy match across checkpoints.
+
+The [comparison report](benchmarks/classic-v1-offense-fixes-ducks-sabres.json)
+links every raw report and ordered source patch. Patches were replayed from the
+baseline and checked against each checkpoint's recorded source fingerprints.
+Baseline source is commit `2c5c6d3f1a42dadb09cbdf728f057051b737e159`.
+Apply the patches in order to reproduce intermediate implementations; final
+source fingerprints identify the historical checkpoint, not subsequent follow-up
+changes described below.
+
+Scores below are aggregate **goals for-against over 20 periods per AI side**.
+The last column is the combined goal-difference change against the immediately
+preceding checkpoint, not an isolated ablation.
+
+| Checkpoint | Sabres, home | Mighty Ducks, away | Combined GD delta |
+| --- | --- | --- | --- |
+| 00: unchanged baseline | 40-4 | 24-19 | -- |
+| 01: native one-timer release/stoppage completion | 40-7 | 29-18 | +3 |
+| 02: new friendly carrier interrupts old follow-through | 40-7 | 29-17 | +1 |
+| 03: frame deadlines, B sampling and cadence-aware C eligibility | 41-5 | 22-14 | -1 |
+| 04: select only worthwhile safe passes | 42-6 | 23-15 | 0 |
+| 05: normal/early shot release geometry | 43-5 | 22-14 | +2 |
+| 06: independent bounded skater projections | 37-6 | 21-14 | -8 |
+| 07: contact/interception-checked default carrying | 37-3 | 16-8 | +4 |
+| 08: prefer shooting/progress among safe escapes | 38-8 | 17-12 | -7 |
+| 09: preserve the live puck offset in carry forecasts | 39-6 | 19-6 | +11 |
+| 10: finish even after the original passer recovers | 39-6 | 19-6 | 0 |
+| 11: observe timeout on the exact frame boundary | 40-7 | 16-5 | -2 |
+
+The projection correction exposed a coupled forecast error: hypothetical carries
+had relocated the puck to the skater's center, inventing pass lanes that did not
+exist with the real stick offset. Forecasts now preserve the observed puck offset
+while translating the carrier. This remains an approximation when sprites/facing
+change, not a full future `GetHot` simulation. The recovered-passer hardening
+produced identical action hashes in all 40 measured periods; its extra regression
+case validates the lifecycle edge without claiming a performance gain.
+
+| AI side | Baseline W/D/L | Final W/D/L | Baseline goals | Final goals |
+| --- | --- | --- | --- | --- |
+| Sabres, home | 18/2/0 | 16/3/1 | 40-4 | 40-7 |
+| Mighty Ducks, away | 9/7/4 | 11/8/1 | 24-19 | 16-5 |
+| Combined | 27/9/4 | 27/11/2 | 64-23 | 56-12 |
+
+**This is mixed evidence, not an across-the-board offensive improvement.**
+Anaheim conceded substantially less and lost fewer periods; Buffalo regressed,
+and combined scoring fell by eight goals. Combined goal difference improved by
+three, or 0.075 per period. The paired 95% seed-cluster bootstrap interval is
+`[-0.475, 0.650]` per period and includes zero. Resampling uses 10,000 draws,
+seed 94, and keeps both AI sides together within each ROM-seed cluster.
+Refinements used the same development seeds; this is not held-out confirmation,
+full-game win-rate evidence, or proof that every individual change is stronger.
+The negative intermediate results remain archived rather than being omitted.
+
+Functional coverage separately verifies native completion/cancellation,
+immediate friendly-possession handoff, exact frame deadlines at intervals
+1/4/10, second-choice pass eligibility, both finishing branches and attacking
+ends, board uncertainty, coherent puck attachment, and safe/best-effort carrying.
+Native one-timer replays capture a successful setup **at each tested cadence**:
+changing receiver activation timing changes its movement, so a pass successful
+at interval four is not guaranteed to succeed unchanged at interval ten.
+The setup-cut check now uses a coherent, isolated RAM initializer and verifies
+native fixed-point pose change, actual requested recipient, attempt-counter
+increase and next-frame completion in both action formats; it does not depend
+on a particular full-period policy trajectory retaining a successful cut.
+
+After reconstructing historical checkpoint 11, reproduce its CPU measurement:
+
+```bash
+nhl94 benchmark-cpu --agent classic-v1 \
+  --matchups sabres-ducks-manual ducks-sabres-manual \
+  --goalie-policy off --trials 20 --seed 20261004 --seconds 300 \
+  --frame-skip 4 --action-type FILTERED --workers 4 \
+  --output docs/benchmarks/classic-v1-offense-11-exact-frame-deadline-ducks-sabres.json
+```
+
+### Follow-up: Mighty Ducks / All-Star Campbell
+
+The same pre-fix baseline and controller after the original fixes were compared on the
+previously untuned `MightyDucksVsAllStarCampbell.ManualGoalie.Start` matchup.
+Anaheim is home and All-Star Campbell is away; each version plays 20 completed
+first periods per AI side against the actual CPU. Settings and seeds match the
+offensive-correctness study above: `20261004..20261023`, 300 game-clock seconds,
+four-frame offensive decisions, `FILTERED`, and both goalie assistance and
+cross-crease finishing off. All **80 periods** complete. Starting save hashes,
+teams, lineups and effective accuracy match between baseline/current, and
+source fingerprints match historical checkpoint 11.
+
+The [baseline report](benchmarks/classic-v1-offense-baseline-ducks-campbell.json),
+[current report](benchmarks/classic-v1-offense-final-ducks-campbell.json), and
+[paired comparison](benchmarks/classic-v1-offense-fixes-ducks-campbell.json)
+preserve every trial and source fingerprint. This follow-up compares the entire
+set of fixes; it does not repeat the individual intermediate checkpoints.
+
+| AI side | Baseline W/D/L | Current W/D/L | Baseline goals | Current goals |
+| --- | --- | --- | --- | --- |
+| Mighty Ducks, home | 13/4/3 | 11/7/2 | 30-10 | 26-8 |
+| All-Star Campbell, away | 15/5/0 | 18/1/1 | 40-8 | 52-7 |
+| Combined | 28/9/3 | 29/8/3 | 70-18 | 78-15 |
+
+The larger gain is when Classic controls Campbell: 12 more goals and one fewer
+conceded. Anaheim scores four fewer and concedes two fewer, with fewer wins and
+one fewer loss; its goal difference declines by two. Combined goal difference
+improves by 11, or 0.275 per period, but the paired seed-cluster bootstrap 95%
+interval is `[-0.275, 0.825]` and includes zero. Resampling uses the same 10,000
+draws and seed 94, retaining both AI sides within each seed cluster. No gameplay
+was changed or tuned on these results.
+
+This is new-matchup evidence, not a universal strength claim or a full-game win
+rate. Comparing Anaheim's absolute results with the Buffalo matchup also changes
+home/away status and saved initial ratings. The historical 100-period Campbell
+measurement below additionally enabled selective goalie assistance and is not
+the same protocol as this goalie-off comparison.
+
+```bash
+nhl94 benchmark-cpu --agent classic-v1 \
+  --matchups ducks-campbell-manual campbell-ducks-manual \
+  --goalie-policy off --trials 20 --seed 20261004 --seconds 300 \
+  --frame-skip 4 --action-type FILTERED --workers 4 \
+  --output docs/benchmarks/classic-v1-offense-final-ducks-campbell.json
+```
+
+### Additional lifecycle, release and cue hardening
+
+The follow-up review exposed remaining defects rather than invalidating the
+historical scores above. Recovery of an unsuccessful pass is now distinguished
+from initial retained possession in **both** one-timer and ordinary pass waits.
+One-timer outcomes reconcile exactly, including defensive cancellation and
+period termination. Normal finishing bounds native animation timing and the
+old/glide sprite stick position that can remain latched during windup. The cue
+gate uses earliest body/stick contact instead of closest approach. Negative-role
+off-ice players are excluded consistently without erasing fallen on-ice bodies.
+
+The [follow-up comparison](benchmarks/classic-v1-offense-followup-comparison.json)
+links raw reports, verified incremental runtime patches and paired bootstrap
+estimates. Its baseline is **historical checkpoint 11**, not the original pre-fix
+controller: reconstruct it from the original baseline commit and its eleven
+ordered patches, then apply the five follow-up patches in order. Source hashes
+were checked after every replay and against the final working package.
+
+Five cumulative checkpoints each complete 20 periods per AI side across both
+matchups: **400 new interval-4 periods**, with 80 archived baseline periods reused.
+An additional **160 interval-8 periods** compare the release-guard checkpoint
+against the cue-only checkpoint, isolating that cue change. Both experiments use
+the same `20261004..20261023` seeds, full 300-game-clock-second first periods,
+`FILTERED`, real CPU opponents, four workers, and goalie/cross-crease assistance
+off. Saves, teams, lineups and initial effective accuracy match within each
+paired comparison. These are reused development seeds, not held-out confirmation.
+
+Scores are aggregate goals for-against over 20 periods per AI side.
+
+| Interval-4 checkpoint | Sabres, home | Ducks vs Sabres, away | Ducks vs Campbell, home | Campbell, away |
+| --- | --- | --- | --- | --- |
+| Archived baseline | 40-7 | 16-5 | 26-8 | 52-7 |
+| 01: one-timer recovery and complete outcome accounting | 42-6 | 18-5 | 26-9 | 49-7 |
+| 02: native shot-release envelope | 42-6 | 18-5 | 26-9 | 48-7 |
+| 03: earliest-contact cue eligibility | 42-6 | 18-5 | 26-9 | 49-5 |
+| 04: inactive-player exclusions | 42-6 | 18-5 | 26-9 | 49-5 |
+| 05: ordinary-pass recovery and immediate reevaluation | 37-7 | 18-5 | 28-9 | 50-5 |
+
+| AI side | Baseline W/D/L | Final W/D/L | Baseline goals | Final goals |
+| --- | --- | --- | --- | --- |
+| Sabres, home | 16/3/1 | 16/3/1 | 40-7 | 37-7 |
+| Mighty Ducks vs Sabres, away | 11/8/1 | 12/7/1 | 16-5 | 18-5 |
+| Mighty Ducks vs Campbell, home | 11/7/2 | 11/7/2 | 26-8 | 28-9 |
+| All-Star Campbell, away | 18/1/1 | 19/1/0 | 52-7 | 50-5 |
+| Combined | 56/19/5 | 58/18/4 | 134-27 | 133-26 |
+
+**There is no combined interval-4 goal-difference gain.** The change is zero
+per period, with a paired seed-cluster bootstrap 95% interval
+`[-0.1125, 0.1125]`. Buffalo scoring declines; Anaheim scoring improves in both
+matchups; Campbell concedes less but also scores less. Ordinary-pass telemetry
+records nine actual `recovered-by-passer` cancellations across the final 80
+periods. One-timer starts/endings balance in every completed follow-up report.
+The inactive stage encounters zero negative-role skater frames and reproduces
+all 80 preceding action hashes exactly, so it is not credited with a gain in
+these penalties-off runs.
+
+At interval 8, before/after **the cue change only**:
+
+| AI side | Before goals | After goals | Before W/D/L | After W/D/L |
+| --- | --- | --- | --- | --- |
+| Sabres, home | 30-7 | 25-5 | 13/5/2 | 12/6/2 |
+| Ducks vs Sabres, away | 14-12 | 13-13 | 9/6/5 | 8/6/6 |
+| Ducks vs Campbell, home | 20-19 | 15-14 | 7/5/8 | 5/9/6 |
+| Campbell, away | 32-8 | 45-8 | 14/4/2 | 16/3/1 |
+
+Combined interval-8 goal difference improves by eight, or 0.1 per period;
+the combined 95% interval `[-0.15, 0.35]` still includes zero. Most of the gain
+comes from Campbell, while both Buffalo and Anaheim-away regress. Neither
+comparison establishes a universal strength improvement. Resampling uses 10,000
+draws, seed 94, retaining all four AI sides within each matched ROM-seed cluster.
+
+`python -m tests.integration.offensive_followup` reproduces actual pre-release
+puck positions at/behind the goal line under the old four-frame C schedule,
+then verifies guarded finishing at both attacking ends and in both action
+formats. Native sprite latching matters: checking only the eventual shot sprite
+misses the older glide hotspot that pulls the puck forward during windup.
+The same module demonstrates a short pass that can be one-timed at interval 4
+but must be rejected at interval 8, and a completed native advancement pass past
+a genuinely off-ice, negative-role actor. Longer native one-timers remain
+covered at intervals 1/4/8/10. The setup-cut fixture now uses a longer,
+cadence-valid receiving position and still verifies an actual executed cut and
+receiver-attributed release in both action formats.
+
+The final interval-4 command is:
+
+```bash
+nhl94 benchmark-cpu --agent classic-v1 \
+  --matchups sabres-ducks-manual ducks-sabres-manual \
+    ducks-campbell-manual campbell-ducks-manual \
+  --goalie-policy off --trials 20 --seed 20261004 --seconds 300 \
+  --frame-skip 4 --action-type FILTERED --workers 4 \
+  --output docs/benchmarks/classic-v1-offense-followup-05-ordinary-recovery.json
+```
 
 ## Opt-in held-C cross-crease finishing
 
@@ -753,12 +984,36 @@ probabilities. The additional fields do not change neural observation ordering
 or shapes. Goalie position determines normal-shot aim; goalie ratings
 are not used to assign a scoring probability.
 
-V1 aims the pass and presses B, then releases B. While the puck is loose it
+V1 aims the pass and holds B for at least four emulator frames, then releases B.
+While the puck is loose it
 generates fresh C presses to activate the ROM's one-timer routine. The ROM
 chooses the actual pass recipient from the direction and handles one-timer aim.
 V1 stops pressing C when the intended receiver enters the one-timer animation.
-It cancels on an interception, clean reception, receiver knockdown, or a
-18-decision timeout. A 24-decision pass cooldown prevents immediate retries.
+It ends as soon as a fresh native one-timer attempt counter advances and
+`shot_player` identifies the requested receiver, without waiting for a shot on goal. These
+read-only counters are `0xFFCA2A`/`0xFFCD8E`, exposed as each team's
+`one_timer_attempts`; ordinary `shots` can update later or never for an off-target
+release. A fresh, receiver-attributed recorded shot is a compatibility fallback,
+not a persistent shooter flag or C press. Release and stoppage feedback are
+observed every emulator frame, interrupting held actions before the next normal
+offensive decision. A stopped play clears the sequence and submits neutral input.
+
+Interception, clean reception, receiver knockdown, wrong recipient and bounded
+timeout also cancel the commitment. The live deadline is the rounded predicted
+flight plus release allowance plus 20 emulator frames; missing live flight
+telemetry retains a 72-frame deadline. The retry cooldown is 96 emulator frames.
+Timeout observation uses the current processing frame, not the previous frame's
+clock, so the bound is exact even between offensive decisions. Confirmed native
+release wins over timeout and ends the sequence even if the original passer has
+already recovered the rebound.
+If a pass has actually been observed loose and the original passer regains it
+without that release evidence, V1 instead ends the commitment as
+`recovered-by-passer` and reevaluates immediately. Ordinary advancement/position
+passes use the same flight-versus-windup distinction and interrupt cached neutral
+waiting actions on recovery.
+Every one-timer start has one recorded ending in a completed CPU report,
+including interception and period end. `one_timer_accounting` verifies this
+invariant; native attempt/goal totals are separate from controller outcomes.
 Fresh pass-counter feedback confirms the actual recipient once; a wrong
 recipient cancels the intended one-timer instead of pressing C at the wrong
 play. Both pass types require B release before another request.
@@ -779,14 +1034,15 @@ also clears any held B/aim. The six-field action schema remains unchanged.
 ## Progressive offense
 
 `agents/offense.py` plans progression and cuts; `agents/passing.py` estimates
-pass selection, flight and reception. Defense and shared `agents/motion.py`
-are unchanged from the body-check measurement.
+pass selection, flight and reception. Defense retains its previous tactics;
+shared `agents/motion.py` also supplies coasting and bounded offensive forecasts.
 
 | Mode | Rule |
 | --- | --- |
 | `advance-pass` | Prefer a safe forward pass with at least 20 units of gain that bypasses a defender, gains at least 50 units, or crosses the attacking blue line. |
 | `position-pass` | In the attacking zone, require a modeled shooting-value improvement, not merely a deeper receiver. |
-| `carry-breakaway` | No goal-side skater in the nearby corridor and no modeled short-horizon interception; still move toward central finishing range, not indefinitely along the boards. |
+| `carry-breakaway` | No goal-side skater in the nearby corridor, no modeled short-horizon interception and a contact-clear carrying route; execution shares the ordinary carrying safeguards. |
+| `carry` / `carry-escape` | Keep a verified safe slot route; otherwise compare bounded escapes/braking/retreats. Rank safe alternatives by modeled shooting opportunity and actual projected progress, not unnecessary retreat once safety is established. |
 | `feint` | A left/right cut must improve the modeled shot or receiving opportunity over both the current position and continuing straight. |
 | `one-timer-setup` | A bounded cut must open a safe predicted one-timer without reducing the modeled opportunity; finish or abandon the cut rather than immediately replacing it with an ordinary pass. |
 | `pass-release` / `pass-flight` | Release buttons and follow observed ownership/recipient feedback; an advancement pass must not trigger a one-timer C. |
@@ -832,8 +1088,14 @@ threshold is `13000 + 350 * live_stick`, with no additional energy multiplier.
 Fatigue still affects skating/reachability estimates; stealing uses a separate
 energy-scaled ROM path. A one-timer bypasses that normal catching threshold,
 matching the ROM's dedicated stick-contact
-branch. Its projected contact must lie within the shooting window and leave
-at least four flight frames for the normal four-frame decision cadence's C cue.
+branch. Its projected contact must lie within the shooting window, leave
+at least four flight frames and have its **first possible body/stick contact**
+strictly after the first available C cue
+at the configured offensive decision interval. That cue follows the four-frame
+B hold and estimated release allowance; a ten-frame decision interval is not
+treated as if it could cue at frame four.
+Closest approach can occur after an ordinary catch, so closest-approach timing
+alone is not sufficient cue margin. Diagnostics expose `first_contact_frame`.
 Missing necessary feedback rejects the
 new pass rather than declaring it safe. Offside-enabled blue-line crossings
 also reject predicted teammates ahead of the puck; unknown rule telemetry
@@ -847,12 +1109,15 @@ is a scenario fraction, **not a calibrated completion probability**.
 CPU steering, integer contact timing, deflections and random stick challenges
 can still defeat an accepted pass.
 
-The planner favors forward gain, defenders bypassed, receiving space and
-modeled shooting quality. A close central finisher keeps possession instead
+The planner filters safe passes by the advancement or shooting-improvement rule
+before selecting the highest-ranked remaining candidate. An ineligible first
+choice cannot hide a worthwhile second choice. Ranking favors forward gain,
+defenders bypassed, receiving space and modeled shooting quality. A close central
+finisher with valid release geometry keeps possession instead
 of passing simply for extra depth. Successful reception, another receiver,
 opponent possession and bounded timeout finish the advancement sequence
-separately. New pass requests have a 24-frame cooldown; the existing one-timer
-cooldown remains in decisions. No gameplay/control RAM is written by the agent.
+separately. Ordinary pass requests have a 24-frame cooldown; one-timer requests
+use 96 frames. No gameplay/control RAM is written by the agent.
 
 One-timers rank receiving-shot value and safety margin rather than forward gain.
 They are not limited to current cross-center geometry: an incoming receiver can
@@ -871,6 +1136,19 @@ uncertain wall/net motion, and abandons the commitment when pressure worsens
 or a close finishing opportunity takes priority. The ROM check exposed a
 turn-before-acceleration delay; a simple instantaneous-heading projection was
 not sufficient. These remain motion estimates, not exact CPU-response predictions.
+
+The carrier's actual target-directed or braking path is validated before
+constructing a future state. Its unused straight-line extrapolation cannot veto
+a valid brake, and braking paths themselves must stay within the playable area.
+Other skaters reaching conservative board/net bounds no longer reject the whole
+forecast. Their projected centers are bounded and the displacement introduces
+`projection_uncertainty`, which expands collision/shot/pass envelopes and
+optimistic reachability. An uncertain forecast receiver is rejected individually
+rather than invalidating unrelated shooting opportunities. Goalies retain their
+separate motion treatment. This bounds uncertainty; it does not predict an exact
+board rebound. The field is forecast-only and never enters neural arrays.
+The puck keeps its live offset from the carrier instead of being recentered,
+so projected passing lanes start from the observed attachment geometry.
 
 Passing and feinting never assume that uncontrolled teammates obey new
 destinations: their observed motion and existing ROM support behavior determine
@@ -905,6 +1183,21 @@ tasks, saved neural models and learned target-controller behavior are unchanged.
 Optional goalie full-word motion now uses the actual goalie slots in reduced
 variants, rather than assuming full-team slots 5/11.
 
+Ordinary carrying now validates the actual routed, goalie-adjusted waypoint at
+4/8/12/18 frames against friendly/opposing body contact and at least three frames
+of optimistic interception margin. Safe default routes are preserved. If one
+fails, safe lateral, braking and retreat options are ranked by their projected
+shooting value and progress. When no safe option exists, the controller chooses
+a best-effort bounded escape and reports `carry_safe=False`; unavoidable wall/net
+contact requests braking without claiming safety. Missing live motion remains
+the explicit legacy compatibility path with `carry_safe=None`.
+`carry_clearance`, `carry_pressure`, `carry_progress` and `carry_shot_value`
+explain the selection. CPU reports additionally count controller-observed
+one-timer endings and safe/default/escape/least-risk carrying decisions.
+Ordinary-pass endings are additionally recorded in `ordinary_pass_metrics`.
+Negative native roles mean off ice: those players are not projected into blockers,
+but an unavailable or fallen player with an on-ice role remains an obstacle.
+
 `python -m tests.integration.classic_offense` confirms an actual ROM-selected
 advanced recipient, reception and control transfer in both action formats,
 without defensive switching or one-timer C. It also verifies that a purposeful
@@ -934,7 +1227,11 @@ planning choices, not fixed ROM body radii or Penguins-specific calibration.
 Normal finishing range is retained on clear approaches. When carrying closer
 would be unsafe, a central shooter beyond depth 175 can finish earlier after
 checking coasting clearance through the swing. A higher-speed approach can
-instead require braking first.
+instead require braking first. The current puck and estimated release after the
+configured C hold plus two native release frames must both remain in front of
+the goal line. Behind-the-net carrying uses net-aware waypoints back into
+position. A zero conservative `shot_value` alone is not a legality test: legal
+very-close shots beyond its heuristic depth window remain possible.
 
 Diagnostics expose `goalie_clearance`, `original_goalie_clearance` and
 `goalie_avoidance_safe`, with an amber offensive or green defensive escape target.

@@ -1,0 +1,166 @@
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -15,7 +15,7 @@
+     GOALIE_HORIZON, GOALIE_SHOT_CLEARANCE, OffenseController, carry_clear,
+     goalie_avoidance, goalie_contact_time, projected_state,
+ )
+-from nhl94_ai.agents.passing import shot_value
++from nhl94_ai.agents.passing import pass_release_frames, shot_value
+ from nhl94_ai.game.constants import GameConsts as Buttons
+ from nhl94_ai.game.geometry import aim_pass
+ from nhl94_ai.env.intents import (
+@@ -23,6 +23,12 @@
+     HOCKEY_INTENT_NORMAL_SHOOT, HOCKEY_INTENT_CHANGE_PLAYER,
+     HOCKEY_INTENT_PASS_START, HOCKEY_INTENT_POKE_CHECK,
+ )
++from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
++
++
++ONE_TIMER_TIMEOUT_FRAMES = 72
++ONE_TIMER_CONTACT_GRACE = 20
++ONE_TIMER_RETRY_FRAMES = 96
+ 
+ 
+ class ClassicAIV1Model:
+@@ -63,6 +69,9 @@
+         self._one_timer_actual = None
+         self._one_timer_attempts_before = None
+         self._one_timer_shots_before = 0
++        self._one_timer_started = 0
++        self._one_timer_flight = None
++        self._decision_interval = 4
+         self.one_timer_metrics = {}
+         self._frame_remaining = 0
+         self._frame_action = np.zeros((1, self._size), dtype=np.int8)
+@@ -272,6 +281,7 @@
+         """Reactive defense each frame, unchanged offensive decision interval."""
+         if frame_skip < 1:
+             raise ValueError('Scripted decision interval must be positive')
++        self._decision_interval = self.offense.decision_interval = frame_skip
+         self._observe_follow_through(state)
+         if self._observe_one_timer(state):
+             self.defense.idle(1)
+@@ -336,8 +346,9 @@
+ 
+     def _one_timer_target(self, team, opponents, attack, prepare=False, state=None):
+         """Rank live one-timer shots; retain the static scan without telemetry."""
++        self._one_timer_flight = None
+         passer = team.get_player_by_scnum(state.engine.puck_owner) if state is not None else team.get_controlled_player()
+-        if not self._one_timers or self._tick < self._pass_at or passer.y * attack < 100:
++        if not self._one_timers or self.defense.frames < self._pass_at or passer.y * attack < 100:
+             return None
+         if state is not None and passer.passing is not None and not prepare:
+             choices, details = self.offense.passes(state, 'one-timer')
+@@ -345,6 +356,7 @@
+             if not choices:
+                 return None
+             best = choices[0]
++            self._one_timer_flight = best.flight_frames + pass_release_frames(team.players[best.index])
+             indices = [i for i in range(len(team.players)) if team.players[i] is not passer]
+             return indices.index(best.index), best.slot
+         teammates = [(team.skater_scnum_base() + i, p) for i, p in enumerate(team.players)
+@@ -400,6 +412,8 @@
+         if (state.engine.puck_owner != passer and state.engine.shot_player == slot
+                 and (released or recorded)):
+             self._end_one_timer('shot-released')
++        elif self.defense.frames >= self._one_timer[2]:
++            self._end_one_timer('timeout')
+         return False
+ 
+     def _continue_one_timer(self, state, action):
+@@ -414,16 +428,19 @@
+         if self._one_timer_actual is not None and self._one_timer_actual != slot:
+             self._end_one_timer('receiver-mismatch')
+             return None
+-        if (receiver is None or receiver.is_falling or self._tick >= deadline
++        if (receiver is None or receiver.is_falling or self.defense.frames >= deadline
+                 or owner >= 0 and owner != passer):
+             self._end_one_timer(
+-                'timeout' if self._tick >= deadline else 'receiver-unavailable'
++                'timeout' if self.defense.frames >= deadline else 'receiver-unavailable'
+                 if receiver is None or receiver.is_falling else 'possession-changed')
+             return None
+         self._last_decision = 'one-timer-wait'
+         self.offense_diagnostics = {'desired_slot': slot, 'reason': 'wait for one-timer contact',
+                                     'actual_receiver': self._one_timer_actual}
+-        if owner == passer:
++        if self.defense.frames - self._one_timer_started < HOCKEY_PASS_PRESS_FRAMES:
++            aim_pass(action, state.team1.get_player_by_scnum(passer), receiver)
++            action[Buttons.INPUT_B] = 1
++        elif owner == passer:
+             self._last_target = (receiver.x, receiver.y)
+             aim_pass(action, state.team1.get_player_by_scnum(passer), receiver)
+         elif not self._c_down and not receiver.is_one_timer:
+@@ -516,12 +533,15 @@
+                     return action, HOCKEY_INTENT_NOOP
+                 index, slot = target
+                 receiver = team.get_player_by_scnum(slot)
+-                self._one_timer = (owner, slot, self._tick + 18)
++                duration = (math.ceil(self._one_timer_flight) + ONE_TIMER_CONTACT_GRACE
++                            if self._one_timer_flight is not None else ONE_TIMER_TIMEOUT_FRAMES)
++                self._one_timer_started = self.defense.frames
++                self._one_timer = (owner, slot, self.defense.frames + duration)
+                 self._one_timer_passes_before = team.pass_attempts
+                 self._one_timer_actual = None
+                 self._one_timer_attempts_before = team.one_timer_attempts
+                 self._one_timer_shots_before = team.stats.shots
+-                self._pass_at = self._tick + 24
++                self._pass_at = self.defense.frames + ONE_TIMER_RETRY_FRAMES
+                 self._setup_until = 0
+                 self._last_decision = 'one-timer-pass'
+                 self._last_target = (receiver.x, receiver.y)
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -160,8 +160,9 @@
+ 
+ 
+ class OffenseController:
+-    def __init__(self, *, one_timers=True):
++    def __init__(self, *, one_timers=True, decision_interval=4):
+         self.one_timers = one_timers
++        self.decision_interval = decision_interval
+         self.pending = None
+         self.pass_at = 0
+         self.feint_until = self.feint_at = 0
+@@ -246,7 +247,8 @@
+         for index, receiver in enumerate(state.team1.players):
+             if receiver is player:
+                 continue
+-            option, details = evaluate_pass(state, player, index, receiver, purpose)
++            option, details = evaluate_pass(
++                state, player, index, receiver, purpose, decision_interval=self.decision_interval)
+             if (purpose == 'one-timer' and option is not None
+                     and not (option.point[0] * player.x <= 0 and abs(option.point[0] - player.x) > 30)
+                     and option.shot_value <= current_shot + 12):
+--- a/nhl94_ai/agents/passing.py
++++ b/nhl94_ai/agents/passing.py
+@@ -7,6 +7,7 @@
+ from nhl94_ai.agents.defense import eligible
+ from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, facing, skating, velocity
+ from nhl94_ai.env.target_control import _clear_segment, project_target
++from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
+ from nhl94_ai.game.geometry import aim_pass
+ 
+ 
+@@ -244,7 +245,9 @@
+     return clear * 12 + max(0, point[1] * sign - 170) * 0.3 + accuracy * 0.3 + opening
+ 
+ 
+-def evaluate_pass(state, passer, index, receiver, purpose='advance'):
++def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision_interval=4):
++    if decision_interval < 1:
++        raise ValueError('Pass decision interval must be positive')
+     slot = state.team1.skater_scnum_base() + index
+     details = {'slot': slot, 'status': 'missing-feedback'}
+     required = ('motion_x', 'motion_y', 'speed', 'agility', 'weight', 'energy', 'facing', 'stick')
+@@ -274,7 +277,9 @@
+         accuracy = receiver.shot_accuracy if receiver.shot_accuracy is not None else 15
+         if abs(point[0]) > 70 or not 175 + max(0, 15 - accuracy) <= point[1] * sign < 245:
+             return None, {**details, 'status': 'outside-one-timer-window'}
+-        if flight < 4:
++        cue = math.ceil(max(HOCKEY_PASS_PRESS_FRAMES, release) / decision_interval) * decision_interval
++        details['cue_frame'] = cue
++        if flight < 4 or total <= cue:
+             return None, {**details, 'status': 'too-short-for-one-timer-cue'}
+     crosses_zone = state.puck.y * sign < 88 <= point[1] * sign
+     if crosses_zone and state.engine.offsides_enabled is None:

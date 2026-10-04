@@ -50,7 +50,7 @@ def conflicted_setup_state(*, away=False):
     passer.x, passer.facing = 0, 5 if away else 1
     receiver.x, receiver.y, receiver.motion_y = sign * 35, sign * 205, 0
     blocker = state.team1.players[2]
-    blocker.x, blocker.y, blocker.unavailable = sign * 15, sign * 207, 4
+    blocker.x, blocker.y, blocker.unavailable = sign * 15, sign * 209, 4
     state.puck.x = 0
     state.team2.players[0].x, state.team2.players[0].y = sign * 70, sign * 245
     state.team2.goalie.x, state.team2.goalie.y = 0, sign * 220
@@ -104,6 +104,19 @@ class GoalieAvoidanceTests(unittest.TestCase):
                     action = buttons_for(model, state)
                     self.assertEqual(model._last_decision, 'shoot')
                     self.assertTrue(action[Buttons.INPUT_C])
+
+    def test_early_goalie_finish_cannot_release_after_coasting_behind_the_net(self):
+        state = approach_state()
+        player = state.team1.players[0]
+        player.x, player.y, player.motion_y = 40, 214, 8
+        state.puck.x, state.puck.y = 40, 224
+        state.team2.goalie.x, state.team2.goalie.y = 0, 250
+        self.assertGreater(goalie_contact_time(player, state.team2.goalie, clearance=24), GOALIE_HORIZON)
+        self.assertIsNotNone(goalie_avoidance(state, player, OffenseController.carry_target(state, player)))
+        model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED', one_timers=False))
+        action = buttons_for(model, state)
+        self.assertNotEqual(model._last_decision, 'shoot')
+        self.assertFalse(action[Buttons.INPUT_C])
 
     def test_setup_plans_the_actual_goalie_safe_route_in_both_directions_and_formats(self):
         for away in (False, True):
@@ -211,6 +224,7 @@ class GoalieAvoidanceTests(unittest.TestCase):
         model.offense.pending = {
             'passer': 0, 'receiver': 1, 'purpose': 'advance', 'frame': 0, 'deadline': 80,
             'point': (-80, -30), 'passes_before': 0, 'actual_receiver': None, 'launched': False,
+            'flight_observed': False,
         }
         self.assertFalse(model.predict_game_state(state).any())
         state.engine.puck_owner, state.engine.last_puck_player = -256, 0

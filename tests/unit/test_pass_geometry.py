@@ -11,7 +11,7 @@ from nhl94_ai.agents.motion import VELOCITY_SCALE
 from nhl94_ai.agents.passing import (
     _divide, _rom_sqrt, evaluate_pass, pass_contact, pass_release_frames, rom_pass_vector,
 )
-from nhl94_ai.game.ram import _stick_hotspots, pass_geometry_info
+from nhl94_ai.game.ram import _animation_frames, _animation_rom, _stick_hotspots, pass_geometry_info
 from nhl94_ai.game.state import NHL94GameState
 from tests.ram_fixture import FixtureMemory
 from tests.unit.test_classic_offense import offense_state
@@ -29,6 +29,10 @@ class SpriteHotspotTests(unittest.TestCase):
         table[6:8] = bytes((24, 252))
         self.table = bytes(table)
         self.env.data.memory.assign(0xFFB04A + 6, '>i2', 3)
+        self.shots = tuple(((4,) * 8, ((0, 0),)) for _ in range(8))
+        self.mock_shots = patch('nhl94_ai.game.ram._shot_animations', return_value=self.shots)
+        self.mock_shots.start()
+        self.addCleanup(self.mock_shots.stop)
 
     def _read(self, flags, *, sflags=0):
         self.env.data.memory.assign(0xFFB04A + 4, '|u1', flags)
@@ -61,7 +65,8 @@ class SpriteHotspotTests(unittest.TestCase):
                 with patch('nhl94_ai.game.ram._stick_hotspots', return_value=self.table):
                     info = pass_geometry_info(env, original)
                 slots = [*range(count), *range(6, 6 + count)]
-                expected = {f'offense_{slot}_stick_{axis}' for slot in slots for axis in ('x', 'y')}
+                expected = {f'offense_{slot}_{field}' for slot in slots
+                            for field in ('stick_x', 'stick_y', 'shot_durations', 'shot_offsets_y')}
                 self.assertEqual(set(info) - set(original), expected)
                 self.assertEqual(original, {'p1_vel_x': 15, 'sflags': 0})
 
@@ -69,12 +74,16 @@ class SpriteHotspotTests(unittest.TestCase):
         info = json.loads((Path(__file__).resolve().parents[1] /
                            'fixtures/NHL94-Genesis-v0.json').read_text(encoding='utf-8'))
         info.update(defense_control1=0, defense_team1=1, defense_team2=0,
-                    offense_0_stick_x=-24, offense_0_stick_y=4)
+                    offense_0_stick_x=-24, offense_0_stick_y=4,
+                    offense_0_shot_durations=(4,) * 8, offense_0_shot_offsets_y=(12, 20))
         state = NHL94GameState(5)
         state.BeginFrame(info, [0] * 6)
         self.assertEqual((state.team1.players[0].stick_x, state.team1.players[0].stick_y), (-24, 4))
         self.assertIsNone(state.team2.players[0].stick_x)
         self.assertIsNone(state.team1.nz_players[0].stick_x)
+        self.assertEqual(state.team1.players[0].shot_offsets_y, (12, 20))
+        self.assertIsNone(state.team1.nz_players[0].shot_offsets_y)
+        self.assertIsNone(state.team1.nz_players[0].shot_durations)
         del info['offense_0_stick_x']
         state.BeginFrame(info, [0] * 6)
         self.assertIsNone(state.team1.players[0].stick_x)
@@ -103,6 +112,22 @@ class SpriteHotspotTests(unittest.TestCase):
                 path.write_bytes(bytes(rom[1:]))
                 with self.assertRaisesRegex(ValueError, 'Unsupported GetHot'):
                     _stick_hotspots('unsupported')
+
+    def test_animation_offsets_are_signed_and_long_native_pose_durations_are_valid(self):
+        rom = bytearray(0x7000)
+        base = 0x5B1C + 0x50C
+        for direction in range(8):
+            rom[base + direction * 2:base + direction * 2 + 2] = (-20).to_bytes(2, 'big', signed=True)
+        rom[base - 20:base - 12] = bytes.fromhex('000300780004ffff')
+        _animation_frames.cache_clear()
+        _animation_rom.cache_clear()
+        self.addCleanup(_animation_frames.cache_clear)
+        self.addCleanup(_animation_rom.cache_clear)
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / 'animation.rom'
+            path.write_bytes(rom)
+            frames = _animation_frames('fixture', 0x50C, str(path))
+        self.assertEqual(frames, (((3, 120), (4, -1)),) * 8)
 
 
 class IntegerPassGeometryTests(unittest.TestCase):

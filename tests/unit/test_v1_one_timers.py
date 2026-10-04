@@ -114,6 +114,83 @@ class OneTimerContracts(unittest.TestCase):
         self.assertIsNone(model._one_timer)
         self.assertEqual(model._last_decision, 'carry')
 
+    def test_fresh_receiver_release_ends_the_sequence_even_without_a_shot_on_goal(self):
+        for feedback in ('attempt', 'recorded-shot'):
+            with self.subTest(feedback=feedback):
+                state, model = cross_slot_state(), ClassicAIV1Model()
+                state.team1.one_timer_attempts = 3
+                model.predict_game_state(state)
+                state.engine.puck_owner, state.engine.shot_player = -256, 1
+                if feedback == 'attempt':
+                    state.team1.one_timer_attempts = 4
+                else:
+                    state.team1.stats.shots += 1
+                model.predict_game_state(state)
+                self.assertIsNone(model._one_timer)
+                self.assertEqual(model.one_timer_metrics['shot-released'], 1)
+                self.assertFalse(model._last_decision.startswith('one-timer'))
+
+    def test_stale_or_other_shooter_feedback_does_not_finish_the_sequence(self):
+        for feedback in ('stale', 'other-shooter'):
+            with self.subTest(feedback=feedback):
+                state, model = cross_slot_state(), ClassicAIV1Model()
+                state.team1.one_timer_attempts = 3
+                state.engine.shot_player = 1
+                model.predict_game_state(state)
+                state.engine.puck_owner = -256
+                if feedback == 'other-shooter':
+                    state.team1.one_timer_attempts = 4
+                    state.team1.stats.shots += 1
+                    state.engine.shot_player = 2
+                model.predict_game_state(state)
+                self.assertIsNotNone(model._one_timer)
+
+    def test_stoppage_clears_the_sequence_between_offensive_decisions(self):
+        for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
+            with self.subTest(schema=schema):
+                state = cross_slot_state()
+                model = ClassicAIV1Model(SimpleNamespace(action_type=schema))
+                model.predict_frame(state, frame_skip=4)
+                state.engine.clock_stopped = True
+                action = model.predict_frame(state, frame_skip=4)[0]
+                self.assertIsNone(model._one_timer)
+                self.assertFalse(action.any())
+                self.assertEqual(model.one_timer_metrics['play-stopped'], 1)
+                self.assertEqual(model._frame_remaining, 0)
+
+    def test_receiver_release_interrupts_a_repeated_c_action_on_the_next_frame(self):
+        state, model = cross_slot_state(), ClassicAIV1Model()
+        state.team1.one_timer_attempts = 0
+        for _ in range(4):
+            model.predict_frame(state, frame_skip=4)
+        state.engine.puck_owner = -256
+        self.assertTrue(model.predict_frame(state, frame_skip=4)[0, Buttons.INPUT_C])
+        state.team1.one_timer_attempts, state.engine.shot_player = 1, 1
+        model.predict_frame(state, frame_skip=4)
+        self.assertIsNone(model._one_timer)
+        self.assertEqual(model.one_timer_metrics['shot-released'], 1)
+
+    def test_legacy_timeout_is_in_emulator_frames_at_all_decision_intervals(self):
+        for interval in (1, 4, 10):
+            with self.subTest(interval=interval):
+                state, model = cross_slot_state(), ClassicAIV1Model()
+                model.predict_frame(state, frame_skip=interval)
+                self.assertEqual(model._one_timer[2] - model._one_timer_started, 72)
+                deadline = model._one_timer[2]
+                while model.defense.frames < deadline - 1:
+                    model.predict_frame(state, frame_skip=interval)
+                    self.assertIsNotNone(model._one_timer)
+                model.predict_frame(state, frame_skip=interval)
+                self.assertIsNone(model._one_timer)
+                self.assertEqual(model.defense.frames, deadline)
+                self.assertEqual(model.one_timer_metrics['timeout'], 1)
+
+    def test_interval_one_keeps_raw_b_held_for_the_rom_pass_sampling_window(self):
+        state, model = cross_slot_state(), ClassicAIV1Model()
+        for _ in range(4):
+            self.assertTrue(model.predict_frame(state, frame_skip=1)[0, Buttons.INPUT_B])
+        self.assertFalse(model.predict_frame(state, frame_skip=1)[0, Buttons.INPUT_B])
+
     def test_blocked_lane_covered_receiver_and_wrong_zone_are_rejected(self):
         for situation in ('lane', 'receiver', 'zone', 'side', 'falling'):
             with self.subTest(situation=situation):
@@ -227,6 +304,63 @@ class OneTimerContracts(unittest.TestCase):
         model = ClassicAIV1Model()
         model.predict_game_state(state)
         self.assertIsNone(model._one_timer)
+
+
+class OneTimerCompletionContracts(unittest.TestCase):
+    def test_original_passer_recovery_interrupts_wait_between_decisions(self):
+        for interval in (1, 4, 8, 10):
+            with self.subTest(interval=interval):
+                state, model = cross_slot_state(), ClassicAIV1Model()
+                model.predict_frame(state, frame_skip=interval)
+                state.engine.puck_owner = -256
+                model.predict_frame(state, frame_skip=interval)
+                state.engine.puck_owner = 0
+                model.predict_frame(state, frame_skip=interval)
+                self.assertIsNone(model._one_timer)
+                self.assertEqual(model.one_timer_metrics, {'recovered-by-passer': 1})
+                self.assertFalse(model._last_decision.startswith('one-timer'))
+
+    def test_initial_passer_possession_is_not_mistaken_for_recovery(self):
+        state, model = cross_slot_state(), ClassicAIV1Model()
+        for _ in range(8):
+            model.predict_frame(state)
+        self.assertIsNotNone(model._one_timer)
+        self.assertEqual(model.one_timer_metrics, {})
+
+    def test_interception_and_period_end_record_exactly_one_outcome(self):
+        for outcome in ('possession-changed', 'period-ended'):
+            with self.subTest(outcome=outcome):
+                state, model = cross_slot_state(), ClassicAIV1Model()
+                model.predict_frame(state)
+                if outcome == 'possession-changed':
+                    state.engine.puck_owner = 6
+                    model.predict_frame(state)
+                else:
+                    model._end_one_timer(outcome)
+                model._end_one_timer('period-ended')
+                self.assertEqual(model.one_timer_starts, 1)
+                self.assertEqual(model.one_timer_metrics, {outcome: 1})
+
+    def test_outcome_logging_does_not_reschedule_cached_defense(self):
+        state, model = cross_slot_state(), ClassicAIV1Model()
+        model.predict_frame(state)
+        tick = model._tick
+        state.engine.puck_owner = 6
+        model.predict_frame(state)
+        self.assertEqual(model._tick, tick)
+        self.assertEqual(model._frame_remaining, 2)
+        self.assertEqual(model.one_timer_metrics, {'possession-changed': 1})
+
+    def test_release_finishes_even_when_the_original_passer_has_already_recovered(self):
+        state, model = cross_slot_state(), ClassicAIV1Model()
+        state.team1.one_timer_attempts = 0
+        model.predict_game_state(state)
+        state.team1.one_timer_attempts, state.engine.shot_player = 1, 1
+        self.assertEqual(state.engine.puck_owner, 0)
+        model.predict_game_state(state)
+        self.assertIsNone(model._one_timer)
+        self.assertEqual(model.one_timer_metrics['shot-released'], 1)
+        self.assertFalse(model._last_decision.startswith('one-timer'))
 
 
 if __name__ == '__main__':

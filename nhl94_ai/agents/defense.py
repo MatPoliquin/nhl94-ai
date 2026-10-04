@@ -32,6 +32,10 @@ def eligible(player):
     return not locked and (player.role is None or player.role > 0) and not player.unavailable & 4
 
 
+def on_ice(player):
+    return player.role is None or player.role >= 0
+
+
 def skaters(team):
     return [(team.skater_scnum_base() + i, player)
             for i, player in enumerate(team.players) if eligible(player)]

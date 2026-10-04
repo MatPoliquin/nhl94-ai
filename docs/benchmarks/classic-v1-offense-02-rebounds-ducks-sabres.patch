@@ -1,0 +1,32 @@
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -89,6 +89,7 @@
+         raise NotImplementedError('ClassicAIV1 does not produce a trainable checkpoint.')
+ 
+     def predict_game_state(self, state, deterministic=True):
++        self._observe_follow_through(state)
+         if self._observe_one_timer(state):
+             self.defense.idle(self._defense_elapsed)
+             return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
+@@ -271,6 +272,7 @@
+         """Reactive defense each frame, unchanged offensive decision interval."""
+         if frame_skip < 1:
+             raise ValueError('Scripted decision interval must be positive')
++        self._observe_follow_through(state)
+         if self._observe_one_timer(state):
+             self.defense.idle(1)
+             return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
+@@ -377,6 +379,13 @@
+         self._last_decision = 'one-timer-ended'
+         self.offense_diagnostics = {'reason': reason}
+ 
++    def _observe_follow_through(self, state):
++        owner = state.engine.puck_owner
++        if (self._tick < self._shot_until and state.team1.owns_scnum(owner)
++                and owner != self._shot_slot):
++            self._shot_until = 0
++            self._frame_remaining = 0
++
+     def _observe_one_timer(self, state):
+         if self._one_timer is None:
+             return False

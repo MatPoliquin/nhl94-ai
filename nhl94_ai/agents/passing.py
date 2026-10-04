@@ -4,9 +4,10 @@ import math
 
 import numpy as np
 
-from nhl94_ai.agents.defense import eligible
-from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, facing, skating, velocity
+from nhl94_ai.agents.defense import eligible, on_ice
+from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, bounded_projection, facing, skating, velocity
 from nhl94_ai.env.target_control import _clear_segment, project_target
+from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
 from nhl94_ai.game.geometry import aim_pass
 
 
@@ -199,6 +200,25 @@ def pass_contact(puck, passer, receiver, delay=RELEASE_FRAMES):
     return start, point, time, speed
 
 
+def one_timer_contact_frame(puck, receiver, contact, release):
+    """First modeled body/stick contact, not the later closest-approach frame."""
+    start, point, flight, _ = contact
+    vx, vy = velocity(receiver)
+    fx, fy = facing(receiver)
+    offset = ((receiver.stick_x, receiver.stick_y) if receiver.stick_x is not None
+              and receiver.stick_y is not None else (fx * 10, fy * 10))
+    live = receiver.stick_x is not None and receiver.stick_y is not None
+    for time in (*range(1, math.ceil(flight)), flight):
+        fraction = ((1 - puck.friction**time) / (1 - puck.friction**flight)
+                    if live and puck.friction != 1 else time / flight)
+        position = start[0] + (point[0] - start[0]) * fraction, start[1] + (point[1] - start[1]) * fraction
+        body = receiver.x + vx * (release + time), receiver.y + vy * (release + time)
+        stick = body[0] + offset[0], body[1] + offset[1]
+        if math.dist(position, body) <= 8 or math.dist(position, stick) <= 14:
+            return release + time
+    return None
+
+
 def pressure_margin(opponents, point, time):
     return min((arrival_time(p, (point[0] - offset[0], point[1] - offset[1]),
                              optimistic=True, boost=True) - time
@@ -213,10 +233,12 @@ def _contact_offsets(player):
 
 
 def _swept_contact(state, player, segment, times, radius, offset=(0, 0)):
-    vx, vy = velocity(player)
-    relative = [(point[0] - player.x - offset[0] - vx * time, point[1] - player.y - offset[1] - vy * time)
-                for point, time in zip(segment, times)]
-    return state._line_intersects_circle(relative[0], relative[1], (0, 0), radius)
+    boards = player is not state.team1.goalie and player is not state.team2.goalie
+    projections = [bounded_projection(player, time, boards=boards) for time in times]
+    relative = [(point[0] - position[0] - offset[0], point[1] - position[1] - offset[1])
+                for point, (position, _) in zip(segment, projections)]
+    return state._line_intersects_circle(
+        relative[0], relative[1], (0, 0), radius + max(uncertainty for _, uncertainty in projections))
 
 
 def shot_value(state, shooter, point=None, delay=0):
@@ -233,9 +255,10 @@ def shot_value(state, shooter, point=None, delay=0):
         obstacles = [*state.team2.players, goalie]
         blocked = False
         for other in obstacles:
-            vx, vy = velocity(other)
-            position = other.x + vx * (delay + travel / 2), other.y + vy * (delay + travel / 2)
-            if state._line_intersects_circle(point, goal, position, 12 if other is goalie else 8):
+            if not on_ice(other):
+                continue
+            position, uncertainty = bounded_projection(other, delay + travel / 2, boards=other is not goalie)
+            if state._line_intersects_circle(point, goal, position, (12 if other is goalie else 8) + uncertainty):
                 blocked = True
                 break
         clear += not blocked
@@ -244,7 +267,9 @@ def shot_value(state, shooter, point=None, delay=0):
     return clear * 12 + max(0, point[1] * sign - 170) * 0.3 + accuracy * 0.3 + opening
 
 
-def evaluate_pass(state, passer, index, receiver, purpose='advance'):
+def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision_interval=4):
+    if decision_interval < 1:
+        raise ValueError('Pass decision interval must be positive')
     slot = state.team1.skater_scnum_base() + index
     details = {'slot': slot, 'status': 'missing-feedback'}
     required = ('motion_x', 'motion_y', 'speed', 'agility', 'weight', 'energy', 'facing', 'stick')
@@ -252,6 +277,8 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance'):
             or any(getattr(p, field) is None for p in (passer, receiver)
                                      for field in required) or passer.passing is None):
         return None, details
+    if receiver.projection_uncertainty:
+        return None, {**details, 'status': 'uncertain-reception'}
     owner = state.engine.puck_owner
     direction = pad_direction(passer, receiver)
     if selected_receiver(state.team1, state.puck, owner, direction) != slot:
@@ -274,7 +301,13 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance'):
         accuracy = receiver.shot_accuracy if receiver.shot_accuracy is not None else 15
         if abs(point[0]) > 70 or not 175 + max(0, 15 - accuracy) <= point[1] * sign < 245:
             return None, {**details, 'status': 'outside-one-timer-window'}
-        if flight < 4:
+        cue = math.ceil(max(HOCKEY_PASS_PRESS_FRAMES, release) / decision_interval) * decision_interval
+        details['cue_frame'] = cue
+        first_contact = one_timer_contact_frame(state.puck, receiver, contact, release)
+        details['first_contact_frame'] = first_contact
+        if first_contact is None:
+            return None, {**details, 'status': 'unreachable-reception'}
+        if flight < 4 or first_contact <= cue:
             return None, {**details, 'status': 'too-short-for-one-timer-cue'}
     crosses_zone = state.puck.y * sign < 88 <= point[1] * sign
     if crosses_zone and state.engine.offsides_enabled is None:
@@ -289,7 +322,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance'):
     if purpose != 'one-timer' and speed > (13000 + 350 * receiver.stick) * VELOCITY_SCALE:
         return None, {**details, 'status': 'too-fast-to-control'}
     opponents = [*state.team2.players, state.team2.goalie]
-    if any(p.motion_x is None or p.motion_y is None for p in state.team2.players):
+    if any(on_ice(p) and (p.motion_x is None or p.motion_y is None) for p in state.team2.players):
         return None, {**details, 'status': 'unknown-opponent-motion'}
     margin = 60
     safe = np.ones(SAMPLES, dtype=bool)
@@ -301,7 +334,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance'):
         puck = start[0] + (point[0] - start[0]) * fraction, start[1] + (point[1] - start[1]) * fraction
         elapsed = time + release
         for friend in (*state.team1.players, state.team1.goalie):
-            if friend is passer or friend is receiver:
+            if friend is passer or friend is receiver or not on_ice(friend):
                 continue
             if _swept_contact(state, friend, (previous_puck, puck), (previous_elapsed, elapsed), 8):
                 return None, {**details, 'status': 'friendly-obstruction'}
@@ -309,12 +342,13 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance'):
                 if _swept_contact(state, friend, (previous_puck, puck), (previous_elapsed, elapsed), 14, offset):
                     return None, {**details, 'status': 'friendly-stick-obstruction'}
         for other in opponents:
-            if other.role is not None and other.role < 0:
+            if not on_ice(other):
                 continue
-            vx, vy = velocity(other)
-            center = other.x + vx * elapsed, other.y + vy * elapsed
-            radius = 14 if other is not state.team2.goalie else 16
-            if _swept_contact(state, other, (previous_puck, puck), (previous_elapsed, elapsed), radius):
+            center, boundary_uncertainty = bounded_projection(
+                other, elapsed, boards=other is not state.team2.goalie)
+            body_radius = 14 if other is not state.team2.goalie else 16
+            radius = body_radius + boundary_uncertainty
+            if _swept_contact(state, other, (previous_puck, puck), (previous_elapsed, elapsed), body_radius):
                 return None, {**details, 'status': 'moving-interception'}
             offsets = _contact_offsets(other)
             for offset in offsets[1:]:
@@ -337,7 +371,8 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance'):
     details.update(margin=margin, robustness=robustness)
     if margin < 3 or robustness < 0.875:
         return None, {**details, 'status': 'contested-reception-or-lane'}
-    bypassed = sum(passer.y * sign < p.y * sign < point[1] * sign for p in state.team2.players)
+    bypassed = sum(passer.y * sign < p.y * sign < point[1] * sign
+                   for p in state.team2.players if on_ice(p))
     shooting = shot_value(state, receiver, point, total)
     value = gain * 0.4 + bypassed * 16 + min(margin, 20) + shooting * 0.6
     option = PassOption(index, slot, point, flight, direction, margin, robustness, gain, bypassed, shooting, value)

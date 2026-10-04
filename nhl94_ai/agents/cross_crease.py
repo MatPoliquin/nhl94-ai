@@ -7,9 +7,9 @@ import math
 
 import numpy as np
 
-from nhl94_ai.agents.defense import controlled_slot, eligible
+from nhl94_ai.agents.defense import controlled_slot, eligible, on_ice
 from nhl94_ai.agents.goalie import DIVE_ANIMATION, SAVE_ANIMATIONS
-from nhl94_ai.agents.motion import arrival_time, skate_step, skating, stop_projection, velocity
+from nhl94_ai.agents.motion import arrival_time, coast_projection, skate_step, skating, stop_projection, velocity
 from nhl94_ai.agents.offense import (
     GOALIE_SHOT_CLEARANCE, _braking, _carry_motion, goalie_avoidance,
 )
@@ -53,22 +53,12 @@ def crossing_entry(state, player):
     return player is not None and 88 <= player.y * sign <= 244 and 8 <= abs(player.x) <= 120
 
 
-def coast_projection(player, frames):
-    """ShotMode uses aim, not skating acceleration; retain existing inertia."""
-    x, y = float(player.x), float(player.y)
-    vx, vy = velocity(player)
-    for _ in range(frames):
-        vx, vy = vx * 63 / 64, vy * 63 / 64
-        x, y = x + vx, y + vy
-    return x, y
-
-
 def shot_lane_clear(state, point, side, delay=0, *, include_goalie=True):
     goal = side * 16, state.team2.net.y
     distance = math.dist(point, goal)
     obstacles = (*state.team2.players, state.team2.goalie) if include_goalie else state.team2.players
     for other in obstacles:
-        if other.role is not None and other.role < 0:
+        if not on_ice(other):
             continue
         vx, vy = velocity(other)
         along = max(0, min(1, ((other.x - point[0]) * (goal[0] - point[0])
@@ -108,7 +98,7 @@ def _path_clear(state, player, samples, *, goalie_clearance=20, pressure=True, s
                          _arrival_margin(state, puck_point, elapsed))
         for team in (state.team1, state.team2):
             for other in (*team.players, team.goalie):
-                if other is player or other is owner or other.role is not None and other.role < 0:
+                if other is player or other is owner or not on_ice(other):
                     continue
                 vx, vy = velocity(other)
                 start_time, end_time = min(previous_time, 12), min(elapsed, 12)
@@ -174,6 +164,8 @@ def _shot_scene(state, carrier, direction, elapsed):
     scene.team2 = copy(state.team2)
     scene.team2.players = [copy(other) for other in state.team2.players]
     for other in scene.team2.players:
+        if not on_ice(other):
+            continue
         vx, vy = velocity(other)
         moved = other.x + vx * min(elapsed, 12), other.y + vy * min(elapsed, 12)
         if math.dist(moved, project_target(moved)) < 1e-6:

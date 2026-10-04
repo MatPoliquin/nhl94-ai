@@ -64,10 +64,14 @@ class Player:
     passing: int | None = None
     stick_x: int | None = None
     stick_y: int | None = None
+    shot_durations: tuple[int, ...] | None = None
+    shot_offsets_y: tuple[int, int] | None = None
     # Position integration uses signed velocity * 17 per elapsed game tick.
     # These optional values are not part of the historical neural encoding.
     motion_x: float | None = None
     motion_y: float | None = None
+    # Bounded forecast uncertainty, not RAM telemetry or a model input.
+    projection_uncertainty: float = 0.0
     # Scripted defense telemetry is never included in normalized policy inputs.
     speed: int | None = None
     agility: int | None = None
@@ -220,6 +224,7 @@ class Team():
         self.defense_control = None
         self.defense_goalie = None
         self.pass_attempts = None
+        self.one_timer_attempts = None
 
         # for model input
         self.nz_players = [Player() for _ in range(num_players)]
@@ -336,6 +341,7 @@ class Team():
 
     def _load_defense_fields(self, info):
         self.pass_attempts = info.get(f'p{self.controller}_pass_attempts')
+        self.one_timer_attempts = info.get(f'p{self.controller}_one_timer_attempts')
         self.defense_control = None
         self.defense_goalie = None
         for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing',
@@ -356,6 +362,8 @@ class Team():
             prefix = f'defense_{self.skater_scnum_base() + index}_'
             player.stick_x = info.get(f'offense_{self.skater_scnum_base() + index}_stick_x')
             player.stick_y = info.get(f'offense_{self.skater_scnum_base() + index}_stick_y')
+            player.shot_durations = info.get(f'offense_{self.skater_scnum_base() + index}_shot_durations')
+            player.shot_offsets_y = info.get(f'offense_{self.skater_scnum_base() + index}_shot_offsets_y')
             for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'checking', 'endurance', 'passing',
                          'shot_power', 'handedness', 'live_anim', 'live_anim_frame', 'animation_timer',
                          'contact_player', 'contact_impact'):

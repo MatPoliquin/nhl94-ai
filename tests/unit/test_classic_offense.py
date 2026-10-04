@@ -9,7 +9,7 @@ import numpy as np
 from nhl94_ai.agents.base import AgentInput
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.motion import VELOCITY_SCALE
-from nhl94_ai.agents.offense import FEINT_FRAMES, OffenseController, carry_projection
+from nhl94_ai.agents.offense import FEINT_FRAMES, OffenseController, carry_clear, carry_projection, projected_state
 from nhl94_ai.agents.passing import (
     PassOption, evaluate_pass, pad_direction, pass_contact, pass_speed, rom_direction, selected_receiver,
 )
@@ -78,6 +78,39 @@ class PassEstimateTests(unittest.TestCase):
 
     def _evaluate(self, purpose='advance'):
         return evaluate_pass(self.state, self.passer, 1, self.receiver, purpose)
+
+    def test_inactive_friendly_blocker_and_unknown_opponent_motion_do_not_veto_a_pass(self):
+        baseline, _ = self._evaluate()
+        self.assertIsNotNone(baseline)
+        friend = self.state.team1.players[2]
+        friend.role, friend.x, friend.y = -1, -40, -70
+        opponent = self.state.team2.players[0]
+        opponent.role = -1
+        opponent.motion_x = opponent.motion_y = None
+        option, details = self._evaluate()
+        self.assertIsNotNone(option, details)
+        self.assertEqual(option.bypassed, 0)
+
+    def test_inactive_skater_does_not_block_shots_but_a_fallen_on_ice_skater_does(self):
+        from nhl94_ai.agents.passing import shot_value
+        self.passer.x, self.passer.y = 0, 200
+        self.state.team2.goalie.x = -70
+        for other in self.state.team2.players:
+            other.x, other.y = 100, -180
+        baseline = shot_value(self.state, self.passer)
+        blocker = self.state.team2.players[0]
+        blocker.role, blocker.x, blocker.y = -1, 0, 230
+        self.assertEqual(shot_value(self.state, self.passer), baseline)
+        blocker.role, blocker.is_falling, blocker.unavailable = 4, 1, 4
+        self.assertLess(shot_value(self.state, self.passer), baseline)
+
+    def test_inactive_projection_retains_off_ice_position_without_board_uncertainty(self):
+        other = self.state.team2.players[0]
+        other.role, other.x, other.motion_x = -1, 119, 4
+        future = projected_state(self.state, (-20, -80))
+        self.assertIsNotNone(future)
+        self.assertEqual(future.team2.players[0].x, 119)
+        self.assertEqual(future.team2.players[0].projection_uncertainty, 0)
 
     def test_passing_rating_is_speed_not_random_accuracy(self):
         self.passer.passing = 0
@@ -223,6 +256,42 @@ class PassEstimateTests(unittest.TestCase):
         self.assertEqual(details['status'], 'airborne-or-unsafe-route')
 
 class OneTimerPassEstimateTests(unittest.TestCase):
+    def test_live_contact_deadline_covers_the_flight_at_all_decision_intervals(self):
+        for interval in (1, 4, 10):
+            with self.subTest(interval=interval):
+                state = live_one_timer_state()
+                model = ClassicAIV1Model()
+                choices, details = model.offense.passes(state, 'one-timer')
+                self.assertTrue(choices, details)
+                model.predict_frame(state, frame_skip=interval)
+                self.assertIsNotNone(model._one_timer)
+                self.assertGreater(model._one_timer[2] - model._one_timer_started,
+                                   choices[0].flight_frames + 4)
+                self.assertLess(model._one_timer[2] - model._one_timer_started,
+                                choices[0].flight_frames + 25)
+                state.engine.puck_owner = -256
+                for _ in range(25):
+                    model.predict_frame(state, frame_skip=interval)
+                self.assertIsNotNone(model._one_timer)
+
+    def test_cue_eligibility_accounts_for_the_configured_decision_interval(self):
+        state = live_one_timer_state()
+        passer, receiver = state.team1.players[:2]
+        receiver.y, receiver.motion_y = 205, 0
+        receiver.stick_x = receiver.stick_y = 0
+        for flight, allowed in ((8, False), (8.01, False), (10.5, True)):
+            with self.subTest(flight=flight):
+                with patch('nhl94_ai.agents.passing.pass_contact',
+                           return_value=((-50, 190), (35, 205), flight, 2)):
+                    option, details = evaluate_pass(
+                        state, passer, 1, receiver, 'one-timer', decision_interval=10)
+                self.assertEqual(details['cue_frame'], 10)
+                if allowed:
+                    self.assertIsNotNone(option, details)
+                else:
+                    self.assertIsNone(option)
+                    self.assertEqual(details['status'], 'too-short-for-one-timer-cue')
+
     def test_one_timer_uses_future_reception_depth_in_both_attacking_directions(self):
         for away in (False, True):
             with self.subTest(away=away):
@@ -330,6 +399,26 @@ class OffenseControllerTests(unittest.TestCase):
         self.assertEqual(plan[0], 'advance-pass')
         self.assertEqual(plan[2].slot, 1)
 
+    def test_an_ineligible_top_pass_does_not_hide_an_eligible_second_choice(self):
+        for purpose in ('advance', 'position'):
+            with self.subTest(purpose=purpose):
+                state = offense_state()
+                if purpose == 'position':
+                    state.team1.players[0].y = 150
+                first = PassOption(1, 1, (40, -90), 20, 1, 20, 1, 40, 0, 20, 36)
+                second = PassOption(2, 2, (-80, -70), 20, 7, 5.9, 1, 60, 0, 30, 29.9)
+                controller = OffenseController()
+                details = [{'slot': option.slot, 'status': 'safe'} for option in (first, second)]
+                with patch.object(controller, 'passes', return_value=([first, second], details)), \
+                        patch.object(controller, 'breakaway', return_value=False), \
+                        patch.object(controller, '_feint', return_value=None), \
+                        patch('nhl94_ai.agents.offense.shot_value', return_value=10):
+                    plan = controller.choose(state, 1)
+                self.assertEqual(plan[0], purpose + '-pass')
+                self.assertIs(plan[2], second)
+                self.assertFalse(details[0]['worthwhile'])
+                self.assertTrue(details[1]['worthwhile'])
+
     def test_breakaway_keeps_puck_and_does_not_trust_flag_alone(self):
         self.state.team1.players[0].is_breakaway = 1
         self.assertFalse(self.controller.breakaway(self.state, self.state.team1.players[0]))
@@ -357,10 +446,10 @@ class OffenseControllerTests(unittest.TestCase):
         passer.x, passer.facing = 0, 1
         receiver.x, receiver.y, receiver.motion_y = 35, 205, 0
         blocker = state.team1.players[2]
-        blocker.x, blocker.y, blocker.unavailable = 15, 207, 4
+        blocker.x, blocker.y, blocker.unavailable = 15, 209, 4
         state.puck.x = 0
         state.team2.players[0].x, state.team2.players[0].y = 70, 245
-        state.team2.goalie.x = -18
+        state.team2.goalie.x, state.team2.goalie.y = 0, 220
         self.assertFalse(self.controller.passes(state, 'one-timer')[0])
         plan = self.controller.choose(state, 1)
         self.assertIsNotNone(plan, self.controller.diagnostics)
@@ -394,6 +483,33 @@ class OffenseControllerTests(unittest.TestCase):
                 model.predict_frame(state)
                 self.assertIsNone(model.offense.pending)
                 self.assertEqual(model.offense.last_pass['outcome'], 'received')
+
+    def test_original_passer_recovery_cancels_ordinary_wait_immediately(self):
+        for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
+            for interval in (1, 4, 8, 10):
+                with self.subTest(schema=schema, interval=interval):
+                    state = deepcopy(self.state)
+                    model = ClassicAIV1Model(SimpleNamespace(action_type=schema))
+                    model.predict_frame(state, interval)
+                    self.assertIsNotNone(model.offense.pending)
+                    state.engine.puck_owner = -256
+                    model.predict_frame(state, interval)
+                    state.engine.puck_owner = 0
+                    model.predict_frame(state, interval)
+                    self.assertIsNone(model.offense.pending)
+                    self.assertEqual(model.offense.last_pass['outcome'], 'recovered-by-passer')
+                    self.assertNotIn(model._last_decision, ('pass-flight', 'pass-release'))
+
+    def test_a_pass_attempt_counter_does_not_mistake_initial_possession_for_recovery(self):
+        state = deepcopy(self.state)
+        model = ClassicAIV1Model()
+        model.predict_frame(state)
+        state.team1.pass_attempts, state.engine.pass_target = 1, 1
+        for _ in range(5):
+            model.predict_frame(state)
+        self.assertIsNotNone(model.offense.pending)
+        self.assertTrue(model.offense.pending['launched'])
+        self.assertFalse(model.offense.pending['flight_observed'])
 
     def test_turnover_immediately_cancels_pending_offense(self):
         model = ClassicAIV1Model()
@@ -473,6 +589,137 @@ class OffenseControllerTests(unittest.TestCase):
         self.assertEqual(self.controller.diagnostics['reason'], 'open shooting lane')
         self.state.team2.players[0].x = -6
         self.assertIsNone(OffenseController().choose(self.state, 1))
+
+class OffenseSafetyTests(unittest.TestCase):
+    def setUp(self):
+        self.state = offense_state()
+        self.controller = OffenseController()
+
+    def test_remote_board_contact_does_not_veto_a_valid_shooting_cut(self):
+        player = self.state.team1.players[0]
+        player.y, self.state.puck.y, self.state.team2.goalie.x = 180, 190, -18
+        for opponent in self.state.team2.players:
+            opponent.x, opponent.y = 110, -180
+        self.state.team2.players[0].x, self.state.team2.players[0].y = -8, 210
+        remote = self.state.team1.players[3]
+        remote.x, remote.y, remote.motion_x = 119, -200, 0.5
+        plan = self.controller.choose(self.state, 1)
+        self.assertEqual(plan[0], 'feint')
+        future = projected_state(self.state, plan[1])
+        self.assertIsNotNone(future)
+        self.assertEqual(future.team1.players[3].x, 120)
+        self.assertGreaterEqual(future.team1.players[3].projection_uncertainty, 8)
+        self.assertEqual((remote.x, remote.motion_x, remote.projection_uncertainty), (119, 0.5, 0))
+
+    def test_carrier_braking_is_validated_instead_of_its_unused_linear_projection(self):
+        player = self.state.team1.players[0]
+        player.x, player.y, player.motion_x, player.facing = 119, 0, 0.2, 2
+        future = projected_state(self.state, (71, 0))
+        self.assertIsNotNone(future)
+        self.assertLessEqual(future.team1.players[0].x, 120)
+        player.motion_x = 2
+        self.assertIsNone(projected_state(self.state, (71, 0)))
+
+    def test_projected_carry_preserves_the_live_puck_offset(self):
+        player = self.state.team1.players[0]
+        self.state.puck.x, self.state.puck.y = player.x - 16, player.y + 10
+        future = projected_state(self.state, (26, player.y + 8))
+        self.assertIsNotNone(future)
+        carrier = future.team1.players[0]
+        self.assertAlmostEqual(future.puck.x - carrier.x, -16)
+        self.assertAlmostEqual(future.puck.y - carrier.y, 10)
+        self.assertEqual((self.state.puck.x, self.state.puck.y), (player.x - 16, player.y + 10))
+
+    def test_a_relevant_board_contact_remains_a_conservative_collision_risk(self):
+        player = self.state.team1.players[0]
+        player.x, player.y = 105, 0
+        blocker = self.state.team2.players[0]
+        blocker.x, blocker.y, blocker.motion_x = 119, 0, 1
+        self.assertFalse(carry_clear(self.state, player, (105, 0)))
+        future = projected_state(self.state, (105, 0))
+        self.assertIsNotNone(future)
+        self.assertGreater(future.team2.players[0].projection_uncertainty, 0)
+
+    def test_an_uncertain_board_receiver_is_rejected_without_vetoing_the_state(self):
+        receiver = self.state.team1.players[1]
+        receiver.projection_uncertainty = 8
+        option, details = evaluate_pass(self.state, self.state.team1.players[0], 1, receiver)
+        self.assertIsNone(option)
+        self.assertEqual(details['status'], 'uncertain-reception')
+
+    def test_unsafe_default_carry_brakes_into_a_verified_escape_on_either_side(self):
+        for away in (False, True):
+            for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
+                with self.subTest(away=away, schema=schema):
+                    state = offense_state()
+                    player = state.team1.players[0]
+                    player.x, player.y, player.motion_x, player.motion_y = 0, 150, -0.5, 0.8
+                    state.puck.x, state.puck.y = 0, 150
+                    for other in (*state.team1.players[1:], *state.team2.players):
+                        other.x, other.y = 110, -180
+                    state.team2.players[0].x, state.team2.players[0].y = -20, 167
+                    if away:
+                        state.team1.controller, state.team2.controller = 2, 1
+                        state.team1.defense_control = state.engine.puck_owner = 6
+                        for team in (state.team1, state.team2):
+                            team.net.y *= -1
+                            for other in (*team.players, team.goalie):
+                                other.y *= -1
+                                other.motion_y *= -1
+                                other.facing = (other.facing + 4) % 8
+                        state.puck.y *= -1
+                    preferred = OffenseController.carry_target(state, player)
+                    self.assertFalse(carry_clear(state, player, preferred))
+                    model = ClassicAIV1Model(SimpleNamespace(action_type=schema, one_timers=False))
+                    action = model.predict_frame(state)[0]
+                    self.assertEqual(model._last_decision, 'carry-escape')
+                    self.assertNotEqual(model._last_target, preferred)
+                    self.assertTrue(carry_clear(state, player, model._last_target))
+                    self.assertTrue(model.offense_diagnostics['carry_safe'])
+                    self.assertEqual(model.carry_metrics['safe-escape'], 1)
+                    processor = HockeyActionController(SimpleNamespace(action_type=schema, game_state=state))
+                    buttons = processor._process_action(action, processor._new_action_state())[0]
+                    self.assertFalse(buttons[Buttons.INPUT_B] or buttons[Buttons.INPUT_C])
+                    self.assertTrue(buttons[Buttons.INPUT_UP if away else Buttons.INPUT_DOWN])
+
+    def test_safe_default_carry_is_preserved(self):
+        point, details = self.controller.fallback_carry(self.state, self.state.team1.players[0])
+        self.assertEqual(point, self.controller.carry_target(self.state, self.state.team1.players[0]))
+        self.assertEqual(details['mode'], 'carry')
+        self.assertTrue(details['carry_safe'])
+
+    def test_safe_escape_prefers_an_attacking_opportunity_to_unneeded_retreat(self):
+        player = self.state.team1.players[0]
+        player.y = 180
+        preferred = self.controller.carry_target(self.state, player)
+        unsafe = (preferred, dict(carry_safe=False, carry_bounded=True, carry_pressure=0,
+                                  carry_clearance=-1, carry_progress=10, carry_shot_value=0))
+        retreat = ((0, 132), dict(carry_safe=True, carry_bounded=True, carry_pressure=12,
+                                 carry_clearance=16, carry_progress=-12, carry_shot_value=0))
+        advance = ((48, 204), dict(carry_safe=True, carry_bounded=True, carry_pressure=3.1,
+                                  carry_clearance=5, carry_progress=12, carry_shot_value=30))
+        with patch.object(self.controller, '_carry_option',
+                          side_effect=[unsafe, retreat, advance, *([retreat] * 7)]):
+            point, details = self.controller.fallback_carry(self.state, player)
+        self.assertEqual(point, advance[0])
+        self.assertTrue(details['carry_safe'])
+        self.assertEqual(details['carry_pressure'], 3.1)
+
+    def test_unavoidable_pressure_is_reported_instead_of_approving_a_fallback(self):
+        player = self.state.team1.players[0]
+        self.state.team2.players[0].x, self.state.team2.players[0].y = player.x, player.y
+        _, details = self.controller.fallback_carry(self.state, player)
+        self.assertFalse(details['carry_safe'])
+        self.assertIn('no safe carry', details['reason'])
+
+    def test_unavoidable_wall_contact_requests_braking_without_claiming_safety(self):
+        player = self.state.team1.players[0]
+        player.x, player.y, player.motion_x, player.facing = 119, 0, 2, 2
+        point, details = self.controller.fallback_carry(self.state, player)
+        self.assertLess(point[0], player.x)
+        self.assertFalse(details['carry_safe'])
+        self.assertFalse(details['carry_bounded'])
+        self.assertIn('unavoidable wall or net contact', details['reason'])
 
     def test_one_skater_and_away_team_keep_valid_slot_mapping(self):
         self.state.team1.players = self.state.team1.players[:1]

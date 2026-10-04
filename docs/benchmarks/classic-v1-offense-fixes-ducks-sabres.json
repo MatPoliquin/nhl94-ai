@@ -1,0 +1,1952 @@
+{
+  "protocol": "nhl94-offense-staged-paired-comparison-v1",
+  "baseline_commit": "2c5c6d3f1a42dadb09cbdf728f057051b737e159",
+  "periods_per_side_per_stage": 20,
+  "total_completed_periods": 480,
+  "seed_range": [
+    20261004,
+    20261023
+  ],
+  "comparison": "Cumulative stages; each delta is relative to the preceding stage, not an isolated ablation.",
+  "bootstrap": {
+    "samples": 10000,
+    "seed": 94,
+    "unit": "Shared ROM-seed clusters, each containing both AI sides",
+    "confidence": 0.95
+  },
+  "limitations": [
+    "Fixed Sabres-home/Mighty-Ducks-away save, both joystick sides against the built-in CPU, goalie policy off.",
+    "Full 300-game-clock-second first periods, FILTERED controls, offensive decision interval 4.",
+    "Small development sample; follow-up refinements used the same seeds and are not held-out evidence.",
+    "Safety and shot-value estimates are conservative heuristics, not guaranteed ROM outcomes or goal probabilities."
+  ],
+  "stages": [
+    {
+      "index": 0,
+      "name": "00-baseline",
+      "report": "classic-v1-offense-00-baseline-ducks-sabres.json",
+      "totals": {
+        "goals_for": 64,
+        "goals_against": 23,
+        "wins": 27,
+        "draws": 9,
+        "losses": 4
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 18,
+          "draws": 2,
+          "losses": 0,
+          "goals_for": 40,
+          "goals_against": 4,
+          "one_timer_setups": 67,
+          "one_timers": 47,
+          "one_timer_goals": 25,
+          "periods_without_one_timers": 1,
+          "pass_outcomes": {
+            "received_without_shot": 262,
+            "flight_timeout": 13,
+            "one_timer_shot": 47,
+            "intercepted": 35,
+            "returned_to_passer": 2,
+            "not_released": 3,
+            "period_ended": 2
+          },
+          "wrong_recipient": 6,
+          "offense_metrics": {
+            "entries": 169,
+            "controlled_entries": 169,
+            "entry_frames_total": 28001,
+            "entry_threats_total": 6,
+            "turnovers": 158,
+            "zone_turnovers": 101,
+            "possession_losses": 258,
+            "zone_possession_losses": 201,
+            "goalie_contact_impulses": 115
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 233,
+              "flight_timeout": 11,
+              "intercepted": 23,
+              "returned_to_passer": 1,
+              "period_ended": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 47,
+              "received_without_shot": 3,
+              "intercepted": 11,
+              "not_released": 3,
+              "flight_timeout": 2,
+              "returned_to_passer": 1
+            },
+            "position-pass": {
+              "received_without_shot": 26,
+              "intercepted": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 9,
+          "draws": 7,
+          "losses": 4,
+          "goals_for": 24,
+          "goals_against": 19,
+          "one_timer_setups": 59,
+          "one_timers": 43,
+          "one_timer_goals": 17,
+          "periods_without_one_timers": 3,
+          "pass_outcomes": {
+            "received_without_shot": 279,
+            "one_timer_shot": 43,
+            "flight_timeout": 13,
+            "intercepted": 32,
+            "lost_before_release": 1,
+            "not_released": 1,
+            "period_ended": 1,
+            "returned_to_passer": 1
+          },
+          "wrong_recipient": 9,
+          "offense_metrics": {
+            "entries": 160,
+            "controlled_entries": 159,
+            "entry_frames_total": 29349,
+            "entry_threats_total": 13,
+            "turnovers": 167,
+            "zone_turnovers": 103,
+            "possession_losses": 246,
+            "zone_possession_losses": 182,
+            "goalie_contact_impulses": 67
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 258,
+              "flight_timeout": 11,
+              "intercepted": 21,
+              "lost_before_release": 1,
+              "returned_to_passer": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 43,
+              "received_without_shot": 3,
+              "intercepted": 9,
+              "flight_timeout": 2,
+              "not_released": 1,
+              "period_ended": 1
+            },
+            "position-pass": {
+              "received_without_shot": 18,
+              "intercepted": 2
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": 0,
+        "mean_goal_difference_delta_per_period": 0.0,
+        "cluster_bootstrap_95_percent_ci": [
+          0.0,
+          0.0
+        ]
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": 0,
+        "mean_goal_difference_delta_per_period": 0.0,
+        "cluster_bootstrap_95_percent_ci": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "index": 1,
+      "name": "01-completion",
+      "report": "classic-v1-offense-01-completion-ducks-sabres.json",
+      "totals": {
+        "goals_for": 69,
+        "goals_against": 25,
+        "wins": 25,
+        "draws": 11,
+        "losses": 4
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 14,
+          "draws": 6,
+          "losses": 0,
+          "goals_for": 40,
+          "goals_against": 7,
+          "one_timer_setups": 67,
+          "one_timers": 46,
+          "one_timer_goals": 20,
+          "periods_without_one_timers": 1,
+          "pass_outcomes": {
+            "received_without_shot": 257,
+            "flight_timeout": 8,
+            "one_timer_shot": 46,
+            "intercepted": 29,
+            "superseded": 2,
+            "returned_to_passer": 2,
+            "not_released": 2,
+            "period_ended": 1
+          },
+          "wrong_recipient": 9,
+          "offense_metrics": {
+            "entries": 159,
+            "controlled_entries": 158,
+            "entry_frames_total": 25130,
+            "entry_threats_total": 7,
+            "turnovers": 138,
+            "zone_turnovers": 82,
+            "possession_losses": 240,
+            "zone_possession_losses": 184,
+            "goalie_contact_impulses": 111
+          },
+          "one_timer_metrics": {
+            "shot-released": 46,
+            "timeout": 9,
+            "receiver-mismatch": 4,
+            "possession-changed": 1
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 225,
+              "flight_timeout": 7,
+              "intercepted": 17,
+              "period_ended": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 46,
+              "intercepted": 11,
+              "received_without_shot": 3,
+              "superseded": 2,
+              "returned_to_passer": 2,
+              "flight_timeout": 1,
+              "not_released": 2
+            },
+            "position-pass": {
+              "received_without_shot": 29,
+              "intercepted": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 11,
+          "draws": 5,
+          "losses": 4,
+          "goals_for": 29,
+          "goals_against": 18,
+          "one_timer_setups": 60,
+          "one_timers": 39,
+          "one_timer_goals": 20,
+          "periods_without_one_timers": 3,
+          "pass_outcomes": {
+            "received_without_shot": 271,
+            "one_timer_shot": 39,
+            "flight_timeout": 8,
+            "intercepted": 42,
+            "returned_to_passer": 4,
+            "period_ended": 3,
+            "not_released": 1
+          },
+          "wrong_recipient": 9,
+          "offense_metrics": {
+            "entries": 150,
+            "controlled_entries": 148,
+            "entry_frames_total": 27879,
+            "entry_threats_total": 17,
+            "turnovers": 158,
+            "zone_turnovers": 84,
+            "possession_losses": 241,
+            "zone_possession_losses": 167,
+            "goalie_contact_impulses": 47
+          },
+          "one_timer_metrics": {
+            "shot-released": 39,
+            "possession-changed": 4,
+            "timeout": 9
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 250,
+              "flight_timeout": 7,
+              "intercepted": 27,
+              "period_ended": 3,
+              "returned_to_passer": 3
+            },
+            "one-timer": {
+              "one_timer_shot": 39,
+              "received_without_shot": 5,
+              "intercepted": 13,
+              "returned_to_passer": 1,
+              "flight_timeout": 1,
+              "not_released": 1
+            },
+            "position-pass": {
+              "received_without_shot": 16,
+              "intercepted": 2
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": 3,
+        "mean_goal_difference_delta_per_period": 0.075,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.35,
+          0.475
+        ]
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": 3,
+        "mean_goal_difference_delta_per_period": 0.075,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.35,
+          0.475
+        ]
+      },
+      "source_patch": "classic-v1-offense-01-completion-ducks-sabres.patch"
+    },
+    {
+      "index": 2,
+      "name": "02-rebounds",
+      "report": "classic-v1-offense-02-rebounds-ducks-sabres.json",
+      "totals": {
+        "goals_for": 69,
+        "goals_against": 24,
+        "wins": 25,
+        "draws": 12,
+        "losses": 3
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 14,
+          "draws": 6,
+          "losses": 0,
+          "goals_for": 40,
+          "goals_against": 7,
+          "one_timer_setups": 67,
+          "one_timers": 46,
+          "one_timer_goals": 20,
+          "periods_without_one_timers": 1,
+          "pass_outcomes": {
+            "received_without_shot": 257,
+            "flight_timeout": 8,
+            "one_timer_shot": 46,
+            "intercepted": 29,
+            "superseded": 2,
+            "returned_to_passer": 2,
+            "not_released": 2,
+            "period_ended": 1
+          },
+          "wrong_recipient": 9,
+          "offense_metrics": {
+            "entries": 159,
+            "controlled_entries": 158,
+            "entry_frames_total": 25130,
+            "entry_threats_total": 7,
+            "turnovers": 138,
+            "zone_turnovers": 82,
+            "possession_losses": 240,
+            "zone_possession_losses": 184,
+            "goalie_contact_impulses": 111
+          },
+          "one_timer_metrics": {
+            "shot-released": 46,
+            "timeout": 9,
+            "receiver-mismatch": 4,
+            "possession-changed": 1
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 225,
+              "flight_timeout": 7,
+              "intercepted": 17,
+              "period_ended": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 46,
+              "intercepted": 11,
+              "received_without_shot": 3,
+              "superseded": 2,
+              "returned_to_passer": 2,
+              "flight_timeout": 1,
+              "not_released": 2
+            },
+            "position-pass": {
+              "received_without_shot": 29,
+              "intercepted": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 11,
+          "draws": 6,
+          "losses": 3,
+          "goals_for": 29,
+          "goals_against": 17,
+          "one_timer_setups": 60,
+          "one_timers": 37,
+          "one_timer_goals": 19,
+          "periods_without_one_timers": 3,
+          "pass_outcomes": {
+            "received_without_shot": 277,
+            "one_timer_shot": 37,
+            "flight_timeout": 8,
+            "intercepted": 42,
+            "returned_to_passer": 4,
+            "period_ended": 2,
+            "not_released": 1
+          },
+          "wrong_recipient": 8,
+          "offense_metrics": {
+            "entries": 155,
+            "controlled_entries": 153,
+            "entry_frames_total": 28646,
+            "entry_threats_total": 17,
+            "turnovers": 161,
+            "zone_turnovers": 87,
+            "possession_losses": 247,
+            "zone_possession_losses": 173,
+            "goalie_contact_impulses": 54
+          },
+          "one_timer_metrics": {
+            "shot-released": 37,
+            "timeout": 10,
+            "possession-changed": 4
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 254,
+              "flight_timeout": 6,
+              "intercepted": 26,
+              "period_ended": 2,
+              "returned_to_passer": 3
+            },
+            "one-timer": {
+              "one_timer_shot": 37,
+              "flight_timeout": 2,
+              "received_without_shot": 5,
+              "intercepted": 14,
+              "returned_to_passer": 1,
+              "not_released": 1
+            },
+            "position-pass": {
+              "received_without_shot": 18,
+              "intercepted": 2
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": 1,
+        "mean_goal_difference_delta_per_period": 0.025,
+        "cluster_bootstrap_95_percent_ci": [
+          0.0,
+          0.075
+        ]
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": 4,
+        "mean_goal_difference_delta_per_period": 0.1,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.325,
+          0.5
+        ]
+      },
+      "source_patch": "classic-v1-offense-02-rebounds-ducks-sabres.patch"
+    },
+    {
+      "index": 3,
+      "name": "03-timing",
+      "report": "classic-v1-offense-03-timing-ducks-sabres.json",
+      "totals": {
+        "goals_for": 63,
+        "goals_against": 19,
+        "wins": 21,
+        "draws": 16,
+        "losses": 3
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 14,
+          "draws": 6,
+          "losses": 0,
+          "goals_for": 41,
+          "goals_against": 5,
+          "one_timer_setups": 61,
+          "one_timers": 41,
+          "one_timer_goals": 21,
+          "periods_without_one_timers": 2,
+          "pass_outcomes": {
+            "received_without_shot": 257,
+            "flight_timeout": 7,
+            "one_timer_shot": 41,
+            "intercepted": 23,
+            "superseded": 3,
+            "period_ended": 1,
+            "not_released": 1,
+            "returned_to_passer": 2
+          },
+          "wrong_recipient": 10,
+          "offense_metrics": {
+            "entries": 169,
+            "controlled_entries": 168,
+            "entry_frames_total": 26533,
+            "entry_threats_total": 5,
+            "turnovers": 134,
+            "zone_turnovers": 85,
+            "possession_losses": 235,
+            "zone_possession_losses": 186,
+            "goalie_contact_impulses": 116
+          },
+          "one_timer_metrics": {
+            "shot-released": 41,
+            "timeout": 8,
+            "possession-changed": 2,
+            "receiver-mismatch": 3
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 229,
+              "flight_timeout": 6,
+              "intercepted": 12,
+              "returned_to_passer": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 41,
+              "intercepted": 10,
+              "superseded": 3,
+              "period_ended": 1,
+              "received_without_shot": 3,
+              "flight_timeout": 1,
+              "not_released": 1,
+              "returned_to_passer": 1
+            },
+            "position-pass": {
+              "received_without_shot": 25,
+              "intercepted": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 7,
+          "draws": 10,
+          "losses": 3,
+          "goals_for": 22,
+          "goals_against": 14,
+          "one_timer_setups": 55,
+          "one_timers": 31,
+          "one_timer_goals": 15,
+          "periods_without_one_timers": 3,
+          "pass_outcomes": {
+            "received_without_shot": 271,
+            "one_timer_shot": 31,
+            "flight_timeout": 10,
+            "intercepted": 42,
+            "period_ended": 3,
+            "not_released": 1,
+            "returned_to_passer": 2
+          },
+          "wrong_recipient": 11,
+          "offense_metrics": {
+            "entries": 153,
+            "controlled_entries": 152,
+            "entry_frames_total": 28450,
+            "entry_threats_total": 16,
+            "turnovers": 160,
+            "zone_turnovers": 98,
+            "possession_losses": 239,
+            "zone_possession_losses": 177,
+            "goalie_contact_impulses": 48
+          },
+          "one_timer_metrics": {
+            "shot-released": 29,
+            "timeout": 12,
+            "possession-changed": 3,
+            "receiver-mismatch": 2
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 245,
+              "intercepted": 25,
+              "flight_timeout": 6,
+              "period_ended": 3,
+              "returned_to_passer": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 31,
+              "flight_timeout": 3,
+              "received_without_shot": 5,
+              "intercepted": 15,
+              "not_released": 1
+            },
+            "position-pass": {
+              "received_without_shot": 21,
+              "intercepted": 2,
+              "flight_timeout": 1
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": -1,
+        "mean_goal_difference_delta_per_period": -0.025,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.325,
+          0.3
+        ]
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": 3,
+        "mean_goal_difference_delta_per_period": 0.075,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.325,
+          0.45
+        ]
+      },
+      "source_patch": "classic-v1-offense-03-timing-ducks-sabres.patch"
+    },
+    {
+      "index": 4,
+      "name": "04-pass-eligibility",
+      "report": "classic-v1-offense-04-pass-eligibility-ducks-sabres.json",
+      "totals": {
+        "goals_for": 65,
+        "goals_against": 21,
+        "wins": 21,
+        "draws": 15,
+        "losses": 4
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 14,
+          "draws": 5,
+          "losses": 1,
+          "goals_for": 42,
+          "goals_against": 6,
+          "one_timer_setups": 64,
+          "one_timers": 44,
+          "one_timer_goals": 24,
+          "periods_without_one_timers": 2,
+          "pass_outcomes": {
+            "received_without_shot": 253,
+            "flight_timeout": 7,
+            "one_timer_shot": 44,
+            "superseded": 4,
+            "period_ended": 1,
+            "intercepted": 25,
+            "not_released": 2,
+            "returned_to_passer": 2
+          },
+          "wrong_recipient": 11,
+          "offense_metrics": {
+            "entries": 165,
+            "controlled_entries": 164,
+            "entry_frames_total": 26028,
+            "entry_threats_total": 5,
+            "turnovers": 138,
+            "zone_turnovers": 86,
+            "possession_losses": 237,
+            "zone_possession_losses": 185,
+            "goalie_contact_impulses": 107
+          },
+          "one_timer_metrics": {
+            "shot-released": 44,
+            "timeout": 11,
+            "receiver-mismatch": 3,
+            "possession-changed": 1
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 226,
+              "flight_timeout": 7,
+              "intercepted": 14,
+              "returned_to_passer": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 44,
+              "superseded": 4,
+              "period_ended": 1,
+              "intercepted": 10,
+              "not_released": 2,
+              "received_without_shot": 2,
+              "returned_to_passer": 1
+            },
+            "position-pass": {
+              "received_without_shot": 25,
+              "intercepted": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 7,
+          "draws": 10,
+          "losses": 3,
+          "goals_for": 23,
+          "goals_against": 15,
+          "one_timer_setups": 60,
+          "one_timers": 34,
+          "one_timer_goals": 16,
+          "periods_without_one_timers": 3,
+          "pass_outcomes": {
+            "received_without_shot": 287,
+            "one_timer_shot": 34,
+            "intercepted": 47,
+            "flight_timeout": 9,
+            "period_ended": 3,
+            "not_released": 1,
+            "returned_to_passer": 2
+          },
+          "wrong_recipient": 11,
+          "offense_metrics": {
+            "entries": 160,
+            "controlled_entries": 159,
+            "entry_frames_total": 29826,
+            "entry_threats_total": 17,
+            "turnovers": 168,
+            "zone_turnovers": 102,
+            "possession_losses": 250,
+            "zone_possession_losses": 184,
+            "goalie_contact_impulses": 42
+          },
+          "one_timer_metrics": {
+            "shot-released": 32,
+            "possession-changed": 3,
+            "timeout": 11,
+            "receiver-mismatch": 2
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 260,
+              "intercepted": 27,
+              "flight_timeout": 6,
+              "period_ended": 3,
+              "returned_to_passer": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 34,
+              "intercepted": 18,
+              "received_without_shot": 5,
+              "flight_timeout": 2,
+              "not_released": 1
+            },
+            "position-pass": {
+              "received_without_shot": 22,
+              "intercepted": 2,
+              "flight_timeout": 1
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": 0,
+        "mean_goal_difference_delta_per_period": 0.0,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.125,
+          0.1
+        ]
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": 3,
+        "mean_goal_difference_delta_per_period": 0.075,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.35,
+          0.5
+        ]
+      },
+      "source_patch": "classic-v1-offense-04-pass-eligibility-ducks-sabres.patch"
+    },
+    {
+      "index": 5,
+      "name": "05-shot-geometry",
+      "report": "classic-v1-offense-05-shot-geometry-ducks-sabres.json",
+      "totals": {
+        "goals_for": 65,
+        "goals_against": 19,
+        "wins": 22,
+        "draws": 14,
+        "losses": 4
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 15,
+          "draws": 4,
+          "losses": 1,
+          "goals_for": 43,
+          "goals_against": 5,
+          "one_timer_setups": 66,
+          "one_timers": 44,
+          "one_timer_goals": 22,
+          "periods_without_one_timers": 3,
+          "pass_outcomes": {
+            "received_without_shot": 250,
+            "one_timer_shot": 44,
+            "intercepted": 25,
+            "superseded": 4,
+            "period_ended": 2,
+            "flight_timeout": 5,
+            "not_released": 2,
+            "returned_to_passer": 2
+          },
+          "wrong_recipient": 10,
+          "offense_metrics": {
+            "entries": 163,
+            "controlled_entries": 162,
+            "entry_frames_total": 25765,
+            "entry_threats_total": 5,
+            "turnovers": 138,
+            "zone_turnovers": 85,
+            "possession_losses": 237,
+            "zone_possession_losses": 184,
+            "goalie_contact_impulses": 116
+          },
+          "one_timer_metrics": {
+            "shot-released": 43,
+            "timeout": 11,
+            "possession-changed": 3,
+            "receiver-mismatch": 4
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 226,
+              "intercepted": 14,
+              "flight_timeout": 5,
+              "period_ended": 1,
+              "returned_to_passer": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 44,
+              "superseded": 4,
+              "period_ended": 1,
+              "intercepted": 10,
+              "received_without_shot": 4,
+              "not_released": 2,
+              "returned_to_passer": 1
+            },
+            "position-pass": {
+              "received_without_shot": 20,
+              "intercepted": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 7,
+          "draws": 10,
+          "losses": 3,
+          "goals_for": 22,
+          "goals_against": 14,
+          "one_timer_setups": 61,
+          "one_timers": 34,
+          "one_timer_goals": 15,
+          "periods_without_one_timers": 3,
+          "pass_outcomes": {
+            "received_without_shot": 284,
+            "one_timer_shot": 34,
+            "intercepted": 48,
+            "flight_timeout": 9,
+            "period_ended": 3,
+            "not_released": 1,
+            "returned_to_passer": 2
+          },
+          "wrong_recipient": 10,
+          "offense_metrics": {
+            "entries": 162,
+            "controlled_entries": 161,
+            "entry_frames_total": 29687,
+            "entry_threats_total": 17,
+            "turnovers": 170,
+            "zone_turnovers": 101,
+            "possession_losses": 251,
+            "zone_possession_losses": 182,
+            "goalie_contact_impulses": 44
+          },
+          "one_timer_metrics": {
+            "shot-released": 32,
+            "possession-changed": 3,
+            "timeout": 12,
+            "receiver-mismatch": 2
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 256,
+              "intercepted": 28,
+              "flight_timeout": 6,
+              "period_ended": 3,
+              "returned_to_passer": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 34,
+              "intercepted": 18,
+              "received_without_shot": 6,
+              "flight_timeout": 2,
+              "not_released": 1
+            },
+            "position-pass": {
+              "received_without_shot": 22,
+              "intercepted": 2,
+              "flight_timeout": 1
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": 2,
+        "mean_goal_difference_delta_per_period": 0.05,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.15,
+          0.25
+        ]
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": 5,
+        "mean_goal_difference_delta_per_period": 0.125,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.275,
+          0.5
+        ]
+      },
+      "source_patch": "classic-v1-offense-05-shot-geometry-ducks-sabres.patch"
+    },
+    {
+      "index": 6,
+      "name": "06-projections",
+      "report": "classic-v1-offense-06-projections-ducks-sabres.json",
+      "totals": {
+        "goals_for": 58,
+        "goals_against": 20,
+        "wins": 25,
+        "draws": 6,
+        "losses": 9
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 15,
+          "draws": 3,
+          "losses": 2,
+          "goals_for": 37,
+          "goals_against": 6,
+          "one_timer_setups": 64,
+          "one_timers": 46,
+          "one_timer_goals": 19,
+          "periods_without_one_timers": 1,
+          "pass_outcomes": {
+            "received_without_shot": 256,
+            "one_timer_shot": 46,
+            "returned_to_passer": 7,
+            "flight_timeout": 8,
+            "intercepted": 24,
+            "period_ended": 1,
+            "superseded": 1
+          },
+          "wrong_recipient": 4,
+          "offense_metrics": {
+            "entries": 169,
+            "controlled_entries": 169,
+            "entry_frames_total": 26866,
+            "entry_threats_total": 9,
+            "turnovers": 133,
+            "zone_turnovers": 84,
+            "possession_losses": 245,
+            "zone_possession_losses": 196,
+            "goalie_contact_impulses": 91
+          },
+          "one_timer_metrics": {
+            "shot-released": 46,
+            "timeout": 10,
+            "possession-changed": 2,
+            "receiver-mismatch": 2
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 224,
+              "returned_to_passer": 4,
+              "flight_timeout": 5,
+              "intercepted": 16
+            },
+            "one-timer": {
+              "one_timer_shot": 46,
+              "intercepted": 6,
+              "flight_timeout": 3,
+              "received_without_shot": 5,
+              "returned_to_passer": 3,
+              "superseded": 1
+            },
+            "position-pass": {
+              "received_without_shot": 27,
+              "intercepted": 2,
+              "period_ended": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 10,
+          "draws": 3,
+          "losses": 7,
+          "goals_for": 21,
+          "goals_against": 14,
+          "one_timer_setups": 53,
+          "one_timers": 31,
+          "one_timer_goals": 8,
+          "periods_without_one_timers": 6,
+          "pass_outcomes": {
+            "received_without_shot": 262,
+            "one_timer_shot": 31,
+            "intercepted": 45,
+            "returned_to_passer": 3,
+            "lost_before_release": 1,
+            "flight_timeout": 13,
+            "period_ended": 2
+          },
+          "wrong_recipient": 10,
+          "offense_metrics": {
+            "entries": 153,
+            "controlled_entries": 152,
+            "entry_frames_total": 27460,
+            "entry_threats_total": 10,
+            "turnovers": 172,
+            "zone_turnovers": 100,
+            "possession_losses": 260,
+            "zone_possession_losses": 188,
+            "goalie_contact_impulses": 44
+          },
+          "one_timer_metrics": {
+            "shot-released": 31,
+            "timeout": 11,
+            "possession-changed": 1,
+            "receiver-mismatch": 3
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 238,
+              "intercepted": 25,
+              "returned_to_passer": 2,
+              "lost_before_release": 1,
+              "flight_timeout": 11,
+              "period_ended": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 31,
+              "intercepted": 14,
+              "flight_timeout": 1,
+              "received_without_shot": 6,
+              "returned_to_passer": 1
+            },
+            "position-pass": {
+              "received_without_shot": 18,
+              "intercepted": 6,
+              "flight_timeout": 1
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": -8,
+        "mean_goal_difference_delta_per_period": -0.2,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.7006,
+          0.3
+        ]
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": -3,
+        "mean_goal_difference_delta_per_period": -0.075,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.65,
+          0.475
+        ]
+      },
+      "source_patch": "classic-v1-offense-06-projections-ducks-sabres.patch"
+    },
+    {
+      "index": 7,
+      "name": "07-safe-carry",
+      "report": "classic-v1-offense-07-safe-carry-ducks-sabres.json",
+      "totals": {
+        "goals_for": 53,
+        "goals_against": 11,
+        "wins": 24,
+        "draws": 13,
+        "losses": 3
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 18,
+          "draws": 2,
+          "losses": 0,
+          "goals_for": 37,
+          "goals_against": 3,
+          "one_timer_setups": 86,
+          "one_timers": 57,
+          "one_timer_goals": 26,
+          "periods_without_one_timers": 0,
+          "pass_outcomes": {
+            "received_without_shot": 311,
+            "intercepted": 41,
+            "one_timer_shot": 56,
+            "flight_timeout": 11,
+            "superseded": 2,
+            "returned_to_passer": 5,
+            "period_ended": 3,
+            "not_released": 1
+          },
+          "wrong_recipient": 11,
+          "offense_metrics": {
+            "entries": 164,
+            "controlled_entries": 164,
+            "entry_frames_total": 32195,
+            "entry_threats_total": 5,
+            "turnovers": 147,
+            "zone_turnovers": 87,
+            "possession_losses": 232,
+            "zone_possession_losses": 171,
+            "goalie_contact_impulses": 116
+          },
+          "one_timer_metrics": {
+            "shot-released": 55,
+            "timeout": 14,
+            "possession-changed": 6,
+            "receiver-mismatch": 3
+          },
+          "carry_metrics": {
+            "safe-default": 6802,
+            "least-risk": 2618,
+            "safe-escape": 2056
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 267,
+              "intercepted": 27,
+              "flight_timeout": 3,
+              "returned_to_passer": 5,
+              "period_ended": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 56,
+              "superseded": 2,
+              "intercepted": 12,
+              "received_without_shot": 9,
+              "flight_timeout": 5,
+              "not_released": 1,
+              "period_ended": 1
+            },
+            "position-pass": {
+              "flight_timeout": 3,
+              "received_without_shot": 35,
+              "intercepted": 2
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 6,
+          "draws": 11,
+          "losses": 3,
+          "goals_for": 16,
+          "goals_against": 8,
+          "one_timer_setups": 48,
+          "one_timers": 30,
+          "one_timer_goals": 12,
+          "periods_without_one_timers": 5,
+          "pass_outcomes": {
+            "flight_timeout": 8,
+            "received_without_shot": 246,
+            "intercepted": 45,
+            "one_timer_shot": 29,
+            "returned_to_passer": 2,
+            "not_released": 1,
+            "period_ended": 1
+          },
+          "wrong_recipient": 12,
+          "offense_metrics": {
+            "entries": 141,
+            "controlled_entries": 141,
+            "entry_frames_total": 30634,
+            "entry_threats_total": 5,
+            "turnovers": 161,
+            "zone_turnovers": 104,
+            "possession_losses": 232,
+            "zone_possession_losses": 174,
+            "goalie_contact_impulses": 71
+          },
+          "one_timer_metrics": {
+            "shot-released": 29,
+            "timeout": 8,
+            "receiver-mismatch": 2
+          },
+          "carry_metrics": {
+            "least-risk": 2744,
+            "safe-escape": 1878,
+            "safe-default": 6896
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 230,
+              "intercepted": 27,
+              "flight_timeout": 3,
+              "returned_to_passer": 2,
+              "period_ended": 1
+            },
+            "one-timer": {
+              "intercepted": 14,
+              "one_timer_shot": 29,
+              "flight_timeout": 3,
+              "not_released": 1,
+              "received_without_shot": 1
+            },
+            "position-pass": {
+              "flight_timeout": 2,
+              "intercepted": 4,
+              "received_without_shot": 15
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": 4,
+        "mean_goal_difference_delta_per_period": 0.1,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.45,
+          0.65
+        ]
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": 1,
+        "mean_goal_difference_delta_per_period": 0.025,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.4,
+          0.425
+        ]
+      },
+      "source_patch": "classic-v1-offense-07-safe-carry-ducks-sabres.patch"
+    },
+    {
+      "index": 8,
+      "name": "08-progress-preserving-carry",
+      "report": "classic-v1-offense-08-progress-preserving-carry-ducks-sabres.json",
+      "totals": {
+        "goals_for": 55,
+        "goals_against": 20,
+        "wins": 26,
+        "draws": 9,
+        "losses": 5
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 18,
+          "draws": 2,
+          "losses": 0,
+          "goals_for": 38,
+          "goals_against": 8,
+          "one_timer_setups": 79,
+          "one_timers": 48,
+          "one_timer_goals": 26,
+          "periods_without_one_timers": 1,
+          "pass_outcomes": {
+            "received_without_shot": 292,
+            "one_timer_shot": 48,
+            "intercepted": 40,
+            "returned_to_passer": 8,
+            "superseded": 1,
+            "flight_timeout": 10,
+            "not_released": 1,
+            "period_ended": 1
+          },
+          "wrong_recipient": 12,
+          "offense_metrics": {
+            "entries": 157,
+            "controlled_entries": 157,
+            "entry_frames_total": 28219,
+            "entry_threats_total": 2,
+            "turnovers": 139,
+            "zone_turnovers": 82,
+            "possession_losses": 225,
+            "zone_possession_losses": 168,
+            "goalie_contact_impulses": 90
+          },
+          "one_timer_metrics": {
+            "shot-released": 48,
+            "timeout": 13,
+            "receiver-mismatch": 3,
+            "possession-changed": 4
+          },
+          "carry_metrics": {
+            "safe-default": 6270,
+            "least-risk": 2575,
+            "safe-escape": 3436
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 260,
+              "intercepted": 18,
+              "returned_to_passer": 7,
+              "superseded": 1,
+              "flight_timeout": 7,
+              "period_ended": 1
+            },
+            "one-timer": {
+              "one_timer_shot": 48,
+              "intercepted": 19,
+              "not_released": 1,
+              "received_without_shot": 8,
+              "flight_timeout": 3
+            },
+            "position-pass": {
+              "received_without_shot": 24,
+              "intercepted": 3,
+              "returned_to_passer": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 8,
+          "draws": 7,
+          "losses": 5,
+          "goals_for": 17,
+          "goals_against": 12,
+          "one_timer_setups": 68,
+          "one_timers": 47,
+          "one_timer_goals": 13,
+          "periods_without_one_timers": 3,
+          "pass_outcomes": {
+            "one_timer_shot": 45,
+            "received_without_shot": 286,
+            "intercepted": 32,
+            "flight_timeout": 13,
+            "period_ended": 3,
+            "returned_to_passer": 5
+          },
+          "wrong_recipient": 7,
+          "offense_metrics": {
+            "entries": 163,
+            "controlled_entries": 163,
+            "entry_frames_total": 33489,
+            "entry_threats_total": 10,
+            "turnovers": 158,
+            "zone_turnovers": 99,
+            "possession_losses": 238,
+            "zone_possession_losses": 179,
+            "goalie_contact_impulses": 60
+          },
+          "one_timer_metrics": {
+            "shot-released": 44,
+            "possession-changed": 3,
+            "receiver-mismatch": 1,
+            "timeout": 9
+          },
+          "carry_metrics": {
+            "least-risk": 3150,
+            "safe-escape": 2189,
+            "safe-default": 7352
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 260,
+              "intercepted": 16,
+              "flight_timeout": 9,
+              "period_ended": 2,
+              "returned_to_passer": 5
+            },
+            "one-timer": {
+              "one_timer_shot": 44,
+              "received_without_shot": 7,
+              "intercepted": 14,
+              "flight_timeout": 3
+            },
+            "position-pass": {
+              "received_without_shot": 19,
+              "flight_timeout": 1,
+              "one_timer_shot": 1,
+              "intercepted": 2,
+              "period_ended": 1
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": -7,
+        "mean_goal_difference_delta_per_period": -0.175,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.675,
+          0.275
+        ]
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": -6,
+        "mean_goal_difference_delta_per_period": -0.15,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.575,
+          0.25
+        ]
+      },
+      "source_patch": "classic-v1-offense-08-progress-preserving-carry-ducks-sabres.patch"
+    },
+    {
+      "index": 9,
+      "name": "09-coherent-puck-forecast",
+      "report": "classic-v1-offense-09-coherent-puck-forecast-ducks-sabres.json",
+      "totals": {
+        "goals_for": 58,
+        "goals_against": 12,
+        "wins": 28,
+        "draws": 10,
+        "losses": 2
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 16,
+          "draws": 4,
+          "losses": 0,
+          "goals_for": 39,
+          "goals_against": 6,
+          "one_timer_setups": 86,
+          "one_timers": 55,
+          "one_timer_goals": 26,
+          "periods_without_one_timers": 0,
+          "pass_outcomes": {
+            "received_without_shot": 309,
+            "one_timer_shot": 54,
+            "intercepted": 39,
+            "superseded": 2,
+            "flight_timeout": 17,
+            "returned_to_passer": 6,
+            "period_ended": 2
+          },
+          "wrong_recipient": 10,
+          "offense_metrics": {
+            "entries": 164,
+            "controlled_entries": 163,
+            "entry_frames_total": 28025,
+            "entry_threats_total": 7,
+            "turnovers": 146,
+            "zone_turnovers": 88,
+            "possession_losses": 223,
+            "zone_possession_losses": 165,
+            "goalie_contact_impulses": 99
+          },
+          "one_timer_metrics": {
+            "shot-released": 54,
+            "timeout": 17,
+            "possession-changed": 2,
+            "receiver-mismatch": 2
+          },
+          "carry_metrics": {
+            "safe-default": 6629,
+            "least-risk": 2694,
+            "safe-escape": 2140
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 275,
+              "intercepted": 20,
+              "superseded": 1,
+              "flight_timeout": 8,
+              "returned_to_passer": 5,
+              "period_ended": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 54,
+              "received_without_shot": 8,
+              "intercepted": 18,
+              "superseded": 1,
+              "flight_timeout": 5
+            },
+            "position-pass": {
+              "received_without_shot": 26,
+              "flight_timeout": 4,
+              "returned_to_passer": 1,
+              "intercepted": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 12,
+          "draws": 6,
+          "losses": 2,
+          "goals_for": 19,
+          "goals_against": 6,
+          "one_timer_setups": 63,
+          "one_timers": 41,
+          "one_timer_goals": 13,
+          "periods_without_one_timers": 2,
+          "pass_outcomes": {
+            "one_timer_shot": 41,
+            "received_without_shot": 274,
+            "intercepted": 47,
+            "flight_timeout": 8,
+            "returned_to_passer": 2
+          },
+          "wrong_recipient": 11,
+          "offense_metrics": {
+            "entries": 151,
+            "controlled_entries": 151,
+            "entry_frames_total": 29746,
+            "entry_threats_total": 6,
+            "turnovers": 159,
+            "zone_turnovers": 100,
+            "possession_losses": 244,
+            "zone_possession_losses": 184,
+            "goalie_contact_impulses": 51
+          },
+          "one_timer_metrics": {
+            "shot-released": 41,
+            "possession-changed": 1,
+            "timeout": 9
+          },
+          "carry_metrics": {
+            "least-risk": 2977,
+            "safe-escape": 1958,
+            "safe-default": 6805
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 252,
+              "flight_timeout": 7,
+              "intercepted": 25,
+              "returned_to_passer": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 41,
+              "received_without_shot": 3,
+              "intercepted": 18,
+              "flight_timeout": 1
+            },
+            "position-pass": {
+              "received_without_shot": 19,
+              "intercepted": 4
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": 11,
+        "mean_goal_difference_delta_per_period": 0.275,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.15,
+          0.7
+        ]
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": 5,
+        "mean_goal_difference_delta_per_period": 0.125,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.375,
+          0.675
+        ]
+      },
+      "source_patch": "classic-v1-offense-09-coherent-puck-forecast-ducks-sabres.patch"
+    },
+    {
+      "index": 10,
+      "name": "10-recovered-passer-completion",
+      "report": "classic-v1-offense-10-recovered-passer-completion-ducks-sabres.json",
+      "totals": {
+        "goals_for": 58,
+        "goals_against": 12,
+        "wins": 28,
+        "draws": 10,
+        "losses": 2
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 16,
+          "draws": 4,
+          "losses": 0,
+          "goals_for": 39,
+          "goals_against": 6,
+          "one_timer_setups": 86,
+          "one_timers": 55,
+          "one_timer_goals": 26,
+          "periods_without_one_timers": 0,
+          "pass_outcomes": {
+            "received_without_shot": 309,
+            "one_timer_shot": 54,
+            "intercepted": 39,
+            "superseded": 2,
+            "flight_timeout": 17,
+            "returned_to_passer": 6,
+            "period_ended": 2
+          },
+          "wrong_recipient": 10,
+          "offense_metrics": {
+            "entries": 164,
+            "controlled_entries": 163,
+            "entry_frames_total": 28025,
+            "entry_threats_total": 7,
+            "turnovers": 146,
+            "zone_turnovers": 88,
+            "possession_losses": 223,
+            "zone_possession_losses": 165,
+            "goalie_contact_impulses": 99
+          },
+          "one_timer_metrics": {
+            "shot-released": 54,
+            "timeout": 17,
+            "possession-changed": 2,
+            "receiver-mismatch": 2
+          },
+          "carry_metrics": {
+            "safe-default": 6629,
+            "least-risk": 2694,
+            "safe-escape": 2140
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 275,
+              "intercepted": 20,
+              "superseded": 1,
+              "flight_timeout": 8,
+              "returned_to_passer": 5,
+              "period_ended": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 54,
+              "received_without_shot": 8,
+              "intercepted": 18,
+              "superseded": 1,
+              "flight_timeout": 5
+            },
+            "position-pass": {
+              "received_without_shot": 26,
+              "flight_timeout": 4,
+              "returned_to_passer": 1,
+              "intercepted": 1
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 12,
+          "draws": 6,
+          "losses": 2,
+          "goals_for": 19,
+          "goals_against": 6,
+          "one_timer_setups": 63,
+          "one_timers": 41,
+          "one_timer_goals": 13,
+          "periods_without_one_timers": 2,
+          "pass_outcomes": {
+            "one_timer_shot": 41,
+            "received_without_shot": 274,
+            "intercepted": 47,
+            "flight_timeout": 8,
+            "returned_to_passer": 2
+          },
+          "wrong_recipient": 11,
+          "offense_metrics": {
+            "entries": 151,
+            "controlled_entries": 151,
+            "entry_frames_total": 29746,
+            "entry_threats_total": 6,
+            "turnovers": 159,
+            "zone_turnovers": 100,
+            "possession_losses": 244,
+            "zone_possession_losses": 184,
+            "goalie_contact_impulses": 51
+          },
+          "one_timer_metrics": {
+            "shot-released": 41,
+            "possession-changed": 1,
+            "timeout": 9
+          },
+          "carry_metrics": {
+            "least-risk": 2977,
+            "safe-escape": 1958,
+            "safe-default": 6805
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 252,
+              "flight_timeout": 7,
+              "intercepted": 25,
+              "returned_to_passer": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 41,
+              "received_without_shot": 3,
+              "intercepted": 18,
+              "flight_timeout": 1
+            },
+            "position-pass": {
+              "received_without_shot": 19,
+              "intercepted": 4
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": 0,
+        "mean_goal_difference_delta_per_period": 0.0,
+        "cluster_bootstrap_95_percent_ci": [
+          0.0,
+          0.0
+        ],
+        "changed_action_traces": 0
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": 5,
+        "mean_goal_difference_delta_per_period": 0.125,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.375,
+          0.675
+        ],
+        "changed_action_traces": 40
+      },
+      "source_patch": "classic-v1-offense-10-recovered-passer-completion-ducks-sabres.patch"
+    },
+    {
+      "index": 11,
+      "name": "11-exact-frame-deadline",
+      "report": "classic-v1-offense-11-exact-frame-deadline-ducks-sabres.json",
+      "source_patch": "classic-v1-offense-11-exact-frame-deadline-ducks-sabres.patch",
+      "totals": {
+        "goals_for": 56,
+        "goals_against": 12,
+        "wins": 27,
+        "draws": 11,
+        "losses": 2
+      },
+      "summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 16,
+          "draws": 3,
+          "losses": 1,
+          "goals_for": 40,
+          "goals_against": 7,
+          "one_timer_setups": 88,
+          "one_timers": 60,
+          "one_timer_goals": 25,
+          "periods_without_one_timers": 0,
+          "pass_outcomes": {
+            "received_without_shot": 298,
+            "one_timer_shot": 59,
+            "intercepted": 36,
+            "superseded": 2,
+            "flight_timeout": 15,
+            "returned_to_passer": 8,
+            "period_ended": 3
+          },
+          "wrong_recipient": 9,
+          "offense_metrics": {
+            "entries": 163,
+            "controlled_entries": 162,
+            "entry_frames_total": 27861,
+            "entry_threats_total": 5,
+            "turnovers": 152,
+            "zone_turnovers": 93,
+            "possession_losses": 234,
+            "zone_possession_losses": 175,
+            "goalie_contact_impulses": 93
+          },
+          "one_timer_metrics": {
+            "shot-released": 59,
+            "timeout": 16,
+            "receiver-mismatch": 2,
+            "possession-changed": 1,
+            "play-stopped": 1
+          },
+          "carry_metrics": {
+            "safe-default": 6706,
+            "least-risk": 2777,
+            "safe-escape": 2250
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 260,
+              "intercepted": 21,
+              "superseded": 1,
+              "flight_timeout": 8,
+              "returned_to_passer": 6,
+              "period_ended": 3
+            },
+            "one-timer": {
+              "one_timer_shot": 59,
+              "received_without_shot": 9,
+              "intercepted": 15,
+              "superseded": 1,
+              "flight_timeout": 4
+            },
+            "position-pass": {
+              "received_without_shot": 29,
+              "flight_timeout": 3,
+              "returned_to_passer": 2
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 11,
+          "draws": 8,
+          "losses": 1,
+          "goals_for": 16,
+          "goals_against": 5,
+          "one_timer_setups": 62,
+          "one_timers": 40,
+          "one_timer_goals": 11,
+          "periods_without_one_timers": 2,
+          "pass_outcomes": {
+            "one_timer_shot": 40,
+            "received_without_shot": 266,
+            "intercepted": 40,
+            "flight_timeout": 7,
+            "lost_before_release": 1,
+            "returned_to_passer": 2,
+            "not_released": 1
+          },
+          "wrong_recipient": 11,
+          "offense_metrics": {
+            "entries": 147,
+            "controlled_entries": 147,
+            "entry_frames_total": 29575,
+            "entry_threats_total": 6,
+            "turnovers": 151,
+            "zone_turnovers": 101,
+            "possession_losses": 233,
+            "zone_possession_losses": 182,
+            "goalie_contact_impulses": 52
+          },
+          "one_timer_metrics": {
+            "shot-released": 40,
+            "possession-changed": 1,
+            "timeout": 10
+          },
+          "carry_metrics": {
+            "least-risk": 2991,
+            "safe-escape": 1982,
+            "safe-default": 6892
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 241,
+              "flight_timeout": 6,
+              "intercepted": 20,
+              "returned_to_passer": 2
+            },
+            "one-timer": {
+              "one_timer_shot": 40,
+              "received_without_shot": 3,
+              "intercepted": 16,
+              "lost_before_release": 1,
+              "flight_timeout": 1,
+              "not_released": 1
+            },
+            "position-pass": {
+              "received_without_shot": 22,
+              "intercepted": 4
+            }
+          }
+        }
+      },
+      "paired_previous": {
+        "total_goal_difference_delta": -2,
+        "mean_goal_difference_delta_per_period": -0.05,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.375,
+          0.275
+        ],
+        "changed_action_traces": 16
+      },
+      "paired_baseline": {
+        "total_goal_difference_delta": 3,
+        "mean_goal_difference_delta_per_period": 0.075,
+        "cluster_bootstrap_95_percent_ci": [
+          -0.475,
+          0.65
+        ],
+        "changed_action_traces": 40
+      }
+    }
+  ],
+  "final_sources_verified": true,
+  "final_sources": {
+    "nhl94_ai/agents/motion.py": "830614cef7753733a22a52fed921bf526da5f8646fce3eef12a908b7b44f971a",
+    "nhl94_ai/agents/registry.py": "31d7cfabc32417083e84c13337f0881d5f946f52f2ada2f1eb08cf678e8ec53e",
+    "nhl94_ai/agents/cross_crease.py": "2ef21fe27fea484213cb0826c51e202a4e93c669a9d6f6964c40e707f4416846",
+    "nhl94_ai/agents/defense.py": "5cc642ad5414c509658ff32d7c6082133573d0cc145d2af068d10a681bbf980e",
+    "nhl94_ai/evaluation/benchmark.py": "8e1c9893c4a7f5e7bdb337c62d6c42fbf1c2c3eb854b36c91eaf450770a9c890",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/agents/goalie.py": "d015c316ec8f2b50b20178454aefbf91f768ba4f56476e82f4c5b618630f4803",
+    "nhl94_ai/agents/base.py": "c63fad330377fdcf6dc5329b1810b41d2e58bc963f143b01f4903e0fe0030792",
+    "nhl94_ai/agents/offense.py": "85176c78cb670322b99f16402ff33b4f2066f3eff4c5e1e9a3775c8bf8197c0b",
+    "nhl94_ai/game/state.py": "c5cc3f8bd21f7faedfa9285ce963d57a26cfe8f86a929f1dfafaaddb11dfd9fc",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146",
+    "nhl94_ai/agents/classic_v1.py": "8f8d30aa9e4552f7e532f09cea2479ab2e79fc6ca1b2277a3ccd15bf0d963186",
+    "nhl94_ai/agents/passing.py": "e7aa3748a2cc8f9438e7671a17a444f0e3efc5d7c16bbc8dd3167fe5e19b884e",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/game/ram.py": "3a8e0d5d41d6ed03520f19bdf7ea76be9bcbee0b74eb9db83edcf65cf42afa84",
+    "nhl94_ai/env/target_control.py": "9365b9f7e63383ccd0c02c672e506858cd911e48bb3830f86ee62638c7cd6052",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "3572ccdcaa9d8a27ff0ce1d9cace756bb1040d884f5486ec5c168017c8236121",
+    "nhl94_ai/evaluation/offense_metrics.py": "894f592aa003b4486dc4ac8362f0a54d1d87dd5b16f59b28f01c61c1337f9cd9",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb"
+  },
+  "checkpoint_patches_verified": true
+}

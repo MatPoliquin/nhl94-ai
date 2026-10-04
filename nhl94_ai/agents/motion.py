@@ -16,6 +16,24 @@ def velocity(player):
     return player.motion_x, player.motion_y
 
 
+def coast_projection(player, frames):
+    """ShotMode uses aim, not skating acceleration; retain existing inertia."""
+    x, y = float(player.x), float(player.y)
+    vx, vy = velocity(player)
+    for _ in range(frames):
+        vx, vy = vx * 63 / 64, vy * 63 / 64
+        x, y = x + vx, y + vy
+    return x, y
+
+
+def bounded_projection(player, frames, *, boards=True):
+    vx, vy = velocity(player)
+    point = player.x + vx * frames, player.y + vy * frames
+    bounded = project_target(point) if boards else point
+    uncertainty = player.projection_uncertainty + math.dist(point, bounded)
+    return bounded, uncertainty
+
+
 def skate_step(motion, heading, turning, pad, acceleration, limit):
     """One frame of the shared conservative eight-way skating projection."""
     (x, y), (vx, vy) = motion
@@ -104,7 +122,7 @@ def burst_velocity(player):
     return vx + fx * impulse, vy + fy * impulse
 
 
-def stop_projection(player, frames):
+def stop_projection(player, frames, *, bounded=False):
     """Skater stopna subtracts 150 raw units per axis, without reversing velocity."""
     x, y = float(player.x), float(player.y)
     vx, vy = velocity(player)
@@ -112,6 +130,8 @@ def stop_projection(player, frames):
         vx = math.copysign(max(0, abs(vx) - 150 * VELOCITY_SCALE), vx) * 63 / 64
         vy = math.copysign(max(0, abs(vy) - 150 * VELOCITY_SCALE), vy) * 63 / 64
         x, y = x + vx, y + vy
+        if bounded and math.dist((x, y), project_target((x, y))) > 1e-6:
+            return None
     return (x, y), (vx, vy)
 
 
@@ -173,12 +193,14 @@ def arrival_time(player, target, *, optimistic=False, boost=False):
     lateral = abs(vx * dy - vy * dx) / max(distance, 1)
     facing_x, facing_y = facing(player)
     turn = 4 * (1 - (facing_x * dx + facing_y * dy) / max(distance, 1))
+    if optimistic and player.projection_uncertainty:
+        along, lateral, turn = math.hypot(vx, vy), 0, 0
     if boost and boost_safe(player, waypoint):
         along += boost_impulse(player)
     # Friction reduces acceleration as speed builds. Do not clamp an existing
     # burst/collision velocity to the ordinary acceleration acceptance limit.
     effective = max(acceleration * 0.5, acceleration - max(0, along) / 64)
-    distance = max(0, distance + route_extra - 7)
+    distance = max(0, distance + route_extra - 7 - player.projection_uncertainty)
     if along > limit:
         travel = distance / max(limit, along * 0.85)
     else:

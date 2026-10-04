@@ -1,0 +1,102 @@
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -303,7 +303,7 @@
+             self._was_defending = False
+             self._defense_elapsed = frame_skip
+             return self._encode(*self._cross_crease_action(state))
+-        self.offense.observe(state, self.defense.frames)
++        self._observe_ordinary_pass(state)
+         defending = self._defending(state)
+         if self._frame_remaining == 0:
+             self._frame_action = self._predict_decision(state, deterministic)
+@@ -418,6 +418,13 @@
+             self._shot_until = 0
+             self._frame_remaining = 0
+ 
++    def _observe_ordinary_pass(self, state):
++        request = self.offense.pending
++        self.offense.observe(state, self.defense.frames)
++        if (request is not None and self.offense.pending is None
++                and self.offense.last_pass['outcome'] == 'recovered-by-passer'):
++            self._frame_remaining = 0
++
+     def _observe_one_timer(self, state, frame):
+         if self._one_timer is None:
+             return False
+@@ -479,7 +486,7 @@
+     def _decide(self, state):
+         self.defense_diagnostics = {}
+         self.offense_diagnostics = {}
+-        self.offense.observe(state, self.defense.frames)
++        self._observe_ordinary_pass(state)
+         if self.cross_crease is not None and self.cross_crease.plan is not None:
+             self.defense.idle(self._defense_elapsed)
+             return self._cross_crease_action(state)
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -231,11 +231,15 @@
+         owner = state.engine.puck_owner
+         if state.team2.owns_scnum(owner):
+             result = 'intercepted' if request['launched'] else 'lost-before-release'
++        elif owner == request['passer'] and request['flight_observed']:
++            result = 'recovered-by-passer'
+         elif frame >= request['deadline']:
+             result = 'flight-timeout' if request['launched'] else 'not-released'
+         elif owner >= 0 and owner != request['passer']:
+             result = 'received' if owner == request['receiver'] else 'other-receiver'
+         else:
++            if owner < 0:
++                request['flight_observed'] = True
+             if (request['actual_receiver'] is None and state.team1.pass_attempts is not None
+                     and request['passes_before'] is not None
+                     and state.team1.pass_attempts > request['passes_before']):
+@@ -252,7 +256,7 @@
+             'passer': state.engine.puck_owner, 'receiver': option.slot, 'purpose': purpose,
+             'frame': frame, 'deadline': frame + math.ceil(option.flight_frames) + 20,
+             'point': option.point, 'passes_before': state.team1.pass_attempts,
+-            'actual_receiver': None, 'launched': False,
++            'actual_receiver': None, 'launched': False, 'flight_observed': False,
+         }
+         self.last_request = dict(self.pending)
+         self.pass_at = frame + 24
+--- a/nhl94_ai/evaluation/cpu_benchmark.py
++++ b/nhl94_ai/evaluation/cpu_benchmark.py
+@@ -112,6 +112,8 @@
+         defense_frames, defense_requests = Counter(), Counter()
+         controlled_recoveries = 0
+         inactive_skater_frames = 0
++        ordinary_pass_metrics = Counter()
++        last_ordinary_pass = None
+         passes = PassOutcomes(side)
+         offense = OffenseMetrics()
+         budget = seconds * 120 + 6000
+@@ -123,6 +125,10 @@
+             offense.observe(frames, view)
+             before_tick = agent._tick
+             action = agent.predict_game_state(view)[0]
++            event = agent.offense.last_pass
++            if event is not None and event['end_frame'] != last_ordinary_pass:
++                ordinary_pass_metrics[event['outcome']] += 1
++                last_ordinary_pass = event['end_frame']
+             if agent._tick != before_tick:
+                 decisions[agent._last_decision] += 1
+             request = agent._last_pass_request
+@@ -166,6 +172,7 @@
+             'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
+             'controlled_recoveries': controlled_recoveries,
+             'inactive_skater_frames': inactive_skater_frames,
++            'ordinary_pass_metrics': dict(ordinary_pass_metrics),
+             'pass_outcomes': passes.summary(), 'pass_events': passes.events,
+             'offense_metrics': offense.summary(), 'zone_entries': offense.entries,
+             'clock_remaining': info['bench_clock'], 'completed': info['bench_clock'] == 0,
+@@ -213,6 +220,10 @@
+             key: sum(row.get('one_timer_accounting', {}).get(key, 0) for row in rows)
+             for key in ('started', 'ended')
+         }
++        ordinary_pass_metrics = Counter()
++        for row in rows:
++            ordinary_pass_metrics.update(row.get('ordinary_pass_metrics', {}))
++        summary[matchup]['ordinary_pass_metrics'] = dict(ordinary_pass_metrics)
+         carry_metrics = Counter()
+         for row in rows:
+             carry_metrics.update(row.get('carry_metrics', {}))

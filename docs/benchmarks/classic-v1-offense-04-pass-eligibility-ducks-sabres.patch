@@ -1,0 +1,53 @@
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -345,6 +345,14 @@
+             receiver=asdict(option) if option else None, last_pass=self.last_pass)
+         return mode, target, option
+ 
++    @staticmethod
++    def _worthwhile(option, player, sign, purpose, current):
++        if purpose == 'advance':
++            return option.forward_gain >= 20 and (
++                option.bypassed > 0 or option.forward_gain >= 50
++                or player.y * sign < 88 <= option.point[1] * sign)
++        return option.shot_value > current + 12
++
+     def choose(self, state, frame):
+         player = state.team1.get_player_by_scnum(state.engine.puck_owner)
+         self.diagnostics = {'candidates': [], 'scenario_samples': 8}
+@@ -366,6 +374,11 @@
+         purpose = 'advance' if player.y * sign < 140 else 'position'
+         choices, self.diagnostics['candidates'] = self.passes(state, purpose)
+         current = shot_value(state, player)
++        choices = [option for option in choices if self._worthwhile(option, player, sign, purpose, current)]
++        worthwhile_slots = {option.slot for option in choices}
++        for candidate in self.diagnostics['candidates']:
++            if candidate['status'] == 'safe':
++                candidate['worthwhile'] = candidate['slot'] in worthwhile_slots
+         opportunity = max(current, choices[0].shot_value + min(choices[0].margin, 12) if choices else 0)
+         if self.feint_mode == 'one-timer-setup':
+             continuation = self._continue_cut(state, player, frame)
+@@ -373,17 +386,12 @@
+                 return continuation
+         if choices and frame >= self.pass_at:
+             best = choices[0]
+-            worthwhile = (best.forward_gain >= 20 and (
+-                best.bypassed > 0 or best.forward_gain >= 50
+-                or player.y * sign < 88 <= best.point[1] * sign)) if purpose == 'advance' else (
+-                    best.shot_value > current + 12)
+-            if worthwhile:
+-                if purpose == 'position':
+-                    setup = self._feint(state, player, frame, opportunity, one_timer_only=True)
+-                    if setup:
+-                        return setup
+-                return self._plan(state, 'advance-pass' if purpose == 'advance' else 'position-pass',
+-                                  best.point, 'advance beyond defenders with reception space', best)
++            if purpose == 'position':
++                setup = self._feint(state, player, frame, opportunity, one_timer_only=True)
++                if setup:
++                    return setup
++            return self._plan(state, 'advance-pass' if purpose == 'advance' else 'position-pass',
++                              best.point, 'advance beyond defenders with reception space', best)
+         continuation = self._continue_cut(state, player, frame)
+         if continuation:
+             return continuation

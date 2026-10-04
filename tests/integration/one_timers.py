@@ -24,7 +24,7 @@ def environment(*, cpu=False):
     return env
 
 
-def capture_setup(seed=3000, *, from_cut=False, cpu=False):
+def capture_setup(seed=3000, *, from_cut=False, cpu=False, frame_skip=4):
     env = environment(cpu=cpu)
     try:
         env.data.set_value('bench_rng', seed)
@@ -37,7 +37,7 @@ def capture_setup(seed=3000, *, from_cut=False, cpu=False):
         if not cpu:
             agents.append(make_agent('classic-v1-direct'))
         for agent in agents:
-            agent.frame_skip = 4
+            agent.frame_skip = frame_skip
         snapshot = None
         saved_tick = -56
         cut_snapshot, cut_owner, cut_tick = None, None, -FEINT_FRAMES
@@ -70,11 +70,13 @@ def capture_setup(seed=3000, *, from_cut=False, cpu=False):
         env.close()
 
 
-def replay(snapshot, schema, *, fast_pass=False, from_cut=False):
+def replay(snapshot, schema, *, fast_pass=False, from_cut=False, frame_skip=4):
     env = environment(cpu=len(snapshot[1]) == 1)
     try:
         data, saved_agents, attempts = snapshot
         agents = deepcopy(saved_agents)
+        for agent in agents:
+            agent.frame_skip = frame_skip
         env.em.set_state(data)
         env.data.update_ram()
         info = env.data.lookup_all()
@@ -114,7 +116,12 @@ def replay(snapshot, schema, *, fast_pass=False, from_cut=False):
                     assert requested_receiver is not None and info['shot_player'] == requested_receiver
                 if fast_pass:
                     assert info[f"defense_{info['shot_player']}_stick"] == 0
+                update_state(state, info, env)
+                agents[0].predict_game_state(state)
+                assert agents[0]._one_timer is None, ('one-timer remains active after native release', frame_skip)
+                assert agents[0].one_timer_metrics.get('shot-released', 0) > 0, agents[0].one_timer_metrics
                 print(f'PASS: {schema} converted the live pass into a ROM-counted one-timer'
+                      + f' at decision interval {frame_skip} and completed on native release'
                       + (' after an actually executed goalie-safe setup cut' if from_cut else '')
                       + (' despite zero receiver stick handling and maximum pass speed' if fast_pass else ''))
                 return
@@ -124,21 +131,20 @@ def replay(snapshot, schema, *, fast_pass=False, from_cut=False):
 
 
 if __name__ == '__main__':
-    setup = None
-    for seed in range(3000, 3004):
-        setup = capture_setup(seed)
-        if setup is not None:
-            break
-    assert setup is not None, 'No successful one-timer setup found in four bounded seeded periods'
-    replay(setup, 'FILTERED')
-    replay(setup, 'HOCKEY_INTENT_DPAD')
+    snapshots = {}
+    for interval in (1, 4, 8, 10):
+        setup = None
+        for seed in range(3000, 3004):
+            setup = capture_setup(seed, frame_skip=interval)
+            if setup is not None:
+                break
+        assert setup is not None, ('No successful one-timer setup in four bounded periods', interval)
+        # Receiver activation changes its motion; capture at the replay cadence.
+        snapshots[interval] = setup
+        replay(setup, 'FILTERED', frame_skip=interval)
+        replay(setup, 'HOCKEY_INTENT_DPAD', frame_skip=interval)
+    setup = snapshots[4]
     replay(setup, 'FILTERED', fast_pass=True)
     replay(setup, 'HOCKEY_INTENT_DPAD', fast_pass=True)
-    setup = None
-    for seed in (20261106, 20261101, 20261103, 20261102):
-        setup = capture_setup(seed, from_cut=True, cpu=True)
-        if setup is not None:
-            break
-    assert setup is not None, 'No successful setup-cut one-timer found in four bounded CPU periods'
-    replay(setup, 'FILTERED', from_cut=True)
-    replay(setup, 'HOCKEY_INTENT_DPAD', from_cut=True)
+    from tests.integration.classic_offense import one_timer_setup_cut
+    one_timer_setup_cut()

@@ -128,6 +128,103 @@ class ClassicV1Contracts(unittest.TestCase):
         model.predict_game_state(state)
         self.assertNotEqual(model._last_decision, 'shot-follow-through')
 
+    def test_teammate_rebound_is_evaluated_immediately_on_either_side(self):
+        for away in (False, True):
+            for interval in (1, 4, 10):
+                for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
+                    with self.subTest(away=away, interval=interval, schema=schema):
+                        state = shooting_state()
+                        if away:
+                            state.engine.puck_owner = 6
+                            state = away_view(state)
+                        model = ClassicAIV1Model(SimpleNamespace(action_type=schema))
+                        model.predict_frame(state, frame_skip=interval)
+                        self.assertEqual(model._last_decision, 'shoot')
+                        state.team1.stats.shots += 1
+                        state.engine.shot_player = state.engine.puck_owner
+                        receiver = state.team1.players[1]
+                        receiver.x, receiver.y = 30, state.team2.net.y * 225 / 264
+                        state.engine.puck_owner = state.team1.skater_scnum_base() + 1
+                        state.team1.control = 2
+                        model.predict_frame(state, frame_skip=interval)
+                        self.assertEqual(model._last_decision, 'shoot')
+                        self.assertEqual(model._shot_until, 0)
+                        self.assertEqual(model.offense_diagnostics['desired_slot'], state.engine.puck_owner)
+
+    def test_finishing_requires_the_puck_to_remain_in_front_of_either_net(self):
+        from nhl94_ai.env.target_control import route_waypoint
+        for away in (False, True):
+            for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
+                for situation in ('behind', 'goal-line', 'coasting-behind'):
+                    with self.subTest(away=away, schema=schema, situation=situation):
+                        state = shooting_state()
+                        if away:
+                            state.engine.puck_owner = 6
+                            state = away_view(state)
+                        sign = -1 if away else 1
+                        player = state.team1.players[0]
+                        player.x = 40
+                        player.y = sign * (268 if situation == 'behind' else 264
+                                           if situation == 'goal-line' else 250)
+                        player.motion_x, player.motion_y = 0, sign * 3 if situation == 'coasting-behind' else 0
+                        state.engine.puck_owner_known = True
+                        state.puck.x, state.puck.y = player.x, player.y
+                        model = ClassicAIV1Model(SimpleNamespace(action_type=schema, one_timers=False))
+                        model.predict_frame(state)
+                        self.assertNotEqual(model._last_decision, 'shoot')
+                        self.assertEqual(model._shot_until, 0)
+                        self.assertEqual(route_waypoint((player.x, player.y), model._last_target),
+                                         model._last_target)
+
+    def test_reduced_variant_goalie_possession_interrupts_shooter_follow_through(self):
+        state = NHL94GameState(2)
+        state.team1.net.y, state.team2.net.y = -264, 264
+        state.team1.control, state.engine.puck_owner = 1, 0
+        state.team1.players[0].x, state.team1.players[0].y = 30, 225
+        model = ClassicAIV1Model()
+        model.predict_frame(state, frame_skip=4)
+        self.assertEqual(model._last_decision, 'shoot')
+        state.team1.defense_goalie = state.team1.defense_control = state.engine.puck_owner = 2
+        state.team1.control = 0
+        state.team1.goalie.y, state.puck.y = -250, -250
+        model.predict_frame(state, frame_skip=4)
+        self.assertEqual(model._last_decision, 'goalie-outlet')
+        self.assertEqual(model._shot_until, 0)
+
+    def test_legal_close_finishing_does_not_require_positive_conservative_shot_value(self):
+        from nhl94_ai.agents.passing import shot_value
+        state = shooting_state()
+        player = state.team1.players[0]
+        player.x, player.y = 40, 250
+        player.shot_offsets_y = (-2, -2)
+        state.engine.puck_owner_known = True
+        state.puck.x, state.puck.y = player.x, player.y
+        self.assertEqual(shot_value(state, player), 0)
+        model = ClassicAIV1Model()
+        self.assertTrue(model.predict_frame(state)[0, Buttons.INPUT_C])
+        self.assertEqual(model._last_decision, 'shoot')
+
+    def test_animation_hotspot_cannot_move_a_stationary_release_behind_the_line(self):
+        for sign in (-1, 1):
+            with self.subTest(sign=sign):
+                state = shooting_state()
+                state.team1.net.y, state.team2.net.y = -264 * sign, 264 * sign
+                player = state.team1.players[0]
+                player.y, state.puck.y = 250 * sign, 258 * sign
+                player.shot_offsets_y = (12 * sign, 14 * sign)
+                state.engine.puck_owner_known = True
+                model = ClassicAIV1Model()
+                model.predict_frame(state)
+                self.assertNotEqual(model._last_decision, 'shoot')
+
+    def test_native_release_jump_horizon_handles_hold_boundaries(self):
+        from nhl94_ai.agents.offense import normal_shot_release_frames
+        player = shooting_state().team1.players[0]
+        player.shot_power = 20
+        for interval, frames in ((1, 3), (4, 6), (5, 7), (8, 12), (10, 12), (20, 32), (100, 37)):
+            with self.subTest(interval=interval):
+                self.assertEqual(normal_shot_release_frames(player, interval), frames)
+
     def test_stale_stars_do_not_trigger_a_shot(self):
         state = shooting_state()
         state.team1.player_haspuck = True

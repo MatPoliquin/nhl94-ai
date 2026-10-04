@@ -1,0 +1,190 @@
+--- a/nhl94_ai/agents/motion.py
++++ b/nhl94_ai/agents/motion.py
+@@ -24,6 +24,14 @@
+         vx, vy = vx * 63 / 64, vy * 63 / 64
+         x, y = x + vx, y + vy
+     return x, y
++
++
++def bounded_projection(player, frames, *, boards=True):
++    vx, vy = velocity(player)
++    point = player.x + vx * frames, player.y + vy * frames
++    bounded = project_target(point) if boards else point
++    uncertainty = player.projection_uncertainty + math.dist(point, bounded)
++    return bounded, uncertainty
+ 
+ 
+ def skate_step(motion, heading, turning, pad, acceleration, limit):
+@@ -114,7 +122,7 @@
+     return vx + fx * impulse, vy + fy * impulse
+ 
+ 
+-def stop_projection(player, frames):
++def stop_projection(player, frames, *, bounded=False):
+     """Skater stopna subtracts 150 raw units per axis, without reversing velocity."""
+     x, y = float(player.x), float(player.y)
+     vx, vy = velocity(player)
+@@ -122,6 +130,8 @@
+         vx = math.copysign(max(0, abs(vx) - 150 * VELOCITY_SCALE), vx) * 63 / 64
+         vy = math.copysign(max(0, abs(vy) - 150 * VELOCITY_SCALE), vy) * 63 / 64
+         x, y = x + vx, y + vy
++        if bounded and math.dist((x, y), project_target((x, y))) > 1e-6:
++            return None
+     return (x, y), (vx, vy)
+ 
+ 
+@@ -183,12 +193,14 @@
+     lateral = abs(vx * dy - vy * dx) / max(distance, 1)
+     facing_x, facing_y = facing(player)
+     turn = 4 * (1 - (facing_x * dx + facing_y * dy) / max(distance, 1))
++    if optimistic and player.projection_uncertainty:
++        along, lateral, turn = math.hypot(vx, vy), 0, 0
+     if boost and boost_safe(player, waypoint):
+         along += boost_impulse(player)
+     # Friction reduces acceleration as speed builds. Do not clamp an existing
+     # burst/collision velocity to the ordinary acceleration acceptance limit.
+     effective = max(acceleration * 0.5, acceleration - max(0, along) / 64)
+-    distance = max(0, distance + route_extra - 7)
++    distance = max(0, distance + route_extra - 7 - player.projection_uncertainty)
+     if along > limit:
+         travel = distance / max(limit, along * 0.85)
+     else:
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -4,7 +4,9 @@
+ import math
+ 
+ from nhl94_ai.agents.defense import controlled_slot, eligible
+-from nhl94_ai.agents.motion import arrival_time, coast_projection, facing, skate_step, skating, stop_projection, velocity
++from nhl94_ai.agents.motion import (
++    arrival_time, bounded_projection, coast_projection, facing, skate_step, skating, stop_projection, velocity,
++)
+ from nhl94_ai.agents.passing import evaluate_pass, pressure_margin, rom_direction, shot_value
+ from nhl94_ai.env.target_control import project_target, route_waypoint
+ 
+@@ -51,27 +53,28 @@
+ 
+ 
+ def _carry_motion(player, target, frames=FEINT_FRAMES):
+-    return stop_projection(player, frames) if _braking(player, target) else carry_projection(player, target, frames)
++    return (stop_projection(player, frames, bounded=True) if _braking(player, target)
++            else carry_projection(player, target, frames))
+ 
+ 
+ def projected_state(state, target, frames=FEINT_FRAMES):
++    original = state.team1.get_player_by_scnum(state.engine.puck_owner)
++    motion = _carry_motion(original, target, frames)
++    if motion is None:
++        return None
+     future = copy(state)
+     for name in ('team1', 'team2'):
+         team = copy(getattr(state, name))
+         team.players = [copy(p) for p in team.players]
+         team.goalie = copy(team.goalie)
++        carrier = team.get_player_by_scnum(state.engine.puck_owner) if name == 'team1' else None
+         for player in (*team.players, team.goalie):
+-            vx, vy = velocity(player)
+-            player.x, player.y = player.x + vx * frames, player.y + vy * frames
+-            if player is not team.goalie and math.dist(
+-                    (player.x, player.y), project_target((player.x, player.y))) > 1e-6:
+-                return None
++            if player is carrier:
++                continue
++            (player.x, player.y), player.projection_uncertainty = bounded_projection(
++                player, frames, boards=player is not team.goalie)
+         setattr(future, name, team)
+     player = future.team1.get_player_by_scnum(state.engine.puck_owner)
+-    original = state.team1.get_player_by_scnum(state.engine.puck_owner)
+-    motion = _carry_motion(original, target, frames)
+-    if motion is None:
+-        return None
+     (player.x, player.y), (player.motion_x, player.motion_y) = motion
+     future.puck = copy(state.puck)
+     future.puck.x, future.puck.y = player.x, player.y
+@@ -88,8 +91,8 @@
+             for other in (*team.players, team.goalie):
+                 if other is player or other.role is not None and other.role < 0:
+                     continue
+-                vx, vy = velocity(other)
+-                if math.dist(point, (other.x + vx * frames, other.y + vy * frames)) <= 16:
++                position, uncertainty = bounded_projection(other, frames, boards=other is not team.goalie)
++                if math.dist(point, position) <= 16 + uncertainty:
+                     return False
+     return True
+ 
+--- a/nhl94_ai/agents/passing.py
++++ b/nhl94_ai/agents/passing.py
+@@ -5,7 +5,7 @@
+ import numpy as np
+ 
+ from nhl94_ai.agents.defense import eligible
+-from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, facing, skating, velocity
++from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, bounded_projection, facing, skating, velocity
+ from nhl94_ai.env.target_control import _clear_segment, project_target
+ from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
+ from nhl94_ai.game.geometry import aim_pass
+@@ -214,10 +214,12 @@
+ 
+ 
+ def _swept_contact(state, player, segment, times, radius, offset=(0, 0)):
+-    vx, vy = velocity(player)
+-    relative = [(point[0] - player.x - offset[0] - vx * time, point[1] - player.y - offset[1] - vy * time)
+-                for point, time in zip(segment, times)]
+-    return state._line_intersects_circle(relative[0], relative[1], (0, 0), radius)
++    boards = player is not state.team1.goalie and player is not state.team2.goalie
++    projections = [bounded_projection(player, time, boards=boards) for time in times]
++    relative = [(point[0] - position[0] - offset[0], point[1] - position[1] - offset[1])
++                for point, (position, _) in zip(segment, projections)]
++    return state._line_intersects_circle(
++        relative[0], relative[1], (0, 0), radius + max(uncertainty for _, uncertainty in projections))
+ 
+ 
+ def shot_value(state, shooter, point=None, delay=0):
+@@ -234,9 +236,8 @@
+         obstacles = [*state.team2.players, goalie]
+         blocked = False
+         for other in obstacles:
+-            vx, vy = velocity(other)
+-            position = other.x + vx * (delay + travel / 2), other.y + vy * (delay + travel / 2)
+-            if state._line_intersects_circle(point, goal, position, 12 if other is goalie else 8):
++            position, uncertainty = bounded_projection(other, delay + travel / 2, boards=other is not goalie)
++            if state._line_intersects_circle(point, goal, position, (12 if other is goalie else 8) + uncertainty):
+                 blocked = True
+                 break
+         clear += not blocked
+@@ -255,6 +256,8 @@
+             or any(getattr(p, field) is None for p in (passer, receiver)
+                                      for field in required) or passer.passing is None):
+         return None, details
++    if receiver.projection_uncertainty:
++        return None, {**details, 'status': 'uncertain-reception'}
+     owner = state.engine.puck_owner
+     direction = pad_direction(passer, receiver)
+     if selected_receiver(state.team1, state.puck, owner, direction) != slot:
+@@ -316,10 +319,11 @@
+         for other in opponents:
+             if other.role is not None and other.role < 0:
+                 continue
+-            vx, vy = velocity(other)
+-            center = other.x + vx * elapsed, other.y + vy * elapsed
+-            radius = 14 if other is not state.team2.goalie else 16
+-            if _swept_contact(state, other, (previous_puck, puck), (previous_elapsed, elapsed), radius):
++            center, boundary_uncertainty = bounded_projection(
++                other, elapsed, boards=other is not state.team2.goalie)
++            body_radius = 14 if other is not state.team2.goalie else 16
++            radius = body_radius + boundary_uncertainty
++            if _swept_contact(state, other, (previous_puck, puck), (previous_elapsed, elapsed), body_radius):
+                 return None, {**details, 'status': 'moving-interception'}
+             offsets = _contact_offsets(other)
+             for offset in offsets[1:]:
+--- a/nhl94_ai/game/state.py
++++ b/nhl94_ai/game/state.py
+@@ -68,6 +68,8 @@
+     # These optional values are not part of the historical neural encoding.
+     motion_x: float | None = None
+     motion_y: float | None = None
++    # Bounded forecast uncertainty, not RAM telemetry or a model input.
++    projection_uncertainty: float = 0.0
+     # Scripted defense telemetry is never included in normalized policy inputs.
+     speed: int | None = None
+     agility: int | None = None

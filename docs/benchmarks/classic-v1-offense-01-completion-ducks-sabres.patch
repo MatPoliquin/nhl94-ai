@@ -1,0 +1,137 @@
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -61,6 +61,9 @@
+         self._last_pass_request = None
+         self._one_timer_passes_before = None
+         self._one_timer_actual = None
++        self._one_timer_attempts_before = None
++        self._one_timer_shots_before = 0
++        self.one_timer_metrics = {}
+         self._frame_remaining = 0
+         self._frame_action = np.zeros((1, self._size), dtype=np.int8)
+         self._defense_elapsed = 4
+@@ -86,6 +89,9 @@
+         raise NotImplementedError('ClassicAIV1 does not produce a trainable checkpoint.')
+ 
+     def predict_game_state(self, state, deterministic=True):
++        if self._observe_one_timer(state):
++            self.defense.idle(self._defense_elapsed)
++            return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
+         if self._observe_cross_crease(state):
+             return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
+         goalie_action = self._goalie_frame(state)
+@@ -265,6 +271,9 @@
+         """Reactive defense each frame, unchanged offensive decision interval."""
+         if frame_skip < 1:
+             raise ValueError('Scripted decision interval must be positive')
++        if self._observe_one_timer(state):
++            self.defense.idle(1)
++            return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
+         if self._observe_cross_crease(state):
+             self._was_defending = False
+             return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
+@@ -361,6 +370,29 @@
+                 return index, slot
+         return None
+ 
++    def _end_one_timer(self, reason):
++        self.one_timer_metrics[reason] = self.one_timer_metrics.get(reason, 0) + 1
++        self._one_timer = None
++        self._frame_remaining = 0
++        self._last_decision = 'one-timer-ended'
++        self.offense_diagnostics = {'reason': reason}
++
++    def _observe_one_timer(self, state):
++        if self._one_timer is None:
++            return False
++        passer, slot, _ = self._one_timer
++        if state.engine.clock_stopped:
++            self._end_one_timer('play-stopped')
++            return True
++        attempts = state.team1.one_timer_attempts
++        released = (attempts is not None and self._one_timer_attempts_before is not None
++                    and attempts > self._one_timer_attempts_before)
++        recorded = state.team1.stats.shots > self._one_timer_shots_before
++        if (state.engine.puck_owner != passer and state.engine.shot_player == slot
++                and (released or recorded)):
++            self._end_one_timer('shot-released')
++        return False
++
+     def _continue_one_timer(self, state, action):
+         passer, slot, deadline = self._one_timer
+         receiver = state.team1.get_player_by_scnum(slot)
+@@ -371,11 +403,13 @@
+                 and state.engine.pass_target is not None):
+             self._one_timer_actual = state.engine.pass_target
+         if self._one_timer_actual is not None and self._one_timer_actual != slot:
+-            self._one_timer = None
++            self._end_one_timer('receiver-mismatch')
+             return None
+         if (receiver is None or receiver.is_falling or self._tick >= deadline
+                 or owner >= 0 and owner != passer):
+-            self._one_timer = None
++            self._end_one_timer(
++                'timeout' if self._tick >= deadline else 'receiver-unavailable'
++                if receiver is None or receiver.is_falling else 'possession-changed')
+             return None
+         self._last_decision = 'one-timer-wait'
+         self.offense_diagnostics = {'desired_slot': slot, 'reason': 'wait for one-timer contact',
+@@ -476,6 +510,8 @@
+                 self._one_timer = (owner, slot, self._tick + 18)
+                 self._one_timer_passes_before = team.pass_attempts
+                 self._one_timer_actual = None
++                self._one_timer_attempts_before = team.one_timer_attempts
++                self._one_timer_shots_before = team.stats.shots
+                 self._pass_at = self._tick + 24
+                 self._setup_until = 0
+                 self._last_decision = 'one-timer-pass'
+--- a/nhl94_ai/evaluation/cpu_benchmark.py
++++ b/nhl94_ai/evaluation/cpu_benchmark.py
+@@ -152,6 +152,7 @@
+             'shots': [info['bench_shots1'], info['bench_shots2']],
+             'one_timers': [info['bench_one_timers1'], info['bench_one_timers2']],
+             'one_timer_goals': [info['bench_one_timer_goals1'], info['bench_one_timer_goals2']],
++            'one_timer_metrics': dict(agent.one_timer_metrics),
+             'decisions': dict(decisions), 'frames': frames,
+             'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
+             'controlled_recoveries': controlled_recoveries,
+@@ -194,6 +195,10 @@
+         for row in rows:
+             metrics.update(row.get('offense_metrics', {}))
+         summary[matchup]['offense_metrics'] = dict(metrics)
++        one_timer_metrics = Counter()
++        for row in rows:
++            one_timer_metrics.update(row.get('one_timer_metrics', {}))
++        summary[matchup]['one_timer_metrics'] = dict(one_timer_metrics)
+         goalie_metrics = Counter()
+         for row in rows:
+             goalie_metrics.update(row.get('goalie_metrics', {}))
+--- a/nhl94_ai/game/ram.py
++++ b/nhl94_ai/game/ram.py
+@@ -124,6 +124,8 @@
+     """ROM symbols passplayer and lastplayer, verified against nhl94.xml/ROM."""
+     for name, address in (('pass_target', 0xFFBEE0), ('last_puck_player', 0xFFBEDA)):
+         env.data.set_variable(name, {'address': address, 'type': '>i2'})
++    for side, address in enumerate((0xFFCA2A, 0xFFCD8E), start=1):
++        env.data.set_variable(f'p{side}_one_timer_attempts', {'address': address, 'type': '>u2'})
+ 
+ 
+ def register_shootout_scores(env):
+--- a/nhl94_ai/game/state.py
++++ b/nhl94_ai/game/state.py
+@@ -220,6 +220,7 @@
+         self.defense_control = None
+         self.defense_goalie = None
+         self.pass_attempts = None
++        self.one_timer_attempts = None
+ 
+         # for model input
+         self.nz_players = [Player() for _ in range(num_players)]
+@@ -336,6 +337,7 @@
+ 
+     def _load_defense_fields(self, info):
+         self.pass_attempts = info.get(f'p{self.controller}_pass_attempts')
++        self.one_timer_attempts = info.get(f'p{self.controller}_one_timer_attempts')
+         self.defense_control = None
+         self.defense_goalie = None
+         for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing',

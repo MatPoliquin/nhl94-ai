@@ -111,15 +111,24 @@ def cpu_match(fixture):
         decisions, digest = Counter(), hashlib.sha256()
         defense_frames, defense_requests = Counter(), Counter()
         controlled_recoveries = 0
+        inactive_skater_frames = 0
+        ordinary_pass_metrics = Counter()
+        last_ordinary_pass = None
         passes = PassOutcomes(side)
         offense = OffenseMetrics()
         budget = seconds * 120 + 6000
         while info['bench_clock'] > 0 and frames < budget:
             info = pass_geometry_info(env, info)
             view = cpu_view(state, info, side)
+            inactive_skater_frames += sum(p.role is not None and p.role < 0
+                                          for p in (*view.team1.players, *view.team2.players))
             offense.observe(frames, view)
             before_tick = agent._tick
             action = agent.predict_game_state(view)[0]
+            event = agent.offense.last_pass
+            if event is not None and event['end_frame'] != last_ordinary_pass:
+                ordinary_pass_metrics[event['outcome']] += 1
+                last_ordinary_pass = event['end_frame']
             if agent._tick != before_tick:
                 decisions[agent._last_decision] += 1
             request = agent._last_pass_request
@@ -146,15 +155,24 @@ def cpu_match(fixture):
             frames += 1
             passes.observe(frames, info)
         passes.finish(frames, info, 'period_ended' if info['bench_clock'] == 0 else 'trial_incomplete')
+        agent._end_one_timer('period-ended' if info['bench_clock'] == 0 else 'trial-incomplete')
+        ended = sum(agent.one_timer_metrics.values())
+        if ended != agent.one_timer_starts:
+            raise RuntimeError(f'Unbalanced one-timer lifecycle: {agent.one_timer_starts} starts, {ended} endings.')
         return {
             'agent': agent_name, 'matchup': matchup, 'side': side, 'seed': seed,
             'goals': [info['p1_score'], info['p2_score']],
             'shots': [info['bench_shots1'], info['bench_shots2']],
             'one_timers': [info['bench_one_timers1'], info['bench_one_timers2']],
             'one_timer_goals': [info['bench_one_timer_goals1'], info['bench_one_timer_goals2']],
+            'one_timer_metrics': dict(agent.one_timer_metrics),
+            'one_timer_accounting': {'started': agent.one_timer_starts, 'ended': ended},
+            'carry_metrics': dict(agent.carry_metrics),
             'decisions': dict(decisions), 'frames': frames,
             'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
             'controlled_recoveries': controlled_recoveries,
+            'inactive_skater_frames': inactive_skater_frames,
+            'ordinary_pass_metrics': dict(ordinary_pass_metrics),
             'pass_outcomes': passes.summary(), 'pass_events': passes.events,
             'offense_metrics': offense.summary(), 'zone_entries': offense.entries,
             'clock_remaining': info['bench_clock'], 'completed': info['bench_clock'] == 0,
@@ -194,6 +212,22 @@ def summarize(results):
         for row in rows:
             metrics.update(row.get('offense_metrics', {}))
         summary[matchup]['offense_metrics'] = dict(metrics)
+        one_timer_metrics = Counter()
+        for row in rows:
+            one_timer_metrics.update(row.get('one_timer_metrics', {}))
+        summary[matchup]['one_timer_metrics'] = dict(one_timer_metrics)
+        summary[matchup]['one_timer_accounting'] = {
+            key: sum(row.get('one_timer_accounting', {}).get(key, 0) for row in rows)
+            for key in ('started', 'ended')
+        }
+        ordinary_pass_metrics = Counter()
+        for row in rows:
+            ordinary_pass_metrics.update(row.get('ordinary_pass_metrics', {}))
+        summary[matchup]['ordinary_pass_metrics'] = dict(ordinary_pass_metrics)
+        carry_metrics = Counter()
+        for row in rows:
+            carry_metrics.update(row.get('carry_metrics', {}))
+        summary[matchup]['carry_metrics'] = dict(carry_metrics)
         goalie_metrics = Counter()
         for row in rows:
             goalie_metrics.update(row.get('goalie_metrics', {}))

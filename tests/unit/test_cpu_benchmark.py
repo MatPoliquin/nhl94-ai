@@ -58,17 +58,22 @@ class CpuBenchmarkContracts(unittest.TestCase):
         register_goalie_motion(env)
         fields = dict(call.args for call in env.data.set_variable.call_args_list)
         self.assertEqual(fields['pass_target'], {'address': 0xFFBEE0, 'type': '>i2'})
+        self.assertEqual(fields['p1_one_timer_attempts'], {'address': 0xFFCA2A, 'type': '>u2'})
+        self.assertEqual(fields['p2_one_timer_attempts'], {'address': 0xFFCD8E, 'type': '>u2'})
         self.assertEqual(fields['g2_live_vel_x'], {'address': 0xFFB04A + 11 * 0x80 + 0x28, 'type': '>i2'})
         self.assertNotIn('g2_vel_x', fields)
         info = json.loads((Path(__file__).resolve().parents[1] /
                            'fixtures/NHL94-Genesis-v0.json').read_text(encoding='utf-8'))
-        info.update(g2_live_vel_x=-4096, g2_live_vel_y=2048, pass_target=7)
+        info.update(g2_live_vel_x=-4096, g2_live_vel_y=2048, pass_target=7,
+                    p1_one_timer_attempts=0, p2_one_timer_attempts=3)
         state = NHL94GameState(5)
         state.BeginFrame(info, [0] * 6)
         self.assertEqual(state.team2.goalie.motion_x, -4096 * 17 / 65536)
         self.assertEqual(state.team2.goalie.motion_y, 2048 * 17 / 65536)
         self.assertEqual(state.team2.goalie.vx, info.get('g2_vel_x', 0))
         self.assertEqual(state.engine.pass_target, 7)
+        self.assertEqual(state.team1.one_timer_attempts, 0)
+        self.assertEqual(state.team2.one_timer_attempts, 3)
         del info['g2_live_vel_x']
         state.BeginFrame(info, [0] * 6)
         self.assertIsNone(state.team2.goalie.motion_x)

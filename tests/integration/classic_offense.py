@@ -165,7 +165,70 @@ def purposeful_feint():
         TASKS.pop(name)
 
 
+def _one_timer_cut_setup(env, game):
+    _feint_setup(env, game)
+    memory = env.data.memory
+    actual = memory.extract(0xFFC320, '>i2')
+    receiver, blocker = [slot for slot in range(5) if slot != actual][:2]
+    for slot, point in ((receiver, (60, 220)), (blocker, (10, 206)),
+                        (6, (70, 245)), (11, (0, 220))):
+        _place_object(memory, slot, point)
+    memory.assign(0xFFB04A + blocker * 0x80 + 0x63, '|u1', 4)
+    memory.assign(0xFFB04A + actual * 0x80 + 0x54, '>u2', 1)
+    _place_object(memory, 14, (0, 190))
+    _rebuild_object_order(memory)
+
+
+def one_timer_setup_cut():
+    name = 'ClassicOneTimerCutProbe'
+    register_task(name, replace(get_task('DefenseZone'), initialize=_one_timer_cut_setup,
+                               reward=lambda _: 0.0, done=lambda _: False))
+    try:
+        for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
+            args = parse_cmdline([
+                '--mode=model_vs_game', '--nn=ClassicAIV1', '--env=NHL94-Genesis-v0',
+                '--state=PenguinsVsSenators.DefenseZone', f'--rf={name}', f'--action_type={schema}',
+            ])
+            env = build_single_nhl94_env(args, {'clip_reward': False}, use_frame_skip=False)
+            try:
+                env.reset(seed=7)
+                state = get_game_state(env)
+                before = state.team1.one_timer_attempts
+                passer = state.engine.puck_owner
+                memory = env.unwrapped.data.memory
+                base = 0xFFB04A + passer * 0x80
+                initial_pose = tuple(memory.extract(base + offset, '>i4') for offset in (0, 0x14, 0x54))
+                model = ClassicAIV1Model(args)
+                requested = None
+                for frame in range(100):
+                    state = get_game_state(env)
+                    action = model.predict_frame(state)[0]
+                    if frame == 0:
+                        assert model._last_decision == 'one-timer-setup', model.offense_diagnostics
+                    if model._last_decision == 'one-timer-setup':
+                        assert model._last_target == model.offense.feint_target
+                    if model._last_decision == 'one-timer-pass':
+                        requested = model._one_timer[1]
+                        pose = tuple(memory.extract(base + offset, '>i4') for offset in (0, 0x14, 0x54))
+                        assert pose != initial_pose, 'Setup must change native position or facing'
+                    if state.team1.one_timer_attempts > before:
+                        assert requested is not None and state.engine.shot_player == requested
+                        assert model._one_timer is None
+                        assert model.one_timer_metrics.get('shot-released', 0) == 1
+                        print(f'PASS: {schema} executes a coherent setup cut, selects receiver {requested}, '
+                              f'and completes on native one-timer release in {frame} frames')
+                        break
+                    env.step(action)
+                else:
+                    raise AssertionError((schema, 'No native shot after setup cut', model.offense_diagnostics))
+            finally:
+                env.close()
+    finally:
+        TASKS.pop(name)
+
+
 if __name__ == '__main__':
     advancement_pass()
     advancement_pass(receiver_energy=1024)
     purposeful_feint()
+    one_timer_setup_cut()

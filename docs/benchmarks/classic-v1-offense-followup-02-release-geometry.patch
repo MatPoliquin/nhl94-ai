@@ -1,0 +1,179 @@
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -546,7 +546,9 @@
+             self.offense_diagnostics = self.offense.diagnostics
+             escape = goalie_avoidance(state, player, self.offense.carry_target(state, player))
+             release_in_front = shot_release_in_front(
+-                state, player, self._decision_interval + SHOT_RELEASE_DELAY)
++                state, player, self._decision_interval)
++            self.offense_diagnostics['shot_release_model'] = (
++                'native-animation-envelope' if player.shot_offsets_y is not None else 'conservative-animation-envelope')
+             shot_safe = release_in_front and goalie_contact_time(
+                 player, opponents.goalie, clearance=GOALIE_SHOT_CLEARANCE) > GOALIE_HORIZON
+             normal_finish = progress > shot_y and abs(player.x) < 48 and shot_safe
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -19,11 +19,36 @@
+ CARRY_SAMPLES = (4, 8, 12, FEINT_FRAMES)
+ 
+ 
+-def shot_release_in_front(state, player, frames):
++def normal_shot_release_frames(player, hold_frames):
++    """Bound updateanim/ShotMode through contact, including the C-release jump."""
++    durations = player.shot_durations or (4,) * 8
++    index, timer = 0, -1
++    for elapsed in range(1, hold_frames + 2 * sum(duration + 1 for duration in durations) + 3):
++        if index >= 7:
++            return elapsed + 1
++        if timer < 0:
++            timer = durations[index]
++        else:
++            timer -= 1
++            if timer < 0:
++                index += 1
++                if index < 7:
++                    timer = durations[index]
++        if index >= 7:
++            return elapsed + 1
++        if index < 4 and (elapsed == hold_frames or player.shot_power is not None
++                          and player.shot_power < 20 and index > 2):
++            index = 7 - index
++    raise RuntimeError('Shot animation did not reach native contact.')
++
++
++def shot_release_in_front(state, player, hold_frames):
+     sign = 1 if state.team2.net.y > state.team1.net.y else -1
+     point = state.puck if state.engine.puck_owner_known else player
+-    _, y = coast_projection(player, frames)
+-    return max(point.y * sign, (point.y + y - player.y) * sign) < state.team2.net.y * sign
++    _, y = coast_projection(player, normal_shot_release_frames(player, hold_frames))
++    offsets = player.shot_offsets_y or (-20, 20)
++    reach = max(offset * sign for offset in offsets)
++    return max(point.y * sign, player.y * sign + reach, y * sign + reach) < state.team2.net.y * sign
+ 
+ 
+ def carry_projection(player, target, frames=FEINT_FRAMES):
+@@ -446,7 +471,7 @@
+         sign = 1 if state.team2.net.y > state.team1.net.y else -1
+         finish_depth = 198 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * 0.4
+         if (player.y * sign > finish_depth and abs(player.x) < 48
+-                and shot_release_in_front(state, player, self.decision_interval + SHOT_RELEASE_DELAY)
++                and shot_release_in_front(state, player, self.decision_interval)
+                 and pressure_margin(state.team2, (player.x, player.y), 8) >= 3):
+             self.feint_target = None
+             self.diagnostics['status'] = 'close-to-finish'
+--- a/nhl94_ai/game/ram.py
++++ b/nhl94_ai/game/ram.py
+@@ -148,6 +148,61 @@
+     return rom[table:]
+ 
+ 
++@lru_cache(maxsize=3)
++def _animation_rom(game, rom_path=None):
++    from stable_retro.data import get_romfile_path
++    return Path(rom_path or get_romfile_path(game)).read_bytes()
++
++
++@lru_cache(maxsize=128)
++def _animation_frames(game, animation, rom_path=None):
++    if animation == 0:
++        return ((),) * 8
++    rom = _animation_rom(game, rom_path)
++    base = 0x5B1C + animation
++    if base + 18 > len(rom):
++        raise ValueError(f'Invalid animation header in {game}.')
++    directions = []
++    for direction in range(8):
++        stream = base + int.from_bytes(rom[base + direction * 2:base + direction * 2 + 2],
++                                       'big', signed=True)
++        frames = []
++        for index in range(0, 256, 4):
++            if not 0 <= stream + index <= len(rom) - 4:
++                raise ValueError(f'Invalid animation stream in {game}.')
++            sprite = int.from_bytes(rom[stream + index:stream + index + 2], 'big')
++            duration = int.from_bytes(rom[stream + index + 2:stream + index + 4], 'big', signed=True)
++            frames.append((sprite, duration))
++            if duration < 0:
++                break
++        else:
++            raise ValueError(f'Unterminated animation in {game}.')
++        directions.append(tuple(frames))
++    return tuple(directions)
++
++
++@lru_cache(maxsize=3)
++def _shot_animations(game, rom_path=None):
++    hot = _stick_hotspots(game, rom_path)
++    directions = []
++    for direction in range(8):
++        ticks, offsets = [], []
++        for animation in (0x7FC, 0x92E, 0x50C):
++            durations = []
++            for sprite, duration in _animation_frames(game, animation, rom_path)[direction]:
++                if sprite * 2 + 2 > len(hot):
++                    raise ValueError(f'Invalid shot frame in {game}.')
++                durations.append(abs(duration))
++                offsets.append(tuple(int.from_bytes(hot[sprite * 2 + axis:sprite * 2 + axis + 1],
++                                                    'big', signed=True) for axis in (0, 1)))
++            if animation != 0x50C:
++                if len(durations) < 8:
++                    raise ValueError(f'Truncated shot animation in {game}.')
++                ticks.append(durations[:8])
++        directions.append((tuple(max(values) for values in zip(*ticks)), tuple(offsets)))
++    return tuple(directions)
++
++
+ def pass_geometry_info(env, info):
+     """Decode read-only sprite stick offsets without altering neural observations."""
+     game = getattr(env.unwrapped, 'gamename', None)
+@@ -156,6 +211,7 @@
+     from nhl94_ai.game.specs import get_game
+     skaters = get_game(game).skaters_per_team
+     table = _stick_hotspots(game, getattr(env.unwrapped, 'pass_geometry_rom', None))
++    shots = _shot_animations(game, getattr(env.unwrapped, 'pass_geometry_rom', None))
+     corrected = dict(info)
+     memory = env.data.memory
+     for side in (1, 2):
+@@ -176,6 +232,22 @@
+                     x, y = y, -x
+             corrected[f'offense_{slot}_stick_x'] = x
+             corrected[f'offense_{slot}_stick_y'] = y
++            direction = memory.extract(base + 0x54, '>u2')
++            direction = (direction - (2 if info.get('sflags', 0) & 0x8000 else 0)) % 8
++            direction = -direction % 8 if flags & 8 else direction
++            durations, offsets = shots[direction]
++            previous = _animation_frames(game, memory.extract(base + 0x58, '>u2'),
++                                         getattr(env.unwrapped, 'pass_geometry_rom', None))[direction]
++            previous_offsets = []
++            for sprite, _ in previous:
++                if sprite * 2 + 2 > len(table):
++                    raise ValueError(f'Invalid pre-shot sprite in {game}.')
++                previous_offsets.append(tuple(int.from_bytes(table[sprite * 2 + axis:sprite * 2 + axis + 1],
++                                                            'big', signed=True) for axis in (0, 1)))
++            ys = [(-sx if not flags & 8 else sx) if info.get('sflags', 0) & 0x8000
++                  else (sy if flags & 16 else -sy) for sx, sy in (*offsets, *previous_offsets)]
++            corrected[f'offense_{slot}_shot_durations'] = durations
++            corrected[f'offense_{slot}_shot_offsets_y'] = min(ys), max(ys)
+     return corrected
+ 
+ 
+--- a/nhl94_ai/game/state.py
++++ b/nhl94_ai/game/state.py
+@@ -64,6 +64,8 @@
+     passing: int | None = None
+     stick_x: int | None = None
+     stick_y: int | None = None
++    shot_durations: tuple[int, ...] | None = None
++    shot_offsets_y: tuple[int, int] | None = None
+     # Position integration uses signed velocity * 17 per elapsed game tick.
+     # These optional values are not part of the historical neural encoding.
+     motion_x: float | None = None
+@@ -360,6 +362,8 @@
+             prefix = f'defense_{self.skater_scnum_base() + index}_'
+             player.stick_x = info.get(f'offense_{self.skater_scnum_base() + index}_stick_x')
+             player.stick_y = info.get(f'offense_{self.skater_scnum_base() + index}_stick_y')
++            player.shot_durations = info.get(f'offense_{self.skater_scnum_base() + index}_shot_durations')
++            player.shot_offsets_y = info.get(f'offense_{self.skater_scnum_base() + index}_shot_offsets_y')
+             for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'checking', 'endurance', 'passing',
+                          'shot_power', 'handedness', 'live_anim', 'live_anim_frame', 'animation_timer',
+                          'contact_player', 'contact_impact'):

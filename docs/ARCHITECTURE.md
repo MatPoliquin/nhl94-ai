@@ -293,7 +293,25 @@ macros after a turnover. It does not alter the observation or action schema.
 Classic offense retains its configured decision interval, normally four frames.
 Advancement deadlines and cut cooldowns use the same elapsed emulator-frame
 clock as defense; ownership feedback cancels an in-flight commitment promptly.
-The historical shot/one-timer decision timers and C-edge machinery remain.
+Shot follow-through remains decision-timed, but a different friendly carrier
+interrupts it at frame cadence before that carrier is evaluated. One-timer
+deadlines now use predicted flight/release plus a 20-frame contact allowance
+(72 frames without live flight telemetry), with a 96-frame retry cooldown.
+The C cue eligibility follows the configured decision interval and the
+four-frame B sampling window in both action formats. It uses the first modeled
+body/stick contact, not the later closest-approach point: contact must occur
+strictly after the available cue. Fresh per-team
+`one_timer_attempts` and receiver `shot_player` attribution confirm native release;
+recorded shots on goal are only a fallback. Release/stoppage observation cancels
+the sequence and its repeated action at emulator-frame cadence.
+The frame bound is checked against the current processing frame, including
+between offensive decisions; an already-recovered passer does not invalidate
+fresh release evidence.
+Observed loose-puck flight followed by recovery by the original passer cancels
+both ordinary and one-timer waits immediately; initial retained possession
+during pass windup is not recovery. One-timer exits share idempotent outcome
+accounting, including defensive transitions and benchmark period termination.
+Recording a defensive cancellation does not reschedule cached defensive actions.
 Offensive `classic_offense` diagnostics accompany `classic_defense` through
 agents, frame-skip traces, UI and evaluation metadata. Amber marks the offensive
 destination, independently of the green defensive target.
@@ -311,6 +329,10 @@ launch vector: `agents.passing.rom_pass_vector` preserves signed word arithmetic
 and quantized lead timing. Live launch and collision deadlines share the
 two-frame release estimate and flight friction; without sprite feedback the
 compatibility estimate remains explicit in diagnostics.
+The same boundary reads native forehand/backhand animation durations and
+directional stick envelopes, including glide and pre-shot sprite latching.
+Animation-table relative offsets are signed words. Optional `shot_durations`
+and `shot_offsets_y` remain outside neural encodings.
 Intent pass recipient mapping prefers actual control feedback over stale stars
 without adding action IDs. The estimator reuses net-segment geometry, not a
 player route search for a puck that cannot route around an obstruction.
@@ -327,6 +349,31 @@ See [progressive offense](CLASSIC_V1.md#progressive-offense) for limitations and
 the measured scoring regression; executing more passes is not proof of strength.
 The later one-timer recovery sample improved scoring but also increased
 concessions; its before/after reports preserve the separate measurements.
+
+Safe advancement/position candidates are filtered by their worthwhile-action
+rules before ranking. Normal and early finishing require current and estimated
+release puck positions in front of the goal line, independently of the heuristic
+shot-value window. The release horizon follows native animation advancement and
+the C-release index jump; its geometry bounds the pre-shot sprite transition as
+well as the shot frames. Missing geometry uses an explicit conservative envelope.
+This is not an assurance against unmodeled collision impulses.
+Carrier forecasts validate actual steering/braking motion;
+other skaters reaching bounds introduce forecast-only `projection_uncertainty`
+instead of vetoing the entire future state. Collision/interception envelopes
+consume that uncertainty and uncertain receivers fail individually.
+Negative-role, off-ice players are excluded from projections, body/stick lanes,
+shot obstruction, bypass scoring and motion-feedback requirements. On-ice
+fallen/unavailable players remain physical obstacles; selection eligibility is
+not used to erase their collision bodies. Pulled/inactive goalies do not create
+phantom goalie-contact guards.
+Projected carries retain the puck's live offset rather than moving it to the
+skater's center and inventing a different pass origin.
+Default carrying and breakaways share routed goalie/contact/interception guards.
+Safe escapes prefer shooting opportunity and projected progress; unavoidable
+pressure or wall contact is explicitly best-effort, not labeled safe.
+See the [staged Mighty Ducks/Sabres measurement](CLASSIC_V1.md#offensive-correctness-staged-mighty-duckssabres-measurement)
+for the per-change score tradeoffs rather than assuming correctness fixes improve
+match strength.
 
 Classic's optional `--goalie-policy off|selective|always` delegates exclusive
 per-frame input to `agents/goalie.py` before the existing skater decision path.

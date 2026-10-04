@@ -121,9 +121,11 @@ def decode_shot_count(value: int) -> int:
 
 
 def register_pass_state(env):
-    """ROM symbols passplayer and lastplayer, verified against nhl94.xml/ROM."""
+    """Read-only pass identity and native one-timer release counters."""
     for name, address in (('pass_target', 0xFFBEE0), ('last_puck_player', 0xFFBEDA)):
         env.data.set_variable(name, {'address': address, 'type': '>i2'})
+    for side, address in enumerate((0xFFCA2A, 0xFFCD8E), start=1):
+        env.data.set_variable(f'p{side}_one_timer_attempts', {'address': address, 'type': '>u2'})
 
 
 def register_shootout_scores(env):
@@ -146,6 +148,61 @@ def _stick_hotspots(game, rom_path=None):
     return rom[table:]
 
 
+@lru_cache(maxsize=3)
+def _animation_rom(game, rom_path=None):
+    from stable_retro.data import get_romfile_path
+    return Path(rom_path or get_romfile_path(game)).read_bytes()
+
+
+@lru_cache(maxsize=128)
+def _animation_frames(game, animation, rom_path=None):
+    if animation == 0:
+        return ((),) * 8
+    rom = _animation_rom(game, rom_path)
+    base = 0x5B1C + animation
+    if base + 18 > len(rom):
+        raise ValueError(f'Invalid animation header in {game}.')
+    directions = []
+    for direction in range(8):
+        stream = base + int.from_bytes(rom[base + direction * 2:base + direction * 2 + 2],
+                                       'big', signed=True)
+        frames = []
+        for index in range(0, 256, 4):
+            if not 0 <= stream + index <= len(rom) - 4:
+                raise ValueError(f'Invalid animation stream in {game}.')
+            sprite = int.from_bytes(rom[stream + index:stream + index + 2], 'big')
+            duration = int.from_bytes(rom[stream + index + 2:stream + index + 4], 'big', signed=True)
+            frames.append((sprite, duration))
+            if duration < 0:
+                break
+        else:
+            raise ValueError(f'Unterminated animation in {game}.')
+        directions.append(tuple(frames))
+    return tuple(directions)
+
+
+@lru_cache(maxsize=3)
+def _shot_animations(game, rom_path=None):
+    hot = _stick_hotspots(game, rom_path)
+    directions = []
+    for direction in range(8):
+        ticks, offsets = [], []
+        for animation in (0x7FC, 0x92E, 0x50C):
+            durations = []
+            for sprite, duration in _animation_frames(game, animation, rom_path)[direction]:
+                if sprite * 2 + 2 > len(hot):
+                    raise ValueError(f'Invalid shot frame in {game}.')
+                durations.append(abs(duration))
+                offsets.append(tuple(int.from_bytes(hot[sprite * 2 + axis:sprite * 2 + axis + 1],
+                                                    'big', signed=True) for axis in (0, 1)))
+            if animation != 0x50C:
+                if len(durations) < 8:
+                    raise ValueError(f'Truncated shot animation in {game}.')
+                ticks.append(durations[:8])
+        directions.append((tuple(max(values) for values in zip(*ticks)), tuple(offsets)))
+    return tuple(directions)
+
+
 def pass_geometry_info(env, info):
     """Decode read-only sprite stick offsets without altering neural observations."""
     game = getattr(env.unwrapped, 'gamename', None)
@@ -154,6 +211,7 @@ def pass_geometry_info(env, info):
     from nhl94_ai.game.specs import get_game
     skaters = get_game(game).skaters_per_team
     table = _stick_hotspots(game, getattr(env.unwrapped, 'pass_geometry_rom', None))
+    shots = _shot_animations(game, getattr(env.unwrapped, 'pass_geometry_rom', None))
     corrected = dict(info)
     memory = env.data.memory
     for side in (1, 2):
@@ -174,6 +232,22 @@ def pass_geometry_info(env, info):
                     x, y = y, -x
             corrected[f'offense_{slot}_stick_x'] = x
             corrected[f'offense_{slot}_stick_y'] = y
+            direction = memory.extract(base + 0x54, '>u2')
+            direction = (direction - (2 if info.get('sflags', 0) & 0x8000 else 0)) % 8
+            direction = -direction % 8 if flags & 8 else direction
+            durations, offsets = shots[direction]
+            previous = _animation_frames(game, memory.extract(base + 0x58, '>u2'),
+                                         getattr(env.unwrapped, 'pass_geometry_rom', None))[direction]
+            previous_offsets = []
+            for sprite, _ in previous:
+                if sprite * 2 + 2 > len(table):
+                    raise ValueError(f'Invalid pre-shot sprite in {game}.')
+                previous_offsets.append(tuple(int.from_bytes(table[sprite * 2 + axis:sprite * 2 + axis + 1],
+                                                            'big', signed=True) for axis in (0, 1)))
+            ys = [(-sx if not flags & 8 else sx) if info.get('sflags', 0) & 0x8000
+                  else (sy if flags & 16 else -sy) for sx, sy in (*offsets, *previous_offsets)]
+            corrected[f'offense_{slot}_shot_durations'] = durations
+            corrected[f'offense_{slot}_shot_offsets_y'] = min(ys), max(ys)
     return corrected
 
 
