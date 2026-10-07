@@ -91,6 +91,57 @@ class TargetOverlayTests(unittest.TestCase):
             draw_offense_overlay(surface, transform, state, details, font, (12, 12))
         draw.assert_any_call(surface, GREEN, transform(player.x, player.y), 12, 3)
 
+    def test_teammate_labels_show_scores_continuations_rejections_and_away_slots(self):
+        import pygame
+        from nhl94_ai.ui.targets import draw_teammate_scores
+        from tests.unit.test_classic_defense import defense_state
+        state = defense_state()
+        details = dict(actual_slot=6, desired_slot=7, teammate_scores=[
+            {'slot': 7, 'selected': True, 'pass': {
+                'status': 'safe', 'value': 42.5, 'shot_value': 0, 'continuation_value': 21,
+                'continuation_position_value': 35, 'continuation_finish_value': 10,
+                'worthwhile': True}, 'one_timer': {'status': 'safe', 'shot_value': 36}},
+            {'slot': 8, 'selected': False, 'pass': {'status': 'moving-interception'}, 'one_timer': None},
+        ])
+        font = pygame.font.Font(None, 16)
+        rendered = []
+        wrapped_font = SimpleNamespace(
+            get_linesize=font.get_linesize,
+            render=lambda text, *args: (rendered.append(text), font.render(text, *args))[1])
+        surface = pygame.Surface((600, 700))
+        drawn = []
+        def transform(x, y):
+            drawn.append((x, y))
+            return round(300 + x), round(350 - y)
+        draw_teammate_scores(surface, transform, state, details, wrapped_font)
+        self.assertEqual(drawn, [(state.team2.players[i].x, state.team2.players[i].y) for i in (1, 2)])
+        self.assertEqual(rendered, ['7 *P: 42.5', 'Pos: 0.0 / carry: 35.0', 'Finish: 10.0', 'OT: 36.0',
+                                    '8 P: --', 'moving-interception'])
+        self.assertNotIn('8 P: 0.0', rendered)
+
+    def test_selected_one_timer_and_unknown_carry_do_not_show_a_fake_pass_choice(self):
+        import pygame
+        from nhl94_ai.ui.targets import draw_teammate_scores
+        from tests.unit.test_classic_defense import defense_state
+        state = defense_state()
+        details = dict(actual_slot=6, desired_slot=7, mode='one-timer-pass', teammate_scores=[
+            {'slot': 7, 'selected': True, 'pass': {
+                'status': 'safe', 'value': 42.5, 'shot_value': 0,
+                'continuation_status': 'no-modeled-reception-contact'},
+             'one_timer': {'status': 'safe', 'shot_value': 36}},
+        ])
+        font = pygame.font.Font(None, 16)
+        rendered = []
+        wrapped_font = SimpleNamespace(
+            get_linesize=font.get_linesize,
+            render=lambda text, *args: (rendered.append(text), font.render(text, *args))[1])
+        surface = pygame.Surface((600, 700))
+        surface.set_clip(pygame.Rect(100, 100, 400, 500))
+        draw_teammate_scores(surface, lambda x, y: (300 + x, 350 - y), state, details, wrapped_font)
+        self.assertEqual(rendered, ['7 P: 42.5', 'Pos: 0.0 / carry: --',
+                                    'no-modeled-reception-contact', '*OT: 36.0'])
+        self.assertEqual(surface.get_clip(), pygame.Rect(100, 100, 400, 500))
+
     def test_marker_is_a_hollow_green_square_not_a_cross(self):
         import pygame
         from nhl94_ai.ui.targets import draw_target_box, TARGET_GREEN
@@ -193,6 +244,7 @@ class TargetOverlayTests(unittest.TestCase):
                 planner.step(defense_state())
                 args = target_args(nn='ClassicAIV1', action_type='FILTERED', mode='model_vs_game')
                 display = NHL94DebugDisplay(vector, args, 0, 'ClassicAIV1', [])
+                display.show_planner_overlay = True
                 display.set_ai_sys_info(SimpleNamespace(last_diagnostics={'classic_defense': planner.diagnostics}))
                 display.step([np.zeros(12, dtype=np.int8)])
                 pixels = pygame.surfarray.array3d(display.game_surf)
@@ -258,6 +310,7 @@ class TargetOverlayTests(unittest.TestCase):
                 model.predict_frame(offense_state())
                 args = target_args(nn='ClassicAIV1', action_type='FILTERED', mode='model_vs_game')
                 display = NHL94DebugDisplay(vector, args, 0, 'ClassicAIV1', [])
+                display.show_planner_overlay = True
                 display.set_ai_sys_info(SimpleNamespace(last_diagnostics={'classic_offense': model.offense_diagnostics}))
                 display.step([np.zeros(12, dtype=np.int8)])
                 pixels = pygame.surfarray.array3d(display.game_surf)

@@ -1,0 +1,1023 @@
+{
+  "protocol": "nhl94-outcome-ended-carry-replay-summary-v1",
+  "report": "classic-v1-threat-exits-extended-ducks-replay.json",
+  "settings": {
+    "reference_runtime": "frozen pre-fix experimental runtime; see reference_sources",
+    "seed": 20262004,
+    "seeds": 20,
+    "search_frames": 12000,
+    "horizon": 900,
+    "outcome_ended": true,
+    "strata": [
+      "general",
+      "one-timer",
+      "safe-pass"
+    ],
+    "workers": 2,
+    "verify_prefix": false,
+    "min_depth": 140,
+    "output": "docs/benchmarks/classic-v1-threat-exits-extended-ducks-replay.json",
+    "frame_skip": 4,
+    "action_type": "FILTERED"
+  },
+  "coverage": {
+    "general": {
+      "captured_seeds": [
+        20262004,
+        20262005,
+        20262006,
+        20262007,
+        20262008,
+        20262009,
+        20262010,
+        20262011,
+        20262012,
+        20262013,
+        20262014,
+        20262015,
+        20262016,
+        20262017,
+        20262018,
+        20262019,
+        20262020,
+        20262021,
+        20262022,
+        20262023
+      ],
+      "count": 20,
+      "missing_seeds": []
+    },
+    "one-timer": {
+      "captured_seeds": [
+        20262004,
+        20262005,
+        20262006,
+        20262007,
+        20262008,
+        20262009,
+        20262010,
+        20262011,
+        20262012,
+        20262013,
+        20262014,
+        20262015,
+        20262016,
+        20262017,
+        20262018,
+        20262019,
+        20262020,
+        20262021,
+        20262022,
+        20262023
+      ],
+      "count": 20,
+      "missing_seeds": []
+    },
+    "safe-pass": {
+      "captured_seeds": [
+        20262004,
+        20262005,
+        20262006,
+        20262007,
+        20262008,
+        20262009,
+        20262010,
+        20262011,
+        20262012,
+        20262013,
+        20262014,
+        20262015,
+        20262016,
+        20262017,
+        20262018,
+        20262019,
+        20262020,
+        20262021,
+        20262022,
+        20262023
+      ],
+      "count": 20,
+      "missing_seeds": []
+    }
+  },
+  "unique_cases": 51,
+  "sample_kinds": {
+    "input-divergence": 22,
+    "opportunity-control": 29
+  },
+  "overall": {
+    "carry": {
+      "branches": 51,
+      "end_reasons": {
+        "ordinary-turnover": 16,
+        "goal": 4,
+        "shot-resolved": 29,
+        "opponent-goalie-possession-without-confirmed-shot": 2
+      },
+      "goals": 4,
+      "recorded_shots": 26,
+      "observed_shot_releases": 34,
+      "native_one_timer_attempts": 19,
+      "completed_passes": 9,
+      "ordinary_turnovers": 16,
+      "one_timer_option_windows": 45,
+      "shot_outcomes": {
+        "goal": 4,
+        "block-or-deflection-recovered": 4,
+        "save-rebound-recovered": 11,
+        "save-held": 10,
+        "passed-net-plane-without-goal": 3,
+        "unresolved-before-next-shot": 1,
+        "shot-caught-or-recovered": 1
+      },
+      "elapsed_frames_total": 6590,
+      "median_elapsed_frames": 94,
+      "possession_frames": {
+        "controlled-skater": 4257,
+        "loose": 2171,
+        "opponent-skater": 114,
+        "opponent-goalie": 48
+      },
+      "duration_weighted_possession_fractions": {
+        "controlled-skater": 0.64597875569044,
+        "loose": 0.32943854324734445,
+        "opponent-skater": 0.017298937784522003,
+        "opponent-goalie": 0.007283763277693475
+      },
+      "controlled_offensive_zone_frames": 4255
+    },
+    "default": {
+      "branches": 51,
+      "end_reasons": {
+        "shot-resolved": 28,
+        "ordinary-turnover": 13,
+        "goal": 10
+      },
+      "goals": 10,
+      "recorded_shots": 38,
+      "observed_shot_releases": 40,
+      "native_one_timer_attempts": 30,
+      "completed_passes": 8,
+      "ordinary_turnovers": 13,
+      "one_timer_option_windows": 45,
+      "shot_outcomes": {
+        "save-held": 14,
+        "save-rebound-recovered": 12,
+        "goal": 10,
+        "unresolved-before-next-shot": 2,
+        "passed-net-plane-without-goal": 2
+      },
+      "elapsed_frames_total": 6099,
+      "median_elapsed_frames": 91,
+      "possession_frames": {
+        "controlled-skater": 3642,
+        "loose": 2317,
+        "opponent-goalie": 56,
+        "opponent-skater": 84
+      },
+      "duration_weighted_possession_fractions": {
+        "controlled-skater": 0.5971470732907034,
+        "loose": 0.3798983439908182,
+        "opponent-goalie": 0.009181833087391376,
+        "opponent-skater": 0.013772749631087064
+      },
+      "controlled_offensive_zone_frames": 3642
+    },
+    "escape": {
+      "branches": 41,
+      "end_reasons": {
+        "shot-resolved": 22,
+        "ordinary-turnover": 14,
+        "timeout": 1,
+        "opponent-goalie-possession-without-confirmed-shot": 1,
+        "goal": 2,
+        "stoppage": 1
+      },
+      "goals": 2,
+      "recorded_shots": 21,
+      "observed_shot_releases": 24,
+      "native_one_timer_attempts": 14,
+      "completed_passes": 11,
+      "ordinary_turnovers": 14,
+      "one_timer_option_windows": 33,
+      "shot_outcomes": {
+        "save-rebound-recovered": 10,
+        "save-held": 10,
+        "passed-net-plane-without-goal": 2,
+        "goal": 2
+      },
+      "elapsed_frames_total": 6507,
+      "median_elapsed_frames": 114,
+      "possession_frames": {
+        "controlled-skater": 4078,
+        "loose": 2297,
+        "opponent-skater": 88,
+        "opponent-goalie": 44
+      },
+      "duration_weighted_possession_fractions": {
+        "controlled-skater": 0.6267096972491163,
+        "loose": 0.3530044567388966,
+        "opponent-skater": 0.013523897341324727,
+        "opponent-goalie": 0.006761948670662364
+      },
+      "controlled_offensive_zone_frames": 3737
+    },
+    "old-experiment": {
+      "branches": 51,
+      "end_reasons": {
+        "ordinary-turnover": 14,
+        "shot-resolved": 29,
+        "goal": 6,
+        "opponent-goalie-possession-without-confirmed-shot": 2
+      },
+      "goals": 6,
+      "recorded_shots": 32,
+      "observed_shot_releases": 36,
+      "native_one_timer_attempts": 27,
+      "completed_passes": 7,
+      "ordinary_turnovers": 14,
+      "one_timer_option_windows": 41,
+      "shot_outcomes": {
+        "save-held": 13,
+        "passed-net-plane-without-goal": 3,
+        "save-rebound-recovered": 13,
+        "goal": 6,
+        "unresolved-before-next-shot": 1
+      },
+      "elapsed_frames_total": 6440,
+      "median_elapsed_frames": 79,
+      "possession_frames": {
+        "controlled-skater": 3936,
+        "loose": 2344,
+        "opponent-skater": 100,
+        "opponent-goalie": 60
+      },
+      "duration_weighted_possession_fractions": {
+        "controlled-skater": 0.6111801242236025,
+        "loose": 0.3639751552795031,
+        "opponent-skater": 0.015527950310559006,
+        "opponent-goalie": 0.009316770186335404
+      },
+      "controlled_offensive_zone_frames": 3936
+    },
+    "pass": {
+      "branches": 51,
+      "end_reasons": {
+        "ordinary-turnover": 26,
+        "shot-resolved": 22,
+        "opponent-goalie-possession-without-confirmed-shot": 3
+      },
+      "goals": 0,
+      "recorded_shots": 19,
+      "observed_shot_releases": 24,
+      "native_one_timer_attempts": 18,
+      "completed_passes": 60,
+      "ordinary_turnovers": 26,
+      "one_timer_option_windows": 53,
+      "shot_outcomes": {
+        "passed-net-plane-without-goal": 4,
+        "save-held": 10,
+        "unresolved-before-next-shot": 2,
+        "block-or-deflection-recovered": 2,
+        "save-rebound-recovered": 6
+      },
+      "elapsed_frames_total": 7968,
+      "median_elapsed_frames": 119,
+      "possession_frames": {
+        "controlled-skater": 3599,
+        "loose": 4175,
+        "opponent-skater": 137,
+        "friendly-goalie": 5,
+        "opponent-goalie": 52
+      },
+      "duration_weighted_possession_fractions": {
+        "controlled-skater": 0.45168172690763053,
+        "loose": 0.5239708835341366,
+        "opponent-skater": 0.017193775100401605,
+        "friendly-goalie": 0.0006275100401606426,
+        "opponent-goalie": 0.006526104417670682
+      },
+      "controlled_offensive_zone_frames": 2913
+    },
+    "revised-experiment": {
+      "branches": 51,
+      "end_reasons": {
+        "ordinary-turnover": 14,
+        "shot-resolved": 27,
+        "opponent-goalie-possession-without-confirmed-shot": 4,
+        "goal": 6
+      },
+      "goals": 6,
+      "recorded_shots": 32,
+      "observed_shot_releases": 34,
+      "native_one_timer_attempts": 24,
+      "completed_passes": 9,
+      "ordinary_turnovers": 14,
+      "one_timer_option_windows": 42,
+      "shot_outcomes": {
+        "save-held": 14,
+        "save-rebound-recovered": 12,
+        "goal": 6,
+        "unresolved-before-next-shot": 1,
+        "passed-net-plane-without-goal": 1
+      },
+      "elapsed_frames_total": 6436,
+      "median_elapsed_frames": 73,
+      "possession_frames": {
+        "controlled-skater": 3649,
+        "loose": 2615,
+        "opponent-skater": 100,
+        "opponent-goalie": 72
+      },
+      "duration_weighted_possession_fractions": {
+        "controlled-skater": 0.5669670602858918,
+        "loose": 0.40630826600372905,
+        "opponent-skater": 0.015537600994406464,
+        "opponent-goalie": 0.011187072715972654
+      },
+      "controlled_offensive_zone_frames": 3647
+    }
+  },
+  "by_stratum": {
+    "general": {
+      "carry": {
+        "branches": 20,
+        "end_reasons": {
+          "ordinary-turnover": 6,
+          "shot-resolved": 12,
+          "goal": 1,
+          "opponent-goalie-possession-without-confirmed-shot": 1
+        },
+        "goals": 1,
+        "recorded_shots": 11,
+        "observed_shot_releases": 13,
+        "native_one_timer_attempts": 5,
+        "completed_passes": 2,
+        "ordinary_turnovers": 6,
+        "one_timer_option_windows": 9,
+        "shot_outcomes": {
+          "block-or-deflection-recovered": 2,
+          "save-rebound-recovered": 5,
+          "goal": 1,
+          "save-held": 5
+        },
+        "elapsed_frames_total": 2529,
+        "median_elapsed_frames": 95.0,
+        "possession_frames": {
+          "controlled-skater": 1728,
+          "loose": 727,
+          "opponent-skater": 50,
+          "opponent-goalie": 24
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.6832740213523132,
+          "loose": 0.2874654013444049,
+          "opponent-skater": 0.019770660340055358,
+          "opponent-goalie": 0.009489916963226572
+        },
+        "controlled_offensive_zone_frames": 1726
+      },
+      "default": {
+        "branches": 20,
+        "end_reasons": {
+          "shot-resolved": 12,
+          "ordinary-turnover": 5,
+          "goal": 3
+        },
+        "goals": 3,
+        "recorded_shots": 15,
+        "observed_shot_releases": 16,
+        "native_one_timer_attempts": 10,
+        "completed_passes": 5,
+        "ordinary_turnovers": 5,
+        "one_timer_option_windows": 15,
+        "shot_outcomes": {
+          "save-held": 5,
+          "save-rebound-recovered": 6,
+          "goal": 3,
+          "unresolved-before-next-shot": 1,
+          "passed-net-plane-without-goal": 1
+        },
+        "elapsed_frames_total": 3401,
+        "median_elapsed_frames": 133.5,
+        "possession_frames": {
+          "controlled-skater": 2394,
+          "loose": 951,
+          "opponent-goalie": 20,
+          "opponent-skater": 36
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.7039106145251397,
+          "loose": 0.2796236401058512,
+          "opponent-goalie": 0.005880623346074684,
+          "opponent-skater": 0.010585122022934431
+        },
+        "controlled_offensive_zone_frames": 2394
+      },
+      "escape": {
+        "branches": 20,
+        "end_reasons": {
+          "shot-resolved": 12,
+          "ordinary-turnover": 5,
+          "opponent-goalie-possession-without-confirmed-shot": 1,
+          "goal": 1,
+          "stoppage": 1
+        },
+        "goals": 1,
+        "recorded_shots": 12,
+        "observed_shot_releases": 13,
+        "native_one_timer_attempts": 9,
+        "completed_passes": 2,
+        "ordinary_turnovers": 5,
+        "one_timer_option_windows": 16,
+        "shot_outcomes": {
+          "save-rebound-recovered": 5,
+          "save-held": 6,
+          "passed-net-plane-without-goal": 1,
+          "goal": 1
+        },
+        "elapsed_frames_total": 3249,
+        "median_elapsed_frames": 146.0,
+        "possession_frames": {
+          "controlled-skater": 1926,
+          "loose": 1255,
+          "opponent-skater": 40,
+          "opponent-goalie": 28
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.592797783933518,
+          "loose": 0.38627269929208985,
+          "opponent-skater": 0.012311480455524777,
+          "opponent-goalie": 0.008618036318867343
+        },
+        "controlled_offensive_zone_frames": 1926
+      },
+      "old-experiment": {
+        "branches": 20,
+        "end_reasons": {
+          "ordinary-turnover": 7,
+          "shot-resolved": 12,
+          "opponent-goalie-possession-without-confirmed-shot": 1
+        },
+        "goals": 0,
+        "recorded_shots": 10,
+        "observed_shot_releases": 12,
+        "native_one_timer_attempts": 8,
+        "completed_passes": 3,
+        "ordinary_turnovers": 7,
+        "one_timer_option_windows": 15,
+        "shot_outcomes": {
+          "passed-net-plane-without-goal": 1,
+          "save-rebound-recovered": 7,
+          "save-held": 4
+        },
+        "elapsed_frames_total": 3688,
+        "median_elapsed_frames": 170.5,
+        "possession_frames": {
+          "controlled-skater": 2573,
+          "loose": 1039,
+          "opponent-skater": 56,
+          "opponent-goalie": 20
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.6976681127982647,
+          "loose": 0.2817245119305857,
+          "opponent-skater": 0.015184381778741865,
+          "opponent-goalie": 0.005422993492407809
+        },
+        "controlled_offensive_zone_frames": 2573
+      },
+      "pass": {
+        "branches": 20,
+        "end_reasons": {
+          "ordinary-turnover": 12,
+          "shot-resolved": 7,
+          "opponent-goalie-possession-without-confirmed-shot": 1
+        },
+        "goals": 0,
+        "recorded_shots": 8,
+        "observed_shot_releases": 8,
+        "native_one_timer_attempts": 8,
+        "completed_passes": 26,
+        "ordinary_turnovers": 12,
+        "one_timer_option_windows": 14,
+        "shot_outcomes": {
+          "save-held": 5,
+          "save-rebound-recovered": 1,
+          "unresolved-before-next-shot": 1,
+          "block-or-deflection-recovered": 1
+        },
+        "elapsed_frames_total": 3792,
+        "median_elapsed_frames": 173.5,
+        "possession_frames": {
+          "controlled-skater": 1816,
+          "loose": 1892,
+          "opponent-skater": 55,
+          "friendly-goalie": 5,
+          "opponent-goalie": 24
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.47890295358649787,
+          "loose": 0.4989451476793249,
+          "opponent-skater": 0.0145042194092827,
+          "friendly-goalie": 0.0013185654008438818,
+          "opponent-goalie": 0.006329113924050633
+        },
+        "controlled_offensive_zone_frames": 1384
+      },
+      "revised-experiment": {
+        "branches": 20,
+        "end_reasons": {
+          "ordinary-turnover": 8,
+          "shot-resolved": 9,
+          "opponent-goalie-possession-without-confirmed-shot": 3
+        },
+        "goals": 0,
+        "recorded_shots": 8,
+        "observed_shot_releases": 9,
+        "native_one_timer_attempts": 5,
+        "completed_passes": 4,
+        "ordinary_turnovers": 8,
+        "one_timer_option_windows": 13,
+        "shot_outcomes": {
+          "save-held": 4,
+          "save-rebound-recovered": 5
+        },
+        "elapsed_frames_total": 3687,
+        "median_elapsed_frames": 171.0,
+        "possession_frames": {
+          "controlled-skater": 2456,
+          "loose": 1147,
+          "opponent-skater": 56,
+          "opponent-goalie": 28
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.666124220233252,
+          "loose": 0.3110930295633306,
+          "opponent-skater": 0.015188500135611608,
+          "opponent-goalie": 0.007594250067805804
+        },
+        "controlled_offensive_zone_frames": 2454
+      }
+    },
+    "one-timer": {
+      "carry": {
+        "branches": 20,
+        "end_reasons": {
+          "goal": 3,
+          "shot-resolved": 13,
+          "ordinary-turnover": 4
+        },
+        "goals": 3,
+        "recorded_shots": 11,
+        "observed_shot_releases": 17,
+        "native_one_timer_attempts": 13,
+        "completed_passes": 5,
+        "ordinary_turnovers": 4,
+        "one_timer_option_windows": 28,
+        "shot_outcomes": {
+          "goal": 3,
+          "block-or-deflection-recovered": 2,
+          "save-held": 4,
+          "passed-net-plane-without-goal": 3,
+          "save-rebound-recovered": 3,
+          "unresolved-before-next-shot": 1,
+          "shot-caught-or-recovered": 1
+        },
+        "elapsed_frames_total": 2015,
+        "median_elapsed_frames": 63.0,
+        "possession_frames": {
+          "controlled-skater": 964,
+          "loose": 1009,
+          "opponent-skater": 26,
+          "opponent-goalie": 16
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.4784119106699752,
+          "loose": 0.5007444168734492,
+          "opponent-skater": 0.012903225806451613,
+          "opponent-goalie": 0.00794044665012407
+        },
+        "controlled_offensive_zone_frames": 964
+      },
+      "default": {
+        "branches": 20,
+        "end_reasons": {
+          "shot-resolved": 11,
+          "ordinary-turnover": 3,
+          "goal": 6
+        },
+        "goals": 6,
+        "recorded_shots": 17,
+        "observed_shot_releases": 18,
+        "native_one_timer_attempts": 17,
+        "completed_passes": 2,
+        "ordinary_turnovers": 3,
+        "one_timer_option_windows": 21,
+        "shot_outcomes": {
+          "save-held": 8,
+          "goal": 6,
+          "save-rebound-recovered": 2,
+          "unresolved-before-next-shot": 1,
+          "passed-net-plane-without-goal": 1
+        },
+        "elapsed_frames_total": 872,
+        "median_elapsed_frames": 41.5,
+        "possession_frames": {
+          "controlled-skater": 50,
+          "loose": 774,
+          "opponent-goalie": 32,
+          "opponent-skater": 16
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.05733944954128441,
+          "loose": 0.8876146788990825,
+          "opponent-goalie": 0.03669724770642202,
+          "opponent-skater": 0.01834862385321101
+        },
+        "controlled_offensive_zone_frames": 50
+      },
+      "escape": {
+        "branches": 14,
+        "end_reasons": {
+          "ordinary-turnover": 6,
+          "shot-resolved": 7,
+          "goal": 1
+        },
+        "goals": 1,
+        "recorded_shots": 6,
+        "observed_shot_releases": 8,
+        "native_one_timer_attempts": 5,
+        "completed_passes": 3,
+        "ordinary_turnovers": 6,
+        "one_timer_option_windows": 17,
+        "shot_outcomes": {
+          "save-held": 3,
+          "passed-net-plane-without-goal": 1,
+          "save-rebound-recovered": 3,
+          "goal": 1
+        },
+        "elapsed_frames_total": 1428,
+        "median_elapsed_frames": 64.0,
+        "possession_frames": {
+          "controlled-skater": 809,
+          "loose": 575,
+          "opponent-skater": 32,
+          "opponent-goalie": 12
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.5665266106442577,
+          "loose": 0.4026610644257703,
+          "opponent-skater": 0.022408963585434174,
+          "opponent-goalie": 0.008403361344537815
+        },
+        "controlled_offensive_zone_frames": 809
+      },
+      "old-experiment": {
+        "branches": 20,
+        "end_reasons": {
+          "shot-resolved": 11,
+          "ordinary-turnover": 3,
+          "goal": 6
+        },
+        "goals": 6,
+        "recorded_shots": 17,
+        "observed_shot_releases": 18,
+        "native_one_timer_attempts": 17,
+        "completed_passes": 2,
+        "ordinary_turnovers": 3,
+        "one_timer_option_windows": 21,
+        "shot_outcomes": {
+          "save-held": 8,
+          "goal": 6,
+          "save-rebound-recovered": 2,
+          "unresolved-before-next-shot": 1,
+          "passed-net-plane-without-goal": 1
+        },
+        "elapsed_frames_total": 872,
+        "median_elapsed_frames": 41.5,
+        "possession_frames": {
+          "controlled-skater": 50,
+          "loose": 774,
+          "opponent-goalie": 32,
+          "opponent-skater": 16
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.05733944954128441,
+          "loose": 0.8876146788990825,
+          "opponent-goalie": 0.03669724770642202,
+          "opponent-skater": 0.01834862385321101
+        },
+        "controlled_offensive_zone_frames": 50
+      },
+      "pass": {
+        "branches": 20,
+        "end_reasons": {
+          "shot-resolved": 11,
+          "ordinary-turnover": 7,
+          "opponent-goalie-possession-without-confirmed-shot": 2
+        },
+        "goals": 0,
+        "recorded_shots": 8,
+        "observed_shot_releases": 11,
+        "native_one_timer_attempts": 6,
+        "completed_passes": 22,
+        "ordinary_turnovers": 7,
+        "one_timer_option_windows": 33,
+        "shot_outcomes": {
+          "passed-net-plane-without-goal": 2,
+          "save-held": 5,
+          "block-or-deflection-recovered": 1,
+          "save-rebound-recovered": 3
+        },
+        "elapsed_frames_total": 2404,
+        "median_elapsed_frames": 77.0,
+        "possession_frames": {
+          "controlled-skater": 955,
+          "loose": 1375,
+          "opponent-goalie": 28,
+          "opponent-skater": 46
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.3972545757071547,
+          "loose": 0.5719633943427621,
+          "opponent-goalie": 0.011647254575707155,
+          "opponent-skater": 0.01913477537437604
+        },
+        "controlled_offensive_zone_frames": 906
+      },
+      "revised-experiment": {
+        "branches": 20,
+        "end_reasons": {
+          "shot-resolved": 11,
+          "ordinary-turnover": 3,
+          "goal": 6
+        },
+        "goals": 6,
+        "recorded_shots": 17,
+        "observed_shot_releases": 18,
+        "native_one_timer_attempts": 17,
+        "completed_passes": 2,
+        "ordinary_turnovers": 3,
+        "one_timer_option_windows": 21,
+        "shot_outcomes": {
+          "save-held": 8,
+          "goal": 6,
+          "save-rebound-recovered": 2,
+          "unresolved-before-next-shot": 1,
+          "passed-net-plane-without-goal": 1
+        },
+        "elapsed_frames_total": 872,
+        "median_elapsed_frames": 41.5,
+        "possession_frames": {
+          "controlled-skater": 50,
+          "loose": 774,
+          "opponent-goalie": 32,
+          "opponent-skater": 16
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.05733944954128441,
+          "loose": 0.8876146788990825,
+          "opponent-goalie": 0.03669724770642202,
+          "opponent-skater": 0.01834862385321101
+        },
+        "controlled_offensive_zone_frames": 50
+      }
+    },
+    "safe-pass": {
+      "carry": {
+        "branches": 20,
+        "end_reasons": {
+          "ordinary-turnover": 10,
+          "shot-resolved": 8,
+          "goal": 1,
+          "opponent-goalie-possession-without-confirmed-shot": 1
+        },
+        "goals": 1,
+        "recorded_shots": 8,
+        "observed_shot_releases": 9,
+        "native_one_timer_attempts": 4,
+        "completed_passes": 3,
+        "ordinary_turnovers": 10,
+        "one_timer_option_windows": 16,
+        "shot_outcomes": {
+          "save-rebound-recovered": 5,
+          "block-or-deflection-recovered": 1,
+          "save-held": 2,
+          "goal": 1
+        },
+        "elapsed_frames_total": 3143,
+        "median_elapsed_frames": 146.0,
+        "possession_frames": {
+          "controlled-skater": 2245,
+          "loose": 824,
+          "opponent-skater": 62,
+          "opponent-goalie": 12
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.7142857142857143,
+          "loose": 0.26216990136811963,
+          "opponent-skater": 0.019726376073814826,
+          "opponent-goalie": 0.003818008272351257
+        },
+        "controlled_offensive_zone_frames": 2243
+      },
+      "default": {
+        "branches": 20,
+        "end_reasons": {
+          "shot-resolved": 11,
+          "ordinary-turnover": 5,
+          "goal": 4
+        },
+        "goals": 4,
+        "recorded_shots": 15,
+        "observed_shot_releases": 16,
+        "native_one_timer_attempts": 12,
+        "completed_passes": 6,
+        "ordinary_turnovers": 5,
+        "one_timer_option_windows": 19,
+        "shot_outcomes": {
+          "save-held": 5,
+          "save-rebound-recovered": 5,
+          "goal": 4,
+          "unresolved-before-next-shot": 1,
+          "passed-net-plane-without-goal": 1
+        },
+        "elapsed_frames_total": 3170,
+        "median_elapsed_frames": 121.5,
+        "possession_frames": {
+          "controlled-skater": 2130,
+          "loose": 988,
+          "opponent-goalie": 20,
+          "opponent-skater": 32
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.6719242902208202,
+          "loose": 0.31167192429022084,
+          "opponent-goalie": 0.006309148264984227,
+          "opponent-skater": 0.010094637223974764
+        },
+        "controlled_offensive_zone_frames": 2130
+      },
+      "escape": {
+        "branches": 13,
+        "end_reasons": {
+          "shot-resolved": 6,
+          "ordinary-turnover": 6,
+          "timeout": 1
+        },
+        "goals": 0,
+        "recorded_shots": 6,
+        "observed_shot_releases": 6,
+        "native_one_timer_attempts": 1,
+        "completed_passes": 7,
+        "ordinary_turnovers": 6,
+        "one_timer_option_windows": 3,
+        "shot_outcomes": {
+          "save-rebound-recovered": 4,
+          "save-held": 2
+        },
+        "elapsed_frames_total": 2825,
+        "median_elapsed_frames": 133,
+        "possession_frames": {
+          "controlled-skater": 1950,
+          "loose": 835,
+          "opponent-skater": 32,
+          "opponent-goalie": 8
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.6902654867256637,
+          "loose": 0.29557522123893804,
+          "opponent-skater": 0.011327433628318584,
+          "opponent-goalie": 0.002831858407079646
+        },
+        "controlled_offensive_zone_frames": 1609
+      },
+      "old-experiment": {
+        "branches": 20,
+        "end_reasons": {
+          "ordinary-turnover": 6,
+          "shot-resolved": 11,
+          "goal": 2,
+          "opponent-goalie-possession-without-confirmed-shot": 1
+        },
+        "goals": 2,
+        "recorded_shots": 12,
+        "observed_shot_releases": 13,
+        "native_one_timer_attempts": 8,
+        "completed_passes": 6,
+        "ordinary_turnovers": 6,
+        "one_timer_option_windows": 13,
+        "shot_outcomes": {
+          "passed-net-plane-without-goal": 1,
+          "save-rebound-recovered": 6,
+          "save-held": 4,
+          "goal": 2
+        },
+        "elapsed_frames_total": 3062,
+        "median_elapsed_frames": 107.5,
+        "possession_frames": {
+          "controlled-skater": 2049,
+          "loose": 953,
+          "opponent-skater": 40,
+          "opponent-goalie": 20
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.6691704768125408,
+          "loose": 0.31123448726322667,
+          "opponent-skater": 0.013063357282821686,
+          "opponent-goalie": 0.006531678641410843
+        },
+        "controlled_offensive_zone_frames": 2049
+      },
+      "pass": {
+        "branches": 20,
+        "end_reasons": {
+          "ordinary-turnover": 10,
+          "shot-resolved": 10
+        },
+        "goals": 0,
+        "recorded_shots": 10,
+        "observed_shot_releases": 12,
+        "native_one_timer_attempts": 8,
+        "completed_passes": 26,
+        "ordinary_turnovers": 10,
+        "one_timer_option_windows": 18,
+        "shot_outcomes": {
+          "unresolved-before-next-shot": 2,
+          "passed-net-plane-without-goal": 2,
+          "save-rebound-recovered": 5,
+          "save-held": 2,
+          "block-or-deflection-recovered": 1
+        },
+        "elapsed_frames_total": 3276,
+        "median_elapsed_frames": 169.5,
+        "possession_frames": {
+          "controlled-skater": 1615,
+          "loose": 1593,
+          "opponent-skater": 60,
+          "opponent-goalie": 8
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.492979242979243,
+          "loose": 0.48626373626373626,
+          "opponent-skater": 0.018315018315018316,
+          "opponent-goalie": 0.002442002442002442
+        },
+        "controlled_offensive_zone_frames": 1292
+      },
+      "revised-experiment": {
+        "branches": 20,
+        "end_reasons": {
+          "ordinary-turnover": 6,
+          "shot-resolved": 11,
+          "goal": 2,
+          "opponent-goalie-possession-without-confirmed-shot": 1
+        },
+        "goals": 2,
+        "recorded_shots": 13,
+        "observed_shot_releases": 13,
+        "native_one_timer_attempts": 7,
+        "completed_passes": 5,
+        "ordinary_turnovers": 6,
+        "one_timer_option_windows": 15,
+        "shot_outcomes": {
+          "save-held": 4,
+          "save-rebound-recovered": 7,
+          "goal": 2
+        },
+        "elapsed_frames_total": 3021,
+        "median_elapsed_frames": 121.0,
+        "possession_frames": {
+          "controlled-skater": 1786,
+          "loose": 1171,
+          "opponent-skater": 44,
+          "opponent-goalie": 20
+        },
+        "duration_weighted_possession_fractions": {
+          "controlled-skater": 0.5911949685534591,
+          "loose": 0.3876199933796756,
+          "opponent-skater": 0.014564713670969877,
+          "opponent-goalie": 0.006620324395895399
+        },
+        "controlled_offensive_zone_frames": 1784
+      }
+    }
+  },
+  "forced_rejected_pass_cases": 18,
+  "checks": {
+    "identical_initial_ram": true,
+    "native_possession_accounting": true,
+    "current_and_reference_fingerprints": true,
+    "all_seed_searches_reported": true
+  },
+  "limitations": [
+    "Predefined first qualifying states per seed/stratum; diagnostic selection, not unbiased strength trials.",
+    "Opportunity controls can have identical policy inputs; general cases require an input divergence.",
+    "Overlapping strata share one native capture; branches/cases are not independent samples.",
+    "Branch horizons vary; raw chance counts are not matched-duration rates.",
+    "Observed normal releases require animation/ownership/puck-impulse evidence, not C input alone.",
+    "A save/deflection touch with a loose puck stays unresolved until recovery, goal, stoppage, miss or timeout.",
+    "Completed receptions and modeled one-timer windows do not guarantee a shot or goal."
+  ]
+}

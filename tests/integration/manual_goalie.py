@@ -21,7 +21,7 @@ from nhl94_ai.evaluation.play import NHL94Player
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.ram import pass_geometry_info, restore_away_control, select_cpu_side
 from nhl94_ai.game.state import NHL94GameState
-from nhl94_ai.tasks.defense_setup import _place_object, _rebuild_object_order
+from nhl94_ai.tasks.defense_setup import _facing, _place_object, _rebuild_object_order, _reset_player
 
 
 STATE = 'SabresVsMightyDucks.ManualGoalie.Start'
@@ -150,8 +150,11 @@ def save_and_outlet(env, snapshot):
     print('PASS: live puck ownership confirms a controlled goalie catch')
 
     memory = env.data.memory
-    for slot, point in enumerate(((0, -155), (65, -155), (-65, -155), (100, -120), (-100, -120))):
-        _place_object(memory, slot, point)
+    for slot, point in enumerate(((0, -155), (100, 120), (-100, 120), (100, 220), (-100, 220))):
+        role = memory.extract(0xFFB04A + slot * 0x80 + 0x34, '>i2')
+        assignment = 1 if role in (1, 2) else 6 if role == 4 else 4
+        _reset_player(memory, slot, point, _facing(point, (state.team1.goalie.x, state.team1.goalie.y)),
+                      assignment, False, (0x11,) if slot == 0 else ())
     _rebuild_object_order(memory)
     state, _ = feedback(env)
     for _ in range(220):

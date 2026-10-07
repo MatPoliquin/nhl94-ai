@@ -82,6 +82,12 @@ def build_parser():
 def run(args):
     if getattr(args, 'cross_crease', False) and args.model:
         raise ValueError('--cross-crease selects a Classic tactic, not a learned policy')
+    if getattr(args, 'deke', False) and args.model:
+        raise ValueError('--deke selects a Classic tactic, not a learned policy')
+    if getattr(args, 'uncertain_carry', False) and args.model:
+        raise ValueError('--uncertain-carry selects a Classic experiment, not a learned policy')
+    if getattr(args, 'chance_creation', False) and args.model:
+        raise ValueError('--chance-creation selects a Classic experiment, not a learned policy')
     if args.action_type.upper() == 'TARGET_POSITION' and not args.model:
         raise ValueError('TARGET_POSITION evaluation requires --model with a target-policy checkpoint')
     config = EvaluationConfig(args.episodes, args.max_steps, args.seed)

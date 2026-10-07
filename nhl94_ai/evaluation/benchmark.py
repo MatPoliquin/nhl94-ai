@@ -36,14 +36,14 @@ RAM = {
 }
 
 # Benchmark-only ablation of the same controller, without the pass/one-timer branch.
-AGENTS = [*ALIASES, 'classic-v1-direct', 'classic-v1-cross-crease']
+AGENTS = [*ALIASES, 'classic-v1-direct', 'classic-v1-cross-crease', 'classic-v1-deke']
 
 
 def make_agent(name):
     args = SimpleNamespace(action_type='FILTERED', one_timers=name != 'classic-v1-direct',
-                           cross_crease=name == 'classic-v1-cross-crease')
+                           cross_crease=name == 'classic-v1-cross-crease', deke=name == 'classic-v1-deke')
     return create_scripted('classic-v1' if name in (
-        'classic-v1-direct', 'classic-v1-cross-crease') else name, args)
+        'classic-v1-direct', 'classic-v1-cross-crease', 'classic-v1-deke') else name, args)
 
 
 def _position(info, side, slot):
@@ -150,6 +150,8 @@ def match(fixture):
             'cross_crease_metrics': [dict(agent.cross_crease.metrics) if agent.cross_crease else {}
                                      for agent in agents],
             'cross_crease_events': [agent.cross_crease.events if agent.cross_crease else [] for agent in agents],
+            'deke_metrics': [dict(agent.deke.metrics) if agent.deke else {} for agent in agents],
+            'deke_events': [agent.deke.events if agent.deke else [] for agent in agents],
         }
     finally:
         env.close()
@@ -178,6 +180,11 @@ def summarize(results, candidate, opponents):
             }
         summary[opponent]['cross_crease_metrics'] = {
             name: dict(sum((Counter(r.get('cross_crease_metrics', [{}, {}])[r['agents'].index(name)])
+                            for r in rows), Counter()))
+            for name in (candidate, opponent)
+        }
+        summary[opponent]['deke_metrics'] = {
+            name: dict(sum((Counter(r.get('deke_metrics', [{}, {}])[r['agents'].index(name)])
                             for r in rows), Counter()))
             for name in (candidate, opponent)
         }
@@ -226,7 +233,7 @@ def run(args):
         path = root / name
         sources[name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
                          'lines': len(path.read_text(encoding='utf-8').splitlines())}
-    for name in ('agents/cross_crease.py', 'agents/goalie.py', 'agents/registry.py'):
+    for name in ('agents/cross_crease.py', 'agents/deke.py', 'agents/goalie.py', 'agents/registry.py'):
         path = root / name
         sources[name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
                          'lines': len(path.read_text(encoding='utf-8').splitlines())}

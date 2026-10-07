@@ -1,0 +1,866 @@
+{
+  "protocol": "classic-v1-cross-crease-ducks-sabres-paired-v1",
+  "reports": {
+    "off": {
+      "path": "docs/benchmarks/classic-v1-cross-crease-ducks-sabres-off.json",
+      "sha256": "9b9fdda571ac3e8e37a5091d04c0c0483aa335ff1860efdf5fa42383365b1b48"
+    },
+    "on": {
+      "path": "docs/benchmarks/classic-v1-cross-crease-ducks-sabres-on.json",
+      "sha256": "f581ef801467671b2e56bff1d13b9ba869ff3e6706af5d5dc47f7a126c46aa6f"
+    }
+  },
+  "settings": {
+    "agent": "classic-v1",
+    "matchups": [
+      "sabres-ducks-manual",
+      "ducks-sabres-manual"
+    ],
+    "goalie_policy": "off",
+    "trials": 20,
+    "seed": 20261004,
+    "seconds": 300,
+    "frame_skip": 4,
+    "action_type": "FILTERED",
+    "workers": 2,
+    "deke": false,
+    "config": null
+  },
+  "sources": {
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/evaluation/offense_metrics.py": "894f592aa003b4486dc4ac8362f0a54d1d87dd5b16f59b28f01c61c1337f9cd9",
+    "nhl94_ai/agents/offense.py": "b80b592454037d2169cb1b3cf888b3920dcb433589121cfd24b5f9d6e8c4b4fc",
+    "nhl94_ai/agents/passing.py": "d0410297d0d7cca0b9aa74b17500534a104e7bb70b60c9a0990b504892406d23",
+    "nhl94_ai/agents/skating.py": "1a8435b78633369273eb7ceb2cb3da2cd59d2cdf368241cc9df2d54fe398e076",
+    "nhl94_ai/game/state.py": "a58f2b57ccc97780bedec48696746f39871eb68e19c6fec081742fc9a37d1aa5",
+    "nhl94_ai/agents/defense.py": "b6f7960ccb8c409e6990012d1f5e9ef2df1b51f01db4add2fe3e2e8329795fd7",
+    "nhl94_ai/game/ram.py": "ae6d562c2ff37bafe08bc6c68d7b19098ee82753c00d6786a8658a0cff00f17a",
+    "nhl94_ai/agents/cross_crease.py": "f5ce8e6852aeb6070cbca3e12d1d6c00262aafd1e03e3a18d3e0606b775220c8",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "7882ab92863ab4abd1db716afaa2f5c948b295a02bd0be45d91d9ad04713e31b",
+    "nhl94_ai/agents/registry.py": "8448f4af3f6c17f9daa8ebf485d1af602e1b7fa54c51802c196ac3c16f560228",
+    "nhl94_ai/agents/base.py": "c63fad330377fdcf6dc5329b1810b41d2e58bc963f143b01f4903e0fe0030792",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146",
+    "nhl94_ai/agents/motion.py": "830614cef7753733a22a52fed921bf526da5f8646fce3eef12a908b7b44f971a",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/agents/goalie.py": "84e619bf1217885877e9dbfe446f14e3fa9a7fd09b90d30dbc5d6a3399c15952",
+    "nhl94_ai/agents/deke.py": "00cefffb902112ce368eaa720d7cca9ef8a887c71951f21acccfcaca186ce5b2",
+    "nhl94_ai/evaluation/defense_metrics.py": "347344ebac5d11eb3563d3638db8566dd728e2bb0ca387a71f463f737c6a040e",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/env/target_control.py": "9365b9f7e63383ccd0c02c672e506858cd911e48bb3830f86ee62638c7cd6052",
+    "nhl94_ai/agents/classic_v1.py": "4e3eceb9e57b6989f4d986e6795ff7f147ca2f090ebfa08af186ef764e8abf69",
+    "nhl94_ai/evaluation/benchmark.py": "40cd695ab723fa931d4930f90a88aa4f3b28c4f9ef90119727a764b6e2089ee9"
+  },
+  "summary": {
+    "sabres-ducks-manual": {
+      "off": {
+        "periods": 20,
+        "wins": 16,
+        "draws": 3,
+        "losses": 1,
+        "goals_for": 37,
+        "goals_against": 7,
+        "one_timer_goals": 21,
+        "cross_crease_metrics": {}
+      },
+      "on": {
+        "periods": 20,
+        "wins": 15,
+        "draws": 4,
+        "losses": 1,
+        "goals_for": 36,
+        "goals_against": 6,
+        "one_timer_goals": 23,
+        "cross_crease_metrics": {
+          "evaluations": 9948,
+          "rejected-outside-crossing-entry": 7510,
+          "candidate-rejected-crossing-not-reachable-during-windup": 3771,
+          "plans": 204,
+          "approach-invalidated": 152,
+          "candidate-rejected-occupied-crossing": 3629,
+          "rejected-no-safe-crossing": 1124,
+          "candidate-rejected-goalie-windup-contact": 38,
+          "candidate-rejected-goalie-contact": 1047,
+          "route_replans": 98,
+          "candidate-rejected-outside-release-window": 414,
+          "rejected-better-alternative": 462,
+          "rejected-ineligible-state": 648,
+          "attempts": 28,
+          "accepted_windups": 28,
+          "c_releases": 28,
+          "recorded_shots": 25,
+          "shot-ended": 19,
+          "angle_commits": 19,
+          "candidate-rejected-unsafe-net-route": 542,
+          "pre_release_commits": 1,
+          "goals": 6,
+          "possession-lost": 15,
+          "crossing-window-missed": 6,
+          "goalie_contacts": 5,
+          "candidate-rejected-blocked-release-lane": 2,
+          "play-stopped": 6
+        }
+      }
+    },
+    "ducks-sabres-manual": {
+      "off": {
+        "periods": 20,
+        "wins": 12,
+        "draws": 7,
+        "losses": 1,
+        "goals_for": 18,
+        "goals_against": 5,
+        "one_timer_goals": 13,
+        "cross_crease_metrics": {}
+      },
+      "on": {
+        "periods": 20,
+        "wins": 9,
+        "draws": 6,
+        "losses": 5,
+        "goals_for": 20,
+        "goals_against": 14,
+        "one_timer_goals": 11,
+        "cross_crease_metrics": {
+          "evaluations": 10339,
+          "rejected-outside-crossing-entry": 7471,
+          "candidate-rejected-occupied-crossing": 6466,
+          "candidate-rejected-crossing-not-reachable-during-windup": 5222,
+          "candidate-rejected-goalie-contact": 850,
+          "rejected-better-alternative": 720,
+          "rejected-no-safe-crossing": 1564,
+          "plans": 144,
+          "approach-invalidated": 111,
+          "candidate-rejected-outside-release-window": 537,
+          "candidate-rejected-goalie-windup-contact": 34,
+          "candidate-rejected-unsafe-net-route": 138,
+          "route_replans": 50,
+          "attempts": 8,
+          "accepted_windups": 8,
+          "c_releases": 8,
+          "possession-lost": 16,
+          "rejected-ineligible-state": 440,
+          "angle_commits": 5,
+          "recorded_shots": 5,
+          "shot-ended": 3,
+          "crossing-window-missed": 11,
+          "goalie_contacts": 1,
+          "candidate-rejected-blocked-release-lane": 8,
+          "pre_release_commits": 1,
+          "goals": 2
+        }
+      }
+    }
+  },
+  "cross_crease_metrics": {
+    "evaluations": 20287,
+    "rejected-outside-crossing-entry": 14981,
+    "candidate-rejected-crossing-not-reachable-during-windup": 8993,
+    "plans": 348,
+    "approach-invalidated": 263,
+    "candidate-rejected-occupied-crossing": 10095,
+    "rejected-no-safe-crossing": 2688,
+    "candidate-rejected-goalie-windup-contact": 72,
+    "candidate-rejected-goalie-contact": 1897,
+    "route_replans": 148,
+    "candidate-rejected-outside-release-window": 951,
+    "rejected-better-alternative": 1182,
+    "rejected-ineligible-state": 1088,
+    "attempts": 36,
+    "accepted_windups": 36,
+    "c_releases": 36,
+    "recorded_shots": 30,
+    "shot-ended": 22,
+    "angle_commits": 24,
+    "candidate-rejected-unsafe-net-route": 680,
+    "pre_release_commits": 2,
+    "goals": 8,
+    "possession-lost": 31,
+    "crossing-window-missed": 17,
+    "goalie_contacts": 6,
+    "candidate-rejected-blocked-release-lane": 10,
+    "play-stopped": 6
+  },
+  "cross_crease_event_outcomes": {
+    "approach-invalidated": 263,
+    "shot-ended": 22,
+    "goals": 8,
+    "possession-lost": 31,
+    "crossing-window-missed": 17,
+    "play-stopped": 6
+  },
+  "open_plans_at_period_end": 1,
+  "paired_periods": [
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261004,
+      "off_goals": [
+        2,
+        0
+      ],
+      "on_goals": [
+        3,
+        0
+      ],
+      "delta_goals_for": 1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261005,
+      "off_goals": [
+        3,
+        1
+      ],
+      "on_goals": [
+        1,
+        1
+      ],
+      "delta_goals_for": -2,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261006,
+      "off_goals": [
+        4,
+        1
+      ],
+      "on_goals": [
+        0,
+        0
+      ],
+      "delta_goals_for": -4,
+      "delta_goals_against": -1,
+      "delta_goal_difference": -3,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261007,
+      "off_goals": [
+        2,
+        2
+      ],
+      "on_goals": [
+        0,
+        0
+      ],
+      "delta_goals_for": -2,
+      "delta_goals_against": -2,
+      "delta_goal_difference": 0,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261008,
+      "off_goals": [
+        2,
+        0
+      ],
+      "on_goals": [
+        3,
+        1
+      ],
+      "delta_goals_for": 1,
+      "delta_goals_against": 1,
+      "delta_goal_difference": 0,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261009,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        2,
+        0
+      ],
+      "delta_goals_for": 1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261010,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        3,
+        0
+      ],
+      "delta_goals_for": 2,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261011,
+      "off_goals": [
+        4,
+        0
+      ],
+      "on_goals": [
+        1,
+        0
+      ],
+      "delta_goals_for": -3,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -3,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261012,
+      "off_goals": [
+        1,
+        1
+      ],
+      "on_goals": [
+        2,
+        0
+      ],
+      "delta_goals_for": 1,
+      "delta_goals_against": -1,
+      "delta_goal_difference": 2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261013,
+      "off_goals": [
+        0,
+        0
+      ],
+      "on_goals": [
+        2,
+        0
+      ],
+      "delta_goals_for": 2,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261014,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        1,
+        0
+      ],
+      "delta_goals_for": 0,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 0,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261015,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        3,
+        0
+      ],
+      "delta_goals_for": 2,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261016,
+      "off_goals": [
+        2,
+        0
+      ],
+      "on_goals": [
+        1,
+        0
+      ],
+      "delta_goals_for": -1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261017,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        3,
+        1
+      ],
+      "delta_goals_for": 2,
+      "delta_goals_against": 1,
+      "delta_goal_difference": 1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261018,
+      "off_goals": [
+        5,
+        0
+      ],
+      "on_goals": [
+        4,
+        0
+      ],
+      "delta_goals_for": -1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261019,
+      "off_goals": [
+        2,
+        0
+      ],
+      "on_goals": [
+        0,
+        0
+      ],
+      "delta_goals_for": -2,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261020,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        4,
+        1
+      ],
+      "delta_goals_for": 3,
+      "delta_goals_against": 1,
+      "delta_goal_difference": 2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261021,
+      "off_goals": [
+        0,
+        2
+      ],
+      "on_goals": [
+        1,
+        2
+      ],
+      "delta_goals_for": 1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261022,
+      "off_goals": [
+        2,
+        0
+      ],
+      "on_goals": [
+        1,
+        0
+      ],
+      "delta_goals_for": -1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20261023,
+      "off_goals": [
+        2,
+        0
+      ],
+      "on_goals": [
+        1,
+        0
+      ],
+      "delta_goals_for": -1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261004,
+      "off_goals": [
+        2,
+        1
+      ],
+      "on_goals": [
+        0,
+        1
+      ],
+      "delta_goals_for": -2,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261005,
+      "off_goals": [
+        0,
+        0
+      ],
+      "on_goals": [
+        3,
+        1
+      ],
+      "delta_goals_for": 3,
+      "delta_goals_against": 1,
+      "delta_goal_difference": 2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261006,
+      "off_goals": [
+        2,
+        0
+      ],
+      "on_goals": [
+        0,
+        1
+      ],
+      "delta_goals_for": -2,
+      "delta_goals_against": 1,
+      "delta_goal_difference": -3,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261007,
+      "off_goals": [
+        1,
+        1
+      ],
+      "on_goals": [
+        1,
+        3
+      ],
+      "delta_goals_for": 0,
+      "delta_goals_against": 2,
+      "delta_goal_difference": -2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261008,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        0,
+        0
+      ],
+      "delta_goals_for": -1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261009,
+      "off_goals": [
+        1,
+        1
+      ],
+      "on_goals": [
+        1,
+        1
+      ],
+      "delta_goals_for": 0,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 0,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261010,
+      "off_goals": [
+        2,
+        0
+      ],
+      "on_goals": [
+        2,
+        1
+      ],
+      "delta_goals_for": 0,
+      "delta_goals_against": 1,
+      "delta_goal_difference": -1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261011,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        2,
+        1
+      ],
+      "delta_goals_for": 1,
+      "delta_goals_against": 1,
+      "delta_goal_difference": 0,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261012,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        2,
+        0
+      ],
+      "delta_goals_for": 1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261013,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        1,
+        0
+      ],
+      "delta_goals_for": 0,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 0,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261014,
+      "off_goals": [
+        2,
+        1
+      ],
+      "on_goals": [
+        0,
+        1
+      ],
+      "delta_goals_for": -2,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261015,
+      "off_goals": [
+        0,
+        0
+      ],
+      "on_goals": [
+        1,
+        0
+      ],
+      "delta_goals_for": 1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261016,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        0,
+        0
+      ],
+      "delta_goals_for": -1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261017,
+      "off_goals": [
+        0,
+        0
+      ],
+      "on_goals": [
+        3,
+        1
+      ],
+      "delta_goals_for": 3,
+      "delta_goals_against": 1,
+      "delta_goal_difference": 2,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261018,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        1,
+        1
+      ],
+      "delta_goals_for": 0,
+      "delta_goals_against": 1,
+      "delta_goal_difference": -1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261019,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        0,
+        0
+      ],
+      "delta_goals_for": -1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": -1,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261020,
+      "off_goals": [
+        0,
+        0
+      ],
+      "on_goals": [
+        0,
+        0
+      ],
+      "delta_goals_for": 0,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 0,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261021,
+      "off_goals": [
+        1,
+        0
+      ],
+      "on_goals": [
+        1,
+        0
+      ],
+      "delta_goals_for": 0,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 0,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261022,
+      "off_goals": [
+        0,
+        1
+      ],
+      "on_goals": [
+        1,
+        2
+      ],
+      "delta_goals_for": 1,
+      "delta_goals_against": 1,
+      "delta_goal_difference": 0,
+      "actions_changed": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20261023,
+      "off_goals": [
+        0,
+        0
+      ],
+      "on_goals": [
+        1,
+        0
+      ],
+      "delta_goals_for": 1,
+      "delta_goals_against": 0,
+      "delta_goal_difference": 1,
+      "actions_changed": true
+    }
+  ],
+  "paired_deltas": {
+    "goals_for": 1,
+    "goals_against": 8,
+    "goal_difference": -7
+  },
+  "bootstrap": {
+    "draws": 10000,
+    "seed": 94,
+    "cluster": "ROM seed, retaining both AI sides",
+    "interval_95_total_change": {
+      "delta_goals_for": [
+        -21.0,
+        22.0
+      ],
+      "delta_goals_against": [
+        2.0,
+        14.0
+      ],
+      "delta_goal_difference": [
+        -28.0,
+        13.0
+      ]
+    }
+  },
+  "limitations": [
+    "Current policy unchanged; no isolated-probe traffic-selection fix has been implemented.",
+    "Five-minute first periods, not full-game win rates.",
+    "Established development seeds, not fresh held-out confirmation.",
+    "Saved initial rosters/hot-cold ratings remain fixed; no actors are neutralized.",
+    "Crossing counters track requested C, native windup, attributed shots/goals and goalie contacts separately.",
+    "An open plan at the period cutoff is neither a confirmed goal nor a diagnosed abort."
+  ]
+}

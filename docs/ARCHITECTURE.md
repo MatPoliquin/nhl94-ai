@@ -61,11 +61,147 @@ one-timer-disabled ablation. Both variants use the same defense and progression
 planner. `agents/offense.py` selects advancement/positional passes, verified
 breakaway carries and bounded opportunity-creating cuts; `agents/passing.py`
 predicts the ROM-selected receiver, motion-backed flight and reception risk.
+Default ordinary carrying and receiver continuations share `agents/carry.py`.
+It uses native grounded skating and the ordinary controller's held-button
+cadence, sweeps body clearance, and separates facing/boost-dependent body-check
+reach from access to the carried puck. Defender pressure uses a conservative
+control-reach envelope, not unsuccessful direct-pursuit simulations. It includes
+arbitrary steering/braking, delayed and repeated bursts with the ROM's 24-tick
+animation-lock lower bound, and possible recovery from current unavailability.
+The existing full-energy flag is decoded as optional `Player.burst_full_energy`;
+unknown feedback uses full burst energy. Every carry/windup frame is checked.
+The opt-in `--uncertain-carry` experiment keeps `carry_safe` as a certificate,
+not an action-quality gate. It is off by default after its full benchmark
+regressed, particularly for the Ducks. With complete
+feedback, geometrically clear but uncertified paths receive a separate native
+directional/coast/burst scenario assessment. Missing modeled contact never
+changes their certificate to safe. Contacts inside the next decision interval,
+body/goalie overlap and unbounded routes remain ineligible. Later sampled
+contact requires a native held-input prefix followed by a checked escape or
+shot release before contact; a future replan alone is not an achievable exit.
+Verified exits credit positioning/progress only at that replan state, not at
+the original threatened endpoint. Other geometrically clear paths retain
+risk-discounted positional/finishing value as `carry_viable`, with an independent
+`risk * 0.3 * (forecast_frames + 3)` cost even when opportunity value is zero.
+The index uses contact timing and the replan interval, not a calibrated loss
+probability; sampled exit feasibility is not a universal safety certificate.
+Per-decision caches are keyed by actual physics feedback, not actor identity.
+Without the flag, the prior certificate-only selection/ranking remains.
+The separate opt-in `--chance-creation` selector ranks certified short carries
+by predicted ordinary-pass/one-timer windows after an action-conditioned
+stable-assignment skating scenario in `agents/responses.py`. Read-only skater
+assignment, steering/countdown and support-target feedback remains outside
+neural encodings. Unsupported actors are identified explicitly; random future
+targets, reassignment, goalie decisions and contact outcomes are not simulated.
+The scenario cannot relax `carry_safe`, including when combined with
+`--uncertain-carry`. A favorable window requests movement only, never a
+speculative pass: the next real decision rechecks native recipient selection,
+lane safety and button timing. Its 18-frame setup deadline shrinks across
+replans; expiry interrupts cached input at the exact frame and imposes a retry
+delay. Known pass retry deadlines withhold unavailable future windows.
+Default Classic remains unchanged.
+`evaluation/chance_creation_replay.py` audits that experiment without changing
+its gates. A read-only decision observer captures gameplay history after native
+observation interrupts; cloned histories exclude the observer. Selected periods
+must reproduce their complete production action hashes and frame counts.
+Every continuation and endpoint pass probe restores full emulator/RNG state
+and verifies identical initial RAM. Natural policy continuations are separate
+from diagnostic held routes, including rejected carries. Forecast positives are
+tested against fresh native recipient, ownership and requested-shooter evidence,
+not another planner's opinion. Retry/control availability, unsupported responses,
+lost carriers and missing sampling strata remain explicit; stratified,
+overlapping receiver/purpose probes are not independent match-play samples.
+Ordinary goalie clearance uses the same native held-input path/cadence in
+planning and execution; legacy cuts and optional finishers keep their existing
+motion model. Receiver forecasts start at modeled
+first contact, retain body/stick separation, and count the pass flight in
+defender reaction time. A five-route, 18-frame continuation can improve a
+pass's value and positional eligibility; keeping possession is evaluated with
+the same helper. Positional credit is distinct from executable finishing
+credit. The latter shares live normal/early shot conditions and extends the
+forecast through the native coasting windup/release, including puck-hotspot
+extent and defender reaction during flight and carrying. Early-shot credit is
+withheld when one-timer/setup priority is unresolved, and sampled contact during
+windup receives no finishing credit. Hypothetical setup cuts do not recursively add another
+receiver carry. Fresh reception, including an unintended friendly receiver,
+interrupts cached pass input and replans from actual ownership.
+`evaluation/carry_replay.py` forks full emulator/RNG snapshots at Ducks
+on-puck offensive-zone divergences, cloning actual default policy history into
+a supplied local reference and the opt-in policy. It compares default,
+reference/revised experiments and forced carry/escape/pass alternatives, verifies
+identical initial RAM, and records native possession/pass/one-timer outcomes.
+Rejected forced passes remain labeled rejected; modeled one-timer windows are
+not native attempts or goals. Source fingerprints and bounded search/horizon
+settings accompany the report.
+Standalone controllers must use `predict_frame(..., frame_skip=4)` to match
+`ScriptedAgent`'s production dispatch; assigning `frame_skip` to the controller
+does not change its direct `predict_game_state` method. The replay verifies
+this with a complete default-period action digest against the CPU benchmark.
+Forced initial actions advance the same first-frame clocks/input edges, and
+reception-triggered decision boundaries are observed from actual tick changes.
+`evaluation/carry_replay_gate.py` makes that cadence/provenance check executable:
+it requires a completed current-source default Ducks/Sabres benchmark and reruns
+one complete away prefix without a frozen experimental runtime. It fails on
+configuration, seed/side coverage, source, frame-count or applied-action mismatch,
+checks source hashes again after the native run, and only then writes success
+evidence. Gate output cannot overwrite the benchmark reference or measured code.
+With `--outcome-ended`, `evaluation/carry_outcomes.py` follows native shot
+evidence to a goal, stable recovery/catch, stoppage or net-plane miss; a loose
+save/deflection remains pending rather than becoming a successful attack.
+Four-frame confirmed opponent skater ownership outside shot follow-through
+ends an ordinary-turnover branch. Raw first opponent ownership stays separate.
+The bounded timeout labels unresolved shots explicitly. Possession durations
+distinguish controlled/friendly skaters, both goalies, opponent skaters and
+loose pucks; attacking-zone time, completed passes, one-timer windows/attempts
+and recorded shots describe attacking productivity. Native touch attribution
+reuses `crossing_touch_player`, not the stale shot/controller-history field.
+The general stratum selects the first input divergence. Predefined one-timer
+and modeled-safe ordinary-pass strata also admit opportunity controls when the
+policies agree, instead of excluding successful shared priorities. Each selects
+its first qualifying state per seed; overlapping strata share a snapshot.
+Search coverage and missing strata are reported, not silently
+relaxed. Different branch lengths are accompanied by elapsed frames and
+possession fractions. These diagnostic replays complement the usual paired
+full-period benchmark; they do not replace a strength measurement.
+The CPU benchmark's read-only `OffenseMetrics` records goalie-contact events
+with the preceding applied input, phase, owner, target, route diagnostics and
+eight-frame action history. The observation reflects that prior emulator step;
+context does not prove the action caused the collision. Event traces do not
+alter the historical scalar contact counter or inference inputs.
 Live cut planning resolves goalie-safe routes before predicting the resulting
 opportunity, and execution uses that exact validated target. Fresh routing changes
 cancel the old opportunity rather than silently rewriting its movement. Goalkeeper
 braking and post-cut projection share the same short-horizon motion helper.
 Agent services reset the controller and pending sequences between episodes.
+
+Classic's experimental `--deke` uses `agents/deke.py` for local skating
+deception, without requiring a clean breakaway. It shares the cross-crease
+swept-path and shot-lane helpers and the same shot/pass/carry
+alternatives. When both optional finishers are eligible, the highest heuristic
+value wins; their active sequences never overlap. Bait/cut decisions require
+live goalie tracking evidence, followed by per-frame route/pressure checks,
+bounded C hold/release and explicit aborts. Read-only
+`Player.shot_offsets_x` complements the existing Y envelope and includes
+pre-shot/glide hotspots without changing neural observations, button/intent IDs
+or saved models. UI and both benchmarks expose phase/rejection diagnostics and
+separate request, native windup, release, attributed shot/goal and impact counts.
+The parameterized ROM scenario runner restores the same snapshot per policy in
+one emulator and verifies full exposed RAM, with separate development and
+held-out seeds. Initial CPU trials regressed and selected no completed deke
+shots, so the tactic remains off by default. See
+[Classic V1](CLASSIC_V1.md#experimental-skating-dekes) for its contracts and
+negative measurement. The refined selector rolls out this same controller,
+including observed tracking, depth/release bounds and the full live safety
+horizon, rather than using an independent imagined cut. The initially deke-only
+`agents/skating.py` preserves native fixed-point facing, friction/integration
+order and acceleration during turns; ordinary default carry/receiver forecasts
+now also reuse it. Cross-crease, legacy setup cuts and goalie routing retain
+their conservative motion helpers. Optional precise-position, facing-phase,
+ROM-derived all-direction release bounds/durations and CPU-goalie
+decision/steering feedback stay outside normalized observations. Goalie
+projection retains inertia and decision cadence; special positioning branches
+are rejected explicitly. Future CPU actions, sprite latching and saves remain
+uncertain, so a feasible rollout is not a guaranteed scoring maneuver.
 
 Classic's opt-in `--cross-crease` uses `agents/cross_crease.py` for planned
 wing-origin attacks and a bounded held-C state machine. Selection
@@ -87,6 +223,45 @@ The wing-origin CPU report is separate from the historical zero-attempt
 near-net reports; increased selection has not established stronger match play. See
 [Classic V1](CLASSIC_V1.md#opt-in-held-c-cross-crease-finishing) for the guards,
 timing limits and isolated ROM checks.
+
+`evaluation/cross_crease_probe.py` adds a separate normal-game diagnostic, using
+`tasks/cross_crease_setup.py` for scoped player/CPU-goalie starts. Other actors
+are inactive and verified stationary. Matched tap, held-C, stationary-charge
+and Classic trials compare controlled weak/strong live goalie profiles without
+changing training tasks or default tactics. Prepared and from-rest results are
+reported separately; timing sweeps and compressed full-frame traces expose
+the remaining approach failure rather than treating isolated goals as match
+strength.
+
+`evaluation/cross_crease_velocity.py` independently sweeps incoming lateral and
+goalward momentum at fixed carrier/puck current and previous positions, through
+`tasks/cross_crease_setup.set_crossing_velocity`. Native full-word feedback,
+constant geometry, paired policy RAM and inactive actors are asserted. First-C
+geometry distinguishes incoming motion from Classic's later arming motion.
+Reports separate contact-free goals from contact goals and crossing attempts
+from fallback shots. Source hashes are frozen before measurement and checked
+before writing; optional process workers each own and close their emulator.
+The documented velocity windows are local empirical results, not new tactical
+gates or neural-input contracts.
+
+`evaluation/cross_crease_distance.py` varies initial longitudinal separation
+and incoming lateral speed, then adds a single collidable friendly skater,
+idle opponent or native `assnearest` pursuer. Puck-line, body-midpoint and
+release-lane placements are distinct and reject initial body overlaps.
+Idle actors run the ROM's verified assignment-zero return, including after
+nearest-player handoffs; their positions and impact-driven velocities are
+never frozen. Actual initial/C-onset/release separations are recorded because
+Classic and the CPU goalie may move before release.
+
+Traffic attribution reads `a2touchpuck`'s `ltplayer` at `0xFFBF7A`, not the
+existing `last_puck_player`/`lastplayer` history alias at `0xFFBEDA`. Fresh
+touches, ownership, check counters, knockdowns and contact impulses distinguish
+direct shot interventions from steals and rebounds after goalie contact.
+Input stays neutral after the original carrier first loses possession, even
+if it recovers the puck. Middle/high/low forced aim is separate from Classic's
+unchanged own aim. Reanalysis can update event grouping from retained traces
+without replaying the emulator: original measurement source hashes remain
+intact, and `analysis_sources` identifies the later classifier.
 
 Play, evaluation, collection, DAgger, and inference-only guards consume the same
 agent registry, so adding a scripted controller does not require extending
@@ -271,6 +446,13 @@ changing neural inputs, action schemas, offensive rules or learned
 `TARGET_POSITION` behavior. See [Classic V1](CLASSIC_V1.md#teammate-shooting-lane-coverage)
 for the model's assumptions and the measured performance regression.
 
+CPU-only `evaluation.defense_metrics.CarrierDefenseMetrics` is read-only telemetry
+for per-zone carrier positioning, request counts and direct controlled recovery
+events, not causal attribution of successful blocks.
+The experimental carrier-cutoff/retreat policy was reverted to the defensive
+behavior from `5109c57`; its source patches and measurement remain archived in
+[Classic V1](CLASSIC_V1.md#carrier-cutoff-follow-up-neutral-zone-pursuit).
+
 Classic's close-carrier C branch uses `agents.motion.check_approach` to estimate
 a facing-directed burst collision, then applies the joystick-specific,
 byte-wrapped weight threshold, impact minimum and coverage/route guards.
@@ -315,6 +497,85 @@ Recording a defensive cancellation does not reschedule cached defensive actions.
 Offensive `classic_offense` diagnostics accompany `classic_defense` through
 agents, frame-skip traces, UI and evaluation metadata. Amber marks the offensive
 destination, independently of the green defensive target.
+`teammate_scores` pairs each teammate slot with its ordinary-pass diagnostics,
+optional one-timer diagnostics and selected flag. Debug/live world-rink labels
+show pass, immediate-shot and carry-continuation values, explicit rejection
+reasons, and the chosen receiver. A rejected/unmeasured pass is `--`, not zero.
+The keep-puck opportunity is shown separately from the composite pass score;
+these are heuristic values, not success percentages. Labels use authoritative
+team slots, avoid existing text where possible, and remain display-only.
+Offensive diagnostics also identify `evaluation_frame` and
+`evaluation_carrier`, outside neural inputs. Debug playback keeps a deep copy
+of the last evaluated teammate scores independently of the active target
+overlay, so defending, shot/pass waits and selective goalie control do not
+erase the last useful evaluation. Repeated diagnostics do not refresh its age.
+Historical values are gray and explicitly labeled with their carrier and age;
+new rejected candidates replace old scores, and episode resets clear the cache.
+Classic debug playback starts with teammate scores on and other overlays off.
+Keys 1-7 retain their layer toggles; 8 enables planner overlays and 9 toggles
+scores. Target-policy playback retains its essential target overlay by default.
+Space/P pauses or resumes playback without sending the ROM Start button.
+The debug inspector uses a **1920x1080 logical canvas**: a 740-pixel action
+panel beside an enlarged **1040x780** game view, centered in the remaining width.
+The existing 4:3 game-display aspect is preserved. Beneath the game, a
+**164x300** miniature world-rink panel shares the bottom strip with compact game
+statistics and the last evaluation's age/carrier. Mini-rink overlays retain
+their toggles with compact markers/score labels; full diagnostic text belongs
+in the inspector, not over the tiny map. Controls are printed to the console
+at startup, with console notifications for pause/control/overlay changes,
+rather than occupying permanent Pygame space.
+The statistics card shares the inspector's dark background, Arial body/header
+fonts and white/cyan/muted-gray palette. Small red/blue team markers preserve
+the mini-rink color association without low-contrast colored value columns.
+Its resizable window fits the desktop and letterboxes the logical canvas;
+resizing never changes rink coordinates or controller timing. Screenshots save
+the full logical canvas. Mouse wheel over the action panel and PgUp/PgDn scroll
+the catalogue, including while paused.
+
+`agents/decisions.py` defines immutable `DecisionSnapshot`, `ActionCandidate`
+and `DecisionScore` evidence outside neural observations and saved action IDs.
+`AgentOutput.decision` is optional and survives frame-repeat and multi-model
+adapters; the playback system publishes it as `decision_inspector` diagnostics.
+The Classic adapter reads existing controller evidence after prediction without
+running another scorer or modifying gameplay history. It separates the tactical
+plan, execution mode, lifecycle phase and actual submitted input. Green marks
+current selections, not historical evaluation choices or accepted ROM actions.
+Human/outer-controller input overrides suppress the proposal's green highlight.
+
+Scores retain their kind instead of pretending to share one ranking scale.
+Optional raw/effective policy probabilities require an explicit network/head or
+conditional scope, are validated in `[0,1]`, and mean selection, not success.
+No adapter converts heuristic scores, button marginals or continuous targets
+into tactical probabilities. Future agents can supply scoped neural snapshots
+through the same `AgentOutput` field; agents without a producer show an
+unevaluated catalogue rather than fabricated values. Cached numerical scores
+have an explicit age and gray styling; current rejections replace old values,
+and cached probabilities are not copied into a newly unevaluated candidate.
+The first inspector iteration is read-only: goalie Off/Selective/Always is
+status, optional tactics retain their flags, and standalone slapshot/behind-net
+tactics are marked unsupported by Classic.
+`evaluation.play` services this pause before inference, including each repeated
+scripted frame and target-policy inference. The paused display redraws cached
+pixels, keeps overlay/screenshot/quit controls responsive, and advances neither
+emulator nor policy. Resume resets display pacing rather than catching up.
+
+Classic carry pressure batches the same segment/circle contact queries over
+the original grounded reach envelopes; it does not replace them with sampled
+pursuit, reduce the horizon or skip safety checks. The scalar
+`carry.interception_time` remains a regression oracle. The controller's
+per-decision cache also shares envelopes and obstacle projections across
+candidate routes, keyed by their complete consumed physics feedback and horizon,
+never just object identity. Scalar rink projection avoids NumPy scalar-call
+overhead while retaining the prior bounds, net/corner rules and NaN behavior.
+The inspector uses a bounded cache of rendered text keyed by font, text, color
+and clip width. Game-frame/presentation scaling reuses surfaces until the input
+or window dimensions change; overlay targets still use the native frame size.
+`evaluation/playback_profile.py` measures bounded native-frame playback by
+possession and stage, optionally using production 1x pacing or cProfile.
+References check every applied input, owner, decision, controller clock and
+the initial/final RAM hashes; measured sources must remain unchanged.
+Rendering-driver and per-frame budget limits are included in its report rather
+than treating mean FPS as a worst-case latency guarantee.
 
 The new safety model uses optional skater `passing`, sprite stick offsets and
 read-only offside-rule feedback, plus existing motion/energy/facing fields. These never enter normalized
@@ -384,6 +645,16 @@ and movement aliases are registered per actual variant goalie slot; they do not
 enter normalized neural arrays. Goalie acceleration/braking and fixed-base pass
 speed are distinct from skater estimates. B hold/tap handoffs use actual slot
 feedback, not a timer assumption or RAM-forced assignment.
+The goalie target uses the live contact depth and first modeled incoming
+receiver contact, including fresh pass-counter windup feedback. Ongoing B holds
+budget live countdown decrement spacing. Reachable lateral alignment precedes
+momentum-quartering C saves; animation locks and emergency save/dive paths remain
+explicit. Idle reasons distinguish target holding, save recovery, control waiting
+and CPU fallback. `evaluation.defense_metrics.GoalieDefenseMetrics` records
+read-only control context before score/one-timer-goal counter changes; those
+separate counters are not additive goals or causal save attribution.
+Classic gameplay actuation remains buttons, with RAM-based perception and
+unchanged environment-level reset/seeding/controller-routing writes.
 
 Enabled environments allow the backend's A button, normally removed by Retro's
 FILTERED preset, without changing the public binary field order/shape. Goalie

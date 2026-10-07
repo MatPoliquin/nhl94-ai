@@ -66,7 +66,9 @@ class SpriteHotspotTests(unittest.TestCase):
                     info = pass_geometry_info(env, original)
                 slots = [*range(count), *range(6, 6 + count)]
                 expected = {f'offense_{slot}_{field}' for slot in slots
-                            for field in ('stick_x', 'stick_y', 'shot_durations', 'shot_offsets_y')}
+                            for field in ('stick_x', 'stick_y', 'shot_durations', 'shot_offsets_y', 'shot_offsets_x',
+                                          'sprite_flipped_x', 'shot_projection_offsets_x', 'shot_projection_offsets_y',
+                                          'shot_projection_durations')}
                 self.assertEqual(set(info) - set(original), expected)
                 self.assertEqual(original, {'p1_vel_x': 15, 'sflags': 0})
 
@@ -75,18 +77,61 @@ class SpriteHotspotTests(unittest.TestCase):
                            'fixtures/NHL94-Genesis-v0.json').read_text(encoding='utf-8'))
         info.update(defense_control1=0, defense_team1=1, defense_team2=0,
                     offense_0_stick_x=-24, offense_0_stick_y=4,
-                    offense_0_shot_durations=(4,) * 8, offense_0_shot_offsets_y=(12, 20))
+                    offense_0_shot_durations=(4,) * 8, offense_0_shot_offsets_y=(12, 20),
+                    offense_0_shot_offsets_x=(-18, 24),
+                    offense_0_shot_projection_offsets_x=(-24, 24),
+                    offense_0_shot_projection_offsets_y=(-24, 24),
+                    offense_0_shot_projection_durations=(4,) * 8,
+                    offense_0_sprite_flipped_x=True,
+                    defense_0_precise_x=-98304, defense_0_precise_y=786560,
+                    defense_0_facing_phase=98304,
+                    g1_control_precise_x=16384, g1_control_precise_y=-16379904,
+                    g1_control_decision_timer=7, g1_control_decision_delay=41,
+                    g1_control_steering=6, g1_control_flags=0x20, g1_control_unavailable=0)
         state = NHL94GameState(5)
         state.BeginFrame(info, [0] * 6)
         self.assertEqual((state.team1.players[0].stick_x, state.team1.players[0].stick_y), (-24, 4))
         self.assertIsNone(state.team2.players[0].stick_x)
         self.assertIsNone(state.team1.nz_players[0].stick_x)
         self.assertEqual(state.team1.players[0].shot_offsets_y, (12, 20))
+        self.assertEqual(state.team1.players[0].shot_offsets_x, (-18, 24))
+        self.assertIsNone(state.team1.nz_players[0].shot_offsets_x)
         self.assertIsNone(state.team1.nz_players[0].shot_offsets_y)
         self.assertIsNone(state.team1.nz_players[0].shot_durations)
+        player, normalized = state.team1.players[0], state.team1.nz_players[0]
+        self.assertEqual((player.precise_x, player.precise_y, player.facing_phase), (-1.5, 12 + 128 / 65536, 1.5))
+        self.assertTrue(player.sprite_flipped_x)
+        for field in ('precise_x', 'precise_y', 'facing_phase', 'sprite_flipped_x',
+                      'shot_projection_offsets_x', 'shot_projection_offsets_y', 'shot_projection_durations'):
+            self.assertIsNone(getattr(normalized, field), field)
+        goalie = state.team1.goalie
+        self.assertEqual((goalie.precise_x, goalie.precise_y), (0.25, -250 + 4096 / 65536))
+        self.assertEqual((goalie.decision_timer, goalie.decision_interval, goalie.steering), (7, 10, 6))
+        self.assertFalse(goalie.cpu_tracking_active)
+        self.assertIsNone(state.team1.nz_goalie.decision_timer)
         del info['offense_0_stick_x']
         state.BeginFrame(info, [0] * 6)
         self.assertIsNone(state.team1.players[0].stick_x)
+        del info['defense_control1']
+        state.BeginFrame(info, [0] * 6)
+        self.assertIsNone(state.team1.goalie.decision_timer)
+        self.assertIsNone(state.team1.goalie.cpu_tracking_active)
+
+    def test_release_x_envelope_includes_old_sprite_and_respects_flips_and_rotation(self):
+        shots = tuple(((4,) * 8, ((-2, -3), (5, 6))) for _ in range(8))
+        with patch('nhl94_ai.game.ram._shot_animations', return_value=shots), \
+                patch('nhl94_ai.game.ram._animation_frames', return_value=tuple(((3, 4),) for _ in range(8))):
+            for flags in (0, 8, 16, 24):
+                for rotated in (False, True):
+                    info = self._read(flags, sflags=0x8000 if rotated else 0)
+                    points = [(-sx if flags & 8 else sx, sy if flags & 16 else -sy)
+                              for sx, sy in ((-2, -3), (5, 6), (24, -4))]
+                    if rotated:
+                        points = [(sy, -sx) for sx, sy in points]
+                    self.assertEqual(info['offense_0_shot_offsets_x'],
+                                     (min(sx for sx, _ in points), max(sx for sx, _ in points)))
+                    self.assertEqual(info['offense_0_shot_offsets_y'],
+                                     (min(sy for _, sy in points), max(sy for _, sy in points)))
 
     def test_romless_fixture_retains_explicitly_optional_geometry(self):
         env = SimpleNamespace(unwrapped=SimpleNamespace())

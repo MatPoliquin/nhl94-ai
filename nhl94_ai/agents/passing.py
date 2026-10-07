@@ -32,6 +32,19 @@ class PassOption:
     bypassed: int
     shot_value: float
     value: float
+    continuation_value: float = 0.0
+    continuation_target: tuple | None = None
+    continuation_frames: int = 0
+    continuation_position_value: float = 0.0
+    continuation_finish_value: float = 0.0
+    reception_value: float | None = None
+    continuation_safe: bool | None = None
+    continuation_risk: float = 0.0
+
+    @property
+    def opportunity(self):
+        return max(self.shot_value if self.reception_value is None else self.reception_value,
+                   self.continuation_value)
 
 
 def pad_direction(passer, receiver):
@@ -200,18 +213,23 @@ def pass_contact(puck, passer, receiver, delay=RELEASE_FRAMES):
     return start, point, time, speed
 
 
+def pass_point_at(puck, receiver, contact, time):
+    start, point, flight, _ = contact
+    live = receiver.stick_x is not None and receiver.stick_y is not None
+    fraction = ((1 - puck.friction**time) / (1 - puck.friction**flight)
+                if live and puck.friction != 1 else time / flight)
+    return start[0] + (point[0] - start[0]) * fraction, start[1] + (point[1] - start[1]) * fraction
+
+
 def one_timer_contact_frame(puck, receiver, contact, release):
     """First modeled body/stick contact, not the later closest-approach frame."""
-    start, point, flight, _ = contact
+    _, _, flight, _ = contact
     vx, vy = velocity(receiver)
     fx, fy = facing(receiver)
     offset = ((receiver.stick_x, receiver.stick_y) if receiver.stick_x is not None
               and receiver.stick_y is not None else (fx * 10, fy * 10))
-    live = receiver.stick_x is not None and receiver.stick_y is not None
     for time in (*range(1, math.ceil(flight)), flight):
-        fraction = ((1 - puck.friction**time) / (1 - puck.friction**flight)
-                    if live and puck.friction != 1 else time / flight)
-        position = start[0] + (point[0] - start[0]) * fraction, start[1] + (point[1] - start[1]) * fraction
+        position = pass_point_at(puck, receiver, contact, time)
         body = receiver.x + vx * (release + time), receiver.y + vy * (release + time)
         stick = body[0] + offset[0], body[1] + offset[1]
         if math.dist(position, body) <= 8 or math.dist(position, stick) <= 14:
@@ -376,4 +394,5 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
     shooting = shot_value(state, receiver, point, total)
     value = gain * 0.4 + bypassed * 16 + min(margin, 20) + shooting * 0.6
     option = PassOption(index, slot, point, flight, direction, margin, robustness, gain, bypassed, shooting, value)
-    return option, {**details, 'status': 'safe', 'bypassed': bypassed, 'value': value}
+    return option, {**details, 'status': 'safe', 'bypassed': bypassed,
+                    'shot_value': shooting, 'value': value}

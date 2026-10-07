@@ -9,11 +9,13 @@ import numpy as np
 
 from nhl94_ai.agents.defense import DefenseController, eligible, on_ice, owns_puck
 from nhl94_ai.agents.defense import controlled_slot
+from nhl94_ai.agents.carry import carry_pad
 from nhl94_ai.agents.goalie import GoalieController
 from nhl94_ai.agents.cross_crease import CrossCreaseController, crossing_entry, evaluate_cross_crease
+from nhl94_ai.agents.deke import DekeController, evaluate_deke
 from nhl94_ai.agents.offense import (
-    GOALIE_HORIZON, GOALIE_SHOT_CLEARANCE, SHOT_RELEASE_DELAY, OffenseController, carry_clear,
-    goalie_avoidance, goalie_contact_time, projected_state, shot_release_in_front,
+    SHOT_RELEASE_DELAY, OffenseController, carry_clear,
+    goalie_avoidance, ordinary_shot_conditions, projected_state,
 )
 from nhl94_ai.agents.passing import pass_release_frames, shot_value
 from nhl94_ai.game.constants import GameConsts as Buttons
@@ -57,13 +59,24 @@ class ClassicAIV1Model:
         self._last_action_preferences = np.zeros((1, self._size), dtype=np.float32)
         self.defense = DefenseController()
         self.defense_diagnostics = {}
-        self.offense = OffenseController(one_timers=self._one_timers)
+        self.offense = OffenseController(one_timers=self._one_timers,
+                                         allow_uncertified=getattr(args, 'uncertain_carry', False),
+                                         chance_creation=getattr(args, 'chance_creation', False))
+        if getattr(args, 'chance_creation', False) and (
+                getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
+                or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
+            raise ValueError('Chance-creation AI requires full-team FILTERED or HOCKEY_INTENT_DPAD controls')
         self.offense_diagnostics = {}
         cross_crease = getattr(args, 'cross_crease', False)
         if cross_crease and (getattr(args, 'action_type', 'FILTERED').upper() not in (
                 'FILTERED', 'HOCKEY_INTENT_DPAD') or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
             raise ValueError('Cross-crease AI requires full-team FILTERED or HOCKEY_INTENT_DPAD controls')
         self.cross_crease = CrossCreaseController() if cross_crease else None
+        deke = getattr(args, 'deke', False)
+        if deke and (getattr(args, 'action_type', 'FILTERED').upper() not in (
+                'FILTERED', 'HOCKEY_INTENT_DPAD') or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
+            raise ValueError('Deke AI requires full-team FILTERED or HOCKEY_INTENT_DPAD controls')
+        self.deke = DekeController() if deke else None
         self._last_pass_request = None
         self._one_timer_passes_before = None
         self._one_timer_actual = None
@@ -107,6 +120,8 @@ class ClassicAIV1Model:
             return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
         if self._observe_cross_crease(state):
             return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
+        if self._observe_deke(state):
+            return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
         goalie_action = self._goalie_frame(state)
         if goalie_action is not None:
             return goalie_action
@@ -117,6 +132,7 @@ class ClassicAIV1Model:
             return None
         blocked = (self._one_timer is not None or self.offense.pending is not None
                    or self.cross_crease is not None and self.cross_crease.plan is not None
+                   or self.deke is not None and self.deke.plan is not None
                    or self._tick < self._shot_until or self.defense.pending_check is not None
                    or self.defense.pending_switch is not None)
         action = self.goalie.step(state, blocked=blocked)
@@ -137,7 +153,14 @@ class ClassicAIV1Model:
 
     def _predict_decision(self, state, deterministic=True):
         self._tick += 1
+        previous_decision = self._last_decision
         action, intent = self._decide(state)
+        if self.offense.chance_owner is not None and self._last_decision != 'create-chance':
+            self.offense.chance_owner = None
+            self.offense.chance_until = 0
+            if previous_decision == 'create-chance':
+                self.offense.chance_at = self.defense.frames + 72
+            self.offense_diagnostics['chance_cancelled'] = 'live action replaced the predicted setup'
         if not self.defense_diagnostics:
             actual = controlled_slot(state.team1)
             self.offense_diagnostics = {
@@ -148,7 +171,20 @@ class ClassicAIV1Model:
                 'reason': self.offense_diagnostics.get('reason', self.offense_diagnostics.get('status', self._last_decision)),
                 'buttons': action.tolist(), 'last_pass': self.offense.last_pass,
             }
+            self.offense_diagnostics['teammate_scores'] = self._teammate_scores(state)
         return self._encode(action, intent)
+
+    def _teammate_scores(self, state):
+        ordinary = {item['slot']: item for item in self.offense_diagnostics.get('candidates', ())}
+        one_timers = {item['slot']: item for item in self.offense_diagnostics.get('one_timer_candidates', ())}
+        selected = self.offense_diagnostics.get('desired_slot')
+        return [
+            {'slot': slot, 'selected': slot == selected,
+             'pass': ordinary.get(slot, {'status': 'not-evaluated'}),
+             'one_timer': one_timers.get(slot)}
+            for index, _ in enumerate(state.team1.players)
+            if (slot := state.team1.skater_scnum_base() + index) != state.engine.puck_owner
+        ]
 
     def _encode(self, action, intent):
         self._c_down = bool(action[Buttons.INPUT_C])
@@ -164,6 +200,7 @@ class ClassicAIV1Model:
             return False
         return owner >= 0 or (self._one_timer is None and self.offense.pending is None
                               and (self.cross_crease is None or self.cross_crease.plan is None)
+                              and (self.deke is None or self.deke.plan is None)
                               and self._tick >= self._shot_until)
 
     def _observe_cross_crease(self, state):
@@ -210,16 +247,8 @@ class ClassicAIV1Model:
         }
         return action, HOCKEY_INTENT_NORMAL_SHOOT if action[Buttons.INPUT_C] else HOCKEY_INTENT_NOOP
 
-    def _choose_cross_crease(self, state, plan, one_timer):
-        controller = self.cross_crease
-        if controller is None or self.defense.frames < controller.retry_at:
-            return False
-        controller.metrics['evaluations'] += 1
+    def _finishing_alternatives(self, state, plan, one_timer):
         player = state.team1.get_player_by_scnum(state.engine.puck_owner)
-        if not crossing_entry(state, player):
-            self.offense_diagnostics['cross_crease'] = {'status': 'outside-crossing-entry'}
-            controller.metrics['rejected-outside-crossing-entry'] += 1
-            return False
         alternatives = {'shoot': shot_value(state, player)}
         target = self.offense.carry_target(state, player)
         if carry_clear(state, player, target):
@@ -240,18 +269,75 @@ class ClassicAIV1Model:
                 if future is not None:
                     alternatives[mode] = shot_value(
                         future, future.team1.get_player_by_scnum(state.engine.puck_owner))
-        crossing, diagnostics = evaluate_cross_crease(state, alternatives)
-        self.offense_diagnostics['cross_crease'] = diagnostics
-        for candidate in diagnostics['candidates']:
-            if candidate['status'] != 'feasible':
-                controller.metrics['candidate-rejected-' + candidate['status']] += 1
-        if crossing is None:
-            controller.metrics['rejected-' + diagnostics['status']] += 1
-            return False
+        return alternatives
+
+    def _choose_finisher(self, state, plan, one_timer):
+        controllers = [('cross_crease', self.cross_crease, evaluate_cross_crease),
+                       ('deke', self.deke, evaluate_deke)]
+        active = [(name, controller, evaluate) for name, controller, evaluate in controllers
+                  if controller is not None and self.defense.frames >= controller.retry_at]
+        if not active:
+            return None
+        alternatives = self._finishing_alternatives(state, plan, one_timer)
+        choices = []
+        for name, controller, evaluate in active:
+            controller.metrics['evaluations'] += 1
+            finish, diagnostics = evaluate(state, alternatives)
+            self.offense_diagnostics[name] = diagnostics
+            for candidate in diagnostics['candidates']:
+                if candidate['status'] != 'feasible':
+                    controller.metrics['candidate-rejected-' + candidate['status']] += 1
+            if finish is None:
+                controller.metrics['rejected-' + diagnostics['status']] += 1
+            else:
+                choices.append((name, controller, finish))
+        if not choices:
+            return None
+        name, controller, finish = max(choices, key=lambda row: row[2].value)
         self.offense.cancel()
-        controller.diagnostics = diagnostics
-        controller.start(crossing, state, self.defense.frames)
+        controller.diagnostics = self.offense_diagnostics[name]
+        controller.start(finish, state, self.defense.frames)
+        return name
+
+    def _observe_deke(self, state):
+        if self.deke is None:
+            return False
+        if state.numPlayers != 5:
+            raise ValueError('Deke AI requires full-team NHL94')
+        plan = self.deke.plan
+        self.deke.observe(state, self.defense.frames)
+        if plan is None or self.deke.plan is not None:
+            return False
+        self._frame_remaining = 0
+        self.defense_diagnostics = {}
+        self._last_decision = 'deke-ended'
+        self._last_target = plan.target
+        self.offense_diagnostics = {
+            'mode': self._last_decision, 'decision': self._last_decision,
+            'reason': self.deke.diagnostics['outcome'], 'target': plan.target,
+            'destination': plan.target, 'waypoint': plan.target,
+            'actual_slot': controlled_slot(state.team1), 'desired_slot': plan.slot,
+            'receiver': None, 'deke': dict(self.deke.diagnostics), 'last_deke': self.deke.events[-1],
+            'buttons': [0] * Buttons.INPUT_MAX,
+        }
+        self.defense.idle(1)
         return True
+
+    def _deke_action(self, state):
+        plan = self.deke.plan
+        action = self.deke.step(state, self.defense.frames, c_down=self._c_down)
+        self.defense_diagnostics = {}
+        self._last_decision = 'deke-' + self.deke.phase
+        self._last_target = self.deke.diagnostics.get('waypoint', plan.bait)
+        self.offense_diagnostics = {
+            'mode': self._last_decision, 'decision': self._last_decision,
+            'reason': self.deke.diagnostics.get('outcome', 'execute observed goalie-bait maneuver'),
+            'target': self._last_target, 'destination': plan.target, 'waypoint': self._last_target,
+            'actual_slot': controlled_slot(state.team1), 'desired_slot': plan.slot,
+            'receiver': None, 'deke': dict(self.deke.diagnostics),
+            'last_deke': self.deke.events[-1] if self.deke.events else None, 'buttons': action.tolist(),
+        }
+        return action, HOCKEY_INTENT_NORMAL_SHOOT if action[Buttons.INPUT_C] else HOCKEY_INTENT_NOOP
 
     def _defend(self, state):
         self.offense.cancel()
@@ -292,6 +378,9 @@ class ClassicAIV1Model:
         if self._observe_cross_crease(state):
             self._was_defending = False
             return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
+        if self._observe_deke(state):
+            self._was_defending = False
+            return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
         self._defense_elapsed = 1
         goalie_action = self._goalie_frame(state)
         if goalie_action is not None:
@@ -303,6 +392,16 @@ class ClassicAIV1Model:
             self._was_defending = False
             self._defense_elapsed = frame_skip
             return self._encode(*self._cross_crease_action(state))
+        if self.deke is not None and self.deke.plan is not None:
+            self.defense.idle(1)
+            self._frame_remaining = 0
+            self._was_defending = False
+            self._defense_elapsed = frame_skip
+            return self._encode(*self._deke_action(state))
+        if self.offense.chance_owner is not None and (
+                state.engine.puck_owner != self.offense.chance_owner
+                or self.defense.frames + 1 >= self.offense.chance_until):
+            self._frame_remaining = 0
         self._observe_ordinary_pass(state)
         defending = self._defending(state)
         if self._frame_remaining == 0:
@@ -325,16 +424,17 @@ class ClassicAIV1Model:
         return self._frame_action.copy()
 
     def _steer(self, action, player, x, y, state=None):
-        escape = goalie_avoidance(state, player, (x, y)) if state is not None else None
+        escape = goalie_avoidance(
+            state, player, (x, y), decision_interval=self._decision_interval) if state is not None else None
         if escape is not None:
             (x, y), details = escape
             self._last_decision = 'goalie-avoid'
             self.offense_diagnostics.update(details)
         self._last_target = (x, y)
-        dx, dy = x - player.x, y - player.y
-        if abs(dx) > 3:
+        dx, dy = carry_pad(player, (x, y))
+        if dx:
             action[Buttons.INPUT_RIGHT if dx > 0 else Buttons.INPUT_LEFT] = 1
-        if abs(dy) > 3:
+        if dy:
             action[Buttons.INPUT_UP if dy > 0 else Buttons.INPUT_DOWN] = 1
 
     def _aim(self, action):
@@ -346,8 +446,9 @@ class ClassicAIV1Model:
         point, details = self.offense.fallback_carry(state, player)
         self.offense_diagnostics.update(details)
         self._last_decision = 'carry-breakaway' if breakaway and details['mode'] == 'carry' else details['mode']
-        outcome = ('missing-feedback' if details['carry_safe'] is None else 'least-risk'
-                   if not details['carry_safe'] else 'safe-default'
+        outcome = ('missing-feedback' if details['carry_safe'] is None else
+                   'uncertified-viable' if not details['carry_safe'] and details.get('carry_viable') else
+                   'least-risk' if not details['carry_safe'] else 'safe-default'
                    if details['mode'] == 'carry' else 'safe-escape')
         self.carry_metrics[outcome] = self.carry_metrics.get(outcome, 0) + 1
         self._steer(action, player, *point, state if details['carry_safe'] is None else None)
@@ -422,7 +523,7 @@ class ClassicAIV1Model:
         request = self.offense.pending
         self.offense.observe(state, self.defense.frames)
         if (request is not None and self.offense.pending is None
-                and self.offense.last_pass['outcome'] == 'recovered-by-passer'):
+                and self.offense.last_pass['outcome'] in ('received', 'other-receiver', 'recovered-by-passer')):
             self._frame_remaining = 0
 
     def _observe_one_timer(self, state, frame):
@@ -490,6 +591,9 @@ class ClassicAIV1Model:
         if self.cross_crease is not None and self.cross_crease.plan is not None:
             self.defense.idle(self._defense_elapsed)
             return self._cross_crease_action(state)
+        if self.deke is not None and self.deke.plan is not None:
+            self.defense.idle(self._defense_elapsed)
+            return self._deke_action(state)
         if self._defending(state):
             return self._defend(state)
         self.defense.idle(self._defense_elapsed)
@@ -511,7 +615,8 @@ class ClassicAIV1Model:
                 'actual_slot': actual, 'desired_slot': request['receiver'], 'pending_pass': dict(request),
             }
             if request['launched'] and owner < 0 and player is not None:
-                escape = goalie_avoidance(state, player, (player.x, player.y))
+                escape = goalie_avoidance(
+                    state, player, (player.x, player.y), decision_interval=self._decision_interval)
                 if escape is not None:
                     self._steer(action, player, *escape[0])
                     self._last_decision = 'goalie-avoid'
@@ -550,20 +655,21 @@ class ClassicAIV1Model:
 
         if owner == actual and player is not None and player is not team.goalie:
             progress = player.y * attack
-            shot_y = 218 + max(0, 15 - self._accuracy(player)) * 0.4
+            self.offense.one_timer_at = self._pass_at
             plan = self.offense.choose(state, self.defense.frames)
             self.offense_diagnostics = self.offense.diagnostics
-            escape = goalie_avoidance(state, player, self.offense.carry_target(state, player))
-            release_in_front = shot_release_in_front(
-                state, player, self._decision_interval)
+            escape = goalie_avoidance(
+                state, player, self.offense.carry_target(state, player), decision_interval=self._decision_interval)
             self.offense_diagnostics['shot_release_model'] = (
                 'native-animation-envelope' if player.shot_offsets_y is not None else 'conservative-animation-envelope')
-            shot_safe = release_in_front and goalie_contact_time(
-                player, opponents.goalie, clearance=GOALIE_SHOT_CLEARANCE) > GOALIE_HORIZON
-            normal_finish = progress > shot_y and abs(player.x) < 48 and shot_safe
+            normal_finish, early_finish = ordinary_shot_conditions(
+                state, player, self._decision_interval, escape)
             target = self._one_timer_target(team, opponents, attack, state=state)
-            if self._choose_cross_crease(state, plan, target):
+            finisher = self._choose_finisher(state, plan, target)
+            if finisher == 'cross_crease':
                 return self._cross_crease_action(state)
+            if finisher == 'deke':
+                return self._deke_action(state)
             if target is not None and not normal_finish:
                 if self._b_down:
                     self._last_decision = 'pass-button-release'
@@ -597,8 +703,7 @@ class ClassicAIV1Model:
 
             goalie_danger = progress > 175 and escape is not None
             preparing_one_timer = plan is not None and plan[0] == 'one-timer-setup'
-            if normal_finish or (goalie_danger and abs(player.x) < 48 and shot_safe
-                                 and not preparing_one_timer):
+            if normal_finish or (early_finish and not preparing_one_timer):
                 self._last_decision = 'shoot'
                 self._shot_side = -1 if opponents.goalie.x > 0 else 1
                 self._last_target = self._shot_side * 13, opponents.net.y
@@ -632,7 +737,8 @@ class ClassicAIV1Model:
                 # Live cuts already evaluated this exact goalie-safe route.
                 if mode == 'carry-breakaway':
                     return self._carry(state, player, action, breakaway=True)
-                self._steer(action, player, *point, None if mode in ('feint', 'one-timer-setup') else state)
+                self._steer(action, player, *point, None if mode in (
+                    'feint', 'one-timer-setup', 'carry-opportunity', 'create-chance') else state)
                 return action, HOCKEY_INTENT_NOOP
 
             # Missing live motion retains the historical setup, explicitly unverified.

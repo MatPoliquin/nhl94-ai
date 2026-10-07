@@ -1,0 +1,58 @@
+{
+  "protocol": "nhl94-carry-replay-gate-v1",
+  "passed": true,
+  "benchmark_report": "classic-v1-chance-creation-reference.json",
+  "fixture": {
+    "seed": 20262701,
+    "side": 2,
+    "matchup": "ducks-sabres-manual",
+    "seconds": 300,
+    "frame_skip": 4,
+    "action_type": "FILTERED",
+    "goalie_policy": "off"
+  },
+  "frames": 7809,
+  "actions_sha256": "095167859aeb1cb0db3696a2084fdc85fe7cdf7ed10d9a1dfefe12043fa9cb58",
+  "sources": {
+    "nhl94_ai/agents/carry.py": "425a03f07eb619ff5dcd3ebd9d23f2781617607f8d6bd5c63e2d5bb32d666855",
+    "nhl94_ai/agents/offense.py": "0c5278ae9cc4fc03ebf226edb617aa1e750a381eba336192ee9593e89fc4e558",
+    "nhl94_ai/agents/classic_v1.py": "4bc56b486a1d8f54824bcdae84afd525afe90e64872182cf07c3c6e0a5fc2aff",
+    "nhl94_ai/agents/passing.py": "1650f9054a67e542f038b6362bf1019b58e98320850bc096d78d9f0e4ba10cec",
+    "nhl94_ai/agents/skating.py": "071d32ea0489fe9db3da69700a2aef3fe52f5b60ea5d2039b69cd81ab77dd536",
+    "nhl94_ai/evaluation/carry_replay.py": "7cd3d2e4d645c2364528fa5b71b43ce888d745673fa726808c79f1da65da3d25",
+    "nhl94_ai/evaluation/carry_outcomes.py": "3c5983790d360bdefacd6e32954faa04f2bb5b4bc90d498f060a8f95520fefb6",
+    "nhl94_ai/evaluation/benchmark.py": "40cd695ab723fa931d4930f90a88aa4f3b28c4f9ef90119727a764b6e2089ee9",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "4f2ac2e943a60e4a2a9be9d7eadb6a2553592961253d27e275bab60516ccd6eb",
+    "nhl94_ai/game/ram.py": "695c63d302435317e9b22a257efe3ab4129c1cf4fded2a7f86ab17a1d5fcc817",
+    "nhl94_ai/game/state.py": "72545dc07f33383f3d6d3d3fbb389b0fe5c8a2460ff30fc001216ebfae54c062",
+    "nhl94_ai/tasks/cross_crease_setup.py": "b48a88583de919227c6f1d530b06b283c1a535f75c89f31002330a1092ca6b3c",
+    "nhl94_ai/agents/base.py": "c63fad330377fdcf6dc5329b1810b41d2e58bc963f143b01f4903e0fe0030792",
+    "nhl94_ai/agents/registry.py": "2ada3d5765f11d7b31e7ccbfe42b542cd12b4ee169f5c715bf05a112b1416887",
+    "nhl94_ai/agents/defense.py": "b6f7960ccb8c409e6990012d1f5e9ef2df1b51f01db4add2fe3e2e8329795fd7",
+    "nhl94_ai/agents/motion.py": "830614cef7753733a22a52fed921bf526da5f8646fce3eef12a908b7b44f971a",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/env/target_control.py": "9365b9f7e63383ccd0c02c672e506858cd911e48bb3830f86ee62638c7cd6052",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/agents/deke.py": "00cefffb902112ce368eaa720d7cca9ef8a887c71951f21acccfcaca186ce5b2",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146",
+    "nhl94_ai/agents/goalie.py": "84e619bf1217885877e9dbfe446f14e3fa9a7fd09b90d30dbc5d6a3399c15952",
+    "nhl94_ai/evaluation/defense_metrics.py": "347344ebac5d11eb3563d3638db8566dd728e2bb0ca387a71f463f737c6a040e",
+    "nhl94_ai/agents/responses.py": "a69cba84b62045e8c0bd75a27721f254943a98dfe9fd7b400cddfcf58a6b121b",
+    "nhl94_ai/agents/cross_crease.py": "f5ce8e6852aeb6070cbca3e12d1d6c00262aafd1e03e3a18d3e0606b775220c8",
+    "nhl94_ai/evaluation/offense_metrics.py": "8c082dc2bd8090dae94782e3bbaae7b07b7fa0f1558cfd039cc401ad9935f130",
+    "nhl94_ai/evaluation/carry_replay_gate.py": "6cf21d4076152fc444beac82848044d0efc7f3ae051f0ff3a6be9038809fb802"
+  },
+  "checks": {
+    "benchmark_complete": true,
+    "current_sources_match": true,
+    "sources_unchanged_during_gate": true,
+    "replay_period_complete": true,
+    "frame_count_identical": true,
+    "applied_actions_identical": true
+  },
+  "limitations": [
+    "One complete away default period proves caller parity for this fixture, not playing strength.",
+    "This gate does not certify alternative policies, sampled defender reach or shot outcome interpretation."
+  ]
+}

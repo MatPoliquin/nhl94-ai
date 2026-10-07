@@ -1,0 +1,198 @@
+diff --git a/nhl94_ai/agents/carry.py b/nhl94_ai/agents/carry.py
+--- a/nhl94_ai/agents/carry.py
++++ b/nhl94_ai/agents/carry.py
+@@ -2,9 +2,9 @@
+ from copy import copy
+ import math
+ 
+-from nhl94_ai.agents.defense import eligible, on_ice
++from nhl94_ai.agents.defense import on_ice
+ from nhl94_ai.agents.motion import (
+-    arrival_time, bounded_projection, boost_impulse, burst_velocity, skating, velocity,
++    VELOCITY_SCALE, bounded_projection, facing, skating, velocity,
+ )
+ from nhl94_ai.agents.passing import _contact_offsets
+ from nhl94_ai.agents.skating import grounded_step
+@@ -14,6 +14,7 @@
+ CARRY_FRAMES = 18
+ CONTACT_RADIUS = 16
+ INTERCEPTION_MARGIN = 3
++BURST_LOCK_FRAMES = 24
+ CARRY_SAMPLES = (4, 8, 12, CARRY_FRAMES)
+ 
+ 
+@@ -30,7 +31,7 @@
+     path = [carrier]
+     for elapsed in range(frames):
+         if elapsed % decision_interval == 0:
+-            pad = carry_pad(carrier, target)
++            pad = (0, 0) if target is None else carry_pad(carrier, target)
+         carrier = grounded_step(carrier, pad)
+         if math.dist((carrier.x, carrier.y), project_target((carrier.x, carrier.y))) > 1e-6:
+             return None
+@@ -44,67 +45,69 @@
+     return math.hypot(start[0] + dx * fraction, start[1] + dy * fraction)
+ 
+ 
+-def interception_time(state, player, point, deadline, *, body=False):
+-    """Earliest body/stick reach in neutral and facing-boost pursuit scenarios.
++def reach_envelopes(player, frames):
++    """Enclose arbitrary steering/braking and bursts at any unlocked time."""
++    acceleration, _, _ = skating(player, optimistic=True)
++    control = max(acceleration + math.sqrt(2) * VELOCITY_SCALE, 150 * math.sqrt(2) * VELOCITY_SCALE)
++    scenarios = [copy(player)]
++    boosted = copy(player)
++    energy = (4096 if player.burst_full_energy is not False or player.energy is None
++              else max(0, min(4096, player.energy)))
++    impulse = (energy // 128) * 200 * VELOCITY_SCALE
++    boosted.motion_x, boosted.motion_y = (
++        component + round(direction * 200) * (energy // 128) * VELOCITY_SCALE
++        for component, direction in zip(velocity(player), facing(player)))
++    scenarios.append(boosted)
++    envelopes = []
++    for elapsed in range(frames + 1):
++        # Native friction is nonexpansive; input acts after position integration.
++        radius = control * elapsed * (elapsed - 1) / 2 + (math.sqrt(2) if elapsed else 0)
++        delayed = sum(elapsed - launch for launch in range(1, elapsed, BURST_LOCK_FRAMES)) * impulse
++        repeated = sum(elapsed - launch for launch in range(
++            BURST_LOCK_FRAMES, elapsed, BURST_LOCK_FRAMES)) * impulse
++        envelopes.append((tuple((p.x, p.y) for p in scenarios), (radius + delayed, radius + repeated)))
++        scenarios = [grounded_step(p, (0, 0)) for p in scenarios]
++    return envelopes
+ 
+-    A capped result is a lower bound, not a promise of a later CPU arrival.
+-    Unknown physics retains the older explicitly conservative timing estimate.
+-    """
++
++def interception_time(state, player, point, deadline, *, body=False, envelopes=None, extra_radius=0):
++    """A lower bound on contact time, never a failed-pursuit arrival estimate."""
+     deadline = math.ceil(deadline)
+-    if not eligible(player):
++    if not on_ice(player):
+         return deadline + 1
+-    if any(getattr(player, field) is None
+-           for field in ('motion_x', 'motion_y', 'weight', 'agility', 'speed', 'energy')):
+-        return min(arrival_time(player, (point[0] - offset[0], point[1] - offset[1]),
+-                                optimistic=True, boost=True) for offset in _contact_offsets(player))
+-    acceleration, _, _ = skating(player)
+-    offsets = ((0, 0),) if body else _contact_offsets(player)
+-    contacts = [(offset, (CONTACT_RADIUS if body else 8 if index == 0 else 14)
+-                 + player.projection_uncertainty) for index, offset in enumerate(offsets)]
+-    reach = max(radius for _, radius in contacts)
+-    distance = min(math.dist((player.x + dx, player.y + dy), point) for dx, dy in offsets)
+-    if distance > reach + (math.hypot(*velocity(player)) + boost_impulse(player)) * deadline + (
+-            acceleration * deadline * (deadline + 1) / 2):
+-        return deadline + 1
+-    scenarios = [copy(player)]
+-    if boost_impulse(player) > 0:
+-        boosted = copy(player)
+-        boosted.motion_x, boosted.motion_y = burst_velocity(player)
+-        boosted.energy = max(0, player.energy - 204)
+-        scenarios.append(boosted)
+-    earliest = deadline + 1
+-    for defender in scenarios:
+-        for elapsed in range(deadline + 1):
+-            if any(math.dist((defender.x + offset[0], defender.y + offset[1]), point) <= radius
+-                   for offset, radius in contacts):
+-                earliest = min(earliest, elapsed)
+-                break
+-            if elapsed >= min(deadline, earliest):
+-                break
+-            offset = min((math.dist((defender.x + dx, defender.y + dy), point), (dx, dy))
+-                         for dx, dy in offsets)[1]
+-            target = point[0] - offset[0], point[1] - offset[1]
+-            future = grounded_step(defender, carry_pad(defender, target))
+-            if any(state._line_intersects_circle(
+-                    (defender.x + offset[0], defender.y + offset[1]),
+-                    (future.x + offset[0], future.y + offset[1]), point, radius)
+-                   for offset, radius in contacts):
+-                earliest = min(earliest, elapsed + 1)
+-                break
+-            defender = future
+-    return earliest
++    envelopes = reach_envelopes(player, deadline) if envelopes is None else envelopes
++    offsets = _contact_offsets(player)
++    reach = CONTACT_RADIUS if body else max(
++        [8, *(14 + math.hypot(*offset) for offset in offsets[1:])])
++    if not body and player.shot_projection_offsets_x is not None and player.shot_projection_offsets_y is not None:
++        reach = max(reach, 14 + max(math.hypot(x, y) for x in player.shot_projection_offsets_x
++                                   for y in player.shot_projection_offsets_y))
++    previous = envelopes[0][0]
++    for elapsed, (centers, radii) in enumerate(envelopes[:deadline + 1]):
++        if any(state._line_intersects_circle(
++                start, end, point, reach + player.projection_uncertainty + radius + extra_radius)
++               for start, end, radius in zip(previous, centers, radii)):
++            return elapsed
++        previous = centers
++    return deadline + 1
+ 
+ 
+ def forecast_carry(state, player, target, *, decision_interval=4, pressure_state=None, pressure_delay=0):
+     path = carry_path(player, target, decision_interval=decision_interval)
++    return forecast_path(state, player, path, pressure_state=pressure_state, pressure_delay=pressure_delay)
++
++
++def forecast_path(state, player, path, *, pressure_state=None, pressure_delay=0, puck_extent=None):
++    """Check every frame of a held-input carry or a coasting shot windup."""
+     details = {
+         'carry_bounded': path is not None, 'carry_safe': False,
+         'carry_clearance': -math.inf, 'carry_pressure': -math.inf,
+         'carry_progress': -math.inf, 'carry_shot_value': 0.0,
+-        'carry_pressure_model': 'native-turn-and-facing-boost',
++        'carry_pressure_model': 'native-reach-envelope',
+     }
+     if path is None:
+         return path, details
++    frames = len(path) - 1
+     clearance = math.inf
+     obstacles = [other for team in (state.team1, state.team2)
+                  for other in (*team.players, team.goalie) if other is not player and on_ice(other)]
+@@ -119,10 +122,15 @@
+     offset = state.puck.x - player.x, state.puck.y - player.y
+     margin = 60.0
+     pressure_state = state if pressure_state is None else pressure_state
+-    for elapsed in CARRY_SAMPLES:
++    envelopes = {
++        id(other): reach_envelopes(other, math.ceil(pressure_delay + frames + INTERCEPTION_MARGIN))
++        for other in pressure_state.team2.players if on_ice(other)
++    }
++    for elapsed in range(1, frames + 1):
+         carrier = path[elapsed]
+         points = (((carrier.x, carrier.y), True),
+-                  ((carrier.x + offset[0], carrier.y + offset[1]), False))
++                  ((carrier.x + offset[0], carrier.y + offset[1]) if puck_extent is None
++                   else (carrier.x, carrier.y), False))
+         for other in pressure_state.team2.players:
+             if not on_ice(other):
+                 continue
+@@ -131,7 +139,9 @@
+                 details['carry_pressure_model'] = 'conservative-missing-defender-feedback'
+             for point, body in points:
+                 margin = min(margin, interception_time(
+-                    pressure_state, other, point, pressure_delay + elapsed + INTERCEPTION_MARGIN, body=body)
++                    pressure_state, other, point, pressure_delay + elapsed + INTERCEPTION_MARGIN,
++                    body=body, envelopes=envelopes.get(id(other)),
++                    extra_radius=0 if body or puck_extent is None else puck_extent)
+                     - pressure_delay - elapsed)
+     sign = 1 if state.team2.net.y > state.team1.net.y else -1
+     details.update(
+diff --git a/nhl94_ai/game/state.py b/nhl94_ai/game/state.py
+--- a/nhl94_ai/game/state.py
++++ b/nhl94_ai/game/state.py
+@@ -93,6 +93,7 @@
+     selection_flags: int | None = None
+     unavailable: int = 0
+     movement_bonus: int = 0
++    burst_full_energy: bool | None = None
+     height: float | None = None
+     motion_z: float | None = None
+     friction: float = 511 / 512
+@@ -373,6 +374,8 @@
+         bonus = 2 if flags & 0x40 or info.get('defense_skill_boost', 0) & 2 else 0
+         for index, player in enumerate(self.players):
+             prefix = f'defense_{self.skater_scnum_base() + index}_'
++            player.burst_full_energy = (bool(flags & 0x10)
++                                        if 'defense_energy_override' in info else None)
+             player.stick_x = info.get(f'offense_{self.skater_scnum_base() + index}_stick_x')
+             player.stick_y = info.get(f'offense_{self.skater_scnum_base() + index}_stick_y')
+             player.shot_durations = info.get(f'offense_{self.skater_scnum_base() + index}_shot_durations')

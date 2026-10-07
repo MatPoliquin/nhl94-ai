@@ -180,6 +180,7 @@ class HumanDisplayContracts(unittest.TestCase):
         for terminal in (False, True):
             with self.subTest(terminal=terminal):
                 display, _ = self.display(truncate=terminal)
+                display.show_planner_overlay = True
                 planner = DefenseController()
                 planner.step(defense_state())
                 display.set_ai_sys_info(SimpleNamespace(last_diagnostics={'classic_defense': planner.diagnostics}))

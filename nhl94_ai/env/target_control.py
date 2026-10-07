@@ -105,8 +105,8 @@ def normalize_position(position, bounds=None):
 
 def project_target(position):
     """Conservative playable bounds, with rounded corners and net clearance."""
-    x = float(np.clip(position[0], -SETTINGS.scale_x, SETTINGS.scale_x))
-    y = float(np.clip(position[1], -SETTINGS.scale_y, SETTINGS.scale_y))
+    x = min(max(float(position[0]), -SETTINGS.scale_x), SETTINGS.scale_x)
+    y = min(max(float(position[1]), -SETTINGS.scale_y), SETTINGS.scale_y)
     corner_x, corner_y = max(0.0, abs(x) - 72), max(0.0, abs(y) - 222)
     radius = math.hypot(corner_x, corner_y)
     if radius > 48:

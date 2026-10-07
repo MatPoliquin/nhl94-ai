@@ -1,0 +1,230 @@
+diff --git a/nhl94_ai/agents/offense.py b/nhl94_ai/agents/offense.py
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -4,7 +4,7 @@
+ import math
+ 
+ from nhl94_ai.agents.defense import controlled_slot, eligible, on_ice
+-from nhl94_ai.agents.carry import CARRY_FRAMES, _segment_clearance, carry_path, forecast_carry
++from nhl94_ai.agents.carry import CARRY_FRAMES, _segment_clearance, carry_path, forecast_carry, forecast_path
+ from nhl94_ai.agents.motion import (
+     arrival_time, bounded_projection, coast_projection, facing, skate_step, skating, stop_projection, velocity,
+ )
+@@ -17,6 +17,7 @@
+ 
+ FEINT_FRAMES = 18
+ CONTINUATION_TIME_COST = 0.3
++POSITIONAL_CREDIT = 0.6
+ GOALIE_CLEARANCE = 32
+ GOALIE_SHOT_CLEARANCE = 24
+ GOALIE_HORIZON = 32
+@@ -54,6 +55,21 @@
+     offsets = player.shot_offsets_y or (-20, 20)
+     reach = max(offset * sign for offset in offsets)
+     return max(point.y * sign, player.y * sign + reach, y * sign + reach) < state.team2.net.y * sign
++
++
++def ordinary_shot_conditions(state, player, hold_frames, escape):
++    """The live normal/early shot triggers, shared with receiving forecasts."""
++    sign = 1 if state.team2.net.y > state.team1.net.y else -1
++    accuracy = 15 if player.shot_accuracy is None else max(0, min(30, player.shot_accuracy))
++    safe = shot_release_in_front(state, player, hold_frames) and goalie_contact_time(
++        player, state.team2.goalie, clearance=GOALIE_SHOT_CLEARANCE) > GOALIE_HORIZON
++    eligible_shot = abs(player.x) < 48 and safe
++    return (player.y * sign > 218 + max(0, 15 - accuracy) * 0.4 and eligible_shot,
++            player.y * sign > 175 and escape is not None and eligible_shot)
++
++
++def carry_value(details):
++    return max(details['carry_shot_value'], POSITIONAL_CREDIT * details.get('carry_position_value', 0))
+ 
+ 
+ def carry_projection(player, target, frames=FEINT_FRAMES):
+@@ -349,6 +365,26 @@
+             -35 if state.team2.goalie.x >= 0 else 35)
+         return x, sign * 235
+ 
++    def _finish_value(self, state, player, *, carry_frames=0, pressure_state=None, pressure_delay=0):
++        escape = goalie_avoidance(
++            state, player, self.carry_target(state, player), decision_interval=self.decision_interval)
++        normal, early = ordinary_shot_conditions(state, player, self.decision_interval, escape)
++        # An early shot can lose live priority to a one-timer or its setup.
++        if not normal and not (early and not self.one_timers):
++            return 0.0, 0
++        release = normal_shot_release_frames(player, self.decision_interval)
++        path = carry_path(player, None, release)
++        xs = player.shot_projection_offsets_x or (-20, 20)
++        ys = player.shot_projection_offsets_y or (-20, 20)
++        extent = max(math.hypot(x, y) for x in xs for y in ys)
++        _, safety = forecast_path(
++            state, player, path, pressure_state=pressure_state, pressure_delay=pressure_delay,
++            puck_extent=max(extent, math.dist((state.puck.x, state.puck.y), (player.x, player.y))))
++        if not safety['carry_safe']:
++            return 0.0, release
++        return max(0.0, shot_value(state, player) - (
++            carry_frames + release) * CONTINUATION_TIME_COST), release
++
+     def _carry_option(self, state, player, target, *, pressure_state=None, pressure_delay=0):
+         target = route_waypoint((player.x, player.y), project_target(target))
+         escape = goalie_avoidance(state, player, target, decision_interval=self.decision_interval)
+@@ -368,19 +404,25 @@
+                 **details, 'carry_bounded': bounded, 'carry_safe': safe,
+                 'carry_clearance': clearance, 'carry_pressure': margin,
+                 'carry_progress': (motions[-1][0][1] - player.y) * sign if bounded else -math.inf,
+-                'carry_shot_value': shot_value(state, player, motions[-1][0], FEINT_FRAMES) if safe else 0,
++                'carry_position_value': shot_value(state, player, motions[-1][0], FEINT_FRAMES) if safe else 0,
++                'carry_shot_value': 0.0,
+                 'carry_pressure_model': 'conservative-missing-carrier-feedback',
+             }
+         path, forecast = forecast_carry(
+             state, player, target, decision_interval=self.decision_interval,
+             pressure_state=pressure_state, pressure_delay=pressure_delay)
+         safe = forecast['carry_safe'] and details.get('goalie_avoidance_safe', True)
+-        opportunity = 0.0
++        position, finish, release = 0.0, 0.0, 0
+         if safe:
+             future = carry_future(state, player, path[-1])
+-            if shot_release_in_front(future, path[-1], self.decision_interval):
+-                opportunity = max(0.0, shot_value(future, path[-1]) - CARRY_FRAMES * CONTINUATION_TIME_COST)
+-        return target, {**details, **forecast, 'carry_safe': safe, 'carry_shot_value': opportunity}
++            position = max(0.0, shot_value(future, path[-1]) - CARRY_FRAMES * CONTINUATION_TIME_COST)
++            finish, release = self._finish_value(
++                future, path[-1], carry_frames=CARRY_FRAMES,
++                pressure_state=state if pressure_state is None else pressure_state,
++                pressure_delay=pressure_delay + CARRY_FRAMES)
++        return target, {**details, **forecast, 'carry_safe': safe,
++                        'carry_position_value': position, 'carry_shot_value': finish,
++                        'carry_release_frames': release}
+ 
+     def short_carries(self, state, player, *, pressure_state=None, pressure_delay=0):
+         sign = 1 if state.team2.net.y > state.team1.net.y else -1
+@@ -397,9 +439,10 @@
+         carries = self.short_carries(state, player)
+         safe = [option for option in carries if option[1]['carry_safe']]
+         best = max(safe, key=lambda option: (
+-            option[1]['carry_shot_value'], option[1]['carry_progress']), default=None)
+-        current = shot_value(state, player)
+-        value = max(current, best[1]['carry_shot_value'] if best else 0.0)
++            carry_value(option[1]), option[1]['carry_progress']), default=None)
++        current_finish, _ = self._finish_value(state, player)
++        current = max(current_finish, POSITIONAL_CREDIT * shot_value(state, player))
++        value = max(current, carry_value(best[1]) if best else 0.0)
+         return value, best
+ 
+     def _receiver_continuation(self, state, option):
+@@ -408,6 +451,9 @@
+             return option, {'continuation_status': 'no-modeled-reception-contact'}
+         future = reception_state(state, option, elapsed)
+         receiver = future.team1.players[option.index]
++        finish, _ = self._finish_value(future, receiver, pressure_state=state, pressure_delay=elapsed)
++        option = replace(option, reception_value=max(
++            finish, POSITIONAL_CREDIT * shot_value(future, receiver)))
+         sign = 1 if state.team2.net.y > state.team1.net.y else -1
+         _, limit, _ = skating(receiver)
+         if receiver.projection_uncertainty or receiver.y * sign + max(
+@@ -416,16 +462,21 @@
+         carries = [carry for carry in self.short_carries(
+             future, receiver, pressure_state=state, pressure_delay=elapsed) if carry[1]['carry_safe']]
+         best = max(carries, key=lambda carry: (
+-            carry[1]['carry_shot_value'], carry[1]['carry_progress']), default=None)
++            carry_value(carry[1]), carry[1]['carry_progress']), default=None)
+         if best is None:
+             return option, {'continuation_status': 'no-safe-continuation'}
+-        value = best[1]['carry_shot_value']
++        value = carry_value(best[1])
+         improved = replace(
+             option, continuation_value=value, continuation_target=best[0], continuation_frames=CARRY_FRAMES,
++            continuation_position_value=best[1]['carry_position_value'],
++            continuation_finish_value=best[1]['carry_shot_value'],
+             value=option.value + max(0.0, value - option.shot_value) * 0.6)
+         return improved, {
+             'continuation_status': 'safe', 'continuation_value': value,
+             'continuation_target': best[0], 'continuation_frames': CARRY_FRAMES,
++            'continuation_position_value': best[1]['carry_position_value'],
++            'continuation_finish_value': best[1]['carry_shot_value'],
++            'continuation_release_frames': best[1]['carry_release_frames'],
+             'reception_frames': elapsed,
+         }
+ 
+@@ -460,7 +511,7 @@
+                 'reason': 'no bounded carry; brake before unavoidable wall or net contact',
+             }
+         point, details = max(bounded, key=lambda option: (
+-            option[1]['carry_safe'], option[1]['carry_shot_value'],
++            option[1]['carry_safe'], carry_value(option[1]),
+             option[1]['carry_progress'] if option[1]['carry_safe'] else min(option[1]['carry_pressure'], 12),
+             min(option[1]['carry_pressure'], 12) if option[1]['carry_safe'] else min(option[1]['carry_clearance'], 16),
+             min(option[1]['carry_clearance'], 16), -math.dist(option[0], preferred)))
+@@ -666,7 +717,7 @@
+         cut = self._feint(state, player, frame, opportunity)
+         if cut:
+             return cut
+-        if retained is not None and retained[1]['carry_shot_value'] > current + 10:
++        if retained is not None and carry_value(retained[1]) > POSITIONAL_CREDIT * current + 10:
+             return self._plan(state, 'carry-opportunity', retained[0],
+                               'short ordinary carry improves the shooting opportunity')
+         self.diagnostics['status'] = 'no-better-safe-option'
+diff --git a/nhl94_ai/agents/classic_v1.py b/nhl94_ai/agents/classic_v1.py
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -14,8 +14,8 @@
+ from nhl94_ai.agents.cross_crease import CrossCreaseController, crossing_entry, evaluate_cross_crease
+ from nhl94_ai.agents.deke import DekeController, evaluate_deke
+ from nhl94_ai.agents.offense import (
+-    GOALIE_HORIZON, GOALIE_SHOT_CLEARANCE, SHOT_RELEASE_DELAY, OffenseController, carry_clear,
+-    goalie_avoidance, goalie_contact_time, projected_state, shot_release_in_front,
++    SHOT_RELEASE_DELAY, OffenseController, carry_clear,
++    goalie_avoidance, ordinary_shot_conditions, projected_state,
+ )
+ from nhl94_ai.agents.passing import pass_release_frames, shot_value
+ from nhl94_ai.game.constants import GameConsts as Buttons
+@@ -637,18 +637,14 @@
+ 
+         if owner == actual and player is not None and player is not team.goalie:
+             progress = player.y * attack
+-            shot_y = 218 + max(0, 15 - self._accuracy(player)) * 0.4
+             plan = self.offense.choose(state, self.defense.frames)
+             self.offense_diagnostics = self.offense.diagnostics
+             escape = goalie_avoidance(
+                 state, player, self.offense.carry_target(state, player), decision_interval=self._decision_interval)
+-            release_in_front = shot_release_in_front(
+-                state, player, self._decision_interval)
+             self.offense_diagnostics['shot_release_model'] = (
+                 'native-animation-envelope' if player.shot_offsets_y is not None else 'conservative-animation-envelope')
+-            shot_safe = release_in_front and goalie_contact_time(
+-                player, opponents.goalie, clearance=GOALIE_SHOT_CLEARANCE) > GOALIE_HORIZON
+-            normal_finish = progress > shot_y and abs(player.x) < 48 and shot_safe
++            normal_finish, early_finish = ordinary_shot_conditions(
++                state, player, self._decision_interval, escape)
+             target = self._one_timer_target(team, opponents, attack, state=state)
+             finisher = self._choose_finisher(state, plan, target)
+             if finisher == 'cross_crease':
+@@ -688,8 +684,7 @@
+ 
+             goalie_danger = progress > 175 and escape is not None
+             preparing_one_timer = plan is not None and plan[0] == 'one-timer-setup'
+-            if normal_finish or (goalie_danger and abs(player.x) < 48 and shot_safe
+-                                 and not preparing_one_timer):
++            if normal_finish or (early_finish and not preparing_one_timer):
+                 self._last_decision = 'shoot'
+                 self._shot_side = -1 if opponents.goalie.x > 0 else 1
+                 self._last_target = self._shot_side * 13, opponents.net.y
+diff --git a/nhl94_ai/agents/passing.py b/nhl94_ai/agents/passing.py
+--- a/nhl94_ai/agents/passing.py
++++ b/nhl94_ai/agents/passing.py
+@@ -35,10 +35,14 @@
+     continuation_value: float = 0.0
+     continuation_target: tuple | None = None
+     continuation_frames: int = 0
++    continuation_position_value: float = 0.0
++    continuation_finish_value: float = 0.0
++    reception_value: float | None = None
+ 
+     @property
+     def opportunity(self):
+-        return max(self.shot_value, self.continuation_value)
++        return max(self.shot_value if self.reception_value is None else self.reception_value,
++                   self.continuation_value)
+ 
+ 
+ def pad_direction(passer, receiver):

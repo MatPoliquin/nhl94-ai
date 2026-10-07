@@ -11,6 +11,33 @@ from nhl94_ai.game.state import NHL94GameState
 
 
 class CpuBenchmarkContracts(unittest.TestCase):
+    def test_chance_creation_flag_reaches_each_trial_without_losing_other_options(self):
+        args = build_parser().parse_args(
+            ['--chance-creation', '--uncertain-carry', '--deke', '--cross-crease', '--trials', '1'])
+        fixtures = []
+        def match(fixture):
+            fixtures.append(fixture)
+            return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                        goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
+        with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+            report = run(args)
+        self.assertTrue(report['settings']['chance_creation'])
+        self.assertTrue(all(fixture[-4:] == (True, True, True, True) for fixture in fixtures))
+        self.assertFalse(build_parser().parse_args([]).chance_creation)
+
+    def test_uncertain_carry_flag_reaches_every_trial(self):
+        args = build_parser().parse_args(['--uncertain-carry', '--trials', '1'])
+        fixtures = []
+        def match(fixture):
+            fixtures.append(fixture)
+            return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                        goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
+        with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+            report = run(args)
+        self.assertTrue(report['settings']['uncertain_carry'])
+        self.assertTrue(all(fixture[-3:] == (False, False, True) for fixture in fixtures))
+        self.assertFalse(build_parser().parse_args([]).uncertain_carry)
+
     def test_campbell_matchups_are_opt_in_and_share_the_single_controller_save(self):
         parser = build_parser()
         self.assertEqual(parser.parse_args([]).matchups,
@@ -160,6 +187,15 @@ class CpuBenchmarkContracts(unittest.TestCase):
                                                  'goals_for', 'goals_against')], [2, 1, 1, 0, 3, 1])
         self.assertEqual(result['one_timers'], 4)
         self.assertEqual(result['one_timer_goals'], 2)
+
+    def test_carrier_defense_metrics_only_summarize_completed_periods(self):
+        common = dict(matchup='senators-penguins', side=2, completed=True, goals=[0, 0],
+                      decisions={}, one_timers=[0, 0], one_timer_goals=[0, 0])
+        rows = [dict(common, carrier_defense_metrics={'neutral': {'frames': 8, 'cutoff_frames': 2}}),
+                dict(common, carrier_defense_metrics={'neutral': {'frames': 4, 'cutoff_frames': 3}}),
+                dict(common, completed=False, carrier_defense_metrics={'neutral': {'frames': 99}})]
+        self.assertEqual(summarize(rows)['senators-penguins']['carrier_defense_metrics'],
+                         {'neutral': {'frames': 12, 'cutoff_frames': 5}})
 
     def test_invalid_protocol_and_partial_periods_fail(self):
         for flags in (['--trials', '0'], ['--seed', '-1'], ['--seconds', '65536'],

@@ -1,0 +1,577 @@
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -1,17 +1,22 @@
+ """Progression first; bounded cuts must create an identifiable opportunity."""
+ from copy import copy
+-from dataclasses import asdict
++from dataclasses import asdict, replace
+ import math
+ 
+ from nhl94_ai.agents.defense import controlled_slot, eligible, on_ice
++from nhl94_ai.agents.carry import CARRY_FRAMES, forecast_carry
+ from nhl94_ai.agents.motion import (
+     arrival_time, bounded_projection, coast_projection, facing, skate_step, skating, stop_projection, velocity,
+ )
+-from nhl94_ai.agents.passing import evaluate_pass, pressure_margin, rom_direction, shot_value
++from nhl94_ai.agents.passing import (
++    evaluate_pass, one_timer_contact_frame, pass_contact, pass_point_at, pass_release_frames,
++    pressure_margin, rom_direction, shot_value,
++)
+ from nhl94_ai.env.target_control import project_target, route_waypoint
+ 
+ 
+ FEINT_FRAMES = 18
++CONTINUATION_TIME_COST = 0.3
+ GOALIE_CLEARANCE = 32
+ GOALIE_SHOT_CLEARANCE = 24
+ GOALIE_HORIZON = 32
+@@ -105,6 +110,67 @@
+     future.puck = copy(state.puck)
+     future.puck.x = state.puck.x + player.x - original.x
+     future.puck.y = state.puck.y + player.y - original.y
++    return future
++
++
++def reception_frames(state, option):
++    receiver = state.team1.players[option.index]
++    passer = state.team1.get_player_by_scnum(state.engine.puck_owner)
++    contact = pass_contact(state.puck, passer, receiver)
++    if contact is None:
++        raise ValueError('A safe pass option must have a reachable reception')
++    return one_timer_contact_frame(state.puck, receiver, contact, pass_release_frames(receiver))
++
++
++def reception_state(state, option, elapsed=None):
++    """Advance bodies to reception; the puck contact point is not a body center."""
++    receiver = state.team1.players[option.index]
++    elapsed = reception_frames(state, option) if elapsed is None else elapsed
++    if elapsed is None:
++        raise ValueError('Cannot project a reception without modeled body/stick contact')
++    future = copy(state)
++    for name in ('team1', 'team2'):
++        team = copy(getattr(state, name))
++        team.players = [copy(player) for player in team.players]
++        team.goalie = copy(team.goalie)
++        for player in (*team.players, team.goalie):
++            if not on_ice(player):
++                continue
++            (player.x, player.y), player.projection_uncertainty = bounded_projection(
++                player, elapsed, boards=player is not team.goalie)
++            player.precise_x, player.precise_y = float(player.x), float(player.y)
++        setattr(future, name, team)
++    future.engine = copy(state.engine)
++    future.engine.puck_owner = option.slot
++    future.team1.defense_control, future.team1.control = option.slot, option.index + 1
++    future.puck = copy(state.puck)
++    contact = pass_contact(state.puck, state.team1.get_player_by_scnum(state.engine.puck_owner), receiver)
++    future.puck.x, future.puck.y = pass_point_at(
++        state.puck, receiver, contact, elapsed - pass_release_frames(receiver))
++    future.puck.motion_x, future.puck.motion_y = velocity(receiver)
++    return future
++
++
++def carry_future(state, player, carrier):
++    future = copy(state)
++    for name in ('team1', 'team2'):
++        team = copy(getattr(state, name))
++        team.players = [copy(other) for other in team.players]
++        team.goalie = copy(team.goalie)
++        for index, other in enumerate(team.players):
++            if getattr(state, name).players[index] is player:
++                team.players[index] = carrier
++            elif on_ice(other):
++                (other.x, other.y), other.projection_uncertainty = bounded_projection(other, CARRY_FRAMES)
++                other.precise_x, other.precise_y = float(other.x), float(other.y)
++        if on_ice(team.goalie):
++            (team.goalie.x, team.goalie.y), team.goalie.projection_uncertainty = bounded_projection(
++                team.goalie, CARRY_FRAMES, boards=False)
++            team.goalie.precise_x, team.goalie.precise_y = float(team.goalie.x), float(team.goalie.y)
++        setattr(future, name, team)
++    future.puck = copy(state.puck)
++    future.puck.x += carrier.x - player.x
++    future.puck.y += carrier.y - player.y
+     return future
+ 
+ 
+@@ -270,27 +336,84 @@
+             -35 if state.team2.goalie.x >= 0 else 35)
+         return x, sign * 235
+ 
+-    @staticmethod
+-    def _carry_option(state, player, target):
++    def _carry_option(self, state, player, target, *, pressure_state=None, pressure_delay=0):
+         target = route_waypoint((player.x, player.y), project_target(target))
+         escape = goalie_avoidance(state, player, target)
+         details = {}
+         if escape is not None:
+             target, details = escape
+             target = route_waypoint((player.x, player.y), target)
+-        clearance = carry_clearance(state, player, target)
+-        motions = [_carry_motion(player, target, frames) for frames in CARRY_SAMPLES]
+-        bounded = all(motion is not None for motion in motions)
+-        margin = min(pressure_margin(state.team2, motion[0], frames)
+-                     for motion, frames in zip(motions, CARRY_SAMPLES)) if bounded else -math.inf
+-        safe = clearance > 0 and margin >= 3 and details.get('goalie_avoidance_safe', True)
++        if any(getattr(player, field) is None for field in ('weight', 'agility', 'speed', 'energy')):
++            motions = [_carry_motion(player, target, frames) for frames in CARRY_SAMPLES]
++            bounded = all(motion is not None for motion in motions)
++            clearance = carry_clearance(state, player, target)
++            margin = min(pressure_margin(state.team2, motion[0], frames)
++                         for motion, frames in zip(motions, CARRY_SAMPLES)) if bounded else -math.inf
++            sign = 1 if state.team2.net.y > state.team1.net.y else -1
++            safe = clearance > 0 and margin >= 3 and details.get('goalie_avoidance_safe', True)
++            return target, {
++                **details, 'carry_bounded': bounded, 'carry_safe': safe,
++                'carry_clearance': clearance, 'carry_pressure': margin,
++                'carry_progress': (motions[-1][0][1] - player.y) * sign if bounded else -math.inf,
++                'carry_shot_value': shot_value(state, player, motions[-1][0], FEINT_FRAMES) if safe else 0,
++                'carry_pressure_model': 'conservative-missing-carrier-feedback',
++            }
++        path, forecast = forecast_carry(
++            state, player, target, decision_interval=self.decision_interval,
++            pressure_state=pressure_state, pressure_delay=pressure_delay)
++        safe = forecast['carry_safe'] and details.get('goalie_avoidance_safe', True)
++        opportunity = 0.0
++        if safe:
++            future = carry_future(state, player, path[-1])
++            if shot_release_in_front(future, path[-1], self.decision_interval):
++                opportunity = max(0.0, shot_value(future, path[-1]) - CARRY_FRAMES * CONTINUATION_TIME_COST)
++        return target, {**details, **forecast, 'carry_safe': safe, 'carry_shot_value': opportunity}
++
++    def short_carries(self, state, player, *, pressure_state=None, pressure_delay=0):
+         sign = 1 if state.team2.net.y > state.team1.net.y else -1
+-        progress = (motions[-1][0][1] - player.y) * sign if bounded else -math.inf
+-        opportunity = shot_value(state, player, motions[-1][0], FEINT_FRAMES) if safe else 0
+-        return target, {
+-            **details, 'carry_safe': safe, 'carry_bounded': bounded,
+-            'carry_clearance': clearance, 'carry_pressure': margin,
+-            'carry_progress': progress, 'carry_shot_value': opportunity,
++        fx, fy = facing(player)
++        targets = (self.carry_target(state, player),
++                   (player.x, player.y + sign * 24),
++                   (player.x - 12, player.y + sign * 24),
++                   (player.x + 12, player.y + sign * 24),
++                   (player.x - fx * 48, player.y - fy * 48))
++        return [self._carry_option(state, player, target,
++                                   pressure_state=pressure_state, pressure_delay=pressure_delay) for target in targets]
++
++    def retained_opportunity(self, state, player):
++        carries = self.short_carries(state, player)
++        safe = [option for option in carries if option[1]['carry_safe']]
++        best = max(safe, key=lambda option: (
++            option[1]['carry_shot_value'], option[1]['carry_progress']), default=None)
++        current = shot_value(state, player)
++        value = max(current, best[1]['carry_shot_value'] if best else 0.0)
++        return value, best
++
++    def _receiver_continuation(self, state, option):
++        elapsed = reception_frames(state, option)
++        if elapsed is None:
++            return option, {'continuation_status': 'no-modeled-reception-contact'}
++        future = reception_state(state, option, elapsed)
++        receiver = future.team1.players[option.index]
++        sign = 1 if state.team2.net.y > state.team1.net.y else -1
++        _, limit, _ = skating(receiver)
++        if receiver.projection_uncertainty or receiver.y * sign + max(
++                limit, math.hypot(*velocity(receiver))) * CARRY_FRAMES <= 150:
++            return option, {'continuation_status': 'outside-short-shooting-horizon'}
++        carries = [carry for carry in self.short_carries(
++            future, receiver, pressure_state=state, pressure_delay=elapsed) if carry[1]['carry_safe']]
++        best = max(carries, key=lambda carry: (
++            carry[1]['carry_shot_value'], carry[1]['carry_progress']), default=None)
++        if best is None:
++            return option, {'continuation_status': 'no-safe-continuation'}
++        value = best[1]['carry_shot_value']
++        improved = replace(
++            option, continuation_value=value, continuation_target=best[0], continuation_frames=CARRY_FRAMES,
++            value=option.value + max(0.0, value - option.shot_value) * 0.6)
++        return improved, {
++            'continuation_status': 'safe', 'continuation_value': value,
++            'continuation_target': best[0], 'continuation_frames': CARRY_FRAMES,
++            'reception_frames': elapsed,
+         }
+ 
+     def fallback_carry(self, state, player):
+@@ -314,6 +437,8 @@
+         targets.extend((player.x + dx, player.y + sign * dy)
+                        for dx, dy in ((-48, 0), (48, 0), (0, -48), (-48, -24), (48, -24),
+                                       (-48, 24), (48, 24)))
++        targets.extend((player.x + dx, player.y + sign * dy)
++                       for dx in (-12, 12, -24, 24) for dy in (0, 24))
+         options = [first, *(self._carry_option(state, player, target) for target in targets)]
+         bounded = [option for option in options if option[1]['carry_bounded']]
+         if not bounded:
+@@ -352,7 +477,7 @@
+                 return False
+         return True
+ 
+-    def passes(self, state, purpose='advance'):
++    def passes(self, state, purpose='advance', *, continuations=True):
+         if purpose == 'one-timer' and not self.one_timers:
+             return [], []
+         player = state.team1.get_player_by_scnum(state.engine.puck_owner)
+@@ -365,6 +490,10 @@
+                 continue
+             option, details = evaluate_pass(
+                 state, player, index, receiver, purpose, decision_interval=self.decision_interval)
++            details['purpose'] = purpose
++            if option is not None and purpose != 'one-timer' and continuations:
++                option, continuation = self._receiver_continuation(state, option)
++                details.update(continuation, value=option.value)
+             if (purpose == 'one-timer' and option is not None
+                     and not (option.point[0] * player.x <= 0 and abs(option.point[0] - player.x) > 30)
+                     and option.shot_value <= current_shot + 12):
+@@ -417,7 +546,7 @@
+         one_timer_open = bool(self.passes(state, 'one-timer')[0])
+         if straight is not None:
+             mover = straight.team1.get_player_by_scnum(state.engine.puck_owner)
+-            direct_passes, _ = self.passes(straight, 'position')
++            direct_passes, _ = self.passes(straight, 'position', continuations=False)
+             one_timer_open |= bool(self.passes(straight, 'one-timer')[0])
+             current_value = max(current_value, shot_value(straight, mover),
+                                 direct_passes[0].shot_value + min(direct_passes[0].margin, 12)
+@@ -433,7 +562,7 @@
+             margin = pressure_margin(state.team2, (mover.x, mover.y), FEINT_FRAMES)
+             if margin < 5:
+                 continue
+-            passes, _ = self.passes(future, 'position')
++            passes, _ = self.passes(future, 'position', continuations=False)
+             one_timers, _ = self.passes(future, 'one-timer') if not one_timer_open else ([], [])
+             shots = shot_value(future, mover)
+             best = passes[0] if passes else None
+@@ -462,12 +591,13 @@
+         return mode, target, option
+ 
+     @staticmethod
+-    def _worthwhile(option, player, sign, purpose, current):
++    def _worthwhile(option, player, sign, purpose, current, retained_progress=0):
+         if purpose == 'advance':
+             return option.forward_gain >= 20 and (
+-                option.bypassed > 0 or option.forward_gain >= 50
+-                or player.y * sign < 88 <= option.point[1] * sign)
+-        return option.shot_value > current + 12
++                option.bypassed > 0 or option.forward_gain >= max(50, retained_progress + 20)
++                or player.y * sign + max(0, retained_progress) < 88 <= option.point[1] * sign
++                or option.opportunity > current + 12)
++        return option.opportunity > current + 12
+ 
+     def choose(self, state, frame):
+         player = state.team1.get_player_by_scnum(state.engine.puck_owner)
+@@ -477,6 +607,19 @@
+             self.diagnostics['status'] = 'missing-feedback'
+             return None
+         sign = 1 if state.team2.net.y > state.team1.net.y else -1
++        purpose = 'advance' if player.y * sign < 140 else 'position'
++        choices, self.diagnostics['candidates'] = self.passes(state, purpose)
++        retained_value, retained = self.retained_opportunity(state, player)
++        current = shot_value(state, player)
++        retained_progress = retained[1]['carry_progress'] if retained else 0
++        self.diagnostics.update(retained_value=retained_value, retained_carry=retained,
++                                retained_progress=retained_progress)
++        choices = [option for option in choices if self._worthwhile(
++            option, player, sign, purpose, retained_value, retained_progress)]
++        worthwhile_slots = {option.slot for option in choices}
++        for candidate in self.diagnostics['candidates']:
++            if candidate['status'] == 'safe':
++                candidate['worthwhile'] = candidate['slot'] in worthwhile_slots
+         finish_depth = 198 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * 0.4
+         if (player.y * sign > finish_depth and abs(player.x) < 48
+                 and shot_release_in_front(state, player, self.decision_interval)
+@@ -488,15 +631,7 @@
+             self.feint_target = None
+             return self._plan(state, 'carry-breakaway', self.carry_target(state, player),
+                               'no reachable skater interception')
+-        purpose = 'advance' if player.y * sign < 140 else 'position'
+-        choices, self.diagnostics['candidates'] = self.passes(state, purpose)
+-        current = shot_value(state, player)
+-        choices = [option for option in choices if self._worthwhile(option, player, sign, purpose, current)]
+-        worthwhile_slots = {option.slot for option in choices}
+-        for candidate in self.diagnostics['candidates']:
+-            if candidate['status'] == 'safe':
+-                candidate['worthwhile'] = candidate['slot'] in worthwhile_slots
+-        opportunity = max(current, choices[0].shot_value + min(choices[0].margin, 12) if choices else 0)
++        opportunity = max(current, choices[0].opportunity + min(choices[0].margin, 12) if choices else 0)
+         if self.feint_mode == 'one-timer-setup':
+             continuation = self._continue_cut(state, player, frame)
+             if continuation:
+@@ -515,5 +650,8 @@
+         cut = self._feint(state, player, frame, opportunity)
+         if cut:
+             return cut
++        if retained is not None and retained[1]['carry_shot_value'] > current + 10:
++            return self._plan(state, 'carry-opportunity', retained[0],
++                              'short ordinary carry improves the shooting opportunity')
+         self.diagnostics['status'] = 'no-better-safe-option'
+         return None
+--- a/nhl94_ai/agents/passing.py
++++ b/nhl94_ai/agents/passing.py
+@@ -32,6 +32,13 @@
+     bypassed: int
+     shot_value: float
+     value: float
++    continuation_value: float = 0.0
++    continuation_target: tuple | None = None
++    continuation_frames: int = 0
++
++    @property
++    def opportunity(self):
++        return max(self.shot_value, self.continuation_value)
+ 
+ 
+ def pad_direction(passer, receiver):
+@@ -200,18 +207,23 @@
+     return start, point, time, speed
+ 
+ 
++def pass_point_at(puck, receiver, contact, time):
++    start, point, flight, _ = contact
++    live = receiver.stick_x is not None and receiver.stick_y is not None
++    fraction = ((1 - puck.friction**time) / (1 - puck.friction**flight)
++                if live and puck.friction != 1 else time / flight)
++    return start[0] + (point[0] - start[0]) * fraction, start[1] + (point[1] - start[1]) * fraction
++
++
+ def one_timer_contact_frame(puck, receiver, contact, release):
+     """First modeled body/stick contact, not the later closest-approach frame."""
+-    start, point, flight, _ = contact
++    _, _, flight, _ = contact
+     vx, vy = velocity(receiver)
+     fx, fy = facing(receiver)
+     offset = ((receiver.stick_x, receiver.stick_y) if receiver.stick_x is not None
+               and receiver.stick_y is not None else (fx * 10, fy * 10))
+-    live = receiver.stick_x is not None and receiver.stick_y is not None
+     for time in (*range(1, math.ceil(flight)), flight):
+-        fraction = ((1 - puck.friction**time) / (1 - puck.friction**flight)
+-                    if live and puck.friction != 1 else time / flight)
+-        position = start[0] + (point[0] - start[0]) * fraction, start[1] + (point[1] - start[1]) * fraction
++        position = pass_point_at(puck, receiver, contact, time)
+         body = receiver.x + vx * (release + time), receiver.y + vy * (release + time)
+         stick = body[0] + offset[0], body[1] + offset[1]
+         if math.dist(position, body) <= 8 or math.dist(position, stick) <= 14:
+@@ -376,4 +388,5 @@
+     shooting = shot_value(state, receiver, point, total)
+     value = gain * 0.4 + bypassed * 16 + min(margin, 20) + shooting * 0.6
+     option = PassOption(index, slot, point, flight, direction, margin, robustness, gain, bypassed, shooting, value)
+-    return option, {**details, 'status': 'safe', 'bypassed': bypassed, 'value': value}
++    return option, {**details, 'status': 'safe', 'bypassed': bypassed,
++                    'shot_value': shooting, 'value': value}
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -9,6 +9,7 @@
+ 
+ from nhl94_ai.agents.defense import DefenseController, eligible, on_ice, owns_puck
+ from nhl94_ai.agents.defense import controlled_slot
++from nhl94_ai.agents.carry import carry_pad
+ from nhl94_ai.agents.goalie import GoalieController
+ from nhl94_ai.agents.cross_crease import CrossCreaseController, crossing_entry, evaluate_cross_crease
+ from nhl94_ai.agents.deke import DekeController, evaluate_deke
+@@ -157,7 +158,20 @@
+                 'reason': self.offense_diagnostics.get('reason', self.offense_diagnostics.get('status', self._last_decision)),
+                 'buttons': action.tolist(), 'last_pass': self.offense.last_pass,
+             }
++            self.offense_diagnostics['teammate_scores'] = self._teammate_scores(state)
+         return self._encode(action, intent)
++
++    def _teammate_scores(self, state):
++        ordinary = {item['slot']: item for item in self.offense_diagnostics.get('candidates', ())}
++        one_timers = {item['slot']: item for item in self.offense_diagnostics.get('one_timer_candidates', ())}
++        selected = self.offense_diagnostics.get('desired_slot')
++        return [
++            {'slot': slot, 'selected': slot == selected,
++             'pass': ordinary.get(slot, {'status': 'not-evaluated'}),
++             'one_timer': one_timers.get(slot)}
++            for index, _ in enumerate(state.team1.players)
++            if (slot := state.team1.skater_scnum_base() + index) != state.engine.puck_owner
++        ]
+ 
+     def _encode(self, action, intent):
+         self._c_down = bool(action[Buttons.INPUT_C])
+@@ -399,10 +413,10 @@
+             self._last_decision = 'goalie-avoid'
+             self.offense_diagnostics.update(details)
+         self._last_target = (x, y)
+-        dx, dy = x - player.x, y - player.y
+-        if abs(dx) > 3:
++        dx, dy = carry_pad(player, (x, y))
++        if dx:
+             action[Buttons.INPUT_RIGHT if dx > 0 else Buttons.INPUT_LEFT] = 1
+-        if abs(dy) > 3:
++        if dy:
+             action[Buttons.INPUT_UP if dy > 0 else Buttons.INPUT_DOWN] = 1
+ 
+     def _aim(self, action):
+@@ -490,7 +504,7 @@
+         request = self.offense.pending
+         self.offense.observe(state, self.defense.frames)
+         if (request is not None and self.offense.pending is None
+-                and self.offense.last_pass['outcome'] == 'recovered-by-passer'):
++                and self.offense.last_pass['outcome'] in ('received', 'other-receiver', 'recovered-by-passer')):
+             self._frame_remaining = 0
+ 
+     def _observe_one_timer(self, state, frame):
+@@ -706,7 +720,8 @@
+                 # Live cuts already evaluated this exact goalie-safe route.
+                 if mode == 'carry-breakaway':
+                     return self._carry(state, player, action, breakaway=True)
+-                self._steer(action, player, *point, None if mode in ('feint', 'one-timer-setup') else state)
++                self._steer(action, player, *point, None if mode in (
++                    'feint', 'one-timer-setup', 'carry-opportunity') else state)
+                 return action, HOCKEY_INTENT_NOOP
+ 
+             # Missing live motion retains the historical setup, explicitly unverified.
+--- a/nhl94_ai/evaluation/cpu_benchmark.py
++++ b/nhl94_ai/evaluation/cpu_benchmark.py
+@@ -307,7 +307,8 @@
+     root = Path(__file__).resolve().parents[2]
+     files.update(root / 'nhl94_ai' / name for name in (
+         'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
+-        'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/offense.py', 'agents/passing.py',
++        'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
++        'agents/offense.py', 'agents/passing.py',
+         'agents/goalie.py', 'agents/cross_crease.py', 'agents/deke.py', 'agents/skating.py', 'agents/registry.py'))
+     sources = {str(path.relative_to(root)):
+                hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
+--- /dev/null
++++ b/nhl94_ai/agents/carry.py
+@@ -0,0 +1,141 @@
++"""Bounded ordinary carries and defender reach, using native skating updates."""
++from copy import copy
++import math
++
++from nhl94_ai.agents.defense import eligible, on_ice
++from nhl94_ai.agents.motion import (
++    arrival_time, bounded_projection, boost_impulse, burst_velocity, skating, velocity,
++)
++from nhl94_ai.agents.passing import _contact_offsets
++from nhl94_ai.agents.skating import grounded_step
++from nhl94_ai.env.target_control import project_target
++
++
++CARRY_FRAMES = 18
++CONTACT_RADIUS = 16
++INTERCEPTION_MARGIN = 3
++CARRY_SAMPLES = (4, 8, 12, CARRY_FRAMES)
++
++
++def carry_pad(player, target):
++    """The ordinary controller holds these buttons until its next decision."""
++    return tuple(1 if delta > 3 else -1 if delta < -3 else 0
++                 for delta in (target[0] - player.x, target[1] - player.y))
++
++
++def carry_path(player, target, frames=CARRY_FRAMES, *, decision_interval=4):
++    if frames < 0 or decision_interval < 1:
++        raise ValueError('Carry horizons must be nonnegative and decision intervals positive')
++    carrier = copy(player)
++    path = [carrier]
++    for elapsed in range(frames):
++        if elapsed % decision_interval == 0:
++            pad = carry_pad(carrier, target)
++        carrier = grounded_step(carrier, pad)
++        if math.dist((carrier.x, carrier.y), project_target((carrier.x, carrier.y))) > 1e-6:
++            return None
++        path.append(carrier)
++    return path
++
++
++def _segment_clearance(start, end):
++    dx, dy = end[0] - start[0], end[1] - start[1]
++    fraction = max(0, min(1, -(start[0] * dx + start[1] * dy) / max(0.01, dx * dx + dy * dy)))
++    return math.hypot(start[0] + dx * fraction, start[1] + dy * fraction)
++
++
++def interception_time(state, player, point, deadline, *, body=False):
++    """Earliest body/stick reach in neutral and facing-boost pursuit scenarios.
++
++    A capped result is a lower bound, not a promise of a later CPU arrival.
++    Unknown physics retains the older explicitly conservative timing estimate.
++    """
++    deadline = math.ceil(deadline)
++    if not eligible(player):
++        return deadline + 1
++    if any(getattr(player, field) is None
++           for field in ('motion_x', 'motion_y', 'weight', 'agility', 'speed', 'energy')):
++        return min(arrival_time(player, (point[0] - offset[0], point[1] - offset[1]),
++                                optimistic=True, boost=True) for offset in _contact_offsets(player))
++    acceleration, _, _ = skating(player)
++    offsets = ((0, 0),) if body else _contact_offsets(player)
++    contacts = [(offset, (CONTACT_RADIUS if body else 8 if index == 0 else 14)
++                 + player.projection_uncertainty) for index, offset in enumerate(offsets)]
++    reach = max(radius for _, radius in contacts)
++    distance = min(math.dist((player.x + dx, player.y + dy), point) for dx, dy in offsets)
++    if distance > reach + (math.hypot(*velocity(player)) + boost_impulse(player)) * deadline + (
++            acceleration * deadline * (deadline + 1) / 2):
++        return deadline + 1
++    scenarios = [copy(player)]
++    if boost_impulse(player) > 0:
++        boosted = copy(player)
++        boosted.motion_x, boosted.motion_y = burst_velocity(player)
++        boosted.energy = max(0, player.energy - 204)
++        scenarios.append(boosted)
++    earliest = deadline + 1
++    for defender in scenarios:
++        for elapsed in range(deadline + 1):
++            if any(math.dist((defender.x + offset[0], defender.y + offset[1]), point) <= radius
++                   for offset, radius in contacts):
++                earliest = min(earliest, elapsed)
++                break
++            if elapsed >= min(deadline, earliest):
++                break
++            offset = min((math.dist((defender.x + dx, defender.y + dy), point), (dx, dy))
++                         for dx, dy in offsets)[1]
++            target = point[0] - offset[0], point[1] - offset[1]
++            future = grounded_step(defender, carry_pad(defender, target))
++            if any(state._line_intersects_circle(
++                    (defender.x + offset[0], defender.y + offset[1]),
++                    (future.x + offset[0], future.y + offset[1]), point, radius)
++                   for offset, radius in contacts):
++                earliest = min(earliest, elapsed + 1)
++                break
++            defender = future
++    return earliest
++
++
++def forecast_carry(state, player, target, *, decision_interval=4, pressure_state=None, pressure_delay=0):
++    path = carry_path(player, target, decision_interval=decision_interval)
++    details = {
++        'carry_bounded': path is not None, 'carry_safe': False,
++        'carry_clearance': -math.inf, 'carry_pressure': -math.inf,
++        'carry_progress': -math.inf, 'carry_shot_value': 0.0,
++        'carry_pressure_model': 'native-turn-and-facing-boost',
++    }
++    if path is None:
++        return path, details
++    clearance = math.inf
++    obstacles = [other for team in (state.team1, state.team2)
++                 for other in (*team.players, team.goalie) if other is not player and on_ice(other)]
++    for other in obstacles:
++        previous = player.x - other.x, player.y - other.y
++        clearance = min(clearance, math.hypot(*previous) - CONTACT_RADIUS - other.projection_uncertainty)
++        for elapsed, carrier in enumerate(path[1:], 1):
++            position, uncertainty = bounded_projection(other, elapsed, boards=other.role != 0)
++            relative = carrier.x - position[0], carrier.y - position[1]
++            clearance = min(clearance, _segment_clearance(previous, relative) - CONTACT_RADIUS - uncertainty)
++            previous = relative
++    offset = state.puck.x - player.x, state.puck.y - player.y
++    margin = 60.0
++    pressure_state = state if pressure_state is None else pressure_state
++    for elapsed in CARRY_SAMPLES:
++        carrier = path[elapsed]
++        points = (((carrier.x, carrier.y), True),
++                  ((carrier.x + offset[0], carrier.y + offset[1]), False))
++        for other in pressure_state.team2.players:
++            if not on_ice(other):
++                continue
++            if any(getattr(other, field) is None
++                   for field in ('motion_x', 'motion_y', 'weight', 'agility', 'speed', 'energy')):
++                details['carry_pressure_model'] = 'conservative-missing-defender-feedback'
++            for point, body in points:
++                margin = min(margin, interception_time(
++                    pressure_state, other, point, pressure_delay + elapsed + INTERCEPTION_MARGIN, body=body)
++                    - pressure_delay - elapsed)
++    sign = 1 if state.team2.net.y > state.team1.net.y else -1
++    details.update(
++        carry_safe=clearance > 0 and margin >= INTERCEPTION_MARGIN,
++        carry_clearance=clearance, carry_pressure=margin,
++        carry_progress=(path[-1].y - player.y) * sign)
++    return path, details

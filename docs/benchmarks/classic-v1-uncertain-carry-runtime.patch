@@ -1,0 +1,320 @@
+diff --git a/nhl94_ai/agents/carry.py b/nhl94_ai/agents/carry.py
+--- a/nhl94_ai/agents/carry.py
++++ b/nhl94_ai/agents/carry.py
+@@ -16,6 +16,11 @@
+ INTERCEPTION_MARGIN = 3
+ BURST_LOCK_FRAMES = 24
+ CARRY_SAMPLES = (4, 8, 12, CARRY_FRAMES)
++RISK_PADS = ((0, 0), (0, 1), (1, 1), (1, 0), (1, -1),
++             (0, -1), (-1, -1), (-1, 0), (-1, 1))
++RISK_FIELDS = ('x', 'y', 'precise_x', 'precise_y', 'motion_x', 'motion_y', 'vx', 'vy',
++               'facing', 'facing_phase', 'orientation', 'sprite_flipped_x',
++               'weight', 'agility', 'speed', 'energy', 'movement_bonus', 'burst_full_energy')
+ 
+ 
+ def carry_pad(player, target):
+@@ -92,18 +97,82 @@
+     return deadline + 1
+ 
+ 
+-def forecast_carry(state, player, target, *, decision_interval=4, pressure_state=None, pressure_delay=0):
++def risk_tracks(player, frames, cache):
++    """Sample native steering scenarios; their failure never certifies safety."""
++    key = tuple(getattr(player, field) for field in RISK_FIELDS), frames
++    if key not in cache:
++        boosted = copy(player)
++        energy = (4096 if player.burst_full_energy is not False else player.energy)
++        boosted.motion_x, boosted.motion_y = (
++            component + round(direction * 200) * (energy // 128) * VELOCITY_SCALE
++            for component, direction in zip(velocity(player), facing(player)))
++        paths = []
++        for start in (player, boosted):
++            for pad in RISK_PADS:
++                future, track = copy(start), [copy(start)]
++                for _ in range(frames):
++                    future = grounded_step(future, pad)
++                    track.append(future)
++                paths.append(track)
++        cache[key] = paths
++    return cache[key]
++
++
++def assess_path_risk(state, player, path, pressure_state, delay, interval, cache, puck_extent):
++    """Report sampled contact timing separately from conservative certification."""
++    frames = len(path) - 1
++    first = None
++    offset = state.puck.x - player.x, state.puck.y - player.y
++    for other in pressure_state.team2.players:
++        if not on_ice(other):
++            continue
++        if any(getattr(other, field) is None
++               for field in ('motion_x', 'motion_y', 'weight', 'agility', 'speed', 'energy')):
++            return {'carry_viable': False, 'carry_status': 'unmeasured-defender-risk', 'carry_risk': 1.0}
++        for track in risk_tracks(other, math.ceil(delay + frames), cache):
++            for elapsed, carrier in enumerate(path[1:], 1):
++                if first is not None and elapsed >= first:
++                    break
++                defender = track[math.ceil(delay + elapsed)]
++                previous = track[math.ceil(delay + elapsed - 1)]
++                body = _segment_clearance(
++                    (path[elapsed - 1].x - previous.x, path[elapsed - 1].y - previous.y),
++                    (carrier.x - defender.x, carrier.y - defender.y))
++                stick = max((math.hypot(*value) for value in _contact_offsets(other)[1:]), default=0)
++                puck = math.dist((carrier.x + offset[0], carrier.y + offset[1]), (defender.x, defender.y))
++                if (body <= CONTACT_RADIUS + other.projection_uncertainty or
++                        puck <= max(8, 14 + stick if stick else 8) + other.projection_uncertainty
++                        + (puck_extent or 0)):
++                    first = elapsed
++                    break
++    horizon = frames + INTERCEPTION_MARGIN
++    risk = min(1.0, max(interval / horizon, (horizon - first) / horizon if first is not None else 0))
++    return {
++        'carry_viable': first is None or first > interval,
++        'carry_status': 'imminent-modeled-contact' if first is not None and first <= interval
++        else 'uncertified-modeled-contact' if first is not None else 'uncertified-clear-samples',
++        'carry_risk': risk, 'carry_sampled_contact_frame': first,
++        'carry_risk_model': 'native-directional-samples-not-probability',
++    }
++
++
++def forecast_carry(state, player, target, *, decision_interval=4, pressure_state=None, pressure_delay=0,
++                   assess_uncertainty=False, risk_cache=None):
+     path = carry_path(player, target, decision_interval=decision_interval)
+-    return forecast_path(state, player, path, pressure_state=pressure_state, pressure_delay=pressure_delay)
+-
+-
+-def forecast_path(state, player, path, *, pressure_state=None, pressure_delay=0, puck_extent=None):
++    return forecast_path(
++        state, player, path, pressure_state=pressure_state, pressure_delay=pressure_delay,
++        assess_uncertainty=assess_uncertainty, decision_interval=decision_interval, risk_cache=risk_cache)
++
++
++def forecast_path(state, player, path, *, pressure_state=None, pressure_delay=0, puck_extent=None,
++                  assess_uncertainty=False, decision_interval=4, risk_cache=None):
+     """Check every frame of a held-input carry or a coasting shot windup."""
+     details = {
+         'carry_bounded': path is not None, 'carry_safe': False,
+         'carry_clearance': -math.inf, 'carry_pressure': -math.inf,
+         'carry_progress': -math.inf, 'carry_shot_value': 0.0,
+         'carry_pressure_model': 'native-reach-envelope',
++        'carry_viable': False, 'carry_status': 'unbounded-route', 'carry_risk': 1.0,
+     }
+     if path is None:
+         return path, details
+@@ -148,4 +217,13 @@
+         carry_safe=clearance > 0 and margin >= INTERCEPTION_MARGIN,
+         carry_clearance=clearance, carry_pressure=margin,
+         carry_progress=(path[-1].y - player.y) * sign)
++    details.update(carry_viable=details['carry_safe'],
++                   carry_status='certified-clear' if details['carry_safe'] else
++                   'projected-body-contact' if clearance <= 0 else 'uncertified')
++    if details['carry_safe']:
++        details['carry_risk'] = 0.0
++    elif clearance > 0 and assess_uncertainty:
++        details.update(assess_path_risk(
++            state, player, path, pressure_state, pressure_delay, decision_interval,
++            {} if risk_cache is None else risk_cache, puck_extent))
+     return path, details
+diff --git a/nhl94_ai/agents/offense.py b/nhl94_ai/agents/offense.py
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -69,7 +69,16 @@
+ 
+ 
+ def carry_value(details):
+-    return max(details['carry_shot_value'], POSITIONAL_CREDIT * details.get('carry_position_value', 0))
++    return max(details['carry_shot_value'], POSITIONAL_CREDIT * details.get(
++        'carry_position_value', 0)) * (1 - details.get('carry_risk', 0))
++
++
++def carry_viable(details):
++    return details.get('carry_viable', details['carry_safe'])
++
++
++def physical_clearance(details):
++    return min(details['carry_clearance'], details.get('goalie_clearance', math.inf) - GOALIE_CLEARANCE)
+ 
+ 
+ def carry_projection(player, target, frames=FEINT_FRAMES):
+@@ -312,12 +321,14 @@
+         self.last_pass = None
+         self.last_request = None
+         self.diagnostics = {}
++        self.risk_cache = {}
+ 
+     def cancel(self):
+         self.pending = None
+         self.feint_target = None
+         self.feint_until = 0
+         self.diagnostics = {}
++        self.risk_cache.clear()
+ 
+     def observe(self, state, frame):
+         request = self.pending
+@@ -379,11 +390,12 @@
+         extent = max(math.hypot(x, y) for x in xs for y in ys)
+         _, safety = forecast_path(
+             state, player, path, pressure_state=pressure_state, pressure_delay=pressure_delay,
+-            puck_extent=max(extent, math.dist((state.puck.x, state.puck.y), (player.x, player.y))))
+-        if not safety['carry_safe']:
++            puck_extent=max(extent, math.dist((state.puck.x, state.puck.y), (player.x, player.y))),
++            assess_uncertainty=True, decision_interval=self.decision_interval, risk_cache=self.risk_cache)
++        if not carry_viable(safety):
+             return 0.0, release
+         return max(0.0, shot_value(state, player) - (
+-            carry_frames + release) * CONTINUATION_TIME_COST), release
++            carry_frames + release) * CONTINUATION_TIME_COST) * (1 - safety['carry_risk']), release
+ 
+     def _carry_option(self, state, player, target, *, pressure_state=None, pressure_delay=0):
+         target = route_waypoint((player.x, player.y), project_target(target))
+@@ -406,21 +418,27 @@
+                 'carry_progress': (motions[-1][0][1] - player.y) * sign if bounded else -math.inf,
+                 'carry_position_value': shot_value(state, player, motions[-1][0], FEINT_FRAMES) if safe else 0,
+                 'carry_shot_value': 0.0,
++                'carry_viable': safe, 'carry_status': 'legacy-missing-carrier-feedback',
++                'carry_risk': 0.0 if safe else 1.0,
+                 'carry_pressure_model': 'conservative-missing-carrier-feedback',
+             }
+         path, forecast = forecast_carry(
+             state, player, target, decision_interval=self.decision_interval,
+-            pressure_state=pressure_state, pressure_delay=pressure_delay)
++            pressure_state=pressure_state, pressure_delay=pressure_delay,
++            assess_uncertainty=True, risk_cache=self.risk_cache)
+         safe = forecast['carry_safe'] and details.get('goalie_avoidance_safe', True)
++        viable = carry_viable(forecast) and details.get('goalie_avoidance_safe', True)
+         position, finish, release = 0.0, 0.0, 0
+-        if safe:
++        if viable:
+             future = carry_future(state, player, path[-1])
+             position = max(0.0, shot_value(future, path[-1]) - CARRY_FRAMES * CONTINUATION_TIME_COST)
+             finish, release = self._finish_value(
+                 future, path[-1], carry_frames=CARRY_FRAMES,
+                 pressure_state=state if pressure_state is None else pressure_state,
+                 pressure_delay=pressure_delay + CARRY_FRAMES)
+-        return target, {**details, **forecast, 'carry_safe': safe,
++        return target, {**details, **forecast, 'carry_safe': safe, 'carry_viable': viable,
++                        'carry_status': forecast['carry_status'] if details.get(
++                            'goalie_avoidance_safe', True) else 'projected-goalie-contact',
+                         'carry_position_value': position, 'carry_shot_value': finish,
+                         'carry_release_frames': release}
+ 
+@@ -437,8 +455,8 @@
+ 
+     def retained_opportunity(self, state, player):
+         carries = self.short_carries(state, player)
+-        safe = [option for option in carries if option[1]['carry_safe']]
+-        best = max(safe, key=lambda option: (
++        viable = [option for option in carries if carry_viable(option[1])]
++        best = max(viable, key=lambda option: (
+             carry_value(option[1]), option[1]['carry_progress']), default=None)
+         current_finish, _ = self._finish_value(state, player)
+         current = max(current_finish, POSITIONAL_CREDIT * shot_value(state, player))
+@@ -460,19 +478,22 @@
+                 limit, math.hypot(*velocity(receiver))) * CARRY_FRAMES <= 150:
+             return option, {'continuation_status': 'outside-short-shooting-horizon'}
+         carries = [carry for carry in self.short_carries(
+-            future, receiver, pressure_state=state, pressure_delay=elapsed) if carry[1]['carry_safe']]
++            future, receiver, pressure_state=state, pressure_delay=elapsed) if carry_viable(carry[1])]
+         best = max(carries, key=lambda carry: (
+             carry_value(carry[1]), carry[1]['carry_progress']), default=None)
+         if best is None:
+-            return option, {'continuation_status': 'no-safe-continuation'}
++            return option, {'continuation_status': 'no-viable-continuation'}
+         value = carry_value(best[1])
+         improved = replace(
+             option, continuation_value=value, continuation_target=best[0], continuation_frames=CARRY_FRAMES,
+             continuation_position_value=best[1]['carry_position_value'],
+             continuation_finish_value=best[1]['carry_shot_value'],
++            continuation_safe=best[1]['carry_safe'], continuation_risk=best[1]['carry_risk'],
+             value=option.value + max(0.0, value - option.shot_value) * 0.6)
+         return improved, {
+-            'continuation_status': 'safe', 'continuation_value': value,
++            'continuation_status': 'safe' if best[1]['carry_safe'] else best[1]['carry_status'],
++            'continuation_safe': best[1]['carry_safe'], 'continuation_risk': best[1]['carry_risk'],
++            'continuation_value': value,
+             'continuation_target': best[0], 'continuation_frames': CARRY_FRAMES,
+             'continuation_position_value': best[1]['carry_position_value'],
+             'continuation_finish_value': best[1]['carry_shot_value'],
+@@ -511,16 +532,18 @@
+                 'reason': 'no bounded carry; brake before unavoidable wall or net contact',
+             }
+         point, details = max(bounded, key=lambda option: (
+-            option[1]['carry_safe'], carry_value(option[1]),
+-            option[1]['carry_progress'] if option[1]['carry_safe'] else min(option[1]['carry_pressure'], 12),
+-            min(option[1]['carry_pressure'], 12) if option[1]['carry_safe'] else min(option[1]['carry_clearance'], 16),
+-            min(option[1]['carry_clearance'], 16), -math.dist(option[0], preferred)))
++            physical_clearance(option[1]) > 0, carry_viable(option[1]),
++            carry_value(option[1]) if carry_viable(option[1]) else physical_clearance(option[1]),
++            option[1]['carry_progress'] if carry_viable(option[1]) else min(option[1]['carry_pressure'], 12),
++            option[1]['carry_safe'], min(physical_clearance(option[1]), 16),
++            -math.dist(option[0], preferred)))
+         mode = ('goalie-avoid' if 'goalie_clearance' in first[1] else
+                 'carry' if point == first[0] else 'carry-escape')
+         return point, {
+             **details, 'mode': mode,
+-            'reason': 'escape the unsafe default carry with interception and contact clearance'
+-            if details['carry_safe'] else 'no safe carry; maximize contact and interception clearance',
++            'reason': 'certified carrying escape' if details['carry_safe']
++            else 'risk-assessed attacking route; defender safety uncertified' if carry_viable(details)
++            else 'no viable carry; prioritize body and goalie separation',
+         }
+ 
+     @staticmethod
+@@ -664,6 +687,7 @@
+         return option.opportunity > current + 12
+ 
+     def choose(self, state, frame):
++        self.risk_cache.clear()
+         player = state.team1.get_player_by_scnum(state.engine.puck_owner)
+         self.diagnostics = {
+             'candidates': [], 'scenario_samples': 8,
+@@ -718,7 +742,9 @@
+         if cut:
+             return cut
+         if retained is not None and carry_value(retained[1]) > POSITIONAL_CREDIT * current + 10:
++            self.diagnostics.update(retained[1])
+             return self._plan(state, 'carry-opportunity', retained[0],
+-                              'short ordinary carry improves the shooting opportunity')
++                              'risk-assessed short carry improves the opportunity; safety uncertified'
++                              if not retained[1]['carry_safe'] else 'certified short carry improves the opportunity')
+         self.diagnostics['status'] = 'no-better-safe-option'
+         return None
+diff --git a/nhl94_ai/agents/classic_v1.py b/nhl94_ai/agents/classic_v1.py
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -429,8 +429,9 @@
+         point, details = self.offense.fallback_carry(state, player)
+         self.offense_diagnostics.update(details)
+         self._last_decision = 'carry-breakaway' if breakaway and details['mode'] == 'carry' else details['mode']
+-        outcome = ('missing-feedback' if details['carry_safe'] is None else 'least-risk'
+-                   if not details['carry_safe'] else 'safe-default'
++        outcome = ('missing-feedback' if details['carry_safe'] is None else
++                   'uncertified-viable' if not details['carry_safe'] and details.get('carry_viable') else
++                   'least-risk' if not details['carry_safe'] else 'safe-default'
+                    if details['mode'] == 'carry' else 'safe-escape')
+         self.carry_metrics[outcome] = self.carry_metrics.get(outcome, 0) + 1
+         self._steer(action, player, *point, state if details['carry_safe'] is None else None)
+diff --git a/nhl94_ai/agents/passing.py b/nhl94_ai/agents/passing.py
+--- a/nhl94_ai/agents/passing.py
++++ b/nhl94_ai/agents/passing.py
+@@ -38,6 +38,8 @@
+     continuation_position_value: float = 0.0
+     continuation_finish_value: float = 0.0
+     reception_value: float | None = None
++    continuation_safe: bool | None = None
++    continuation_risk: float = 0.0
+ 
+     @property
+     def opportunity(self):
+diff --git a/nhl94_ai/ui/targets.py b/nhl94_ai/ui/targets.py
+--- a/nhl94_ai/ui/targets.py
++++ b/nhl94_ai/ui/targets.py
+@@ -208,6 +208,8 @@
+             lines.append(f"Pos: {option['shot_value']:.1f} / carry: {carry_value}")
+             if 'continuation_finish_value' in option:
+                 lines.append(f"Finish: {option['continuation_finish_value']:.1f}")
++            if option.get('continuation_safe') is False:
++                lines.append(f"Uncertified / risk index: {option['continuation_risk']:.2f}")
+             if option.get('continuation_status') not in (None, 'safe'):
+                 lines.append(option['continuation_status'])
+             if option.get('worthwhile') is False:

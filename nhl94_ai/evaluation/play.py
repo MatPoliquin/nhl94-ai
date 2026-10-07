@@ -101,7 +101,7 @@ class NHL94Player:
         if getattr(args, 'seed', None) is not None:
             validate_rom_seed(args.seed)
             get_game(args.env)
-        if getattr(args, 'cross_crease', False):
+        if getattr(args, 'cross_crease', False) or getattr(args, 'deke', False):
             EnvironmentConfig.from_args(args)
         if getattr(args, 'goalie_policy', 'off') != 'off':
             EnvironmentConfig.from_args(args)
@@ -157,6 +157,7 @@ class NHL94Player:
         self._reset_playback_timer()
         total_reward = 0.0
         while True:
+            self._wait_for_display()
             action = self.target_agent.act(AgentInput(None, observation), self.args.deterministic).action
             observation, reward, done, info = self.display_env.step(action)
             total_reward += float(reward[0])
@@ -172,6 +173,13 @@ class NHL94Player:
         if not self.need_display:
             return
         self.next_display_frame_time = time.monotonic()
+
+    def _wait_for_display(self, env=None):
+        if not self.need_display:
+            return
+        display = self.display_env if env is None else env
+        if hasattr(display, 'wait_until_running') and display.wait_until_running():
+            self._reset_playback_timer()
 
     def close(self):
         for name in ('display_env', 'play_env', 'p1_env', 'p2_env'):
@@ -238,6 +246,7 @@ class NHL94Player:
         self._reset_playback_timer()
 
         while True:
+            self._wait_for_display(self.play_env)
             p1_actions = self.p1_model.predict(state)[0]  # Get the action array directly
             p2_actions = self.p2_model.predict(state)[0]  # Get the action array directly
 
@@ -267,6 +276,7 @@ class NHL94Player:
         info = self._scripted_reset_info() if scripted else None
 
         while True:
+            self._wait_for_display()
             initialized = info is not None
             if self.args.mode == 'player_vs_game':
                 # Player vs Game mode - just use player inputs
@@ -284,6 +294,8 @@ class NHL94Player:
             self.display_env.action_probabilities = []
 
             for i in range(4):
+                if i:
+                    self._wait_for_display()
                 if i and scripted and initialized:
                     actions[0] = self.ai_sys.predict(state, info=info, deterministic=self.args.deterministic)[0]
                 if self.need_display and self.args.mode != 'player_vs_game':
@@ -343,6 +355,7 @@ def run(args):
     player = NHL94Player(args, logger)
 
     com_print('========= Start of Game Loop ==========')
+    com_print('Debug display: Space/P pauses playback; 1-7 overlays, 8 AI planner, 9 teammate scores.')
     if args.mode in ['player_vs_model', 'player_vs_game']:
         com_print('Arrows: skate | X: pass/switch | C: shoot/check | Z: clear/hold | Enter: pause | ESC: quit')
     if args.mode == 'player_vs_model':

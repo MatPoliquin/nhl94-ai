@@ -66,6 +66,14 @@ class Player:
     stick_y: int | None = None
     shot_durations: tuple[int, ...] | None = None
     shot_offsets_y: tuple[int, int] | None = None
+    shot_offsets_x: tuple[int, int] | None = None
+    shot_projection_offsets_x: tuple[int, int] | None = None
+    shot_projection_offsets_y: tuple[int, int] | None = None
+    shot_projection_durations: tuple[int, ...] | None = None
+    precise_x: float | None = None
+    precise_y: float | None = None
+    facing_phase: float | None = None
+    sprite_flipped_x: bool | None = None
     # Position integration uses signed velocity * 17 per elapsed game tick.
     # These optional values are not part of the historical neural encoding.
     motion_x: float | None = None
@@ -85,6 +93,7 @@ class Player:
     selection_flags: int | None = None
     unavailable: int = 0
     movement_bonus: int = 0
+    burst_full_energy: bool | None = None
     height: float | None = None
     motion_z: float | None = None
     friction: float = 511 / 512
@@ -93,6 +102,14 @@ class Player:
     animation_timer: int | None = None
     live_state_flags: int | None = None
     assignment: int | None = None
+    decision_timer: int | None = None
+    decision_interval: int | None = None
+    steering: int | None = None
+    cpu_tracking_active: bool | None = None
+    steering_timer: int | None = None
+    cpu_target: tuple[int, int] | None = None
+    support_zone: int | None = None
+    cpu_response_available: bool = False
     cover_timer: int | None = None
     contact_player: int | None = None
     contact_impact: int | None = None
@@ -344,10 +361,15 @@ class Team():
         self.one_timer_attempts = info.get(f'p{self.controller}_one_timer_attempts')
         self.defense_control = None
         self.defense_goalie = None
+        for player in self.players:
+            player.assignment = player.decision_timer = player.steering_timer = player.steering = None
+            player.cpu_target = player.support_zone = None
+            player.cpu_response_available = False
         for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing',
                      'selection_flags', 'live_anim', 'live_anim_frame', 'animation_timer',
                      'live_state_flags', 'cover_timer', 'assignment', 'energy',
-                     'contact_player', 'contact_impact'):
+                     'contact_player', 'contact_impact', 'precise_x', 'precise_y',
+                     'decision_timer', 'decision_interval', 'steering', 'cpu_tracking_active'):
             setattr(self.goalie, name, None)
         self.goalie.unavailable = 0
         if 'defense_control1' not in info:
@@ -360,16 +382,41 @@ class Team():
         bonus = 2 if flags & 0x40 or info.get('defense_skill_boost', 0) & 2 else 0
         for index, player in enumerate(self.players):
             prefix = f'defense_{self.skater_scnum_base() + index}_'
+            player.burst_full_energy = (bool(flags & 0x10)
+                                        if 'defense_energy_override' in info else None)
             player.stick_x = info.get(f'offense_{self.skater_scnum_base() + index}_stick_x')
             player.stick_y = info.get(f'offense_{self.skater_scnum_base() + index}_stick_y')
             player.shot_durations = info.get(f'offense_{self.skater_scnum_base() + index}_shot_durations')
             player.shot_offsets_y = info.get(f'offense_{self.skater_scnum_base() + index}_shot_offsets_y')
+            player.shot_offsets_x = info.get(f'offense_{self.skater_scnum_base() + index}_shot_offsets_x')
+            player.shot_projection_durations = info.get(
+                f'offense_{self.skater_scnum_base() + index}_shot_projection_durations')
+            for axis in ('x', 'y'):
+                setattr(player, 'shot_projection_offsets_' + axis,
+                        info.get(f'offense_{self.skater_scnum_base() + index}_shot_projection_offsets_' + axis))
+                coordinate = info.get(prefix + 'precise_' + axis)
+                setattr(player, 'precise_' + axis, None if coordinate is None else coordinate / 65536)
+            phase = info.get(prefix + 'facing_phase')
+            player.facing_phase = None if phase is None else phase / 65536
+            player.sprite_flipped_x = info.get(f'offense_{self.skater_scnum_base() + index}_sprite_flipped_x')
             for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'checking', 'endurance', 'passing',
                          'shot_power', 'handedness', 'live_anim', 'live_anim_frame', 'animation_timer',
                          'contact_player', 'contact_impact'):
                 setattr(player, name, info.get(prefix + name))
             player.unavailable = info.get(prefix + 'unavailable', 0)
             player.selection_flags = info.get(prefix + 'flags')
+            assignment_index = info.get(prefix + 'assignment_index')
+            player.assignment = (info.get(prefix + f'assignment_{assignment_index}')
+                                 if assignment_index in range(8) else None)
+            player.decision_timer = info.get(prefix + 'decision_timer')
+            player.steering_timer = info.get(prefix + 'steering_timer')
+            player.steering = info.get(prefix + 'steering')
+            target = info.get(prefix + 'target_x'), info.get(prefix + 'target_y')
+            player.cpu_target = None if None in target else target
+            player.support_zone = info.get(prefix + 'support_zone')
+            player.cpu_response_available = (player.selection_flags is not None
+                                             and not player.selection_flags & 0x3A
+                                             and not player.unavailable & 0x27)
             player.movement_bonus = bonus
             roster = info.get(prefix + 'roster')
             player.energy = 4096 if flags & 0x10 else info.get(f'defense_energy_{self.controller}_{roster}')
@@ -379,10 +426,19 @@ class Team():
                     setattr(player, 'motion_' + axis, velocity * 17 / 65536)
         goalie = self.goalie
         prefix = f'g{self.controller}_control_'
+        for axis in ('x', 'y'):
+            coordinate = info.get(prefix + 'precise_' + axis)
+            setattr(goalie, 'precise_' + axis, None if coordinate is None else coordinate / 65536)
+        goalie.decision_timer = info.get(prefix + 'decision_timer')
+        goalie.steering = info.get(prefix + 'steering')
+        delay = info.get(prefix + 'decision_delay')
+        goalie.decision_interval = None if delay is None else max(0, delay - bool(flags & 0x40)) // 4
         for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing'):
             setattr(goalie, name, info.get(prefix + name))
         goalie.selection_flags = info.get(prefix + 'flags')
         goalie.unavailable = info.get(prefix + 'unavailable', 0)
+        goalie.cpu_tracking_active = (None if goalie.selection_flags is None else
+                                     not bool(goalie.selection_flags & 0x20 or goalie.unavailable & 2))
         goalie.movement_bonus = bonus
         goalie.energy = 4096 if flags & 0x10 else info.get(
             f'defense_energy_{self.controller}_{info.get(prefix + "roster")}')

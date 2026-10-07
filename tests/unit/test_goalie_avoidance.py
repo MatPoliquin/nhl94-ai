@@ -8,7 +8,8 @@ from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.defense import DefenseController
 from nhl94_ai.agents.motion import stop_projection
 from nhl94_ai.agents.offense import (
-    FEINT_FRAMES, GOALIE_HORIZON, OffenseController, goalie_avoidance, goalie_contact_time, projected_state,
+    FEINT_FRAMES, GOALIE_HORIZON, OffenseController, _goalie_clearance,
+    goalie_avoidance, goalie_contact_time, projected_state,
 )
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.game.constants import GameConsts as Buttons
@@ -58,6 +59,22 @@ def conflicted_setup_state(*, away=False):
 
 
 class GoalieAvoidanceTests(unittest.TestCase):
+    def test_ordinary_carry_does_not_inherit_the_legacy_goalie_veto(self):
+        state = approach_state()
+        player = state.team1.players[0]
+        player.x, player.y, player.facing, player.facing_phase = 48, 190, 5, 5.0
+        player.motion_x, player.motion_y = -1, 1
+        state.team2.goalie.x, state.team2.goalie.y = 0, 250
+        target = (-35, 235)
+        self.assertLess(_goalie_clearance(player, state.team2.goalie, target), 32)
+        self.assertGreater(_goalie_clearance(player, state.team2.goalie, target, decision_interval=4), 32)
+        self.assertIsNone(goalie_avoidance(state, player, target, decision_interval=4))
+        actual, _ = OffenseController(one_timers=False)._carry_option(state, player, target)
+        self.assertEqual(actual, target)
+        model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED', one_timers=False))
+        model._steer([0] * 12, player, *target, state)
+        self.assertEqual(model._last_target, target)
+
     def test_stop_projection_reduces_inertia_without_instant_reversal(self):
         player = approach_state().team1.players[0]
         position, motion = stop_projection(player, 4)

@@ -2,17 +2,23 @@
 NHL94 Debug Display with Player Input
 """
 
+from copy import deepcopy
+
 import pygame
 import numpy as np
 from nhl94_ai.game.constants import GameConsts
 from pygame import gfxdraw
 from nhl94_ai.game.state import NHL94GameState
+from nhl94_ai.ui.decision_panel import BACKGROUND, CYAN, GRAY, WHITE, DecisionInspector
+from nhl94_ai.agents.decisions import catalogue_snapshot
 
 class NHL94DebugDisplay:
-    DEBUG_WIDTH = 800
-    DEBUG_HEIGHT = 800
-    GAME_WIDTH = 320 * 2  # Half size of original display
-    GAME_HEIGHT = 240 * 2
+    CANVAS_WIDTH = 1920
+    CANVAS_HEIGHT = 1080
+    ACTION_WIDTH = 740
+    DEBUG_HEIGHT = 300
+    GAME_WIDTH = 1040
+    GAME_HEIGHT = 780
     RINK_SIDE_PADDING = 10
     HUD_PADDING = 20
     HUD_LINE_HEIGHT = 20
@@ -33,10 +39,10 @@ class NHL94DebugDisplay:
     COLOR_ORANGE = (255, 165, 0)
 
     # Display parameters
-    PLAYER_RADIUS = 10
-    PUCK_RADIUS = 5
-    VELOCITY_SCALE = 5
-    ORIENTATION_LENGTH = 20
+    PLAYER_RADIUS = 4
+    PUCK_RADIUS = 2
+    VELOCITY_SCALE = 1.5
+    ORIENTATION_LENGTH = 8
 
     def __init__(self, env, args, total_params, nn_type, button_names):
         self.env = env
@@ -45,8 +51,7 @@ class NHL94DebugDisplay:
         self.game_state = env.get_attr("game_state")[0]
 
         pygame.init()
-        self.screen_height = max(self.DEBUG_HEIGHT, self.GAME_HEIGHT + self._hud_required_height())
-        self.DEBUG_HEIGHT = self.screen_height
+        self.screen_height = self.CANVAS_HEIGHT
 
         self.scale_x = self.DEBUG_HEIGHT / (2 * GameConsts.MAX_PUCK_Y)
         self.scale_y = self.scale_x
@@ -58,15 +63,28 @@ class NHL94DebugDisplay:
             self.rink_pixel_width,
             self.DEBUG_HEIGHT
         )
+        self.game_rect = pygame.Rect(
+            self.ACTION_WIDTH + (self.CANVAS_WIDTH - self.ACTION_WIDTH - self.GAME_WIDTH) // 2,
+            0, self.GAME_WIDTH, self.GAME_HEIGHT)
+        self.mini_rink_rect = pygame.Rect(self.ACTION_WIDTH, self.GAME_HEIGHT, self.DEBUG_WIDTH, self.DEBUG_HEIGHT)
+        self.stats_rect = pygame.Rect(self.mini_rink_rect.right, self.GAME_HEIGHT,
+                                      self.CANVAS_WIDTH - self.mini_rink_rect.right, self.DEBUG_HEIGHT)
 
-        self.screen = pygame.display.set_mode((self.DEBUG_WIDTH + self.GAME_WIDTH,
-                             self.screen_height))
+        desktop_width, desktop_height = pygame.display.get_desktop_sizes()[0]
+        window_size = (min(self.CANVAS_WIDTH, max(640, desktop_width - 40)),
+                       min(self.CANVAS_HEIGHT, max(360, desktop_height - 80)))
+        self.window = pygame.display.set_mode(window_size, pygame.RESIZABLE)
+        self.screen = pygame.Surface((self.CANVAS_WIDTH, self.CANVAS_HEIGHT))
+        self.presentation_rect = self.window.get_rect()
         self.font = pygame.font.SysFont('Arial', 16)
         self.big_font = pygame.font.SysFont('Arial', 24)
+        self.mini_font = pygame.font.SysFont('Arial', 11)
 
         # Create surfaces
         self.debug_surf = pygame.Surface((self.DEBUG_WIDTH, self.DEBUG_HEIGHT))
         self.game_surf = pygame.Surface((self.GAME_WIDTH, self.GAME_HEIGHT))
+        self._frame_surface = None
+        self._presentation_surface = None
 
         # Input state
         self.player_actions = [0] * GameConsts.INPUT_MAX
@@ -76,6 +94,14 @@ class NHL94DebugDisplay:
         self.classic_defense = {}
         self.classic_offense = {}
         self.classic_goalie = {}
+        self.inspector = DecisionInspector()
+        self.paused = False
+        self.playback_frames = 0
+        self.score_evaluation = None
+        self.score_evaluation_frame = 0
+        self._last_frame = None
+        self._last_render_info = [{}]
+        self._last_action = None
         self.key_action_map = {
             pygame.K_UP: GameConsts.INPUT_UP,
             pygame.K_DOWN: GameConsts.INPUT_DOWN,
@@ -104,6 +130,7 @@ class NHL94DebugDisplay:
             "ENTER: Start Button",
             "F1: Toggle P2 Keyboard" if args.mode == 'player_vs_model' else "F1: Toggle AI/Human Control",
             "ESC: Quit",
+            "SPACE / P: Pause or resume playback",
             "1: Toggle Passing Lanes",
             "2: Toggle One-Timer Lanes",
             "3: Toggle Velocities",
@@ -111,31 +138,25 @@ class NHL94DebugDisplay:
             "5: Toggle Distances",
             "6: Toggle Clear Shot Lanes",
             "7: Toggle Open Net Shots",
-            "F2: Save Screenshot"
+            "8: Toggle AI Planner Overlays",
+            "9: Toggle Teammate Scores",
+            "F2: Save Screenshot",
+            "Mouse wheel / PgUp / PgDn: Scroll actions"
         ]
 
         # Visualization toggles
-        self.show_passing_lanes = True
-        self.show_one_timer_lanes = True
-        self.show_clear_shot_lanes = True
-        self.show_open_net_shots = True
-        self.show_velocities = True
-        self.show_orientations = True
+        self.show_passing_lanes = False
+        self.show_one_timer_lanes = False
+        self.show_clear_shot_lanes = False
+        self.show_open_net_shots = False
+        self.show_velocities = False
+        self.show_orientations = False
         self.show_distances = False
-
-    def _hud_required_height(self):
-        team_stats_lines = 9
-        toggle_lines = 8
-        return (
-            self.HUD_PADDING
-            + self.HUD_HEADER_HEIGHT
-            + team_stats_lines * self.HUD_LINE_HEIGHT
-            + self.HUD_SECTION_GAP
-            + toggle_lines * self.HUD_LINE_HEIGHT
-            + self.HUD_SECTION_GAP
-            + self.HUD_LINE_HEIGHT
-            + self.HUD_PADDING
-        )
+        self.show_planner_overlay = getattr(args, 'action_type', '').upper() == 'TARGET_POSITION'
+        self.show_teammate_scores = True
+        print('\nNHL94 debug controls (shortcuts remain active while paused):\n' + '\n'.join(self.control_help))
+        if getattr(args, 'action_type', '').upper() == 'TARGET_POSITION':
+            print('TARGET_POSITION playback is AI-only; F1/button overrides are unavailable.')
 
     def set_ai_sys_info(self, ai_sys):
         if ai_sys is None:
@@ -146,6 +167,20 @@ class NHL94DebugDisplay:
         self.classic_defense = getattr(ai_sys, 'last_diagnostics', {}).get('classic_defense', {})
         self.classic_offense = getattr(ai_sys, 'last_diagnostics', {}).get('classic_offense', {})
         self.classic_goalie = getattr(ai_sys, 'last_diagnostics', {}).get('classic_goalie', {})
+        snapshot = getattr(ai_sys, 'last_diagnostics', {}).get('decision_inspector')
+        if snapshot is None:
+            team = self.game_state.team2 if getattr(self.args, 'side', 'home') == 'away' else self.game_state.team1
+            snapshot = catalogue_snapshot(team, getattr(self.args, 'nn', 'Agent'), self.playback_frames + 1,
+                                          getattr(self.args, 'action_type', 'FILTERED'))
+        self.inspector.update(snapshot, self.playback_frames + 1)
+        scores = self.classic_offense.get('teammate_scores', ())
+        frame = self.classic_offense.get('evaluation_frame')
+        if frame is not None and any(row['pass']['status'] != 'not-evaluated' for row in scores):
+            previous = self.score_evaluation
+            key = frame, self.classic_offense.get('evaluation_carrier')
+            if previous is None or key != (previous['evaluation_frame'], previous.get('evaluation_carrier')):
+                self.score_evaluation = deepcopy(self.classic_offense)
+                self.score_evaluation_frame = self.playback_frames + 1
 
     def _normalize_env_action(self, action):
         if getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION':
@@ -196,10 +231,81 @@ class NHL94DebugDisplay:
         pygame.quit()
 
     def reset(self, **kwargs):
+        self._clear_diagnostics()
+        self.paused = False
+        self._last_frame = None
+        self._last_render_info = [{}]
+        self._last_action = None
+        result = self.env.reset(**kwargs)
+        self.game_state = self.env.get_attr("game_state")[0]
+        return result
+
+    def _clear_diagnostics(self):
         self.classic_defense = {}
         self.classic_offense = {}
         self.classic_goalie = {}
-        return self.env.reset(**kwargs)
+        self.score_evaluation = None
+        self.score_evaluation_frame = 0
+        self.playback_frames = 0
+        self.inspector.reset()
+
+    def process_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.close()
+                raise SystemExit("User requested exit")
+            if event.type == pygame.VIDEORESIZE:
+                self.window = pygame.display.set_mode((max(320, event.w), max(180, event.h)), pygame.RESIZABLE)
+                continue
+            if event.type == pygame.MOUSEWHEEL:
+                if self._logical_mouse_position()[0] < self.ACTION_WIDTH:
+                    self.inspector.scroll_by(-event.y * 69)
+                continue
+            if event.type != pygame.KEYDOWN:
+                continue
+            if event.key in (pygame.K_SPACE, pygame.K_p):
+                if not getattr(event, 'repeat', False):
+                    self.paused = not self.paused
+                    print('Playback paused.' if self.paused else 'Playback resumed.')
+            elif event.key == pygame.K_F1:
+                if getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION':
+                    print('TARGET_POSITION playback is AI-only; human button override is not supported.')
+                else:
+                    self.human_control = not self.human_control
+                    print(f'{"P2 keyboard" if self.args.mode == "player_vs_model" else "Human control"}: '
+                          f'{"ON" if self.human_control else "OFF"}')
+            elif event.key == pygame.K_F2:
+                pygame.image.save(self.screen, "debug_screenshot.png")
+            elif event.key in (pygame.K_PAGEUP, pygame.K_PAGEDOWN):
+                self.inspector.scroll_by(-345 if event.key == pygame.K_PAGEUP else 345)
+            else:
+                toggles = {
+                    pygame.K_1: 'show_passing_lanes', pygame.K_2: 'show_one_timer_lanes',
+                    pygame.K_3: 'show_velocities', pygame.K_4: 'show_orientations',
+                    pygame.K_5: 'show_distances', pygame.K_6: 'show_clear_shot_lanes',
+                    pygame.K_7: 'show_open_net_shots', pygame.K_8: 'show_planner_overlay',
+                    pygame.K_9: 'show_teammate_scores',
+                }
+                attribute = toggles.get(event.key)
+                if attribute is not None:
+                    setattr(self, attribute, not getattr(self, attribute))
+                    print(f'{attribute.removeprefix("show_").replace("_", " ")}: '
+                          f'{"ON" if getattr(self, attribute) else "OFF"}')
+
+    def wait_until_running(self):
+        """Service inspection controls without advancing the emulator or policy."""
+        was_paused = self.paused
+        self.process_events()
+        was_paused |= self.paused
+        while self.paused:
+            if self._last_frame is None:
+                self._last_frame = np.array(self.env.render(), copy=True)
+            self.draw_frame(self._last_frame, self._last_render_info, self._last_action)
+            pygame.time.wait(16)
+            self.process_events()
+        if was_paused and self._last_frame is not None:
+            self.draw_frame(self._last_frame, self._last_render_info, self._last_action)
+        return was_paused
 
     def get_human_input(self):
         """Get input from keyboard and map to game actions"""
@@ -216,6 +322,7 @@ class NHL94DebugDisplay:
     def step(self, action=None):
         """Step the environment with either AI or human input"""
 
+        self.wait_until_running()
         human_vs_model = self.args.mode == 'player_vs_model'
         if human_vs_model:
             ai_action = np.asarray(action)
@@ -231,14 +338,13 @@ class NHL94DebugDisplay:
             env_action = self._normalize_env_action(action)
 
         obs, rew, done, info = self.env.step(env_action)
+        self.playback_frames += 1
         self.game_state = self.env.get_attr("game_state")[0]
 
         # Draw the frame
         framebuffer = self.env.render()
         if np.any(done):
-            self.classic_defense = {}
-            self.classic_offense = {}
-            self.classic_goalie = {}
+            self._clear_diagnostics()
         render_info = [{}] if np.any(done) else info
         if self.classic_goalie.get('target') is not None and (human_vs_model or not self.human_control):
             render_info = [dict(render_info[0], classic_goalie=self.classic_goalie)]
@@ -246,38 +352,12 @@ class NHL94DebugDisplay:
             render_info = [dict(render_info[0], classic_defense=self.classic_defense)]
         elif self.classic_offense and (human_vs_model or not self.human_control):
             render_info = [dict(render_info[0], classic_offense=self.classic_offense)]
-        self.draw_frame(framebuffer, render_info, action)
-
-        # Handle pygame events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.close()
-                raise SystemExit("User requested exit")
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.close()
-                    raise SystemExit("User requested exit")
-                elif event.key == pygame.K_F1:
-                    if getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION':
-                        print('TARGET_POSITION playback is AI-only; human button override is not supported.')
-                    else:
-                        self.human_control = not self.human_control
-                elif event.key == pygame.K_F2:
-                    pygame.image.save(self.screen, "debug_screenshot.png")
-                elif event.key == pygame.K_1:
-                    self.show_passing_lanes = not self.show_passing_lanes
-                elif event.key == pygame.K_2:
-                    self.show_one_timer_lanes = not self.show_one_timer_lanes
-                elif event.key == pygame.K_3:
-                    self.show_velocities = not self.show_velocities
-                elif event.key == pygame.K_4:
-                    self.show_orientations = not self.show_orientations
-                elif event.key == pygame.K_5:
-                    self.show_distances = not self.show_distances
-                elif event.key == pygame.K_6:
-                    self.show_clear_shot_lanes = not self.show_clear_shot_lanes
-                elif event.key == pygame.K_7:
-                    self.show_open_net_shots = not self.show_open_net_shots
+        self._last_frame = np.array(framebuffer, copy=True)
+        self._last_render_info = deepcopy(render_info)
+        applied = env_action[0][:GameConsts.INPUT_MAX] if human_vs_model else env_action[0]
+        self._last_action = deepcopy(applied)
+        self.draw_frame(self._last_frame, self._last_render_info, applied)
+        self.process_events()
 
         return obs, rew, done, info
 
@@ -313,7 +393,7 @@ class NHL94DebugDisplay:
         # Faceoff circles (simplified)
         pygame.draw.circle(
             self.debug_surf, self.COLOR_LINE,
-            rink_rect.center, 30, 1
+            rink_rect.center, max(3, round(15 * self.scale_x)), 1
         )
 
         # Draw nets at opposite ends
@@ -350,7 +430,7 @@ class NHL94DebugDisplay:
         x, y = self._transform_coords(player.x, player.y)
 
         # Draw player circle
-        radius = self.PLAYER_RADIUS + 5 if is_goalie else self.PLAYER_RADIUS
+        radius = self.PLAYER_RADIUS + 2 if is_goalie else self.PLAYER_RADIUS
         pygame.draw.circle(self.debug_surf, color, (x, y), radius)
 
         # Draw orientation line if enabled
@@ -546,88 +626,54 @@ class NHL94DebugDisplay:
                 self.debug_surf.blit(text, (mid_x - text.get_width()//2, mid_y - text.get_height()//2))
 
     def _draw_stats(self, team1, team2):
-        """Draw all game statistics under the game frame"""
-        # Position under game frame (right side of screen)
-        info_x = self.DEBUG_WIDTH + self.HUD_PADDING
-        info_y = self.GAME_HEIGHT + self.HUD_PADDING
-
-        # Team colors
-        color1 = self.COLOR_RED
-        color2 = self.COLOR_BLUE
-
-        # Draw game header
+        """Compact stats beside the mini rink; controls belong in the console."""
+        pygame.draw.rect(self.screen, BACKGROUND, self.stats_rect)
+        info_x = self.stats_rect.x + self.HUD_PADDING
+        info_y = self.stats_rect.y + self.HUD_PADDING
         header_text = f"NHL '94 - {'HUMAN' if self.human_control else 'AI'} CONTROL"
         if self.args.mode == 'player_vs_model':
             header_text = "NHL '94 - P1 AI / P2 KEYBOARD"
-        text_surface = self.big_font.render(header_text, True, self.COLOR_WHITE)
-        self.screen.blit(text_surface, (info_x, info_y))
-
-        # Draw team stats (full details)
+        if self.paused:
+            header_text += " - PAUSED"
+        self.screen.blit(self.big_font.render(header_text, True, WHITE), (info_x, info_y))
         stats_y = info_y + self.HUD_HEADER_HEIGHT
+        columns = (info_x, info_x + 180, info_x + 330)
+        for label, left in zip(('Statistic', 'TEAM 1', 'TEAM 2'), columns):
+            self.screen.blit(self.font.render(label, True, CYAN), (left, stats_y))
+        for left, color in zip(columns[1:], (self.COLOR_RED, self.COLOR_BLUE)):
+            pygame.draw.rect(self.screen, color, (left - 12, stats_y + 6, 6, 6))
+        fields = (('Score', 'score'), ('Shots', 'shots'), ('Checks', 'bodychecks'),
+                  ('Attack', 'attackzone'), ('Faceoffs', 'faceoffwon'),
+                  ('Passing', 'passing'), ('One-timers', 'onetimer'))
+        rows = [(label, str(getattr(team1.stats, field)), str(getattr(team2.stats, field)))
+                for label, field in fields]
+        rows.append(('Puck', *('Player' if team.player_haspuck else 'Goalie' if team.goalie_haspuck else 'None'
+                               for team in (team1, team2))))
+        for index, values in enumerate(rows, 1):
+            for text, left in zip(values, columns):
+                self.screen.blit(self.font.render(text, True, WHITE),
+                                 (left, stats_y + index * self.HUD_LINE_HEIGHT))
+        if self.show_teammate_scores and self.score_evaluation is not None:
+            scores = self.score_evaluation
+            historical = self._scores_historical()
+            age = max(0, self.playback_frames - self.score_evaluation_frame)
+            retained = scores.get('retained_value')
+            keep_value = '--' if retained is None else f'{retained:.1f}'
+            score_text = [
+                f"{'LAST' if historical else 'CURRENT'} offense evaluation; {age} emulator frames ago",
+                f"Carrier: {scores['evaluation_carrier']}; keep-puck value: {keep_value}",
+                "P=pass | Pos/carry=position",
+                "Finish=executable shot | OT=one-timer",
+            ]
+            for index, text in enumerate(score_text):
+                self.screen.blit(self.font.render(text, True, GRAY if historical else CYAN),
+                                 (info_x + 510, stats_y + index * self.HUD_LINE_HEIGHT))
 
-        # Team 1 stats (left column)
-        team1_stats = [
-            "TEAM 1:",
-            f"Score: {team1.stats.score}",
-            f"Shots: {team1.stats.shots}",
-            f"Checks: {team1.stats.bodychecks}",
-            f"Attack: {team1.stats.attackzone}",
-            f"Faceoffs: {team1.stats.faceoffwon}",
-            f"Passing: {team1.stats.passing}",
-            f"OneTimer: {team1.stats.onetimer}",
-            f"Puck: {'Player' if team1.player_haspuck else 'Goalie' if team1.goalie_haspuck else 'None'}"
-        ]
-
-        for i, text in enumerate(team1_stats):
-            color = color1 if i > 0 else self.COLOR_WHITE  # Header white
-            text_surface = self.font.render(text, True, color)
-            self.screen.blit(text_surface, (info_x, stats_y + i * self.HUD_LINE_HEIGHT))
-
-        # Team 2 stats (right column)
-        team2_stats = [
-            "TEAM 2:",
-            f"Score: {team2.stats.score}",
-            f"Shots: {team2.stats.shots}",
-            f"Checks: {team2.stats.bodychecks}",
-            f"Attack: {team2.stats.attackzone}",
-            f"Faceoffs: {team2.stats.faceoffwon}",
-            f"Passing: {team2.stats.passing}",
-            f"OneTimer: {team2.stats.onetimer}",
-            f"Puck: {'Player' if team2.player_haspuck else 'Goalie' if team2.goalie_haspuck else 'None'}"
-        ]
-
-        for i, text in enumerate(team2_stats):
-            color = color2 if i > 0 else self.COLOR_WHITE  # Header white
-            text_surface = self.font.render(text, True, color)
-            self.screen.blit(text_surface, (info_x + 150, stats_y + i * self.HUD_LINE_HEIGHT))  # Right column
-
-        # Draw visualization toggle status below stats
-        toggle_y = stats_y + len(team1_stats) * self.HUD_LINE_HEIGHT + self.HUD_SECTION_GAP
-
-        toggle_text = [
-            "VISUALIZATION TOGGLES:",
-            f"[1] Passing Lanes: {'ON' if self.show_passing_lanes else 'OFF'}",
-            f"[2] One-Timer Lanes: {'ON' if self.show_one_timer_lanes else 'OFF'}",
-            f"[3] Velocities: {'ON' if self.show_velocities else 'OFF'}",
-            f"[4] Orientations: {'ON' if self.show_orientations else 'OFF'}",
-            f"[5] Distances: {'ON' if self.show_distances else 'OFF'}",
-            f"[6] Clear Shot Lanes: {'ON' if self.show_clear_shot_lanes else 'OFF'}",
-            f"[7] Open Net Shots: {'ON' if self.show_open_net_shots else 'OFF'}"
-        ]
-
-        for i, text in enumerate(toggle_text):
-            text_surface = self.font.render(text, True, self.COLOR_CYAN if i == 0 else self.COLOR_WHITE)
-            self.screen.blit(text_surface, (info_x, toggle_y + i * self.HUD_LINE_HEIGHT))
-
-        # Draw controls help at the very bottom
-        controls_y = toggle_y + len(toggle_text) * self.HUD_LINE_HEIGHT + self.HUD_SECTION_GAP
-        help_text = "Arrows=Move | X=Pass/Switch | C=Shoot/Check | Z=Clear/Hold"
-        if self.args.mode == 'player_vs_model':
-            help_text += " | F1=P2 on/off"
-        if getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION':
-            help_text = "Target policy: AI only | F2=Screenshot | ESC=Exit"
-        text_surface = self.font.render(help_text, True, self.COLOR_YELLOW)
-        self.screen.blit(text_surface, (info_x, controls_y))
+    def _scores_historical(self):
+        return (self.score_evaluation['evaluation_frame'] != self.classic_offense.get('evaluation_frame')
+                or self.game_state.engine.puck_owner != self.score_evaluation['evaluation_carrier']
+                or self.classic_goalie.get('target') is not None or bool(self.classic_defense)
+                or self.human_control and self.args.mode != 'player_vs_model')
 
     def draw_frame(self, frame_img, info, action=None):
         self.screen.fill(self.COLOR_BLACK)
@@ -679,28 +725,59 @@ class NHL94DebugDisplay:
         frame_info = info[0] if isinstance(info, (list, tuple)) else info
         from nhl94_ai.ui.targets import select_target
         diagnostics = select_target(frame_info)
-        if getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION' or diagnostics:
+        if self.show_planner_overlay and diagnostics:
             from nhl94_ai.ui.targets import draw_game_target, draw_target_overlay
             draw_target_overlay(self.debug_surf, self._transform_coords, self.game_state,
-                                diagnostics, self.font)
-        elif action is not None:
-            flat_action = self._flatten_action_for_display(action)
-            action_names = ["Up", "Down", "Left", "Right", "B", "C", "A", "Start", "Mode", "X", "Y", "Z"]
-            active_actions = [name for name, val in zip(action_names, flat_action) if val]
-            action_text = "Active: " + ", ".join(active_actions) if active_actions else "No actions"
-            text_surface = self.font.render(action_text, True, self.COLOR_WHITE)
-            self.debug_surf.blit(text_surface, (self.rink_rect.centerx - text_surface.get_width()/2, 120))
+                                dict(diagnostics, teammate_scores=[]), self.mini_font, compact=True)
+        if self.show_teammate_scores and self.score_evaluation is not None:
+            from nhl94_ai.ui.targets import draw_teammate_scores
+            draw_teammate_scores(
+                self.debug_surf, self._transform_coords, self.game_state,
+                dict(self.score_evaluation, historical=self._scores_historical()), self.mini_font, compact=True)
 
         # Draw the actual game frame
         emu_screen = np.transpose(frame_img, (1, 0, 2))
-        game_surf = pygame.surfarray.make_surface(emu_screen)
-        scaled_game = pygame.transform.scale(game_surf, (self.GAME_WIDTH, self.GAME_HEIGHT))
-        self.game_surf.blit(scaled_game, (0, 0))
-        if getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION' or diagnostics:
-            draw_game_target(self.game_surf, self.game_surf.get_rect(), game_surf.get_size(), frame_info)
+        frame_size = emu_screen.shape[:2]
+        if self._frame_surface is None or self._frame_surface.get_size() != frame_size:
+            self._frame_surface = pygame.Surface(frame_size)
+        pygame.surfarray.blit_array(self._frame_surface, emu_screen)
+        pygame.transform.scale(self._frame_surface, self.game_surf.get_size(), self.game_surf)
+        if self.show_planner_overlay and diagnostics:
+            draw_game_target(self.game_surf, self.game_surf.get_rect(), frame_size, frame_info)
 
         # Combine both surfaces on the screen
-        self.screen.blit(self.debug_surf, (0, 0))
-        self.screen.blit(self.game_surf, (self.DEBUG_WIDTH, 0))
+        self.screen.blit(self.debug_surf, self.mini_rink_rect)
+        self.screen.blit(self.game_surf, self.game_rect)
+        actual = None if action is None else np.asarray(action).reshape(-1).tolist()
+        self.inspector.draw(
+            self.screen, pygame.Rect(0, 0, self.ACTION_WIDTH, self.CANVAS_HEIGHT),
+            self.font, self.big_font, self.playback_frames, actual_action=actual,
+            human_override=self.human_control and self.args.mode != 'player_vs_model',
+            mouse_position=self._logical_mouse_position())
+        if self.paused:
+            text = self.big_font.render("PAUSED", True, self.COLOR_YELLOW, self.COLOR_BLACK)
+            self.screen.blit(text, (self.game_rect.x + 12, self.game_rect.y + 12))
 
+        self._present()
         pygame.display.flip()
+
+    def _logical_mouse_position(self):
+        x, y = pygame.mouse.get_pos()
+        rect = self.presentation_rect
+        return ((x - rect.x) * self.CANVAS_WIDTH / rect.width,
+                (y - rect.y) * self.CANVAS_HEIGHT / rect.height)
+
+    def _present(self):
+        width, height = self.window.get_size()
+        scale = min(width / self.CANVAS_WIDTH, height / self.CANVAS_HEIGHT)
+        size = max(1, round(self.CANVAS_WIDTH * scale)), max(1, round(self.CANVAS_HEIGHT * scale))
+        self.presentation_rect = pygame.Rect((0, 0), size)
+        self.presentation_rect.center = self.window.get_rect().center
+        self.window.fill(self.COLOR_BLACK)
+        if size == self.screen.get_size():
+            image = self.screen
+        else:
+            if self._presentation_surface is None or self._presentation_surface.get_size() != size:
+                self._presentation_surface = pygame.Surface(size)
+            image = pygame.transform.smoothscale(self.screen, size, self._presentation_surface)
+        self.window.blit(image, self.presentation_rect)

@@ -1,0 +1,608 @@
+{
+  "protocol": "nhl94-uncertified-carry-paired-v1",
+  "reports": {
+    "baseline": "classic-v1-uncertain-carry-baseline.json",
+    "final": "classic-v1-uncertain-carry-final.json"
+  },
+  "summary": {
+    "baseline": {
+      "total": {
+        "periods": 40,
+        "goals_for": 54,
+        "goals_against": 14,
+        "wins": 23,
+        "draws": 12,
+        "losses": 5,
+        "shots": 175,
+        "carry_metrics": {
+          "least-risk": 23395,
+          "safe-default": 3066,
+          "safe-escape": 1533
+        },
+        "uncertified_fraction": 0.8357147960277203,
+        "carry_opportunity_decisions": 8,
+        "offense_metrics": {
+          "entries": 297,
+          "controlled_entries": 295,
+          "entry_frames_total": 66941,
+          "turnovers": 302,
+          "zone_turnovers": 175,
+          "possession_losses": 409,
+          "zone_possession_losses": 280,
+          "goalie_contact_impulses": 196,
+          "entry_threats_total": 12
+        },
+        "contact_phases": {
+          "defense": 168,
+          "offense": 28
+        },
+        "contact_decisions": {
+          "goalie-avoid": 168,
+          "deny-reception": 1,
+          "one-timer-shoot": 4,
+          "protect-lane": 10,
+          "carry-escape": 7,
+          "one-timer-pass": 2,
+          "one-timer-wait": 3,
+          "advance-pass": 1
+        },
+        "contacts_while_carrying": 20,
+        "admitted_carry_contacts": 0
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "goals_for": 28,
+          "goals_against": 3,
+          "wins": 12,
+          "draws": 7,
+          "losses": 1,
+          "shots": 110,
+          "carry_metrics": {
+            "least-risk": 10776,
+            "safe-default": 1572,
+            "safe-escape": 892
+          },
+          "uncertified_fraction": 0.8138972809667674,
+          "carry_opportunity_decisions": 4,
+          "offense_metrics": {
+            "entries": 167,
+            "controlled_entries": 166,
+            "entry_frames_total": 34800,
+            "turnovers": 146,
+            "zone_turnovers": 98,
+            "possession_losses": 218,
+            "zone_possession_losses": 169,
+            "goalie_contact_impulses": 140,
+            "entry_threats_total": 1
+          },
+          "contact_phases": {
+            "defense": 117,
+            "offense": 23
+          },
+          "contact_decisions": {
+            "goalie-avoid": 120,
+            "deny-reception": 1,
+            "one-timer-shoot": 3,
+            "protect-lane": 5,
+            "carry-escape": 7,
+            "one-timer-pass": 1,
+            "one-timer-wait": 3
+          },
+          "contacts_while_carrying": 16,
+          "admitted_carry_contacts": 0
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "goals_for": 26,
+          "goals_against": 11,
+          "wins": 11,
+          "draws": 5,
+          "losses": 4,
+          "shots": 65,
+          "carry_metrics": {
+            "least-risk": 12619,
+            "safe-escape": 641,
+            "safe-default": 1494
+          },
+          "uncertified_fraction": 0.8552934797343094,
+          "carry_opportunity_decisions": 4,
+          "offense_metrics": {
+            "entries": 130,
+            "controlled_entries": 129,
+            "entry_frames_total": 32141,
+            "turnovers": 156,
+            "zone_turnovers": 77,
+            "possession_losses": 191,
+            "zone_possession_losses": 111,
+            "goalie_contact_impulses": 56,
+            "entry_threats_total": 11
+          },
+          "contact_phases": {
+            "offense": 5,
+            "defense": 51
+          },
+          "contact_decisions": {
+            "advance-pass": 1,
+            "goalie-avoid": 48,
+            "protect-lane": 5,
+            "one-timer-pass": 1,
+            "one-timer-shoot": 1
+          },
+          "contacts_while_carrying": 4,
+          "admitted_carry_contacts": 0
+        }
+      }
+    },
+    "final": {
+      "total": {
+        "periods": 40,
+        "goals_for": 48,
+        "goals_against": 20,
+        "wins": 23,
+        "draws": 11,
+        "losses": 6,
+        "shots": 196,
+        "carry_metrics": {
+          "least-risk": 13768,
+          "uncertified-viable": 11604,
+          "safe-escape": 271,
+          "safe-default": 1124
+        },
+        "uncertified_fraction": 0.9478835880001495,
+        "carry_opportunity_decisions": 106,
+        "offense_metrics": {
+          "entries": 302,
+          "controlled_entries": 302,
+          "entry_frames_total": 53589,
+          "turnovers": 317,
+          "zone_turnovers": 206,
+          "possession_losses": 447,
+          "zone_possession_losses": 336,
+          "goalie_contact_impulses": 160,
+          "entry_threats_total": 7
+        },
+        "contact_phases": {
+          "defense": 131,
+          "offense": 29
+        },
+        "contact_decisions": {
+          "goalie-avoid": 139,
+          "one-timer-wait": 5,
+          "carry-escape": 2,
+          "carry-breakaway": 1,
+          "one-timer-shoot": 2,
+          "protect-lane": 3,
+          "recover": 1,
+          "pass-flight": 3,
+          "carry": 2,
+          "deny-reception": 1,
+          "shot-follow-through": 1
+        },
+        "contacts_while_carrying": 19,
+        "admitted_carry_contacts": 1
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "goals_for": 35,
+          "goals_against": 5,
+          "wins": 15,
+          "draws": 5,
+          "losses": 0,
+          "shots": 126,
+          "carry_metrics": {
+            "least-risk": 6016,
+            "uncertified-viable": 5680,
+            "safe-escape": 211,
+            "safe-default": 714
+          },
+          "uncertified_fraction": 0.926709452499802,
+          "carry_opportunity_decisions": 63,
+          "offense_metrics": {
+            "entries": 166,
+            "controlled_entries": 166,
+            "entry_frames_total": 27082,
+            "turnovers": 148,
+            "zone_turnovers": 97,
+            "possession_losses": 232,
+            "zone_possession_losses": 181,
+            "goalie_contact_impulses": 122,
+            "entry_threats_total": 4
+          },
+          "contact_phases": {
+            "defense": 99,
+            "offense": 23
+          },
+          "contact_decisions": {
+            "goalie-avoid": 105,
+            "one-timer-wait": 5,
+            "carry-escape": 2,
+            "carry-breakaway": 1,
+            "one-timer-shoot": 2,
+            "protect-lane": 2,
+            "recover": 1,
+            "pass-flight": 2,
+            "carry": 1,
+            "deny-reception": 1
+          },
+          "contacts_while_carrying": 14,
+          "admitted_carry_contacts": 0
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "goals_for": 13,
+          "goals_against": 15,
+          "wins": 8,
+          "draws": 6,
+          "losses": 6,
+          "shots": 70,
+          "carry_metrics": {
+            "uncertified-viable": 5924,
+            "least-risk": 7752,
+            "safe-default": 410,
+            "safe-escape": 60
+          },
+          "uncertified_fraction": 0.9667750600876572,
+          "carry_opportunity_decisions": 43,
+          "offense_metrics": {
+            "entries": 136,
+            "controlled_entries": 136,
+            "entry_frames_total": 26507,
+            "turnovers": 169,
+            "zone_turnovers": 109,
+            "possession_losses": 215,
+            "zone_possession_losses": 155,
+            "goalie_contact_impulses": 38,
+            "entry_threats_total": 3
+          },
+          "contact_phases": {
+            "defense": 32,
+            "offense": 6
+          },
+          "contact_decisions": {
+            "goalie-avoid": 34,
+            "pass-flight": 1,
+            "carry": 1,
+            "protect-lane": 1,
+            "shot-follow-through": 1
+          },
+          "contacts_while_carrying": 5,
+          "admitted_carry_contacts": 1
+        }
+      }
+    }
+  },
+  "paired_delta": {
+    "goals_for": -6,
+    "goals_against": 6,
+    "goal_difference": -12
+  },
+  "seed_clustered_95_percent_intervals": {
+    "goals_for": [
+      -28.0,
+      16.0
+    ],
+    "goals_against": [
+      -5.0,
+      18.0
+    ],
+    "goal_difference": [
+      -38.0,
+      12.0
+    ]
+  },
+  "bootstrap": {
+    "draws": 10000,
+    "seed": 94,
+    "clusters": 20,
+    "both_ai_sides_kept_together": true
+  },
+  "pairs": [
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262004,
+      "goals_for_delta": 0,
+      "goals_against_delta": -1,
+      "goal_difference_delta": 1
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262005,
+      "goals_for_delta": 3,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 3
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262006,
+      "goals_for_delta": 4,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 4
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262007,
+      "goals_for_delta": 1,
+      "goals_against_delta": 1,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262008,
+      "goals_for_delta": 1,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 1
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262009,
+      "goals_for_delta": -2,
+      "goals_against_delta": 0,
+      "goal_difference_delta": -2
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262010,
+      "goals_for_delta": -1,
+      "goals_against_delta": 0,
+      "goal_difference_delta": -1
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262011,
+      "goals_for_delta": 1,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 1
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262012,
+      "goals_for_delta": 0,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262013,
+      "goals_for_delta": 0,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262014,
+      "goals_for_delta": 1,
+      "goals_against_delta": -1,
+      "goal_difference_delta": 2
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262015,
+      "goals_for_delta": 3,
+      "goals_against_delta": 2,
+      "goal_difference_delta": 1
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262016,
+      "goals_for_delta": -3,
+      "goals_against_delta": 1,
+      "goal_difference_delta": -4
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262017,
+      "goals_for_delta": 1,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 1
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262018,
+      "goals_for_delta": -3,
+      "goals_against_delta": 0,
+      "goal_difference_delta": -3
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262019,
+      "goals_for_delta": 2,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 2
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262020,
+      "goals_for_delta": -2,
+      "goals_against_delta": 0,
+      "goal_difference_delta": -2
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262021,
+      "goals_for_delta": 1,
+      "goals_against_delta": -1,
+      "goal_difference_delta": 2
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262022,
+      "goals_for_delta": 0,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 20262023,
+      "goals_for_delta": 0,
+      "goals_against_delta": 1,
+      "goal_difference_delta": -1
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262004,
+      "goals_for_delta": 0,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262005,
+      "goals_for_delta": -1,
+      "goals_against_delta": -1,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262006,
+      "goals_for_delta": 0,
+      "goals_against_delta": 2,
+      "goal_difference_delta": -2
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262007,
+      "goals_for_delta": 2,
+      "goals_against_delta": 2,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262008,
+      "goals_for_delta": -1,
+      "goals_against_delta": 0,
+      "goal_difference_delta": -1
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262009,
+      "goals_for_delta": -1,
+      "goals_against_delta": 1,
+      "goal_difference_delta": -2
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262010,
+      "goals_for_delta": 1,
+      "goals_against_delta": -1,
+      "goal_difference_delta": 2
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262011,
+      "goals_for_delta": -1,
+      "goals_against_delta": 0,
+      "goal_difference_delta": -1
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262012,
+      "goals_for_delta": 1,
+      "goals_against_delta": 2,
+      "goal_difference_delta": -1
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262013,
+      "goals_for_delta": -2,
+      "goals_against_delta": 0,
+      "goal_difference_delta": -2
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262014,
+      "goals_for_delta": -1,
+      "goals_against_delta": -1,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262015,
+      "goals_for_delta": 0,
+      "goals_against_delta": -1,
+      "goal_difference_delta": 1
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262016,
+      "goals_for_delta": -1,
+      "goals_against_delta": -1,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262017,
+      "goals_for_delta": 0,
+      "goals_against_delta": -1,
+      "goal_difference_delta": 1
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262018,
+      "goals_for_delta": -1,
+      "goals_against_delta": 1,
+      "goal_difference_delta": -2
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262019,
+      "goals_for_delta": -1,
+      "goals_against_delta": -1,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262020,
+      "goals_for_delta": -3,
+      "goals_against_delta": 1,
+      "goal_difference_delta": -4
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262021,
+      "goals_for_delta": 0,
+      "goals_against_delta": 0,
+      "goal_difference_delta": 0
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262022,
+      "goals_for_delta": 0,
+      "goals_against_delta": 1,
+      "goal_difference_delta": -1
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 20262023,
+      "goals_for_delta": -4,
+      "goals_against_delta": 1,
+      "goal_difference_delta": -5
+    }
+  ],
+  "historical_contact_attribution": {
+    "events": 152,
+    "phases": {
+      "offense": 33,
+      "defense": 119
+    },
+    "carrying": 19
+  },
+  "telemetry_only_action_digests_match_historical_policies": true,
+  "limitations": [
+    "Previously measured seeds reused to compare the selected change; not a new held-out strength estimate.",
+    "Risk index is heuristic exposure, not a calibrated possession-loss probability.",
+    "Directional scenarios do not exhaust possible native CPU responses.",
+    "Recorded contact phase/input context does not prove why the contact occurred.",
+    "Fixed saved rosters/ratings, first periods, goalie assistance and experimental finishers off."
+  ],
+  "deployment": {
+    "flag": "--uncertain-carry",
+    "default_enabled": false,
+    "user_selected": "opt-in",
+    "native_gate_parity_report": "classic-v1-uncertain-carry-parity.json",
+    "runtime_patch": "classic-v1-uncertain-carry-runtime.patch",
+    "gate_patch": "classic-v1-uncertain-carry-gate.patch",
+    "note": "Full measured prototype fingerprints preserved; current gate added after measurement."
+  }
+}

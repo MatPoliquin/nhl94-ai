@@ -15,6 +15,11 @@ Keep implementation in `nhl94_ai/`; do not modify the separate stable-retro or
 runtime repositories, or regenerate `models/`, unless explicitly requested.
 Answer design questions without editing gameplay when that is the requested scope.
 
+For Classic agent tactics, carrying/passing/one-timer changes, native
+counterfactual replays and CPU strength comparisons, use
+[nhl94-classic-ai-development](../nhl94-classic-ai-development/SKILL.md).
+Keep this skill focused on training tasks, reset/RAM contracts and PPO/live models.
+
 ## Start with the relevant source, not a repository-wide search
 
 Paths below are relative to the repository root. Read only the rows needed for
@@ -97,6 +102,7 @@ is not established by the local reference or implementation.
 | Clock and flag observations can be composite words | The legacy clock can include the period in its high word. A 68000 bit operation on memory tests a byte; a bit at a word's starting address appears in the high byte of a big-endian word observation. |
 | Gym seeding alone leaves ROM randomness unchanged | Drive procedural sampling and the ROM RNG seed from the environment RNG. Check repeatability across resets, as well as variation across seeds. |
 | Requested buttons are mistaken for completed actions | Button observations report submitted input, not successful ROM actions. Holding C is not repeated fresh presses; existing boost intents do not automatically pulse it. |
+| Standalone Classic diagnostics silently bypass input cadence | Call `ClassicAIV1Model.predict_frame(state, frame_skip)` per emulator frame. Assigning `frame_skip` on the controller does not change `predict_game_state`; `ScriptedAgent` supplies the production dispatch. Gate full default action parity before interpreting replays. |
 | A world target drifts ahead of the scrolling ice | Reuse `ui/targets.py` and the wrapper's `target_camera_x/y`, derived from queued scroll values sampled before the emulator step. Current `Hpos/Vpos` can describe a future frame. See Architecture for the 256x224 cropped-viewport projection. |
 
 ## Check timing, attribution and compatibility

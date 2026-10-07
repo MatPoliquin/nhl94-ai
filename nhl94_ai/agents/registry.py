@@ -11,6 +11,12 @@ ALIASES = {'classic': 'ClassicAIV1', 'classic-v1': 'ClassicAIV1'}
 def add_classic_arguments(parser):
     parser.add_argument('--cross-crease', action='store_true',
                         help='Opt-in full-team Classic held-C cross-crease finishing (default: off)')
+    parser.add_argument('--deke', action='store_true',
+                        help='Opt-in full-team Classic reaction-based skating dekes (default: off)')
+    parser.add_argument('--uncertain-carry', action='store_true',
+                        help='Experimental risk-assessed uncertified Classic carries (default: off)')
+    parser.add_argument('--chance-creation', action='store_true',
+                        help='Experimental action-conditioned Classic passing-window creation (default: off)')
     return parser
 
 

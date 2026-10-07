@@ -54,14 +54,14 @@ def _target_team(state, diagnostics):
     return state.team1
 
 
-def draw_target_overlay(surface, transform, state, diagnostics, font, origin=(12, 12)):
+def draw_target_overlay(surface, transform, state, diagnostics, font, origin=(12, 12), *, compact=False):
     if not diagnostics or diagnostics['target'] is None:
         return
     if diagnostics.get('phase') == 'offense':
-        draw_offense_overlay(surface, transform, state, diagnostics, font, origin)
+        draw_offense_overlay(surface, transform, state, diagnostics, font, origin, compact=compact)
         return
     if diagnostics.get('phase') == 'goalie':
-        draw_goalie_overlay(surface, transform, state, diagnostics, font, origin)
+        draw_goalie_overlay(surface, transform, state, diagnostics, font, origin, compact=compact)
         return
     target, destination = diagnostics['target'], diagnostics['destination']
     waypoint = diagnostics['waypoint']
@@ -94,7 +94,7 @@ def draw_target_overlay(surface, transform, state, diagnostics, font, origin=(12
         if check:
             lines += (f"Body check: {check['status']}; impact/threshold: "
                       f"{check.get('impact_estimate', '-')}/{check.get('weight_threshold', '-')}",)
-    for index, text in enumerate(lines):
+    for index, text in enumerate(() if compact else lines):
         label = font.render(text, True, (15, 20, 30), (230, 242, 249))
         surface.blit(label, (origin[0], origin[1] + index * (font.get_linesize() + 1)))
     team = _target_team(state, diagnostics)
@@ -103,10 +103,10 @@ def draw_target_overlay(surface, transform, state, diagnostics, font, origin=(12
                if diagnostics['desired_slot'] is not None else None)
     if actual is not None:
         position = transform(actual.x, actual.y)
-        pygame.draw.circle(surface, GREEN, position, 12, 3)
+        pygame.draw.circle(surface, GREEN, position, 5 if compact else 12, 2 if compact else 3)
         pygame.draw.lines(surface, PURPLE, False, [position, transform(*waypoint), transform(*destination)], 2)
     if desired is not None:
-        pygame.draw.circle(surface, CYAN, transform(desired.x, desired.y), 16, 2)
+        pygame.draw.circle(surface, CYAN, transform(desired.x, desired.y), 6 if compact else 16, 2)
     if math.dist(target, destination) > 0.5:
         pygame.draw.circle(surface, CYAN, transform(*destination), 7, 2)
     if math.dist(waypoint, destination) > 0.5:
@@ -124,26 +124,26 @@ def draw_target_overlay(surface, transform, state, diagnostics, font, origin=(12
         receiver = diagnostics.get('receiver')
         if receiver is not None:
             pygame.draw.line(surface, PURPLE, transform(*receiver), transform(0, team.net.y), 1)
-    draw_target_box(surface, transform(*target))
+    draw_target_box(surface, transform(*target), size=8 if compact else 16)
 
 
-def draw_goalie_overlay(surface, transform, state, diagnostics, font, origin):
+def draw_goalie_overlay(surface, transform, state, diagnostics, font, origin, *, compact=False):
     lines = (
         diagnostics['mode'], diagnostics['reason'], 'Cyan square: goalie target',
         f"Control: {diagnostics['actual_slot']} -> {diagnostics['desired_slot']}; B: {diagnostics['hold_count']}",
         f"Crossing: {diagnostics['crossing_frames']}; reach: {diagnostics['reach_frames']:.1f} frames",
         f"Animation: {diagnostics['animation']:#x}; CPU fallback: {diagnostics['cpu_fallback']}",
     )
-    for index, text in enumerate(lines):
+    for index, text in enumerate(() if compact else lines):
         surface.blit(font.render(text, True, (15, 20, 30), (230, 242, 249)),
                      (origin[0], origin[1] + index * (font.get_linesize() + 1)))
     goalie = _target_team(state, diagnostics).goalie
-    pygame.draw.circle(surface, CYAN, transform(goalie.x, goalie.y), 12, 2)
+    pygame.draw.circle(surface, CYAN, transform(goalie.x, goalie.y), 5 if compact else 12, 2)
     pygame.draw.line(surface, CYAN, transform(goalie.x, goalie.y), transform(*diagnostics['target']), 2)
-    draw_target_box(surface, transform(*diagnostics['target']), color=CYAN)
+    draw_target_box(surface, transform(*diagnostics['target']), size=8 if compact else 16, color=CYAN)
 
 
-def draw_offense_overlay(surface, transform, state, diagnostics, font, origin):
+def draw_offense_overlay(surface, transform, state, diagnostics, font, origin, *, compact=False):
     lines = [
         diagnostics['mode'], diagnostics['reason'], 'Amber square: offensive destination',
         f"Receiver: {diagnostics['desired_slot']}; scenarios: {diagnostics.get('scenario_samples', '-')}",
@@ -152,6 +152,11 @@ def draw_offense_overlay(surface, transform, state, diagnostics, font, origin):
     if candidate:
         lines.append(f"Flight: {candidate['flight_frames']:.1f}; margin: {candidate['margin']:.1f}; "
                      f"robustness: {candidate['robustness']:.0%}")
+    if 'retained_value' in diagnostics:
+        lines.append(f"Keep puck, opportunity value: {diagnostics['retained_value']:.1f}")
+    if diagnostics.get('teammate_scores'):
+        lines.extend(('P: pass score; OT: one-timer; *: selected',
+                      'Pos/carry: position | Finish: executable shot; not goal odds'))
     last = diagnostics.get('last_pass')
     if last:
         lines.append(f"Last pass: {last['outcome']}; intended/actual: "
@@ -162,19 +167,79 @@ def draw_offense_overlay(surface, transform, state, diagnostics, font, origin):
                      f"commit: {crossing.get('committed', False)}")
         if crossing.get('release_reason'):
             lines.append(f"C release: {crossing['release_reason']}")
-    for index, text in enumerate(lines):
-        surface.blit(font.render(text, True, (15, 20, 30), (230, 242, 249)),
-                     (origin[0], origin[1] + index * (font.get_linesize() + 1)))
+    deke = diagnostics.get('deke')
+    if deke:
+        lines.append(f"Deke: {deke.get('phase', deke.get('status', '-'))}; "
+                     f"pressure: {deke.get('pressure', '-')}")
+    occupied = []
+    for index, text in enumerate(() if compact else lines):
+        label = font.render(text, True, (15, 20, 30), (230, 242, 249))
+        occupied.append(surface.blit(label, (origin[0], origin[1] + index * (font.get_linesize() + 1))))
     actual = _target_team(state, diagnostics).get_player_by_scnum(diagnostics['actual_slot'])
     if actual is not None:
-        pygame.draw.circle(surface, GREEN, transform(actual.x, actual.y), 12, 3)
+        pygame.draw.circle(surface, GREEN, transform(actual.x, actual.y), 5 if compact else 12, 2 if compact else 3)
         for option in diagnostics.get('candidates', []):
             if option.get('point'):
                 pygame.draw.line(surface, GREEN if option['status'] == 'safe' else PURPLE,
                                  transform(state.puck.x, state.puck.y), transform(*option['point']), 1)
         pygame.draw.line(surface, OFFENSE_AMBER, transform(actual.x, actual.y),
                          transform(*diagnostics['target']), 2)
-    draw_target_box(surface, transform(*diagnostics['target']), color=OFFENSE_AMBER)
+    draw_target_box(surface, transform(*diagnostics['target']), size=8 if compact else 16, color=OFFENSE_AMBER)
+    draw_teammate_scores(surface, transform, state, diagnostics, font, occupied, compact=compact)
+
+
+def draw_teammate_scores(surface, transform, state, diagnostics, font, occupied=(), *, compact=False):
+    team = _target_team(state, diagnostics)
+    occupied = list(occupied)
+    for candidate in diagnostics.get('teammate_scores', ()):
+        player = team.get_player_by_scnum(candidate['slot'])
+        if player is None:
+            continue
+        option = candidate['pass']
+        value = option.get('value')
+        selected = candidate['selected']
+        selected_one_timer = selected and diagnostics.get('mode', '').startswith('one-timer-')
+        valid = option['status'] == 'safe'
+        prefix = f"{candidate['slot']} {'*' if selected and not selected_one_timer else ''}P:"
+        lines = [f"{prefix} {value:.1f}" if value is not None else prefix + ' --']
+        if valid:
+            continuation = option.get('continuation_position_value', option.get('continuation_value'))
+            carry_value = '--' if continuation is None else f'{continuation:.1f}'
+            lines.append(f"Pos: {option['shot_value']:.1f} / carry: {carry_value}")
+            if 'continuation_finish_value' in option:
+                lines.append(f"Finish: {option['continuation_finish_value']:.1f}")
+            if option.get('continuation_safe') is False:
+                lines.append(f"Uncertified / risk index: {option['continuation_risk']:.2f}")
+            if option.get('continuation_status') not in (None, 'safe'):
+                lines.append(option['continuation_status'])
+            if option.get('worthwhile') is False:
+                lines.append('Insufficient tactical gain')
+        else:
+            lines.append(option['status'])
+        one_timer = candidate.get('one_timer')
+        if one_timer and one_timer['status'] == 'safe':
+            lines.append(f"{'*' if selected_one_timer else ''}OT: {one_timer['shot_value']:.1f}")
+        if compact:
+            lines = [lines[0]]
+            if one_timer and one_timer['status'] == 'safe':
+                lines[0] += f" OT:{one_timer['shot_value']:.0f}"
+        color = ((90, 100, 110) if diagnostics.get('historical')
+                 else OFFENSE_AMBER if selected else GREEN if valid else PURPLE)
+        x, y = transform(player.x, player.y)
+        labels = [font.render(text, True, color, (230, 242, 249)) for text in lines]
+        width, height = max(label.get_width() for label in labels), len(labels) * font.get_linesize()
+        positions = [(x + 14, y), (x - width - 14, y), (x + 14, y - height)]
+        positions.extend((x + 14, edge) for other in occupied for edge in (
+            other.bottom + 4, other.top - height - 4))
+        rects = [pygame.Rect(point, (width, height)).clamp(surface.get_clip()) for point in positions]
+        def placement(rect, anchor=(x, y), taken=tuple(occupied)):
+            overlaps = [rect.clip(other) for other in taken]
+            return sum(overlap.width * overlap.height for overlap in overlaps), math.dist(rect.center, anchor)
+        rect = min(rects, key=placement)
+        occupied.append(rect)
+        pygame.draw.line(surface, color, (x, y), (rect.left, rect.centery), 1)
+        for index, label in enumerate(labels):
+            surface.blit(label, (rect.x, rect.y + index * font.get_linesize()))
 
 
 def draw_target_rink(surface, rect, state, diagnostics, font):

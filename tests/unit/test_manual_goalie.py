@@ -1,6 +1,7 @@
 """Manual goalie targets, bounded exclusive handoffs and optional telemetry."""
 from copy import deepcopy
 import json
+import pickle
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
@@ -153,6 +154,36 @@ class GoalieGeometryTests(unittest.TestCase):
         receiver.y = 20
         self.assertNotIn('incoming receiver', goalie_target(state).reason)
 
+    def test_shot_intercept_uses_live_depth_and_fractional_crossing(self):
+        for sign in (-1, 1):
+            for depth in (236, 242, 254):
+                with self.subTest(sign=sign, depth=depth):
+                    state = goalie_state(True)
+                    state.team1.net.y = sign * 264
+                    state.team1.goalie.y = sign * depth
+                    state.engine.puck_owner = -256
+                    state.puck.x, state.puck.y = 40, sign * 205
+                    state.puck.motion_x, state.puck.motion_y = -2, sign * 4
+                    state.puck.friction = 1
+                    plan = goalie_target(state)
+                    time = (depth - 205) / 4
+                    self.assertAlmostEqual(plan.crossing_frames, time)
+                    self.assertEqual(plan.target, (40 - 2 * time, sign * depth))
+                    self.assertEqual(plan.deadline, (264 - 205) / 4)
+
+    def test_puck_past_goalie_does_not_send_him_back_up_ice(self):
+        for sign in (-1, 1):
+            state = goalie_state(True)
+            state.team1.net.y = sign * 264
+            state.team1.goalie.y = sign * 240
+            state.engine.puck_owner = -256
+            state.puck.x, state.puck.y = 8, sign * 250
+            state.puck.motion_y = sign * 4
+            plan = goalie_target(state)
+            self.assertEqual(plan.target, (8, sign * 250))
+            self.assertEqual(plan.crossing_frames, 0)
+            self.assertEqual(plan.crossing_x, 8)
+
     def test_goalie_acceleration_and_braking_are_not_skater_estimates(self):
         goalie = goalie_state().team1.goalie
         accel, limit = goalie_motion(goalie)
@@ -243,6 +274,36 @@ class GoalieHandoffTests(unittest.TestCase):
         self.assertEqual(np.flatnonzero(manager.step(state)).tolist(), [Buttons.INPUT_B])
         self.assertEqual(manager.phase, 'request-skater')
 
+    def test_takeover_cancels_when_threat_or_manual_availability_disappears(self):
+        for change in ('cleared', 'offscreen', 'locked', 'blocked'):
+            with self.subTest(change=change):
+                state = goalie_state()
+                manager = GoalieController('selective')
+                for _ in range(3):
+                    manager.step(state)
+                self.assertEqual(manager.phase, 'request-goalie')
+                if change == 'cleared':
+                    state.puck.y = 0
+                elif change == 'offscreen':
+                    state.engine.camera = (0, 0)
+                elif change == 'locked':
+                    state.team1.goalie.unavailable = 2
+                self.assertFalse(manager.step(state, blocked=change == 'blocked').any())
+                self.assertEqual(manager.metrics['takeover_cancelled'], 1)
+                self.assertFalse(manager.step(state).any())
+                self.assertIsNone(manager.step(state))
+
+    def test_takeover_must_finish_before_goalie_contact_not_goal_line(self):
+        state = goalie_state()
+        state.team1.goalie.x, state.team1.goalie.y = 0, -236
+        state.engine.puck_owner = -256
+        state.puck.x, state.puck.y, state.puck.motion_y = 0, -210, -1
+        state.puck.friction = 1
+        plan = goalie_target(state)
+        self.assertEqual(plan.crossing_frames, 26)
+        self.assertEqual(plan.deadline, 54)
+        self.assertIsNone(GoalieController('selective').step(state))
+
     def test_selective_keeps_useful_skater_and_rejects_late_shot(self):
         state = goalie_state()
         manager = GoalieController('selective')
@@ -307,6 +368,29 @@ class GoalieHandoffTests(unittest.TestCase):
         manager.step(state)
         self.assertEqual(manager.metrics['controlled_catches'], 1)
 
+    def test_pending_save_cannot_send_buttons_to_skater_or_after_catch(self):
+        for dive in (False, True):
+            for change in ('skater', 'catch', 'fallback', 'locked'):
+                with self.subTest(dive=dive, change=change):
+                    state = goalie_state(True)
+                    state.engine.puck_owner = -256
+                    state.puck.x, state.puck.y, state.puck.motion_y = 10, -225, -4
+                    state.team1.goalie.x = -15 if dive else 0
+                    manager = GoalieController('selective')
+                    self.assertTrue(manager.step(state)[Buttons.INPUT_A if dive else Buttons.INPUT_C])
+                    if change == 'skater':
+                        state.team1.defense_control = 2
+                        state.team1.goalie.selection_flags &= ~8
+                    elif change == 'catch':
+                        state.engine.puck_owner = 5
+                    elif change == 'fallback':
+                        state.team1.goalie.live_state_flags = 4
+                    else:
+                        state.team1.goalie.unavailable = 2
+                    self.assertFalse(manager.step(state).any())
+                    self.assertIsNone(manager.pending_save)
+                    self.assertEqual(manager.metrics['dive_cancelled' if dive else 'save_cancelled'], 1)
+
     def test_outlet_waits_for_pass_feedback_and_reception(self):
         state = goalie_state(True)
         state.engine.puck_owner = 5
@@ -358,6 +442,141 @@ class GoalieHandoffTests(unittest.TestCase):
         self.assertEqual(agent.goalie.phase, 'skater')
         legacy = create_scripted('classic-v1', SimpleNamespace(action_type='FILTERED'))
         self.assertNotIn('classic_goalie', legacy.act(AgentInput(defense_state())).diagnostics)
+
+
+class GoalieTimingTests(unittest.TestCase):
+    def test_receiver_contact_before_goalie_plane_does_not_trigger_save_on_the_pass(self):
+        state = goalie_state(True)
+        state.engine.puck_owner, state.engine.last_puck_player, state.engine.pass_target = -256, 6, 7
+        receiver = state.team2.players[1]
+        receiver.x, receiver.y, receiver.stick_x, receiver.stick_y = 14, -232, 0, 0
+        state.puck.x, state.puck.y, state.puck.motion_y = 14, -215, -4
+        state.puck.friction = 1
+        plan = goalie_target(state)
+        self.assertIsNone(plan.crossing_frames)
+        self.assertEqual(plan.receiver, (14, -232))
+        self.assertLess(plan.reception_frames, (246 - 215) / 4)
+        action = GoalieController('selective').step(state)
+        self.assertFalse(action[Buttons.INPUT_C])
+        self.assertTrue(action[4:8].any())
+
+    def test_stale_pass_target_at_shooter_does_not_hide_released_shot(self):
+        state = goalie_state(True)
+        state.engine.puck_owner, state.engine.last_puck_player, state.engine.pass_target = -256, 7, 7
+        state.puck.x, state.puck.y, state.puck.motion_y = 14, -215, -4
+        state.puck.friction = 1
+        self.assertIsNotNone(goalie_target(state).crossing_frames)
+
+    def test_reachable_lateral_alignment_precedes_momentum_killing_C(self):
+        for sign in (-1, 1):
+            state = goalie_state(True)
+            state.team1.net.y, state.team2.net.y = sign * 264, -sign * 264
+            state.team1.goalie.y, state.team1.goalie.motion_x = sign * 246, 1.5
+            state.engine.puck_owner = -256
+            state.puck.x, state.puck.y, state.puck.motion_y = 14, sign * 215, sign * 4
+            state.puck.friction = 1
+            manager = GoalieController('selective')
+            before = pickle.dumps(state)
+            action = manager.step(state)
+            self.assertTrue(action[Buttons.INPUT_RIGHT])
+            self.assertFalse(action[Buttons.INPUT_C])
+            self.assertEqual(manager.diagnostics['save_decision'], 'align-before-save')
+            self.assertEqual(pickle.dumps(state), before)
+            state.team1.goalie.x = 6
+            action = manager.step(state)
+            self.assertTrue(action[Buttons.INPUT_C])
+            self.assertFalse(action[4:8].any())
+
+    def test_unreachable_or_high_shot_keeps_emergency_save(self):
+        for height, speed in ((0, -1.5), (16, 1.5)):
+            state = goalie_state(True)
+            state.engine.puck_owner = -256
+            state.team1.goalie.motion_x = speed
+            state.puck.x, state.puck.y, state.puck.motion_y, state.puck.height = 14, -215, -4, height
+            state.puck.friction = 1
+            self.assertTrue(GoalieController('selective').step(state)[Buttons.INPUT_C])
+
+    def test_remaining_B_hold_uses_live_countdown_not_elapsed_guess(self):
+        state = goalie_state()
+        state.engine.puck_owner = -256
+        state.puck.x, state.puck.y, state.puck.motion_y = 0, -236, -1
+        state.puck.friction = 1
+        state.engine.goalie_hold_counts = (2, 17)
+        manager = GoalieController('selective')
+        manager.phase = 'request-goalie'
+        action = manager.step(state)
+        self.assertTrue(action[Buttons.INPUT_B])
+        self.assertEqual(manager.diagnostics['remaining_hold_frames'], 4)
+        self.assertEqual(manager.phase, 'request-goalie')
+
+    def test_live_countdown_accounts_for_observed_input_tick_spacing(self):
+        manager = GoalieController('selective')
+        self.assertEqual(manager._remaining_hold(17), 19)
+        manager.frames = 1
+        manager._remaining_hold(16)
+        manager.frames = 3
+        self.assertEqual(manager._remaining_hold(15), 32)
+
+    def test_fresh_pass_anticipates_windup_before_possession_releases(self):
+        state = goalie_state()
+        passer, receiver = state.team2.players[:2]
+        passer.x, passer.y, passer.passing = -60, -175, 20
+        receiver.x, receiver.y, receiver.stick_x, receiver.stick_y = 30, -175, 0, 0
+        state.puck.x, state.puck.y, state.puck.motion_x, state.puck.motion_y = -60, -175, 0, 0
+        state.puck.friction = 1
+        state.engine.pass_target, state.team2.pass_attempts = 7, 0
+        manager = GoalieController('selective')
+        manager.step(state)
+        self.assertIsNone(manager.diagnostics['receiver'])
+        state.team2.pass_attempts = 1
+        before = pickle.dumps(state)
+        manager.step(state)
+        self.assertEqual(manager.diagnostics['receiver'], (30, -175))
+        self.assertGreater(manager.diagnostics['reception_frames'], 0)
+        self.assertEqual(pickle.dumps(state), before)
+        state.engine.pass_target = -1
+        manager.step(state)
+        self.assertIsNone(manager.pass_windup)
+
+    def test_initial_saved_pass_count_does_not_invent_a_fresh_windup(self):
+        state = goalie_state()
+        state.team2.pass_attempts, state.engine.pass_target = 7, 7
+        manager = GoalieController('selective')
+        manager.step(state)
+        self.assertIsNone(manager.pass_windup)
+
+    def test_idle_reasons_distinguish_target_holding_and_CPU_fallback(self):
+        state = goalie_state(True)
+        state.engine.puck_owner = -256
+        state.puck.x, state.puck.y, state.puck.motion_y = 0, -215, -4
+        state.puck.friction = 1
+        manager = GoalieController('selective')
+        manager.save_at = 100
+        self.assertFalse(manager.step(state).any())
+        self.assertEqual(manager.diagnostics['idle_reason'], 'holding-position')
+        state.team1.goalie.live_state_flags = 4
+        manager.step(state)
+        self.assertEqual(manager.diagnostics['idle_reason'], 'cpu-fallback')
+
+    def test_unconfirmed_request_does_not_block_saves_for_forty_frames(self):
+        state = goalie_state(True)
+        manager = GoalieController('selective')
+        manager.pending_save, manager.save_at, manager.frames = ('save', 0), 40, 6
+        manager.step(state)
+        self.assertIsNone(manager.pending_save)
+        self.assertLess(manager.save_at, 40)
+        self.assertEqual(manager.metrics['save_unconfirmed'], 1)
+
+    def test_classic_goalie_prediction_cannot_write_environment_or_game_state(self):
+        state = goalie_state(True)
+        env = Mock()
+        model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED', goalie_policy='selective'), env)
+        before = pickle.dumps(state)
+        action = model.predict_frame(state)[0]
+        self.assertEqual(action.shape, (12,))
+        self.assertTrue(np.isin(action, (0, 1)).all())
+        self.assertEqual(pickle.dumps(state), before)
+        self.assertEqual(env.mock_calls, [])
 
 
 if __name__ == '__main__':

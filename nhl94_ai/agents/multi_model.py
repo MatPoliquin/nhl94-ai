@@ -95,7 +95,9 @@ class NHL94AISystem():
             game_state.Flip()
         result = agent.act(AgentInput(game_state, model_input), deterministic)
         p1_actions = result.action
-        self.last_diagnostics = result.diagnostics
+        self.last_diagnostics = dict(result.diagnostics)
+        if result.decision is not None:
+            self.last_diagnostics['decision_inspector'] = result.decision
 
         p1_actions = np.asarray(p1_actions)
         if p1_actions.ndim > 1 and p1_actions.shape[0] == 1:
@@ -108,6 +110,7 @@ class NHL94AISystem():
 
     def Think_TwoModels(self, model_input, state, deterministic):
         p1_actions = [0] * GameConsts.INPUT_MAX
+        self.last_diagnostics = {}
 
         self.model_in_use = MODEL_NONE
 

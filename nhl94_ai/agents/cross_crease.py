@@ -53,8 +53,8 @@ def crossing_entry(state, player):
     return player is not None and 88 <= player.y * sign <= 244 and 8 <= abs(player.x) <= 120
 
 
-def shot_lane_clear(state, point, side, delay=0, *, include_goalie=True):
-    goal = side * 16, state.team2.net.y
+def shot_lane_clear(state, point, side, delay=0, *, include_goalie=True, goal_x=16):
+    goal = side * goal_x, state.team2.net.y
     distance = math.dist(point, goal)
     obstacles = (*state.team2.players, state.team2.goalie) if include_goalie else state.team2.players
     for other in obstacles:
@@ -131,7 +131,7 @@ def crossing_clear(state, player, frames, *, pressure=True, goalie_clearance=GOA
     return _path_clear(state, player, samples, goalie_clearance=goalie_clearance, pressure=pressure)
 
 
-def _route_motion(player, route):
+def _route_motion(player, route, *, horizon=APPROACH_FRAMES):
     """Project only the carrier, using the same steering as live execution."""
     carrier = copy(player)
     carrier.x, carrier.y = float(player.x), float(player.y)
@@ -139,7 +139,7 @@ def _route_motion(player, route):
     carrier.facing = player.facing if player.facing is not None else player.orientation
     acceleration, limit, _ = skating(player)
     turning, waypoint = 0, 0
-    for frame in range(APPROACH_FRAMES + 1):
+    for frame in range(horizon + 1):
         if waypoint < len(route) - 1 and math.dist((carrier.x, carrier.y), route[waypoint]) <= 10:
             waypoint += 1
         yield frame, copy(carrier), waypoint

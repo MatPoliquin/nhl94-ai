@@ -2,6 +2,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 import numpy as np
+from nhl94_ai.agents.decisions import DecisionSnapshot, classic_decision_snapshot
 
 
 @dataclass(frozen=True)
@@ -14,6 +15,7 @@ class AgentInput:
 class AgentOutput:
     action: np.ndarray
     diagnostics: dict = field(default_factory=dict)
+    decision: DecisionSnapshot | None = None
 
 
 class Agent(Protocol):
@@ -50,6 +52,8 @@ class ScriptedAgent:
             'classic_offense': getattr(self.controller, 'offense_diagnostics', {})})
         if getattr(self.controller, 'goalie', None) is not None:
             self.last_output.diagnostics['classic_goalie'] = self.controller.goalie_diagnostics
+        if hasattr(self.controller, 'offense_diagnostics'):
+            self.last_output.decision = classic_decision_snapshot(self.controller, inputs.game_state, action)
         return self.last_output
 
     # Existing integrations use these inference methods while callers migrate.
@@ -130,7 +134,7 @@ class FrameRepeatAgent:
             self.output = self.agent.act(inputs, deterministic)
             self.remaining = self.frames
         self.remaining -= 1
-        return AgentOutput(self.output.action.copy(), dict(self.output.diagnostics))
+        return AgentOutput(self.output.action.copy(), dict(self.output.diagnostics), self.output.decision)
 
 
 class MultiModelAgent:
@@ -161,4 +165,5 @@ class MultiModelAgent:
             action = self.system.Think_TwoModels(inputs.observation, inputs.game_state, deterministic)
         else:
             action = np.zeros(GameConsts.INPUT_MAX, dtype=np.int8)
-        return AgentOutput(np.asarray(action), {'model_index': self.system.model_in_use})
+        return AgentOutput(np.asarray(action), {'model_index': self.system.model_in_use},
+                           self.system.last_diagnostics.get('decision_inspector'))

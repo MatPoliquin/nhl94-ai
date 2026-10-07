@@ -1,0 +1,247 @@
+{
+  "protocol": "nhl94-predictor-repair-cumulative-ablation-v1",
+  "reports": {
+    "baseline": "classic-v1-predictor-repair-baseline.json",
+    "reach": "classic-v1-predictor-repair-reach.json",
+    "goalie": "classic-v1-predictor-repair-goalie.json",
+    "final": "classic-v1-predictor-repair-final.json"
+  },
+  "summary": {
+    "baseline": {
+      "total": {
+        "periods": 8,
+        "wins": 4,
+        "draws": 3,
+        "losses": 1,
+        "goals_for": 6,
+        "goals_against": 2,
+        "goal_difference": 4
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 4,
+          "goals_for": 5,
+          "goals_against": 1,
+          "wins": 3,
+          "draws": 1,
+          "losses": 0
+        },
+        "ducks-sabres-manual": {
+          "periods": 4,
+          "goals_for": 1,
+          "goals_against": 1,
+          "wins": 1,
+          "draws": 2,
+          "losses": 1
+        }
+      }
+    },
+    "reach": {
+      "total": {
+        "periods": 8,
+        "wins": 3,
+        "draws": 5,
+        "losses": 0,
+        "goals_for": 7,
+        "goals_against": 3,
+        "goal_difference": 4
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 4,
+          "goals_for": 5,
+          "goals_against": 1,
+          "wins": 3,
+          "draws": 1,
+          "losses": 0
+        },
+        "ducks-sabres-manual": {
+          "periods": 4,
+          "goals_for": 2,
+          "goals_against": 2,
+          "wins": 0,
+          "draws": 4,
+          "losses": 0
+        }
+      }
+    },
+    "goalie": {
+      "total": {
+        "periods": 8,
+        "wins": 3,
+        "draws": 3,
+        "losses": 2,
+        "goals_for": 5,
+        "goals_against": 2,
+        "goal_difference": 3
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 4,
+          "goals_for": 5,
+          "goals_against": 0,
+          "wins": 3,
+          "draws": 1,
+          "losses": 0
+        },
+        "ducks-sabres-manual": {
+          "periods": 4,
+          "goals_for": 0,
+          "goals_against": 2,
+          "wins": 0,
+          "draws": 2,
+          "losses": 2
+        }
+      }
+    },
+    "final": {
+      "total": {
+        "periods": 8,
+        "wins": 4,
+        "draws": 3,
+        "losses": 1,
+        "goals_for": 8,
+        "goals_against": 1,
+        "goal_difference": 7
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 4,
+          "goals_for": 7,
+          "goals_against": 0,
+          "wins": 3,
+          "draws": 1,
+          "losses": 0
+        },
+        "ducks-sabres-manual": {
+          "periods": 4,
+          "goals_for": 1,
+          "goals_against": 1,
+          "wins": 1,
+          "draws": 2,
+          "losses": 1
+        }
+      }
+    }
+  },
+  "paired_deltas_from_baseline": {
+    "baseline": {
+      "goals_for": 0,
+      "goals_against": 0,
+      "goal_difference": 0,
+      "seed_clustered_95_percent_intervals": {
+        "goals_for": [
+          0.0,
+          0.0
+        ],
+        "goals_against": [
+          0.0,
+          0.0
+        ],
+        "goal_difference": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "reach": {
+      "goals_for": 1,
+      "goals_against": 1,
+      "goal_difference": 0,
+      "seed_clustered_95_percent_intervals": {
+        "goals_for": [
+          -5.0,
+          4.0
+        ],
+        "goals_against": [
+          -2.0,
+          4.0
+        ],
+        "goal_difference": [
+          -3.0,
+          3.0
+        ]
+      }
+    },
+    "goalie": {
+      "goals_for": -1,
+      "goals_against": 0,
+      "goal_difference": -1,
+      "seed_clustered_95_percent_intervals": {
+        "goals_for": [
+          -6.0,
+          3.0
+        ],
+        "goals_against": [
+          -3.0,
+          3.0
+        ],
+        "goal_difference": [
+          -4.0,
+          2.0
+        ]
+      }
+    },
+    "final": {
+      "goals_for": 2,
+      "goals_against": -1,
+      "goal_difference": 3,
+      "seed_clustered_95_percent_intervals": {
+        "goals_for": [
+          -5.0,
+          7.0
+        ],
+        "goals_against": [
+          -3.0,
+          0.0
+        ],
+        "goal_difference": [
+          -2.0,
+          7.0
+        ]
+      }
+    }
+  },
+  "changed_sources_from_baseline": {
+    "baseline": [],
+    "reach": [
+      "nhl94_ai/agents/carry.py",
+      "nhl94_ai/game/state.py"
+    ],
+    "goalie": [
+      "nhl94_ai/agents/offense.py",
+      "nhl94_ai/agents/classic_v1.py",
+      "nhl94_ai/game/state.py",
+      "nhl94_ai/agents/carry.py"
+    ],
+    "final": [
+      "nhl94_ai/agents/offense.py",
+      "nhl94_ai/game/state.py",
+      "nhl94_ai/agents/classic_v1.py",
+      "nhl94_ai/agents/carry.py",
+      "nhl94_ai/agents/passing.py"
+    ]
+  },
+  "runtime_patches": {
+    "reach": {
+      "path": "docs/benchmarks/classic-v1-predictor-repair-reach.patch",
+      "sha256": "1195e23509147809af03458a642f12ca8d4c04007efc85a1d89eca36bcc8407d"
+    },
+    "goalie": {
+      "path": "docs/benchmarks/classic-v1-predictor-repair-goalie.patch",
+      "sha256": "c604fbc8f27207c746d9517fa7ac3a8ea4999987bd67e4f30fbda3411c1784df"
+    },
+    "finish": {
+      "path": "docs/benchmarks/classic-v1-predictor-repair-finish.patch",
+      "sha256": "1e96c91a73829f5ce1bc5f4cdc040b5089d865f521b74b509114e7b30346f0d5"
+    }
+  },
+  "baseline_action_traces_match_archived_default_offense": true,
+  "limitations": [
+    "Four reused development seeds per AI side, 300-clock-second first periods; not a strength estimate.",
+    "Cumulative repairs, not a factorial ablation: each incremental effect is conditional on earlier repairs.",
+    "Bootstrap clusters both sides by ROM seed; only four clusters, so uncertainty estimates are coarse.",
+    "Native no-false-safe observations do not prove all ROM behaviors are bounded.",
+    "Historical full 40-period default-offense reports are preserved unchanged."
+  ]
+}

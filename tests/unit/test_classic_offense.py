@@ -8,6 +8,7 @@ import numpy as np
 
 from nhl94_ai.agents.base import AgentInput
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
+from nhl94_ai.agents.carry import forecast_carry
 from nhl94_ai.agents.motion import VELOCITY_SCALE
 from nhl94_ai.agents.offense import FEINT_FRAMES, OffenseController, carry_clear, carry_projection, projected_state
 from nhl94_ai.agents.passing import (
@@ -34,6 +35,7 @@ def offense_state():
             player.motion_x = player.motion_y = 0
             player.speed, player.agility, player.weight = 20, 20, 64
             player.passing, player.energy, player.stick = 20, 4096, 20
+            player.burst_full_energy = False
             player.role, player.facing, player.selection_flags = 4, 0, 0
             player.shot_accuracy = 20
         team.goalie.role = 0
@@ -412,7 +414,7 @@ class OffenseControllerTests(unittest.TestCase):
                 with patch.object(controller, 'passes', return_value=([first, second], details)), \
                         patch.object(controller, 'breakaway', return_value=False), \
                         patch.object(controller, '_feint', return_value=None), \
-                        patch('nhl94_ai.agents.offense.shot_value', return_value=10):
+                        patch('nhl94_ai.agents.offense.shot_value', return_value=15):
                     plan = controller.choose(state, 1)
                 self.assertEqual(plan[0], purpose + '-pass')
                 self.assertIs(plan[2], second)
@@ -647,7 +649,7 @@ class OffenseSafetyTests(unittest.TestCase):
         self.assertIsNone(option)
         self.assertEqual(details['status'], 'uncertain-reception')
 
-    def test_unsafe_default_carry_brakes_into_a_verified_escape_on_either_side(self):
+    def test_unsafe_default_carry_reports_an_uncertified_escape_on_either_side(self):
         for away in (False, True):
             for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
                 with self.subTest(away=away, schema=schema):
@@ -670,17 +672,21 @@ class OffenseSafetyTests(unittest.TestCase):
                         state.puck.y *= -1
                     preferred = OffenseController.carry_target(state, player)
                     self.assertFalse(carry_clear(state, player, preferred))
-                    model = ClassicAIV1Model(SimpleNamespace(action_type=schema, one_timers=False))
+                    model = ClassicAIV1Model(SimpleNamespace(
+                        action_type=schema, one_timers=False, uncertain_carry=True))
                     action = model.predict_frame(state)[0]
                     self.assertEqual(model._last_decision, 'carry-escape')
                     self.assertNotEqual(model._last_target, preferred)
-                    self.assertTrue(carry_clear(state, player, model._last_target))
-                    self.assertTrue(model.offense_diagnostics['carry_safe'])
-                    self.assertEqual(model.carry_metrics['safe-escape'], 1)
+                    self.assertFalse(forecast_carry(state, player, model._last_target)[1]['carry_safe'])
+                    self.assertFalse(model.offense_diagnostics['carry_safe'])
+                    self.assertEqual(model.carry_metrics['uncertified-viable'], 1)
+                    self.assertTrue(model.offense_diagnostics['carry_viable'])
                     processor = HockeyActionController(SimpleNamespace(action_type=schema, game_state=state))
                     buttons = processor._process_action(action, processor._new_action_state())[0]
                     self.assertFalse(buttons[Buttons.INPUT_B] or buttons[Buttons.INPUT_C])
-                    self.assertTrue(buttons[Buttons.INPUT_UP if away else Buttons.INPUT_DOWN])
+                    expected = self.controller._carry_option(state, player, model._last_target)[1]
+                    self.assertFalse(expected['carry_safe'])
+                    self.assertTrue(np.any(buttons[4:8]))
 
     def test_safe_default_carry_is_preserved(self):
         point, details = self.controller.fallback_carry(self.state, self.state.team1.players[0])
@@ -698,8 +704,9 @@ class OffenseSafetyTests(unittest.TestCase):
                                  carry_clearance=16, carry_progress=-12, carry_shot_value=0))
         advance = ((48, 204), dict(carry_safe=True, carry_bounded=True, carry_pressure=3.1,
                                   carry_clearance=5, carry_progress=12, carry_shot_value=30))
-        with patch.object(self.controller, '_carry_option',
-                          side_effect=[unsafe, retreat, advance, *([retreat] * 7)]):
+        def option(_state, _player, target):
+            return unsafe if target == preferred else advance if target == advance[0] else retreat
+        with patch.object(self.controller, '_carry_option', side_effect=option):
             point, details = self.controller.fallback_carry(self.state, player)
         self.assertEqual(point, advance[0])
         self.assertTrue(details['carry_safe'])
@@ -710,7 +717,7 @@ class OffenseSafetyTests(unittest.TestCase):
         self.state.team2.players[0].x, self.state.team2.players[0].y = player.x, player.y
         _, details = self.controller.fallback_carry(self.state, player)
         self.assertFalse(details['carry_safe'])
-        self.assertIn('no safe carry', details['reason'])
+        self.assertIn('no viable carry', details['reason'])
 
     def test_unavoidable_wall_contact_requests_braking_without_claiming_safety(self):
         player = self.state.team1.players[0]

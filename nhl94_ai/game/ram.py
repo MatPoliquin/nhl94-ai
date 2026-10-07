@@ -212,6 +212,9 @@ def pass_geometry_info(env, info):
     skaters = get_game(game).skaters_per_team
     table = _stick_hotspots(game, getattr(env.unwrapped, 'pass_geometry_rom', None))
     shots = _shot_animations(game, getattr(env.unwrapped, 'pass_geometry_rom', None))
+    projection_x = max(abs(sx) for _, offsets in shots for sx, _ in offsets)
+    projection_y = max(abs(sy) for _, offsets in shots for _, sy in offsets)
+    projection_durations = tuple(max(values) for values in zip(*(durations for durations, _ in shots)))
     corrected = dict(info)
     memory = env.data.memory
     for side in (1, 2):
@@ -232,6 +235,7 @@ def pass_geometry_info(env, info):
                     x, y = y, -x
             corrected[f'offense_{slot}_stick_x'] = x
             corrected[f'offense_{slot}_stick_y'] = y
+            corrected[f'offense_{slot}_sprite_flipped_x'] = bool(flags & 8)
             direction = memory.extract(base + 0x54, '>u2')
             direction = (direction - (2 if info.get('sflags', 0) & 0x8000 else 0)) % 8
             direction = -direction % 8 if flags & 8 else direction
@@ -246,8 +250,17 @@ def pass_geometry_info(env, info):
                                                             'big', signed=True) for axis in (0, 1)))
             ys = [(-sx if not flags & 8 else sx) if info.get('sflags', 0) & 0x8000
                   else (sy if flags & 16 else -sy) for sx, sy in (*offsets, *previous_offsets)]
+            xs = [(sy if flags & 16 else -sy) if info.get('sflags', 0) & 0x8000
+                  else (-sx if flags & 8 else sx) for sx, sy in (*offsets, *previous_offsets)]
             corrected[f'offense_{slot}_shot_durations'] = durations
             corrected[f'offense_{slot}_shot_offsets_y'] = min(ys), max(ys)
+            corrected[f'offense_{slot}_shot_offsets_x'] = min(xs), max(xs)
+            px, py = (projection_y, projection_x) if info.get('sflags', 0) & 0x8000 else (
+                projection_x, projection_y)
+            px, py = max(px, *(abs(value) for value in xs)), max(py, *(abs(value) for value in ys))
+            corrected[f'offense_{slot}_shot_projection_offsets_x'] = -px, px
+            corrected[f'offense_{slot}_shot_projection_offsets_y'] = -py, py
+            corrected[f'offense_{slot}_shot_projection_durations'] = projection_durations
     return corrected
 
 
@@ -271,6 +284,8 @@ def register_goalie_control(env, skaters=5):
         base = 0xFFB04A + slot * 0x80
         for name, offset, kind in (
             ('role', 0x34, '>i2'), ('facing', 0x54, '>u2'), ('flags', 0x62, '|u1'),
+            ('precise_x', 0, '>i4'), ('precise_y', 0x14, '>i4'),
+            ('decision_timer', 0x40, '|i1'), ('steering', 0x43, '|i1'), ('decision_delay', 0x6B, '|u1'),
             ('unavailable', 0x63, '|u1'), ('state_flags', 0x64, '|u1'),
             ('speed', 0x69, '|u1'), ('agility', 0x68, '|u1'), ('weight', 0x67, '|u1'),
             ('roster', 0x66, '|u1'), ('stick', 0x71, '|u1'), ('passing', 0x6E, '|u1'),
@@ -346,6 +361,7 @@ def register_defense_state(env, skaters):
             for name, offset, kind in (
                 ('vx', 0x28, '>i2'), ('vy', 0x2A, '>i2'), ('role', 0x34, '>i2'),
                 ('facing', 0x54, '>u2'), ('flags', 0x62, '|u1'),
+                ('precise_x', 0, '>i4'), ('precise_y', 0x14, '>i4'), ('facing_phase', 0x54, '>u4'),
                 ('unavailable', 0x63, '|u1'), ('roster', 0x66, '|u1'),
                 ('weight', 0x67, '|u1'), ('agility', 0x68, '|u1'),
                 ('speed', 0x69, '|u1'), ('stick', 0x71, '|u1'),
@@ -355,8 +371,14 @@ def register_defense_state(env, skaters):
                 ('animation_timer', 0x5C, '|i1'),
                 ('contact_player', 0x2E, '>i2'), ('contact_impact', 0x32, '>u2'),
                 ('endurance', 0x72, '|u1'), ('checking', 0x75, '|u1'),
+                ('assignment_index', 0x36, '>u2'), ('decision_timer', 0x40, '|i1'),
+                ('steering_timer', 0x42, '|i1'), ('steering', 0x43, '|u1'),
+                ('target_x', 0x44, '>i2'), ('target_y', 0x46, '>i2'),
+                ('support_zone', 0x48, '>i2'),
             ):
                 fields[prefix + name] = base + offset, kind
+            for assignment in range(8):
+                fields[f'{prefix}assignment_{assignment}'] = base + 0x38 + assignment, '|u1'
         # getpde indexes the team energy array by roster identity, not ice slot.
         for roster in range(26):
             fields[f'defense_energy_{side}_{roster}'] = (

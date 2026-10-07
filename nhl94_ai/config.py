@@ -69,12 +69,15 @@ class EnvironmentConfig:
                             and getattr(args, 'rf', 'PostPlay') == 'PostPlay')
         if goalie_policy != 'off' and not goalie_supported:
             raise ValueError('Manual goalie AI requires full-team Classic FILTERED PostPlay without self-play')
-        if getattr(args, 'cross_crease', False):
+        for flag, label in (('cross_crease', 'Cross-crease'), ('deke', 'Deke'),
+                            ('uncertain_carry', 'Uncertain-carry'), ('chance_creation', 'Chance-creation')):
+            if not getattr(args, flag, False):
+                continue
             agent = getattr(args, 'agent', None)
             classic = config.nn in CONTROLLERS or agent in CONTROLLERS or agent in ALIASES
             if (not classic or config.env != 'NHL94-Genesis-v0' or config.selfplay
                     or config.action_type not in ('FILTERED', 'HOCKEY_INTENT_DPAD')):
-                raise ValueError('Cross-crease AI requires full-team Classic buttons/intents without self-play')
+                raise ValueError(f'{label} AI requires full-team Classic buttons/intents without self-play')
         if getattr(args, 'mode', None) == 'player_vs_model' and (
                 config.action_type != 'FILTERED' or config.selfplay):
             raise ValueError('player_vs_model requires FILTERED buttons without self-play')

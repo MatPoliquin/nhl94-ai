@@ -1,0 +1,514 @@
+--- a/nhl94_ai/agents/goalie.py
++++ b/nhl94_ai/agents/goalie.py
+@@ -6,9 +6,9 @@
+ 
+ import numpy as np
+ 
+-from nhl94_ai.agents.defense import controlled_slot, eligible, owns_puck
++from nhl94_ai.agents.defense import DefenseController, controlled_slot, eligible, owns_puck
+ from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, blocks_shot_lane, skating, velocity
+-from nhl94_ai.agents.passing import evaluate_pass
++from nhl94_ai.agents.passing import evaluate_pass, one_timer_contact_frame, pass_contact, pass_release_frames
+ from nhl94_ai.game.constants import GameConsts as Buttons
+ from nhl94_ai.game.geometry import aim_pass
+ 
+@@ -28,6 +28,8 @@
+     crossing_x: float | None = None
+     height: float | None = None
+     deadline: float | None = None
++    receiver: tuple | None = None
++    reception_frames: float | None = None
+ 
+ 
+ def goalie_motion(player):
+@@ -56,13 +58,62 @@
+     return ramp + (distance - covered) / limit
+ 
+ 
+-def goalie_target(state):
+-    """Predict a released puck to the crease/goal planes, not through a rebound."""
++def _receiver_contact(state, windup):
++    receiver = (state.team2.get_player_by_scnum(state.engine.pass_target)
++                if state.engine.pass_target is not None else None)
++    if receiver is None or not eligible(receiver):
++        return None
++    if windup is not None:
++        passer = state.team2.get_player_by_scnum(windup[0])
++        if passer is None or state.engine.puck_owner != windup[0]:
++            return None
++        contact = pass_contact(state.puck, passer, receiver)
++        release = pass_release_frames(receiver)
++    elif (state.engine.puck_owner < 0 and state.engine.last_puck_player is not None
++          and state.team2.owns_scnum(state.engine.last_puck_player)):
++        if (state.engine.pass_target == state.engine.last_puck_player or state.puck.height > 8):
++            return None
++        vx, vy = velocity(state.puck)
++        rx, ry = velocity(receiver)
++        offset = receiver.stick_x or 0, receiver.stick_y or 0
++        dx, dy = receiver.x + offset[0] - state.puck.x, receiver.y + offset[1] - state.puck.y
++        if dx * (vx - rx) + dy * (vy - ry) <= 0:
++            return None
++        closest = math.inf, None, 0
++        for frame in range(1, 41):
++            travel = (state.puck.friction * (1 - state.puck.friction**frame) / (1 - state.puck.friction)
++                      if state.puck.friction != 1 else frame)
++            point = state.puck.x + vx * travel, state.puck.y + vy * travel
++            stick = receiver.x + rx * frame + offset[0], receiver.y + ry * frame + offset[1]
++            distance = math.dist(point, stick)
++            if distance < closest[0]:
++                closest = distance, point, frame
++        if closest[0] > 14:
++            return None
++        contact = ((state.puck.x, state.puck.y), closest[1], closest[2], math.hypot(vx, vy))
++        release = 0
++    else:
++        return None
++    if contact is None:
++        return None
++    time = one_timer_contact_frame(state.puck, receiver, contact, release)
++    if time is None:
++        return None
++    rx, ry = velocity(receiver)
++    return time, (receiver.x + rx * time, receiver.y + ry * time)
++
++
++def goalie_target(state, windup=None):
++    """Predict contact at the goalie's depth, stopping before uncertain rebounds."""
+     sign = 1 if state.team1.net.y > 0 else -1
+     puck = state.puck
+     vx, vy = velocity(puck)
+     x, y, z, vz = float(puck.x), float(puck.y), max(0, puck.height), puck.motion_z or 0
+-    crease_crossing = None
++    incoming = _receiver_contact(state, windup)
++    # Hold our live depth on a shot instead of skating back to a fixed plane.
++    # If the puck has passed us, retreat within the crease for a last-chance save.
++    depth = max(236, min(254, max(state.team1.goalie.y * sign, y * sign)))
++    crease_crossing = (0.0, x, z) if y * sign >= depth else None
+     if state.engine.puck_owner < 0 and vy * sign > 0.05 and y * sign < 264:
+         for frame in range(1, 97):
+             if z <= 0:
+@@ -76,32 +127,29 @@
+                     z, vz = 0, -vz / 2
+             if abs(x) >= 128:
+                 break
+-            if crease_crossing is None and y * sign >= 246:
+-                crease_crossing = frame, x, max(0, z)
++            if crease_crossing is None and y * sign >= depth:
++                fraction = (sign * depth - previous[1]) / (y - previous[1])
++                crease_crossing = (frame - 1 + fraction,
++                                   previous[0] + (x - previous[0]) * fraction,
++                                   max(0, previous[2] + (z - previous[2]) * fraction))
+             if y * sign >= 264:
+                 fraction = (sign * 264 - previous[1]) / (y - previous[1])
+                 goal_x = previous[0] + (x - previous[0]) * fraction
+                 goal_z = max(0, previous[2] + (z - previous[2]) * fraction)
+                 if abs(goal_x) <= 25 and goal_z <= 24:
+-                    time, cross_x, height = crease_crossing or (frame, goal_x, goal_z)
+-                    return GoaliePlan((max(-32, min(32, cross_x)), sign * 246),
+-                                      'released puck threatens goal', time, cross_x, height, frame)
++                    time, cross_x, height = crease_crossing
++                    if incoming is not None and incoming[0] < time:
++                        break
++                    return GoaliePlan((max(-32, min(32, cross_x)), sign * depth),
++                                      'released puck threatens goal', time, cross_x, height,
++                                      frame - 1 + fraction)
+                 break
+     vx, vy = velocity(puck)
+     reference = puck.x + vx * 8, max(-259, min(259, puck.y + vy * 8))
+     reception = None
+-    receiver = (state.team2.get_player_by_scnum(state.engine.pass_target)
+-                if state.engine.pass_target is not None else None)
+-    if (state.engine.puck_owner < 0 and receiver is not None and receiver is not state.team2.goalie
+-            and state.engine.last_puck_player is not None
+-            and state.team2.owns_scnum(state.engine.last_puck_player)):
+-        rx, ry = velocity(receiver)
+-        dx, dy = receiver.x + (receiver.stick_x or 0) - puck.x, receiver.y + (receiver.stick_y or 0) - puck.y
+-        relative = vx - rx, vy - ry
+-        time = (dx * relative[0] + dy * relative[1]) / max(0.01, relative[0]**2 + relative[1]**2)
+-        if 0 < time < 40 and math.hypot(dx - relative[0] * time, dy - relative[1] * time) < 16:
+-            reference = receiver.x + rx * time, max(-259, min(259, receiver.y + ry * time))
+-            reception = time
++    if incoming is not None:
++        reception, point = incoming
++        reference = point[0], max(-259, min(259, point[1]))
+     dx, dy = reference[0], reference[1] - sign * 260
+     length = max(1, math.hypot(dx, dy))
+     target = (max(-28, min(28, 26 * dx / length)),
+@@ -116,7 +164,8 @@
+     if reception is not None and reference[1] * sign > 88:
+         deadline = reception + math.dist(reference, (0, sign * 264)) / 6
+     return GoaliePlan(target, 'anticipate incoming receiver shooting angle' if reception is not None
+-                      else 'protect predicted shooting angle', deadline=deadline)
++                      else 'protect predicted shooting angle', deadline=deadline,
++                      receiver=reference if reception is not None else None, reception_frames=reception)
+ 
+ 
+ def goalie_steer(player, target):
+@@ -148,6 +197,11 @@
+         self.last_anim = None
+         self.last_owner = None
+         self.last_effective = False
++        self.last_passes = None
++        self.pass_windup = None
++        self.hold_sample = None
++        self.hold_tick = None
++        self.hold_stride = 1
+         self.metrics = Counter()
+         self.last_event = None
+         self.diagnostics = {}
+@@ -186,7 +240,7 @@
+         self.phase, self.retry_at = 'backoff', self.frames + 180
+         self.release_until = self.frames + 2
+ 
+-    def _takeover(self, state, plan, blocked):
++    def _takeover(self, state, plan, blocked, takeover_frames=TAKEOVER_FRAMES):
+         if blocked or self.frames < self.retry_at:
+             return False, 'preserve pending skater action'
+         if owns_puck(state.team1, state.engine.puck_owner):
+@@ -206,16 +260,47 @@
+         if plan.deadline is None:
+             return False, 'no projected goal threat'
+         reach = goalie_arrival(goalie, plan.target)
+-        if plan.deadline < TAKEOVER_FRAMES + reach + 6:
++        deadline = plan.crossing_frames if plan.crossing_frames is not None else plan.deadline
++        if deadline < takeover_frames + reach + 6:
+             return False, 'too late for B hold plus goalie reach'
+         player = state.team1.get_player_by_scnum(controlled_slot(state.team1))
+         if player is not None and eligible(player):
+-            if arrival_time(player, (state.puck.x, state.puck.y), boost=True) <= TAKEOVER_FRAMES / 2:
++            if (plan.receiver is None and state.engine.puck_owner >= 0
++                    and arrival_time(player, (state.puck.x, state.puck.y), boost=True) <= TAKEOVER_FRAMES / 2):
+                 return False, 'skater can contest before takeover'
+-            if all(blocks_shot_lane(player, (state.puck.x, state.puck.y), (x, state.team1.net.y))
++            if plan.receiver is not None and state.engine.puck_owner < 0:
++                race = DefenseController().choose_target(state)
++                if (race.mode == 'intercept-pass' and
++                        arrival_time(player, race.target) + 5 <= race.puck_arrival):
++                    return False, 'skater has a reachable pass interception'
++            origin = plan.receiver or (state.puck.x, state.puck.y)
++            delay = plan.reception_frames or 0
++            if all(blocks_shot_lane(player, origin, (x, state.team1.net.y), delay)
+                    for x in (-12, 0, 12)):
+                 return False, 'retain useful controlled shooting-lane block'
+         return True, 'reachable goal threat without useful controlled skater cover'
++
++    def _remaining_hold(self, count):
++        if self.hold_sample is not None and count < self.hold_sample:
++            if self.hold_tick is not None:
++                self.hold_stride = max(self.hold_stride, (self.frames - self.hold_tick) /
++                                       (self.hold_sample - count))
++            self.hold_tick = self.frames
++        self.hold_sample = count
++        return max(0, count) * self.hold_stride + 2
++
++    def _pass_feedback(self, state):
++        passes = state.team2.pass_attempts
++        if (passes is not None and self.last_passes is not None and passes > self.last_passes
++                and state.team2.owns_scnum(state.engine.puck_owner)
++                and state.engine.pass_target is not None):
++            self.pass_windup = state.engine.puck_owner, state.engine.pass_target, self.frames
++        self.last_passes = passes
++        if self.pass_windup is not None and (
++                state.engine.puck_owner != self.pass_windup[0]
++                or state.engine.pass_target != self.pass_windup[1]
++                or self.frames - self.pass_windup[2] > 6):
++            self.pass_windup = None
+ 
+     def step(self, state, *, blocked=False):
+         controller = self.validate(state)
+@@ -226,13 +311,15 @@
+         effective = selected and not goalie.live_state_flags & 4
+         if state.engine.puck_owner == slot and self.last_owner != slot and effective and self.last_effective:
+             self._event('controlled_catches')
+-        plan = goalie_target(state)
++        self._pass_feedback(state)
++        plan = goalie_target(state, self.pass_windup)
+         self.diagnostics = {
+             'phase': 'goalie', 'mode': self.phase, 'decision': self.phase, 'target': None,
+             'destination': plan.target, 'waypoint': plan.target, 'actual_slot': actual,
+             'desired_slot': slot, 'reason': plan.reason, 'policy': self.policy,
+             'crossing_frames': plan.crossing_frames, 'crossing_x': plan.crossing_x,
+             'deadline': plan.deadline, 'reach_frames': goalie_arrival(goalie, plan.target),
++            'receiver': plan.receiver, 'reception_frames': plan.reception_frames,
+             'hold_count': state.engine.goalie_hold_counts[controller],
+             'animation': goalie.live_anim, 'assignment': goalie.assignment,
+             'cpu_fallback': bool(goalie.live_state_flags & 4),
+@@ -243,6 +330,13 @@
+                                 last_event=self.last_event)
+         if action is not None:
+             self.diagnostics.update(target=plan.target, buttons=action.tolist())
++            if not action[4:8].any():
++                idle = ('save-commitment' if action[Buttons.INPUT_C] else
++                        'dive-commitment' if action[Buttons.INPUT_A] else
++                        'waiting-for-control' if action[Buttons.INPUT_B] else self.phase)
++                idle = self.diagnostics.get('idle_reason', idle)
++                self.diagnostics['idle_reason'] = idle
++                self.metrics['idle:' + idle] += 1
+         self.last_anim = goalie.live_anim
+         self.last_owner, self.last_effective = state.engine.puck_owner, effective
+         return action
+@@ -253,12 +347,23 @@
+         if self.pending_save is not None:
+             request, started = self.pending_save
+             expected = SAVE_ANIMATIONS if request == 'save' else (DIVE_ANIMATION,)
+-            if selected and goalie.live_anim in expected and goalie.live_anim != self.last_anim:
++            if (selected and not goalie.live_state_flags & 4
++                    and goalie.live_anim in expected and goalie.live_anim != self.last_anim):
+                 self._event(request + '_animations')
+                 self.pending_save = None
++            elif (not selected or owns_puck(state.team1, owner) or goalie.live_state_flags & 4
++                  or goalie.selection_flags & 0x20):
++                self._event(request + '_cancelled')
++                self.pending_save = None
++                self.save_at = self.frames + 2
++            elif goalie.unavailable & 6 or goalie.role != 0:
++                self._event(request + '_cancelled')
++                self.pending_save = None
++                self.save_at = self.frames + 2
+             elif self.frames - started > 6:
+                 self._event(request + '_unconfirmed')
+                 self.pending_save = None
++                self.save_at = self.frames + 2
+         if state.engine.clock_stopped or state.engine.input_block:
+             if self.phase not in ('skater', 'stoppage'):
+                 self.release_until = self.frames + 2
+@@ -273,15 +378,22 @@
+             if self.frames < self.release_until:
+                 return neutral
+             self.phase = 'positioning' if selected else 'skater'
+-        if (self.phase in ('prepare-goalie', 'request-goalie')
+-                and not selected and owns_puck(state.team1, owner)):
+-            self._event('takeover_cancelled', reason='friendly recovery during B hold')
+-            self.phase, self.release_until, self.retry_at = 'neutral-handoff', self.frames + 2, self.frames + 36
+-            return neutral
++        if self.phase in ('prepare-goalie', 'request-goalie') and not selected:
++            remaining = (self._remaining_hold(state.engine.goalie_hold_counts[
++                self.validate(state)]) if self.phase == 'request-goalie' else TAKEOVER_FRAMES)
++            self.diagnostics['remaining_hold_frames'] = remaining
++            take, reason = self._takeover(state, plan, blocked, remaining)
++            if not take:
++                self._event('takeover_cancelled', reason=reason)
++                self.diagnostics['reason'] = reason
++                self.phase, self.release_until, self.retry_at = 'neutral-handoff', self.frames + 2, self.frames + 36
++                return neutral
+         if self.phase == 'prepare-goalie':
+             if self.frames < self.release_until:
+                 return neutral
+             self.phase, self.started = 'request-goalie', self.frames
++            self.hold_sample = self.hold_tick = None
++            self.hold_stride = 1
+         if self.phase == 'request-goalie':
+             if selected:
+                 self._event('takeovers', elapsed_frames=self.frames - self.started)
+@@ -350,7 +462,7 @@
+             return neutral
+         sign = 1 if state.team1.net.y > 0 else -1
+         if owner != slot and (owns_puck(state.team1, owner)
+-                              or state.puck.y * sign < 70 and plan.crossing_frames is None):
++                              or state.puck.y * sign < 70 and plan.deadline is None):
+             return self._return()
+         if fallback:
+             self.phase = 'cpu-fallback'
+@@ -362,6 +474,15 @@
+         action = goalie_steer(goalie, plan.target)
+         if plan.crossing_frames is not None and self.frames >= self.save_at:
+             gap = abs(plan.crossing_x - goalie.x)
++            reach = goalie_arrival(goalie, plan.target)
++            can_align = (gap > 8 and plan.height <= 15 and plan.crossing_frames >= 2
++                         and reach + 1 <= plan.crossing_frames
++                         and (action[Buttons.INPUT_LEFT] or action[Buttons.INPUT_RIGHT]))
++            if can_align:
++                # A normal C save quarters momentum; finish reachable alignment first.
++                self.diagnostics.update(save_decision='align-before-save', alignment_gap=gap,
++                                        alignment_frames=reach)
++                return action
+             if plan.crossing_frames <= 9 and gap > 18 and plan.height <= 5:
+                 action[:] = 0
+                 action[Buttons.INPUT_A] = 1
+@@ -371,6 +492,8 @@
+                 action[:] = 0
+                 action[Buttons.INPUT_C] = 1
+                 self._request_save('save')
++        if not action.any():
++            self.diagnostics['idle_reason'] = 'holding-position'
+         return action
+ 
+     def _return(self):
+--- a/nhl94_ai/evaluation/cpu_benchmark.py
++++ b/nhl94_ai/evaluation/cpu_benchmark.py
+@@ -17,6 +17,7 @@
+ from nhl94_ai.game.ram import pass_geometry_info, restore_away_control, select_cpu_side
+ from nhl94_ai.evaluation.pass_outcomes import PassOutcomes
+ from nhl94_ai.evaluation.offense_metrics import OffenseMetrics
++from nhl94_ai.evaluation.defense_metrics import CarrierDefenseMetrics, GoalieDefenseMetrics
+ 
+ 
+ MATCHUPS = {
+@@ -116,6 +117,10 @@
+         last_ordinary_pass = None
+         passes = PassOutcomes(side)
+         offense = OffenseMetrics()
++        carrier_defense = CarrierDefenseMetrics()
++        opponent = 3 - side
++        goalie_defense = GoalieDefenseMetrics(info[f'p{opponent}_score'],
++                                             info[f'bench_one_timer_goals{opponent}'])
+         budget = seconds * 120 + 6000
+         while info['bench_clock'] > 0 and frames < budget:
+             info = pass_geometry_info(env, info)
+@@ -136,6 +141,7 @@
+                 passes.start(frames, info, request['passer'], request['receiver'], request['purpose'])
+                 passes.last_request_frame = request['frame']
+             diagnostics = agent.defense_diagnostics
++            carrier_defense.observe(view, diagnostics)
+             if diagnostics:
+                 defense_frames[diagnostics['decision']] += 1
+                 if diagnostics['mode'].endswith('-request'):
+@@ -145,6 +151,7 @@
+                 buttons = processor._process_action(action, macro)[0]
+             else:
+                 buttons = action
++            goalie_defense.observe(view, agent.goalie, buttons, frames)
+             digest.update(np.asarray(buttons, dtype=np.int8).tobytes())
+             before_owner = info['puck_owner']
+             *_, info = env.step(buttons)
+@@ -152,6 +159,8 @@
+                 info = restore_away_control(env.data, info, controller_prefix='bench', player_prefix='cpu', slots=6)
+             if diagnostics and before_owner != info['puck_owner'] == diagnostics['acting_slot']:
+                 controlled_recoveries += 1
++            carrier_defense.after_step(info['puck_owner'])
++            goalie_defense.after_step(info[f'p{opponent}_score'], info[f'bench_one_timer_goals{opponent}'])
+             frames += 1
+             passes.observe(frames, info)
+         passes.finish(frames, info, 'period_ended' if info['bench_clock'] == 0 else 'trial_incomplete')
+@@ -171,6 +180,7 @@
+             'decisions': dict(decisions), 'frames': frames,
+             'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
+             'controlled_recoveries': controlled_recoveries,
++            'carrier_defense_metrics': carrier_defense.summary(),
+             'inactive_skater_frames': inactive_skater_frames,
+             'ordinary_pass_metrics': dict(ordinary_pass_metrics),
+             'pass_outcomes': passes.summary(), 'pass_events': passes.events,
+@@ -181,6 +191,7 @@
+             'initial_state_sha256': hashlib.sha256(env.initial_state).hexdigest(),
+             'goalie_policy': goalie_policy,
+             'goalie_metrics': dict(agent.goalie.metrics) if agent.goalie else {},
++            'goalie_context_metrics': goalie_defense.summary(),
+             'cross_crease': cross_crease,
+             'cross_crease_metrics': dict(agent.cross_crease.metrics) if agent.cross_crease else {},
+             'cross_crease_events': agent.cross_crease.events if agent.cross_crease else [],
+@@ -224,6 +235,11 @@
+         for row in rows:
+             ordinary_pass_metrics.update(row.get('ordinary_pass_metrics', {}))
+         summary[matchup]['ordinary_pass_metrics'] = dict(ordinary_pass_metrics)
++        summary[matchup]['carrier_defense_metrics'] = {
++            zone: dict(sum((Counter(row.get('carrier_defense_metrics', {}).get(zone, {}))
++                            for row in rows), Counter()))
++            for zone in sorted({zone for row in rows for zone in row.get('carrier_defense_metrics', {})})
++        }
+         carry_metrics = Counter()
+         for row in rows:
+             carry_metrics.update(row.get('carry_metrics', {}))
+@@ -274,6 +290,7 @@
+         fixtures = [(*fixture, True) for fixture in fixtures]
+     controller = create_scripted(args.agent, SimpleNamespace(action_type=args.action_type)).controller
+     files = {Path(__file__), Path(inspect.getfile(PassOutcomes)), Path(inspect.getfile(OffenseMetrics)),
++             Path(inspect.getfile(CarrierDefenseMetrics)),
+              Path(inspect.getfile(HockeyActionController)), Path(inspect.getfile(NHL94GameState)),
+              Path(inspect.getfile(update_state))}
+     files.update(Path(inspect.getfile(cls)) for cls in type(controller).__mro__ if cls is not object)
+--- /dev/null
++++ b/nhl94_ai/evaluation/defense_metrics.py
+@@ -0,0 +1,93 @@
++"""Read-only carrier-defense telemetry, not causal tackle attribution."""
++from collections import Counter
++import math
++
++from nhl94_ai.agents.defense import controlled_slot, eligible
++from nhl94_ai.game.constants import GameConsts
++
++
++class CarrierDefenseMetrics:
++    def __init__(self):
++        self.zones = {}
++        self.previous = None
++        self.recovery_context = None
++
++    def observe(self, state, diagnostics):
++        self.recovery_context = None
++        owner, actual = state.engine.puck_owner, controlled_slot(state.team1)
++        carrier = next((player for index, player in enumerate(state.team2.players)
++                        if state.team2.skater_scnum_base() + index == owner and eligible(player)), None)
++        player = next((player for index, player in enumerate(state.team1.players)
++                       if state.team1.skater_scnum_base() + index == actual and eligible(player)), None)
++        if not diagnostics or carrier is None or player is None:
++            self.previous = None
++            return
++        sign = 1 if state.team1.net.y > 0 else -1
++        depth = carrier.y * sign
++        zone = ('neutral' if abs(depth) < GameConsts.SLOT_BAND_MIN_Y else
++                'defensive' if depth >= GameConsts.SLOT_BAND_MIN_Y else 'attacking')
++        counts = self.zones.setdefault(zone, Counter())
++        goal_side = player.y * sign >= depth
++        counts['frames'] += 1
++        counts['goal_side_frames' if goal_side else 'behind_carrier_frames'] += 1
++        counts['close_frames'] += math.dist((player.x, player.y), (carrier.x, carrier.y)) <= 30
++        counts['cutoff_frames'] += diagnostics['decision'] == 'intercept-carrier'
++        counts['retreat_frames'] += diagnostics['decision'] == 'retreat-lane'
++        counts['poke_requests'] += diagnostics['mode'] == 'poke-request'
++        counts['check_requests'] += diagnostics['mode'] == 'check-request'
++        if self.previous == (owner, actual, False) and goal_side:
++            counts['goal_side_regained'] += 1
++        self.previous = owner, actual, goal_side
++        self.recovery_context = zone, owner, actual
++
++    def after_step(self, owner):
++        if self.recovery_context is not None:
++            zone, before, actual = self.recovery_context
++            if before != owner == actual:
++                self.zones[zone]['direct_controlled_recoveries'] += 1
++        self.recovery_context = None
++
++    def summary(self):
++        return {zone: dict(counts) for zone, counts in self.zones.items()}
++
++
++class GoalieDefenseMetrics:
++    """Control context immediately before a goal, not causal save attribution."""
++
++    def __init__(self, score, one_timer_goals):
++        self.score, self.one_timer_goals = score, one_timer_goals
++        self.phases = Counter()
++        self.input_modes = Counter()
++        self.context = None
++        self.events = []
++
++    def observe(self, state, controller, buttons, frame):
++        goalie = state.team1.goalie
++        selected = controlled_slot(state.team1) == state.team1.defense_goalie
++        effective = (controller is not None and selected and bool(goalie.selection_flags & 8)
++                     and not goalie.live_state_flags & 4)
++        phase = controller.phase if controller is not None else 'cpu'
++        self.phases[phase] += 1
++        mode = ('moving' if any(buttons[4:8]) else
++                'C-only' if buttons[GameConsts.INPUT_C] else
++                'B-only' if buttons[GameConsts.INPUT_B] else 'neutral')
++        self.input_modes[mode] += 1
++        self.context = {
++            'frame': frame, 'phase': phase, 'effective_manual': effective,
++            'selected_slot': controlled_slot(state.team1),
++            'cpu_fallback': bool(goalie.live_state_flags & 4),
++            'goalie_position': [goalie.x, goalie.y],
++            'goalie_velocity': [goalie.motion_x, goalie.motion_y],
++            'input_mode': mode,
++        }
++
++    def after_step(self, score, one_timer_goals):
++        for name, value, previous in (('score', score, self.score),
++                                      ('one_timer_goals', one_timer_goals, self.one_timer_goals)):
++            if value > previous:
++                self.events.append({**self.context, 'counter': name, 'delta': value - previous})
++        self.score, self.one_timer_goals = score, one_timer_goals
++
++    def summary(self):
++        return {'phase_frames': dict(self.phases), 'input_frames': dict(self.input_modes),
++                'goal_events': self.events}
