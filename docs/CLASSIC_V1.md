@@ -10,6 +10,172 @@ Historical results below and the archived benchmark files keep their original
 V4/V2/V3 labels, sources, and hashes. They are not new V1 benchmark runs, and
 comparisons against the removed controllers cannot be rerun from this tree.
 
+## Default offense restoration (2026-10-08)
+
+Ordinary `classic-v1` again uses the immediate carry/pass priorities, goalie
+avoidance model and ordinary-reception cadence from `5109c57`. The default
+possession policy lives in `agents/possession.py`; it shares passing geometry,
+pass/one-timer lifecycle, release guards and defensive control with the current
+controller. The decision inspector and native predictors remain available.
+
+`--offense-lookahead` explicitly selects the native carry/receiver-continuation
+policy introduced in `117efb1`, including its native goalie-avoidance projection
+and next-frame reception interrupts. `--uncertain-carry` and `--chance-creation`
+also select those semantics, preserving their experimental behavior. All three
+options are off by default. Cross-crease and deke finishers remain separately
+opt-in and operate on the selected offense policy.
+
+The restored default ranks ordinary carries using sampled body clearance,
+arrival estimates, positional value and forward progress. These estimates do
+not certify a route against every possible defender input. Its diagnostics use
+`carry_pressure_model=arrival-estimate`, `carry_estimated_clear` and
+`carry_safe=null`; positional value is not executable finishing credit.
+Experimental native forecasts retain their independent `carry_safe` certificate.
+
+The regression was not isolated to carry ranking. An eight-period component
+pilot restored ordinary shots, but its separate 40-period comparison did not
+restore match strength. Restoring the earlier goalie-avoidance and reception
+timing as well reproduced all eight earlier-version pilot action hashes.
+The completed comparisons below preserve the unsuccessful partial restoration
+alongside the final policy; local mechanics correctness is not a strength claim.
+
+Manual-goalie validation also accepts an absent diagnostic assignment label.
+An empty native assignment stack can otherwise abort a match even when motion,
+ratings and controller ownership are available. Those required gameplay inputs
+remain checked. This is separate from the offensive policy restoration.
+
+### Restoration measurements
+
+The [paired comparison](benchmarks/classic-v1-default-restoration-comparison.json)
+verifies matching saved starts, physical teams, lineups and seeds; completed
+zero-clock periods; zero inactive-skater frames; balanced one-timer accounting;
+and final runtime source hashes. All **200 final periods** complete. Every
+comparison uses 300-clock-second first periods, four-frame offense, `FILTERED`,
+and disabled experimental tactics.
+
+| Cohort | Paired periods | `117efb1` GF-GA | Restored GF-GA | Before W/D/L | Restored W/D/L |
+| --- | ---: | ---: | ---: | --- | --- |
+| Standard Ducks/Sabres, goalie off | 40 | 41-14 | 60-13 | 20/16/4 | 25/12/3 |
+| Pittsburgh/Ottawa and Montreal/Quebec, goalie off | 80 | 92-48 | 131-26 | 36/27/17 | 59/18/3 |
+| Buffalo/Anaheim and Anaheim/Campbell, selective goalie | 79 | 104-46 | 157-37 | 40/20/19 | 59/17/3 |
+
+The standard cohort uses seeds `20265001..20265020`, disjoint from the
+four-seed component pilots. The other cohorts reuse the original regression
+seeds `20263001..20263020`. These are development comparisons, not untouched
+held-out policy-selection tests. The original selective-goalie version crashed
+on Campbell seed `20263018`, so that pair is excluded from the score comparison.
+The restored policy completes all 80 selective trials at **160-37, 60/17/3**.
+The separate [crash replay](benchmarks/classic-v1-default-restoration-goalie-crash.json)
+also completes with `--offense-lookahead`, independently checking the validation
+fix on the policy that previously failed.
+
+All 120 goalie-off final action hashes match `5109c57`, recovering its previous
+scores exactly. The newer selective-goalie controller is retained: against
+`5109c57`, its full 80-period result changes from 141-32 to 160-37. The paired
+goal-difference interval includes zero, so this does not establish superiority
+to the earlier goalie policy.
+
+| Classic fixture | Policy | Before GF-GA | Restored GF-GA |
+| --- | --- | ---: | ---: |
+| Pittsburgh vs Ottawa | off | 35-8 | 40-5 |
+| Ottawa vs Pittsburgh | off | 14-11 | 26-3 |
+| Montreal vs Quebec | off | 31-13 | 38-13 |
+| Quebec vs Montreal | off | 12-16 | 27-5 |
+| Buffalo vs Anaheim | selective | 28-3 | 46-5 |
+| Anaheim vs Buffalo | selective | 19-13 | 35-16 |
+| Anaheim vs Campbell | selective | 18-22 | 27-11 |
+| Campbell vs Anaheim, 19 matched periods | selective | 39-8 | 49-5 |
+
+Offensive production recovers: in the 80 goalie-off regression periods, recorded
+shots rise **325 to 570**, ordinary `shoot` decisions **164 to 494**, and goals
+excluding one-timers **13 to 43**. Escape decisions fall **34,387 to 14,767**.
+Native one-timer attempts fall 223 to 197 while their goals rise 79 to 88.
+Scoreless periods fall 28 to 14. Ordinary turnovers rise 582 to 593 and offensive
+zone turnovers 313 to 383: the improvement does not mean every safety or
+possession metric improved. The report retains those overlapping metrics,
+opponent shots, goalie contacts, per-matchup outcomes and seed-clustered
+bootstrap intervals.
+
+The [component archive](benchmarks/classic-v1-default-restoration-components.json.gz)
+preserves all six eight-period pilots and links exact patches against `117efb1`.
+The unsuccessful [partial restoration](benchmarks/classic-v1-default-restoration-partial.json)
+scores 45-20 in the 40-period standard cohort, versus 41-14 before: four extra
+goals do not offset six extra concessions. This is why the complete offense
+policy, including steering guards and reception cadence, was restored together.
+The cumulative experiments do not assign a unique causal contribution to each
+component. The original negative reports remain unchanged.
+
+The [current-source native gate](benchmarks/classic-v1-default-restoration-gate.json)
+reproduces the complete away period's 8,520 frames and applied inputs. A separate
+selective dispatch gate is embedded in its raw report. These verify caller
+parity, not general playing strength. Fixed saved rosters and first periods
+remain limitations; these are not full-game win rates or all-team coverage.
+
+Reproduce the standard comparison with the frozen revisions and source patches
+identified in the reports, and the final policy with:
+
+```bash
+python -m nhl94_ai benchmark-cpu --agent classic-v1 \
+  --matchups sabres-ducks-manual ducks-sabres-manual \
+  --goalie-policy off --trials 20 --seed 20265001 --seconds 300 \
+  --frame-skip 4 --action-type FILTERED --workers 4 \
+  --output /tmp/classic-restoration-standard.json
+python -m nhl94_ai.evaluation.carry_replay_gate \
+  --benchmark /tmp/classic-restoration-standard.json \
+  --output /tmp/classic-restoration-gate.json
+```
+
+The four-fixture matrices use `evaluation/fixture_regression.py` with
+`--revision-root "$PWD"`, `--group off` or `--group selective`, `--trials 20`,
+`--seed 20263001`, `--workers 4` and a fresh `--output` path; selective also
+uses `--gate`. Their raw reports are
+[CPU goalie](benchmarks/classic-v1-default-restoration-off.json) and
+[selective goalie](benchmarks/classic-v1-default-restoration-selective.json).
+
+Validation: `python -m unittest discover -s tests -v` completes 763 tests with
+one existing expected failure; `python -m pylint nhl94_ai tests` passes at
+10.00/10. Explicit ROM checks in `tests.integration.classic_offense`,
+`tests.integration.classic_carry`, `tests.integration.offensive_followup` and
+`tests.integration.manual_goalie` pass. The captured live retreat is retained in
+`tests/fixtures/classic-carry-retreat.json`; unit checks also preserve the
+default/experimental reception-cadence distinction and optional assignment
+feedback behavior.
+
+### Same-seed benchmark rerun (2026-10-08)
+
+A fresh current-source rerun completes all **200 restored-default periods** and
+reproduces every archived match record exactly, including applied-action hashes,
+scores, native counters and event metrics. No gameplay sources were changed.
+The [rerun comparison](benchmarks/classic-v1-default-restoration-rerun-comparison.json)
+records per-team and per-fixture GF-GA, W/D/L, scoreless periods, shots,
+one-timers, turnovers and phase-tagged goalie contacts, plus source/runtime
+fingerprints and report hashes.
+
+| Cohort | Completed periods | Rerun GF-GA | Rerun W/D/L | Changed input periods |
+| --- | ---: | ---: | --- | ---: |
+| Standard Buffalo/Anaheim, goalie off | 40 | 60-13 | 25/12/3 | 0 |
+| Pittsburgh/Ottawa and Montreal/Quebec, goalie off | 80 | 131-26 | 59/18/3 | 0 |
+| Buffalo/Anaheim and Anaheim/Campbell, selective goalie | 80 | 160-37 | 60/17/3 | 0 |
+
+The raw [standard](benchmarks/classic-v1-default-restoration-rerun-standard.json),
+[CPU-goalie](benchmarks/classic-v1-default-restoration-rerun-off.json) and
+[selective-goalie](benchmarks/classic-v1-default-restoration-rerun-selective.json)
+reports retain the original seed ranges and settings above. Completed coverage,
+zero remaining clocks, active skaters, balanced one-timer lifecycles and matching
+saved starts, teams, lineups and effective attributes were checked. The fresh
+[native replay gate](benchmarks/classic-v1-default-restoration-rerun-gate.json)
+matches 8,520 away frames; the selective report's independent dispatch gate
+matches 8,512 frames.
+
+This is a same-seed reproducibility check, not new held-out strength evidence.
+The weaker-policy scores were reused from the historical reports, not rerun.
+Against its 79 completed selective periods, the matched restored result remains
+**157-37, 59/17/3**; the full **160-37** includes the formerly crashing Campbell
+seed `20263018`, which now completes. `--offense-lookahead` and all other
+experimental tactics remain disabled in these rerun measurements.
+
+### Current offensive priorities
+
 Offense uses accuracy-aware finishing and observed pass outcomes:
 
 1. Pass to a nearby skater when the goalie owns the puck.
@@ -414,7 +580,7 @@ tolerance. It no longer teleports the goalie into a favorable bait response or
 zeros its momentum.
 
 At this historical refinement, `agents/skating.py` was deliberately deke-only.
-The later [default carry and receiving continuations](#default-carry-and-receiving-continuations)
+The later [experimental carry and receiving continuations](#experimental-carry-and-receiving-continuations)
 also reuse its native updates. Native grounded movement applies
 signed friction (at least one raw unit), integrates the full 16.16 position,
 then applies input. Turns retain fractional facing and can accelerate along the
@@ -2229,11 +2395,12 @@ python -m nhl94_ai.evaluation.chance_creation_replay \
   --output docs/benchmarks/classic-v1-chance-creation-windows.json
 ```
 
-### Default carry and receiving continuations
+### Experimental carry and receiving continuations
 
-These changes are active in ordinary `classic-v1`; neither `--cross-crease`
-nor `--deke` is required, and those experimental finishers remain off by
-default. Close ordinary shots and available one-timers retain their finishing
+These changes now require `--offense-lookahead`, `--uncertain-carry` or
+`--chance-creation`; they are no longer active in ordinary `classic-v1` after
+the default restoration above. Neither `--cross-crease` nor `--deke` is required.
+Close ordinary shots and available one-timers retain their finishing
 priority. No model assets, input layouts, action IDs or CLI flags change.
 
 `agents/carry.py` projects the native grounded update while holding the same
@@ -2265,8 +2432,9 @@ These bounds cover the modeled skating/control choices, not arbitrary new ROM
 collision impulses, attribute changes or exact future goalie/CPU decisions.
 
 **Opt-in `--uncertain-carry` separates certification from action selection.**
-It is **off by default**: the full experiment regressed for the Ducks, so normal
-Classic retains the preceding certificate-only policy. A geometrically clear
+It is **off by default**: the full experiment regressed for the Ducks. Within
+`--offense-lookahead`, omitting this flag retains certificate-only selection.
+The restored default instead uses the immediate possession policy. A geometrically clear
 route that lacks a reachability certificate can remain `carry_viable`, while
 `carry_safe` stays false. Native directional, coasting and initial-facing-burst
 scenarios provide a separate modeled-contact assessment; unsuccessful samples
@@ -2874,7 +3042,7 @@ python -m nhl94_ai.evaluation.carry_replay \
   --output docs/benchmarks/classic-v1-threat-exits-extended-ducks-replay.json
 ```
 
-#### Matched default-policy Ducks/Sabres measurement
+#### Historical default-policy Ducks/Sabres measurement
 
 The [original default-offense report](benchmarks/classic-v1-default-offense-lookahead.json) and
 [paired comparison](benchmarks/classic-v1-default-offense-lookahead-comparison.json)

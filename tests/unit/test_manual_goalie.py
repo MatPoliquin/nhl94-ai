@@ -118,6 +118,17 @@ class GoalieContractTests(unittest.TestCase):
         self.assertEqual(build_parser().parse_args([]).matchups,
                          ['penguins-senators', 'senators-penguins', 'nordiques-canadiens'])
 
+    def test_empty_assignment_stack_is_optional_diagnostic_feedback(self):
+        state = goalie_state()
+        expected = GoalieController('selective').step(deepcopy(state))
+        state.team1.goalie.assignment = None
+        controller = GoalieController('selective')
+        np.testing.assert_array_equal(controller.step(state), expected)
+        self.assertIsNone(controller.diagnostics['assignment'])
+        state.team1.goalie.motion_x = None
+        with self.assertRaisesRegex(ValueError, 'Missing live goalie motion'):
+            controller.step(state)
+
 
 class GoalieGeometryTests(unittest.TestCase):
     def test_targets_remain_in_crease_for_both_ends(self):

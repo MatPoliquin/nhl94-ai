@@ -1,0 +1,225 @@
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -593,6 +593,30 @@
+             'reception_frames': elapsed,
+         }
+ 
++    @staticmethod
++    def _baseline_carry_option(state, player, target):
++        target = route_waypoint((player.x, player.y), project_target(target))
++        escape = goalie_avoidance(state, player, target)
++        details = {}
++        if escape is not None:
++            target, details = escape
++            target = route_waypoint((player.x, player.y), target)
++        clearance = carry_clearance(state, player, target)
++        motions = [_carry_motion(player, target, frames) for frames in CARRY_SAMPLES]
++        bounded = all(motion is not None for motion in motions)
++        margin = min(pressure_margin(state.team2, motion[0], frames)
++                     for motion, frames in zip(motions, CARRY_SAMPLES)) if bounded else -math.inf
++        safe = clearance > 0 and margin >= 3 and details.get('goalie_avoidance_safe', True)
++        sign = 1 if state.team2.net.y > state.team1.net.y else -1
++        progress = (motions[-1][0][1] - player.y) * sign if bounded else -math.inf
++        opportunity = shot_value(state, player, motions[-1][0], FEINT_FRAMES) if safe else 0
++        return target, {
++            **details, 'carry_safe': safe, 'carry_bounded': bounded,
++            'carry_clearance': clearance, 'carry_pressure': margin,
++            'carry_progress': progress, 'carry_shot_value': opportunity,
++        }
++
++
+     def fallback_carry(self, state, player):
+         preferred = self.carry_target(state, player)
+         if (player.motion_x is None or player.motion_y is None
+@@ -601,7 +625,7 @@
+                 'mode': 'carry', 'carry_safe': None,
+                 'reason': 'missing feedback; retain legacy carry/setup',
+             }
+-        first = self._carry_option(state, player, preferred)
++        first = self._baseline_carry_option(state, player, preferred)
+         if first[1]['carry_safe']:
+             return first[0], {
+                 **first[1], 'mode': 'goalie-avoid' if 'goalie_clearance' in first[1] else 'carry',
+@@ -614,37 +638,26 @@
+         targets.extend((player.x + dx, player.y + sign * dy)
+                        for dx, dy in ((-48, 0), (48, 0), (0, -48), (-48, -24), (48, -24),
+                                       (-48, 24), (48, 24)))
+-        targets.extend((player.x + dx, player.y + sign * dy)
+-                       for dx in (-12, 12, -24, 24) for dy in (0, 24))
+-        options = [first, *(self._carry_option(state, player, target) for target in targets)]
++        options = [first, *(self._baseline_carry_option(state, player, target) for target in targets)]
+         bounded = [option for option in options if option[1]['carry_bounded']]
+         if not bounded:
+             return route_waypoint((player.x, player.y), project_target(brake)), {
+                 'mode': 'carry-escape', 'carry_safe': False, 'carry_bounded': False,
+                 'reason': 'no bounded carry; brake before unavoidable wall or net contact',
+             }
+-        def experimental_key(option):
+-            return (
+-                physical_clearance(option[1]) > 0, carry_viable(option[1]),
+-                carry_value(option[1]) if carry_viable(option[1]) else physical_clearance(option[1]),
+-                option[1]['carry_progress'] if carry_viable(option[1]) else min(option[1]['carry_pressure'], 12),
+-                option[1]['carry_safe'], min(physical_clearance(option[1]), 16),
+-                -math.dist(option[0], preferred))
+-        def certified_key(option):
+-            return (
+-                option[1]['carry_safe'], carry_value(option[1]),
+-                option[1]['carry_progress'] if option[1]['carry_safe'] else min(option[1]['carry_pressure'], 12),
+-                min(option[1]['carry_pressure'], 12) if option[1]['carry_safe'] else min(option[1]['carry_clearance'], 16),
+-                min(option[1]['carry_clearance'], 16), -math.dist(option[0], preferred))
+-        point, details = max(bounded, key=experimental_key if self.allow_uncertified else certified_key)
++        point, details = max(bounded, key=lambda option: (
++            option[1]['carry_safe'], option[1]['carry_shot_value'],
++            option[1]['carry_progress'] if option[1]['carry_safe'] else min(option[1]['carry_pressure'], 12),
++            min(option[1]['carry_pressure'], 12) if option[1]['carry_safe'] else min(option[1]['carry_clearance'], 16),
++            min(option[1]['carry_clearance'], 16), -math.dist(option[0], preferred)))
+         mode = ('goalie-avoid' if 'goalie_clearance' in first[1] else
+                 'carry' if point == first[0] else 'carry-escape')
+         return point, {
+             **details, 'mode': mode,
+-            'reason': 'certified carrying escape' if details['carry_safe']
+-            else 'risk-assessed attacking route; defender safety uncertified' if carry_viable(details)
+-            else 'no viable carry; prioritize body and goalie separation',
++            'reason': 'escape the unsafe default carry with interception and contact clearance'
++            if details['carry_safe'] else 'no safe carry; maximize contact and interception clearance',
+         }
++
+ 
+     @staticmethod
+     def breakaway(state, player):
+@@ -677,10 +690,6 @@
+                 continue
+             option, details = evaluate_pass(
+                 state, player, index, receiver, purpose, decision_interval=self.decision_interval)
+-            details['purpose'] = purpose
+-            if option is not None and purpose != 'one-timer' and continuations:
+-                option, continuation = self._receiver_continuation(state, option)
+-                details.update(continuation, value=option.value)
+             if (purpose == 'one-timer' and option is not None
+                     and not (option.point[0] * player.x <= 0 and abs(option.point[0] - player.x) > 30)
+                     and option.shot_value <= current_shot + 12):
+@@ -692,6 +701,7 @@
+         key = (lambda option: (-option.shot_value, -option.margin, option.slot)) if purpose == 'one-timer' else (
+             lambda option: (-option.value, option.slot))
+         return sorted(choices, key=key), diagnostics
++
+ 
+     def _continue_cut(self, state, player, frame):
+         if self.feint_target is None:
+@@ -848,39 +858,22 @@
+                           'safe short carry models a stronger passing window; recheck live before release')
+ 
+     @staticmethod
+-    def _worthwhile(option, player, sign, purpose, current, retained_progress=0):
++    def _worthwhile(option, player, sign, purpose, current):
+         if purpose == 'advance':
+             return option.forward_gain >= 20 and (
+-                option.bypassed > 0 or option.forward_gain >= max(50, retained_progress + 20)
+-                or player.y * sign + max(0, retained_progress) < 88 <= option.point[1] * sign
+-                or option.opportunity > current + 12)
+-        return option.opportunity > current + 12
++                option.bypassed > 0 or option.forward_gain >= 50
++                or player.y * sign < 88 <= option.point[1] * sign)
++        return option.shot_value > current + 12
++
+ 
+     def choose(self, state, frame):
+-        self.risk_cache.clear()
+         player = state.team1.get_player_by_scnum(state.engine.puck_owner)
+-        self.diagnostics = {
+-            'candidates': [], 'scenario_samples': 8,
+-            'evaluation_frame': frame, 'evaluation_carrier': state.engine.puck_owner,
+-        }
++        self.diagnostics = {'candidates': [], 'scenario_samples': 8}
+         if (player is None or not eligible(player) or player.motion_x is None
+                 or player.motion_y is None or not state.engine.puck_owner_known):
+             self.diagnostics['status'] = 'missing-feedback'
+             return None
+         sign = 1 if state.team2.net.y > state.team1.net.y else -1
+-        purpose = 'advance' if player.y * sign < 140 else 'position'
+-        choices, self.diagnostics['candidates'] = self.passes(state, purpose)
+-        retained_value, retained = self.retained_opportunity(state, player)
+-        current = shot_value(state, player)
+-        retained_progress = retained[1]['carry_progress'] if retained else 0
+-        self.diagnostics.update(retained_value=retained_value, retained_carry=retained,
+-                                retained_progress=retained_progress)
+-        choices = [option for option in choices if self._worthwhile(
+-            option, player, sign, purpose, retained_value, retained_progress)]
+-        worthwhile_slots = {option.slot for option in choices}
+-        for candidate in self.diagnostics['candidates']:
+-            if candidate['status'] == 'safe':
+-                candidate['worthwhile'] = candidate['slot'] in worthwhile_slots
+         finish_depth = 198 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * 0.4
+         if (player.y * sign > finish_depth and abs(player.x) < 48
+                 and shot_release_in_front(state, player, self.decision_interval)
+@@ -892,11 +885,15 @@
+             self.feint_target = None
+             return self._plan(state, 'carry-breakaway', self.carry_target(state, player),
+                               'no reachable skater interception')
+-        if self.chance_creation and self.feint_target is None:
+-            chance = self._create_chance(state, player, frame)
+-            if chance is not None:
+-                return chance
+-        opportunity = max(current, choices[0].opportunity + min(choices[0].margin, 12) if choices else 0)
++        purpose = 'advance' if player.y * sign < 140 else 'position'
++        choices, self.diagnostics['candidates'] = self.passes(state, purpose)
++        current = shot_value(state, player)
++        choices = [option for option in choices if self._worthwhile(option, player, sign, purpose, current)]
++        worthwhile_slots = {option.slot for option in choices}
++        for candidate in self.diagnostics['candidates']:
++            if candidate['status'] == 'safe':
++                candidate['worthwhile'] = candidate['slot'] in worthwhile_slots
++        opportunity = max(current, choices[0].shot_value + min(choices[0].margin, 12) if choices else 0)
+         if self.feint_mode == 'one-timer-setup':
+             continuation = self._continue_cut(state, player, frame)
+             if continuation:
+@@ -915,10 +912,6 @@
+         cut = self._feint(state, player, frame, opportunity)
+         if cut:
+             return cut
+-        if retained is not None and carry_value(retained[1]) > POSITIONAL_CREDIT * current + 10:
+-            self.diagnostics.update(retained[1])
+-            return self._plan(state, 'carry-opportunity', retained[0],
+-                              'risk-assessed short carry improves the opportunity; safety uncertified'
+-                              if not retained[1]['carry_safe'] else 'certified short carry improves the opportunity')
+         self.diagnostics['status'] = 'no-better-safe-option'
+         return None
++
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -425,7 +425,7 @@
+ 
+     def _steer(self, action, player, x, y, state=None):
+         escape = goalie_avoidance(
+-            state, player, (x, y), decision_interval=self._decision_interval) if state is not None else None
++            state, player, (x, y)) if state is not None else None
+         if escape is not None:
+             (x, y), details = escape
+             self._last_decision = 'goalie-avoid'
+@@ -523,7 +523,7 @@
+         request = self.offense.pending
+         self.offense.observe(state, self.defense.frames)
+         if (request is not None and self.offense.pending is None
+-                and self.offense.last_pass['outcome'] in ('received', 'other-receiver', 'recovered-by-passer')):
++                and self.offense.last_pass['outcome'] == 'recovered-by-passer'):
+             self._frame_remaining = 0
+ 
+     def _observe_one_timer(self, state, frame):
+@@ -616,7 +616,7 @@
+             }
+             if request['launched'] and owner < 0 and player is not None:
+                 escape = goalie_avoidance(
+-                    state, player, (player.x, player.y), decision_interval=self._decision_interval)
++                    state, player, (player.x, player.y))
+                 if escape is not None:
+                     self._steer(action, player, *escape[0])
+                     self._last_decision = 'goalie-avoid'
+@@ -659,7 +659,7 @@
+             plan = self.offense.choose(state, self.defense.frames)
+             self.offense_diagnostics = self.offense.diagnostics
+             escape = goalie_avoidance(
+-                state, player, self.offense.carry_target(state, player), decision_interval=self._decision_interval)
++                state, player, self.offense.carry_target(state, player))
+             self.offense_diagnostics['shot_release_model'] = (
+                 'native-animation-envelope' if player.shot_offsets_y is not None else 'conservative-animation-envelope')
+             normal_finish, early_finish = ordinary_shot_conditions(

@@ -345,7 +345,8 @@ class ReceiverContinuationTests(unittest.TestCase):
             for interval in (4, 10):
                 with self.subTest(schema=schema, interval=interval):
                     state = wing_reception_state()
-                    model = ClassicAIV1Model(SimpleNamespace(action_type=schema, one_timers=False))
+                    model = ClassicAIV1Model(SimpleNamespace(
+                        action_type=schema, one_timers=False, offense_lookahead=True))
                     action = model.predict_frame(state, interval)[0]
                     processor = HockeyActionController(SimpleNamespace(action_type=schema, game_state=state))
                     buttons = processor._process_action(action, processor._new_action_state())[0]

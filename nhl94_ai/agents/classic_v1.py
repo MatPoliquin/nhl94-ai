@@ -18,6 +18,7 @@ from nhl94_ai.agents.offense import (
     goalie_avoidance, ordinary_shot_conditions, projected_state,
 )
 from nhl94_ai.agents.passing import pass_release_frames, shot_value
+from nhl94_ai.agents.possession import PossessionOffenseController
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
 from nhl94_ai.env.intents import (
@@ -59,9 +60,10 @@ class ClassicAIV1Model:
         self._last_action_preferences = np.zeros((1, self._size), dtype=np.float32)
         self.defense = DefenseController()
         self.defense_diagnostics = {}
-        self.offense = OffenseController(one_timers=self._one_timers,
-                                         allow_uncertified=getattr(args, 'uncertain_carry', False),
-                                         chance_creation=getattr(args, 'chance_creation', False))
+        offense_type = OffenseController if getattr(args, 'offense_lookahead', False) else PossessionOffenseController
+        self.offense = offense_type(one_timers=self._one_timers,
+                                    allow_uncertified=getattr(args, 'uncertain_carry', False),
+                                    chance_creation=getattr(args, 'chance_creation', False))
         if getattr(args, 'chance_creation', False) and (
                 getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
                 or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
@@ -423,9 +425,12 @@ class ClassicAIV1Model:
         self._defense_elapsed = frame_skip
         return self._frame_action.copy()
 
+    def _goalie_escape(self, state, player, target):
+        return goalie_avoidance(state, player, target, decision_interval=(
+            self._decision_interval if self.offense.uses_lookahead else None))
+
     def _steer(self, action, player, x, y, state=None):
-        escape = goalie_avoidance(
-            state, player, (x, y), decision_interval=self._decision_interval) if state is not None else None
+        escape = self._goalie_escape(state, player, (x, y)) if state is not None else None
         if escape is not None:
             (x, y), details = escape
             self._last_decision = 'goalie-avoid'
@@ -446,12 +451,14 @@ class ClassicAIV1Model:
         point, details = self.offense.fallback_carry(state, player)
         self.offense_diagnostics.update(details)
         self._last_decision = 'carry-breakaway' if breakaway and details['mode'] == 'carry' else details['mode']
-        outcome = ('missing-feedback' if details['carry_safe'] is None else
+        estimated = details.get('carry_pressure_model') == 'arrival-estimate'
+        outcome = ('estimated-clear' if details.get('carry_estimated_clear') else 'estimated-fallback') if estimated else (
+                   'missing-feedback' if details['carry_safe'] is None else
                    'uncertified-viable' if not details['carry_safe'] and details.get('carry_viable') else
                    'least-risk' if not details['carry_safe'] else 'safe-default'
                    if details['mode'] == 'carry' else 'safe-escape')
         self.carry_metrics[outcome] = self.carry_metrics.get(outcome, 0) + 1
-        self._steer(action, player, *point, state if details['carry_safe'] is None else None)
+        self._steer(action, player, *point, state if details['carry_safe'] is None and not estimated else None)
         return action, HOCKEY_INTENT_NOOP
 
     @staticmethod
@@ -522,9 +529,11 @@ class ClassicAIV1Model:
     def _observe_ordinary_pass(self, state):
         request = self.offense.pending
         self.offense.observe(state, self.defense.frames)
-        if (request is not None and self.offense.pending is None
-                and self.offense.last_pass['outcome'] in ('received', 'other-receiver', 'recovered-by-passer')):
-            self._frame_remaining = 0
+        if request is not None and self.offense.pending is None:
+            outcome = self.offense.last_pass['outcome']
+            if (outcome == 'recovered-by-passer' or self.offense.uses_lookahead
+                    and outcome in ('received', 'other-receiver')):
+                self._frame_remaining = 0
 
     def _observe_one_timer(self, state, frame):
         if self._one_timer is None:
@@ -615,8 +624,7 @@ class ClassicAIV1Model:
                 'actual_slot': actual, 'desired_slot': request['receiver'], 'pending_pass': dict(request),
             }
             if request['launched'] and owner < 0 and player is not None:
-                escape = goalie_avoidance(
-                    state, player, (player.x, player.y), decision_interval=self._decision_interval)
+                escape = self._goalie_escape(state, player, (player.x, player.y))
                 if escape is not None:
                     self._steer(action, player, *escape[0])
                     self._last_decision = 'goalie-avoid'
@@ -658,8 +666,7 @@ class ClassicAIV1Model:
             self.offense.one_timer_at = self._pass_at
             plan = self.offense.choose(state, self.defense.frames)
             self.offense_diagnostics = self.offense.diagnostics
-            escape = goalie_avoidance(
-                state, player, self.offense.carry_target(state, player), decision_interval=self._decision_interval)
+            escape = self._goalie_escape(state, player, self.offense.carry_target(state, player))
             self.offense_diagnostics['shot_release_model'] = (
                 'native-animation-envelope' if player.shot_offsets_y is not None else 'conservative-animation-envelope')
             normal_finish, early_finish = ordinary_shot_conditions(

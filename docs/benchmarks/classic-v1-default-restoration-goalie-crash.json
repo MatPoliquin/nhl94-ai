@@ -1,0 +1,1532 @@
+{
+  "protocol": "nhl94-cpu-first-period-v2",
+  "settings": {
+    "agent": "classic-v1",
+    "matchups": [
+      "campbell-ducks-manual"
+    ],
+    "goalie_policy": "selective",
+    "trials": 1,
+    "seed": 20263018,
+    "seconds": 300,
+    "frame_skip": 4,
+    "action_type": "FILTERED",
+    "workers": 1,
+    "output": "docs/benchmarks/classic-v1-default-restoration-goalie-crash.json",
+    "offense_lookahead": true,
+    "cross_crease": false,
+    "deke": false,
+    "uncertain_carry": false,
+    "chance_creation": false,
+    "config": null
+  },
+  "sources": {
+    "nhl94_ai/game/state.py": "72545dc07f33383f3d6d3d3fbb389b0fe5c8a2460ff30fc001216ebfae54c062",
+    "nhl94_ai/agents/base.py": "045e70ed1426f6883904520f4034d4cdf53ccc043c92a4b8cb3c2074c4137dbc",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/agents/registry.py": "6728c6838b9404e597d74cccacd1a5c682036661505c9ab783c7827bd47fcd35",
+    "nhl94_ai/agents/passing.py": "1650f9054a67e542f038b6362bf1019b58e98320850bc096d78d9f0e4ba10cec",
+    "nhl94_ai/agents/possession.py": "7b2a3dc867ced0c53dd2c4acc13d1779fab45204845cbe3060f5e1442b6c179d",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "4eb2ba97fedecd71919480040c9f20df7bf3349a16cafba9f85a882cd2b534de",
+    "nhl94_ai/agents/defense.py": "b6f7960ccb8c409e6990012d1f5e9ef2df1b51f01db4add2fe3e2e8329795fd7",
+    "nhl94_ai/agents/cross_crease.py": "f5ce8e6852aeb6070cbca3e12d1d6c00262aafd1e03e3a18d3e0606b775220c8",
+    "nhl94_ai/agents/classic_v1.py": "ffad99f99945011f6aad4b9ee232f1fdbd990294e5de792be96aed5d31efce27",
+    "nhl94_ai/agents/responses.py": "a69cba84b62045e8c0bd75a27721f254943a98dfe9fd7b400cddfcf58a6b121b",
+    "nhl94_ai/agents/motion.py": "830614cef7753733a22a52fed921bf526da5f8646fce3eef12a908b7b44f971a",
+    "nhl94_ai/agents/offense.py": "bf194e63c73d979238ae77ab967ccf4ba8962d077a1d8557be731c8864317058",
+    "nhl94_ai/game/ram.py": "695c63d302435317e9b22a257efe3ab4129c1cf4fded2a7f86ab17a1d5fcc817",
+    "nhl94_ai/agents/carry.py": "1f7a8ae4926bc60dab40bf5caa460f119d2fa5ae0b75395ec197ae41d2f72174",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/env/target_control.py": "ff553f99a5348dec3fb2762be3ace81db99518bce2aabce0c389f00cdec9ddee",
+    "nhl94_ai/agents/deke.py": "00cefffb902112ce368eaa720d7cca9ef8a887c71951f21acccfcaca186ce5b2",
+    "nhl94_ai/evaluation/offense_metrics.py": "8c082dc2bd8090dae94782e3bbaae7b07b7fa0f1558cfd039cc401ad9935f130",
+    "nhl94_ai/agents/skating.py": "071d32ea0489fe9db3da69700a2aef3fe52f5b60ea5d2039b69cd81ab77dd536",
+    "nhl94_ai/evaluation/defense_metrics.py": "347344ebac5d11eb3563d3638db8566dd728e2bb0ca387a71f463f737c6a040e",
+    "nhl94_ai/agents/goalie.py": "802243e38f90531eb1f10614bd31b105871f9f4a085fa8a4aee62b1d346b0342",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146",
+    "nhl94_ai/evaluation/benchmark.py": "40cd695ab723fa931d4930f90a88aa4f3b28c4f9ef90119727a764b6e2089ee9",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab"
+  },
+  "versions": {
+    "nhl94-ai": "0.1.0",
+    "stable-retro": "1.0.1",
+    "numpy": "2.5.1"
+  },
+  "limitations": [
+    "Fixed starting rosters, first periods only; not full-game win rates.",
+    "Away trials transfer the joystick to the away team and correct RAM control observations.",
+    "Defense uses authoritative control slots; offensive inference is unchanged.",
+    "Defense reacts each frame; frame-skip controls the offensive decision interval.",
+    "Team changes also change opponents; this does not isolate any individual rating effect."
+  ],
+  "summary": {
+    "campbell-ducks-manual": {
+      "periods": 1,
+      "wins": 1,
+      "draws": 0,
+      "losses": 0,
+      "goals_for": 2,
+      "goals_against": 0,
+      "one_timer_setups": 6,
+      "one_timers": 5,
+      "one_timer_goals": 1,
+      "periods_without_one_timers": 0,
+      "pass_outcomes": {
+        "received_without_shot": 15,
+        "one_timer_shot": 5
+      },
+      "wrong_recipient": 1,
+      "offense_metrics": {
+        "entries": 8,
+        "controlled_entries": 8,
+        "entry_frames_total": 2698,
+        "entry_threats_total": 0,
+        "turnovers": 3,
+        "zone_turnovers": 3,
+        "possession_losses": 6,
+        "zone_possession_losses": 6,
+        "goalie_contact_impulses": 2
+      },
+      "goalie_contact_phases": {
+        "defense": 2
+      },
+      "goalie_contact_decisions": {
+        "goalie-avoid": 2
+      },
+      "one_timer_metrics": {
+        "possession-changed": 1,
+        "shot-released": 5
+      },
+      "one_timer_accounting": {
+        "started": 6,
+        "ended": 6
+      },
+      "ordinary_pass_metrics": {
+        "received": 14
+      },
+      "carrier_defense_metrics": {
+        "attacking": {
+          "frames": 604,
+          "goal_side_frames": 497,
+          "close_frames": 62,
+          "poke_requests": 2,
+          "behind_carrier_frames": 107,
+          "goal_side_regained": 1
+        },
+        "defensive": {
+          "frames": 90,
+          "goal_side_frames": 75,
+          "close_frames": 27,
+          "poke_requests": 1,
+          "behind_carrier_frames": 15
+        },
+        "neutral": {
+          "frames": 787,
+          "goal_side_frames": 579,
+          "close_frames": 284,
+          "poke_requests": 2,
+          "check_requests": 1,
+          "behind_carrier_frames": 208,
+          "goal_side_regained": 1
+        }
+      },
+      "carry_metrics": {
+        "least-risk": 791,
+        "safe-default": 81,
+        "safe-escape": 24
+      },
+      "goalie_metrics": {
+        "takeover_requests": 2,
+        "idle:prepare-goalie": 4,
+        "idle:waiting-for-control": 39,
+        "takeovers": 2,
+        "idle:release-goalie": 4,
+        "idle:holding-position": 50,
+        "save_requests": 1,
+        "idle:save-commitment": 1,
+        "save_animations": 1,
+        "idle:save-recovery": 33,
+        "controlled_catches": 1,
+        "idle:possession-outlet": 78,
+        "outlet_requests": 1,
+        "outlets_launched": 1,
+        "idle:outlet-flight": 15,
+        "outlet_receptions": 1,
+        "idle:neutral-handoff": 4,
+        "automatic_handoffs": 1
+      },
+      "cross_crease_metrics": {},
+      "deke_metrics": {},
+      "passes_by_purpose": {
+        "advance-pass": {
+          "received_without_shot": 11
+        },
+        "one-timer": {
+          "received_without_shot": 1,
+          "one_timer_shot": 5
+        },
+        "position-pass": {
+          "received_without_shot": 3
+        }
+      }
+    }
+  },
+  "matches": [
+    {
+      "agent": "classic-v1",
+      "matchup": "campbell-ducks-manual",
+      "side": 2,
+      "seed": 20263018,
+      "goals": [
+        0,
+        2
+      ],
+      "shots": [
+        1,
+        8
+      ],
+      "one_timers": [
+        0,
+        5
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "one_timer_metrics": {
+        "possession-changed": 1,
+        "shot-released": 5
+      },
+      "one_timer_accounting": {
+        "started": 6,
+        "ended": 6
+      },
+      "carry_metrics": {
+        "least-risk": 791,
+        "safe-default": 81,
+        "safe-escape": 24
+      },
+      "decisions": {
+        "deny-reception": 439,
+        "protect-lane": 611,
+        "intercept-pass": 7,
+        "carry-escape": 576,
+        "carry": 226,
+        "advance-pass": 11,
+        "pass-flight": 70,
+        "carry-breakaway": 35,
+        "feint": 13,
+        "goalie-avoid": 203,
+        "position-pass": 3,
+        "shoot": 4,
+        "shot-follow-through": 19,
+        "one-timer-pass": 6,
+        "one-timer-shoot": 6,
+        "one-timer-wait": 16,
+        "recover-safe": 32,
+        "contain-boards": 85,
+        "deny-goalie-outlet": 24,
+        "one-timer-setup": 1
+      },
+      "frames": 9782,
+      "defense_frames": {
+        "deny-reception": 1757,
+        "protect-lane": 2436,
+        "intercept-pass": 26,
+        "goalie-avoid": 559,
+        "recover-safe": 117,
+        "contain-boards": 335,
+        "deny-goalie-outlet": 98
+      },
+      "defense_requests": {
+        "poke-request": 88,
+        "switch-request": 116,
+        "check-request": 1,
+        "boost-request": 36
+      },
+      "controlled_recoveries": 7,
+      "carrier_defense_metrics": {
+        "neutral": {
+          "frames": 787,
+          "goal_side_frames": 579,
+          "close_frames": 284,
+          "cutoff_frames": 0,
+          "retreat_frames": 0,
+          "poke_requests": 2,
+          "check_requests": 1,
+          "behind_carrier_frames": 208,
+          "goal_side_regained": 1
+        },
+        "attacking": {
+          "frames": 604,
+          "goal_side_frames": 497,
+          "close_frames": 62,
+          "cutoff_frames": 0,
+          "retreat_frames": 0,
+          "poke_requests": 2,
+          "check_requests": 0,
+          "behind_carrier_frames": 107,
+          "goal_side_regained": 1
+        },
+        "defensive": {
+          "frames": 90,
+          "goal_side_frames": 75,
+          "close_frames": 27,
+          "cutoff_frames": 0,
+          "retreat_frames": 0,
+          "poke_requests": 1,
+          "check_requests": 0,
+          "behind_carrier_frames": 15
+        }
+      },
+      "inactive_skater_frames": 0,
+      "ordinary_pass_metrics": {
+        "received": 14
+      },
+      "pass_outcomes": {
+        "outcomes": {
+          "received_without_shot": 15,
+          "one_timer_shot": 5
+        },
+        "wrong_recipient": 1
+      },
+      "pass_events": [
+        {
+          "frame": 273,
+          "passer": 6,
+          "intended": 7,
+          "actual": 7,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 0,
+          "one_timers_before": 0,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 34,
+          "final_owner": 7
+        },
+        {
+          "frame": 391,
+          "passer": 7,
+          "intended": 8,
+          "actual": 8,
+          "purpose": "position-pass",
+          "launched": true,
+          "passes_before": 1,
+          "one_timers_before": 0,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 15,
+          "final_owner": 8
+        },
+        {
+          "frame": 554,
+          "passer": 9,
+          "intended": 8,
+          "actual": 8,
+          "purpose": "one-timer",
+          "launched": true,
+          "passes_before": 2,
+          "one_timers_before": 0,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 5,
+          "final_owner": 8
+        },
+        {
+          "frame": 639,
+          "passer": 8,
+          "intended": 7,
+          "actual": 7,
+          "purpose": "position-pass",
+          "launched": true,
+          "passes_before": 3,
+          "one_timers_before": 0,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 13,
+          "final_owner": 7
+        },
+        {
+          "frame": 684,
+          "passer": 7,
+          "intended": 6,
+          "actual": 6,
+          "purpose": "one-timer",
+          "launched": true,
+          "passes_before": 4,
+          "one_timers_before": 0,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 21,
+          "final_owner": -249
+        },
+        {
+          "frame": 1449,
+          "passer": 6,
+          "intended": 8,
+          "actual": 8,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 5,
+          "one_timers_before": 1,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 31,
+          "final_owner": 8
+        },
+        {
+          "frame": 2168,
+          "passer": 7,
+          "intended": 8,
+          "actual": 8,
+          "purpose": "position-pass",
+          "launched": true,
+          "passes_before": 6,
+          "one_timers_before": 1,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 6,
+          "final_owner": 8
+        },
+        {
+          "frame": 2266,
+          "passer": 8,
+          "intended": 7,
+          "actual": 7,
+          "purpose": "one-timer",
+          "launched": true,
+          "passes_before": 7,
+          "one_timers_before": 1,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 8,
+          "final_owner": -248
+        },
+        {
+          "frame": 3578,
+          "passer": 10,
+          "intended": 7,
+          "actual": 7,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 9,
+          "one_timers_before": 2,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 38,
+          "final_owner": 7
+        },
+        {
+          "frame": 3704,
+          "passer": 7,
+          "intended": 6,
+          "actual": 6,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 10,
+          "one_timers_before": 2,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 36,
+          "final_owner": 6
+        },
+        {
+          "frame": 3752,
+          "passer": 6,
+          "intended": 8,
+          "actual": 8,
+          "purpose": "one-timer",
+          "launched": true,
+          "passes_before": 11,
+          "one_timers_before": 2,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 17,
+          "final_owner": -250
+        },
+        {
+          "frame": 4885,
+          "passer": 6,
+          "intended": 8,
+          "actual": 8,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 12,
+          "one_timers_before": 3,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 5,
+          "final_owner": 8
+        },
+        {
+          "frame": 5250,
+          "passer": 8,
+          "intended": 9,
+          "actual": 9,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 13,
+          "one_timers_before": 3,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 25,
+          "final_owner": 9
+        },
+        {
+          "frame": 5903,
+          "passer": 7,
+          "intended": 10,
+          "actual": -246,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 14,
+          "one_timers_before": 3,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 2,
+          "final_owner": 10
+        },
+        {
+          "frame": 5929,
+          "passer": 10,
+          "intended": 8,
+          "actual": 8,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 15,
+          "one_timers_before": 3,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 27,
+          "final_owner": 8
+        },
+        {
+          "frame": 6084,
+          "passer": 8,
+          "intended": 7,
+          "actual": 7,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 16,
+          "one_timers_before": 3,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 28,
+          "final_owner": 7
+        },
+        {
+          "frame": 6904,
+          "passer": 9,
+          "intended": 6,
+          "actual": 6,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 17,
+          "one_timers_before": 3,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 31,
+          "final_owner": 6
+        },
+        {
+          "frame": 7159,
+          "passer": 6,
+          "intended": 7,
+          "actual": 7,
+          "purpose": "one-timer",
+          "launched": true,
+          "passes_before": 18,
+          "one_timers_before": 3,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 35,
+          "final_owner": -250
+        },
+        {
+          "frame": 7970,
+          "passer": 10,
+          "intended": 7,
+          "actual": 7,
+          "purpose": "advance-pass",
+          "launched": true,
+          "passes_before": 19,
+          "one_timers_before": 4,
+          "outcome": "received_without_shot",
+          "elapsed_frames": 24,
+          "final_owner": 7
+        },
+        {
+          "frame": 8502,
+          "passer": 7,
+          "intended": 6,
+          "actual": 6,
+          "purpose": "one-timer",
+          "launched": true,
+          "passes_before": 20,
+          "one_timers_before": 4,
+          "outcome": "one_timer_shot",
+          "elapsed_frames": 13,
+          "final_owner": -249
+        }
+      ],
+      "offense_metrics": {
+        "entries": 8,
+        "controlled_entries": 8,
+        "entry_frames_total": 2698,
+        "entry_threats_total": 0,
+        "turnovers": 3,
+        "zone_turnovers": 3,
+        "possession_losses": 6,
+        "zone_possession_losses": 6,
+        "goalie_contact_impulses": 2
+      },
+      "zone_entries": [
+        {
+          "frame": 326,
+          "elapsed_frames": 136,
+          "owner": 7,
+          "controlled": true,
+          "threatening_defenders": 0
+        },
+        {
+          "frame": 1632,
+          "elapsed_frames": 250,
+          "owner": 8,
+          "controlled": true,
+          "threatening_defenders": 0
+        },
+        {
+          "frame": 3703,
+          "elapsed_frames": 127,
+          "owner": 7,
+          "controlled": true,
+          "threatening_defenders": 0
+        },
+        {
+          "frame": 5294,
+          "elapsed_frames": 1158,
+          "owner": 9,
+          "controlled": true,
+          "threatening_defenders": 0
+        },
+        {
+          "frame": 6118,
+          "elapsed_frames": 295,
+          "owner": 7,
+          "controlled": true,
+          "threatening_defenders": 0
+        },
+        {
+          "frame": 6981,
+          "elapsed_frames": 243,
+          "owner": 6,
+          "controlled": true,
+          "threatening_defenders": 0
+        },
+        {
+          "frame": 8123,
+          "elapsed_frames": 234,
+          "owner": 7,
+          "controlled": true,
+          "threatening_defenders": 0
+        },
+        {
+          "frame": 9714,
+          "elapsed_frames": 255,
+          "owner": 6,
+          "controlled": true,
+          "threatening_defenders": 0
+        }
+      ],
+      "goalie_contact_events": [
+        {
+          "frame": 5460,
+          "contact_player": 9,
+          "owner": -247,
+          "impact": 11,
+          "previous_impact": 0,
+          "goalie_position": [
+            -24,
+            -256
+          ],
+          "preceding_action": {
+            "frame": 5459,
+            "decision": "goalie-avoid",
+            "phase": "defense",
+            "owner": -247,
+            "controlled_slot": 9,
+            "carrying": false,
+            "target": [
+              -28.0,
+              -224.0
+            ],
+            "player_position": [
+              -28,
+              -272
+            ],
+            "player_velocity": [
+              -0.5901336669921875,
+              1.00543212890625
+            ],
+            "goalie_position": [
+              -24,
+              -256
+            ],
+            "goalie_velocity": [
+              0.0,
+              0.0
+            ],
+            "buttons": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "action_history": [
+            {
+              "frame": 5452,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -35.0,
+                -231.0
+              ],
+              "player_position": [
+                -35,
+                -279
+              ],
+              "player_velocity": [
+                1.5584716796875,
+                1.1997222900390625
+              ],
+              "goalie_position": [
+                -23,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.1802825927734375,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5453,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -35.0,
+                -231.0
+              ],
+              "player_position": [
+                -35,
+                -279
+              ],
+              "player_velocity": [
+                1.5584716796875,
+                1.1997222900390625
+              ],
+              "goalie_position": [
+                -23,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.138519287109375,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5454,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -33.0,
+                -230.0
+              ],
+              "player_position": [
+                -33,
+                -278
+              ],
+              "player_velocity": [
+                1.5343475341796875,
+                1.2474517822265625
+              ],
+              "goalie_position": [
+                -23,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.138519287109375,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5455,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -32.0,
+                -229.0
+              ],
+              "player_position": [
+                -32,
+                -277
+              ],
+              "player_velocity": [
+                1.5104827880859375,
+                1.294403076171875
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.0972747802734375,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5456,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -30.0,
+                -228.0
+              ],
+              "player_position": [
+                -30,
+                -276
+              ],
+              "player_velocity": [
+                1.4871368408203125,
+                1.3408355712890625
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.0568084716796875,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5457,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -27.0,
+                -225.0
+              ],
+              "player_position": [
+                -27,
+                -273
+              ],
+              "player_velocity": [
+                -0.5997314453125,
+                1.0212554931640625
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.0168609619140625,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5458,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -28.0,
+                -224.0
+              ],
+              "player_position": [
+                -28,
+                -272
+              ],
+              "player_velocity": [
+                -0.5901336669921875,
+                1.00543212890625
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                0.0,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5459,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -28.0,
+                -224.0
+              ],
+              "player_position": [
+                -28,
+                -272
+              ],
+              "player_velocity": [
+                -0.5901336669921875,
+                1.00543212890625
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                0.0,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 5461,
+          "contact_player": 9,
+          "owner": -247,
+          "impact": 14,
+          "previous_impact": 11,
+          "goalie_position": [
+            -24,
+            -256
+          ],
+          "preceding_action": {
+            "frame": 5460,
+            "decision": "goalie-avoid",
+            "phase": "defense",
+            "owner": -247,
+            "controlled_slot": 9,
+            "carrying": false,
+            "target": [
+              -28.0,
+              -224.0
+            ],
+            "player_position": [
+              -28,
+              -272
+            ],
+            "player_velocity": [
+              -0.6451263427734375,
+              0.5647125244140625
+            ],
+            "goalie_position": [
+              -24,
+              -256
+            ],
+            "goalie_velocity": [
+              0.0977935791015625,
+              0.3665313720703125
+            ],
+            "buttons": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "action_history": [
+            {
+              "frame": 5453,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -35.0,
+                -231.0
+              ],
+              "player_position": [
+                -35,
+                -279
+              ],
+              "player_velocity": [
+                1.5584716796875,
+                1.1997222900390625
+              ],
+              "goalie_position": [
+                -23,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.138519287109375,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5454,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -33.0,
+                -230.0
+              ],
+              "player_position": [
+                -33,
+                -278
+              ],
+              "player_velocity": [
+                1.5343475341796875,
+                1.2474517822265625
+              ],
+              "goalie_position": [
+                -23,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.138519287109375,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5455,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -32.0,
+                -229.0
+              ],
+              "player_position": [
+                -32,
+                -277
+              ],
+              "player_velocity": [
+                1.5104827880859375,
+                1.294403076171875
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.0972747802734375,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5456,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -30.0,
+                -228.0
+              ],
+              "player_position": [
+                -30,
+                -276
+              ],
+              "player_velocity": [
+                1.4871368408203125,
+                1.3408355712890625
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.0568084716796875,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5457,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -27.0,
+                -225.0
+              ],
+              "player_position": [
+                -27,
+                -273
+              ],
+              "player_velocity": [
+                -0.5997314453125,
+                1.0212554931640625
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                -0.0168609619140625,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5458,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -28.0,
+                -224.0
+              ],
+              "player_position": [
+                -28,
+                -272
+              ],
+              "player_velocity": [
+                -0.5901336669921875,
+                1.00543212890625
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                0.0,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5459,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -28.0,
+                -224.0
+              ],
+              "player_position": [
+                -28,
+                -272
+              ],
+              "player_velocity": [
+                -0.5901336669921875,
+                1.00543212890625
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                0.0,
+                0.0
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "frame": 5460,
+              "decision": "goalie-avoid",
+              "phase": "defense",
+              "owner": -247,
+              "controlled_slot": 9,
+              "carrying": false,
+              "target": [
+                -28.0,
+                -224.0
+              ],
+              "player_position": [
+                -28,
+                -272
+              ],
+              "player_velocity": [
+                -0.6451263427734375,
+                0.5647125244140625
+              ],
+              "goalie_position": [
+                -24,
+                -256
+              ],
+              "goalie_velocity": [
+                0.0977935791015625,
+                0.3665313720703125
+              ],
+              "buttons": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        0,
+        27
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Anatoli Semenov",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 1,
+          "name": "Troy Loney",
+          "shot_accuracy": 4
+        },
+        {
+          "slot": 2,
+          "name": "Terry Yake",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Randy Ladouceur",
+          "shot_accuracy": 7
+        },
+        {
+          "slot": 4,
+          "name": "Alexei Kasatonov",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 5,
+          "name": "Guy Hebert",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Teemu Selanne",
+          "shot_accuracy": 24
+        },
+        {
+          "slot": 7,
+          "name": "Luc Robitaille",
+          "shot_accuracy": 29
+        },
+        {
+          "slot": 8,
+          "name": "Steve Yzerman",
+          "shot_accuracy": 24
+        },
+        {
+          "slot": 9,
+          "name": "Phil Housley",
+          "shot_accuracy": 9
+        },
+        {
+          "slot": 10,
+          "name": "Paul Coffey",
+          "shot_accuracy": 7
+        },
+        {
+          "slot": 11,
+          "name": "Ed Belfour",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "a0e323a66554bbabf51d4ce3169c2fce56fcc2a1d4552539e823779ee4fb3683",
+      "initial_state_sha256": "dc690d284bac7d56dbddf91dbfd592f0a231b4bfc6ba31ac14f1a56e5a91e6f4",
+      "goalie_policy": "selective",
+      "goalie_metrics": {
+        "takeover_requests": 2,
+        "idle:prepare-goalie": 4,
+        "idle:waiting-for-control": 39,
+        "takeovers": 2,
+        "idle:release-goalie": 4,
+        "idle:holding-position": 50,
+        "save_requests": 1,
+        "idle:save-commitment": 1,
+        "save_animations": 1,
+        "idle:save-recovery": 33,
+        "controlled_catches": 1,
+        "idle:possession-outlet": 78,
+        "outlet_requests": 1,
+        "outlets_launched": 1,
+        "idle:outlet-flight": 15,
+        "outlet_receptions": 1,
+        "idle:neutral-handoff": 4,
+        "automatic_handoffs": 1
+      },
+      "goalie_context_metrics": {
+        "phase_frames": {
+          "stoppage": 2623,
+          "skater": 6883,
+          "prepare-goalie": 4,
+          "request-goalie": 39,
+          "release-goalie": 4,
+          "positioning": 95,
+          "save-request": 1,
+          "save-recovery": 33,
+          "possession-outlet": 79,
+          "outlet-flight": 16,
+          "neutral-handoff": 4
+        },
+        "input_frames": {
+          "moving": 8354,
+          "B-only": 156,
+          "C-only": 23,
+          "neutral": 1248
+        },
+        "goal_events": []
+      },
+      "cross_crease": false,
+      "cross_crease_metrics": {},
+      "cross_crease_events": [],
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "offense_lookahead": true,
+      "deke_metrics": {},
+      "deke_events": []
+    }
+  ]
+}

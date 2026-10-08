@@ -11,6 +11,21 @@ from nhl94_ai.game.state import NHL94GameState
 
 
 class CpuBenchmarkContracts(unittest.TestCase):
+    def test_lookahead_flag_reaches_trials_and_preserves_other_options(self):
+        fixtures = []
+        def match(fixture):
+            fixtures.append(fixture)
+            return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                        goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
+        for flags in ([], ['--chance-creation', '--uncertain-carry', '--deke', '--cross-crease']):
+            args = build_parser().parse_args(['--offense-lookahead', '--trials', '1', *flags])
+            fixtures.clear()
+            with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+                report = run(args)
+            self.assertTrue(report['settings']['offense_lookahead'])
+            self.assertTrue(all(fixture[-5:] == (bool(flags),) * 4 + (True,) for fixture in fixtures))
+        self.assertFalse(build_parser().parse_args([]).offense_lookahead)
+
     def test_chance_creation_flag_reaches_each_trial_without_losing_other_options(self):
         args = build_parser().parse_args(
             ['--chance-creation', '--uncertain-carry', '--deke', '--cross-crease', '--trials', '1'])

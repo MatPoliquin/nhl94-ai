@@ -222,7 +222,9 @@ class GoalieController:
             raise ValueError('Manual goalie AI requires Manual goalie settings for joystick and team; '
                              'use SabresVsMightyDucks.ManualGoalie.Start')
         goalie = team.goalie
-        required = ('role', 'selection_flags', 'live_state_flags', 'live_anim', 'assignment',
+        # A native assignment stack can be empty while the goalie is controlled.
+        # Its decoded label is diagnostic only; motion and control remain required.
+        required = ('role', 'selection_flags', 'live_state_flags', 'live_anim',
                     'speed', 'agility', 'weight', 'energy', 'motion_x', 'motion_y', 'passing', 'stick')
         if (any(getattr(goalie, field) is None for field in required)
                 or any(getattr(state.puck, field) is None for field in ('height', 'motion_x', 'motion_y'))):

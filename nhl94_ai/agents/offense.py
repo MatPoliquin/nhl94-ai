@@ -319,6 +319,10 @@ def goalie_avoidance(state, player, target, *, decision_interval=None):
 
 
 class OffenseController:
+    @property
+    def uses_lookahead(self):
+        return True
+
     def __init__(self, *, one_timers=True, decision_interval=4, allow_uncertified=False,
                  chance_creation=False):
         self.one_timers = one_timers
@@ -678,7 +682,7 @@ class OffenseController:
             option, details = evaluate_pass(
                 state, player, index, receiver, purpose, decision_interval=self.decision_interval)
             details['purpose'] = purpose
-            if option is not None and purpose != 'one-timer' and continuations:
+            if option is not None and purpose != 'one-timer' and continuations and self.uses_lookahead:
                 option, continuation = self._receiver_continuation(state, option)
                 details.update(continuation, value=option.value)
             if (purpose == 'one-timer' and option is not None

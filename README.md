@@ -74,6 +74,10 @@ checkpoints use `--model_input pvg-v3`. Start a fresh model for the 52-input
 schema rather than reinterpreting those weights.
 
 The sole scripted controller is [Classic V1](docs/CLASSIC_V1.md), formerly V4.
+Its default offense restores the established carry/pass priorities and reception
+cadence after the native-lookahead policy regressed. Use `--offense-lookahead`
+to opt into that experimental policy; `--uncertain-carry` and `--chance-creation`
+also use its native forecasting. See the [restoration evidence](docs/CLASSIC_V1.md#default-offense-restoration-2026-10-08).
 Its defense chooses a safe lane/recovery target before selecting a skater and
 reacts every emulator frame. The target appears as a green square on the ice.
 Offense now evaluates advancement passes and purposeful cuts, with an amber

@@ -89,6 +89,7 @@ def cpu_match(fixture):
     deke = bool(options[2]) if len(options) > 2 else False
     uncertain_carry = bool(options[3]) if len(options) > 3 else False
     chance_creation = bool(options[4]) if len(options) > 4 else False
+    offense_lookahead = bool(options[5]) if len(options) > 5 else False
     if goalie_policy != 'off' and schema != 'FILTERED':
         raise ValueError('Manual goalie CPU trials require FILTERED buttons')
     state_name, side = MATCHUPS[matchup]
@@ -107,7 +108,8 @@ def cpu_match(fixture):
             raise ValueError('CPU opponent still has a joystick assigned.')
         agent = create_scripted(agent_name, SimpleNamespace(
             action_type=schema, goalie_policy=goalie_policy, cross_crease=cross_crease, deke=deke,
-            uncertain_carry=uncertain_carry, chance_creation=chance_creation))
+            uncertain_carry=uncertain_carry, chance_creation=chance_creation,
+            offense_lookahead=offense_lookahead))
         agent.frame_skip = frame_skip
         state, frames = NHL94GameState(5), 1
         context = SimpleNamespace(action_type=schema, game_state=state)
@@ -205,6 +207,7 @@ def cpu_match(fixture):
             'deke': deke,
             'uncertain_carry': uncertain_carry,
             'chance_creation': chance_creation,
+            'offense_lookahead': offense_lookahead,
             'deke_metrics': dict(agent.deke.metrics) if agent.deke else {},
             'deke_events': agent.deke.events if agent.deke else [],
         }
@@ -320,6 +323,10 @@ def run(args):
         fixtures = [(*fixture[:7], bool(getattr(args, 'cross_crease', False)),
                      bool(getattr(args, 'deke', False)), bool(getattr(args, 'uncertain_carry', False)), True)
                     for fixture in fixtures]
+    if getattr(args, 'offense_lookahead', False):
+        fixtures = [(*fixture[:7], bool(getattr(args, 'cross_crease', False)),
+                     bool(getattr(args, 'deke', False)), bool(getattr(args, 'uncertain_carry', False)),
+                     bool(getattr(args, 'chance_creation', False)), True) for fixture in fixtures]
     controller = create_scripted(args.agent, SimpleNamespace(action_type=args.action_type)).controller
     files = {Path(__file__), Path(inspect.getfile(PassOutcomes)), Path(inspect.getfile(OffenseMetrics)),
              Path(inspect.getfile(CarrierDefenseMetrics)),
@@ -330,7 +337,7 @@ def run(args):
     files.update(root / 'nhl94_ai' / name for name in (
         'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
         'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
-        'agents/offense.py', 'agents/passing.py', 'agents/responses.py',
+        'agents/offense.py', 'agents/possession.py', 'agents/passing.py', 'agents/responses.py',
         'agents/goalie.py', 'agents/cross_crease.py', 'agents/deke.py', 'agents/skating.py', 'agents/registry.py'))
     sources = {str(path.relative_to(root)):
                hashlib.sha256(path.read_bytes()).hexdigest() for path in files}

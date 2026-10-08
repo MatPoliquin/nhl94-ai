@@ -32,7 +32,8 @@ DECISION_INTERVAL = 4
 
 def load_reference(runtime):
     """Load an explicitly supplied local snapshot without replacing live modules."""
-    names = ('carry', 'offense', 'classic_v1')
+    names = ('carry', 'offense', *(('possession',) if (
+        runtime / 'nhl94_ai/agents/possession.py').is_file() else ()), 'classic_v1')
     saved = {f'nhl94_ai.agents.{name}': sys.modules.get(f'nhl94_ai.agents.{name}') for name in names}
     try:
         for name in names:
@@ -313,6 +314,8 @@ def source_hashes(runtime=None):
     root = Path(__file__).resolve().parents[1] if runtime is None else Path(runtime) / 'nhl94_ai'
     names = ('carry', 'offense', 'classic_v1', 'passing', 'skating') if runtime is None else (
         'carry', 'offense', 'classic_v1')
+    if (root / 'agents/possession.py').is_file():
+        names = (*names, 'possession')
     result = {f'nhl94_ai/agents/{name}.py': hashlib.sha256(
         (root / 'agents' / f'{name}.py').read_bytes()).hexdigest() for name in names}
     if runtime is None:

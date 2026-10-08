@@ -1,0 +1,89 @@
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -593,6 +593,30 @@
+             'reception_frames': elapsed,
+         }
+ 
++    @staticmethod
++    def _baseline_carry_option(state, player, target):
++        target = route_waypoint((player.x, player.y), project_target(target))
++        escape = goalie_avoidance(state, player, target)
++        details = {}
++        if escape is not None:
++            target, details = escape
++            target = route_waypoint((player.x, player.y), target)
++        clearance = carry_clearance(state, player, target)
++        motions = [_carry_motion(player, target, frames) for frames in CARRY_SAMPLES]
++        bounded = all(motion is not None for motion in motions)
++        margin = min(pressure_margin(state.team2, motion[0], frames)
++                     for motion, frames in zip(motions, CARRY_SAMPLES)) if bounded else -math.inf
++        safe = clearance > 0 and margin >= 3 and details.get('goalie_avoidance_safe', True)
++        sign = 1 if state.team2.net.y > state.team1.net.y else -1
++        progress = (motions[-1][0][1] - player.y) * sign if bounded else -math.inf
++        opportunity = shot_value(state, player, motions[-1][0], FEINT_FRAMES) if safe else 0
++        return target, {
++            **details, 'carry_safe': safe, 'carry_bounded': bounded,
++            'carry_clearance': clearance, 'carry_pressure': margin,
++            'carry_progress': progress, 'carry_shot_value': opportunity,
++        }
++
++
+     def fallback_carry(self, state, player):
+         preferred = self.carry_target(state, player)
+         if (player.motion_x is None or player.motion_y is None
+@@ -601,7 +625,7 @@
+                 'mode': 'carry', 'carry_safe': None,
+                 'reason': 'missing feedback; retain legacy carry/setup',
+             }
+-        first = self._carry_option(state, player, preferred)
++        first = self._baseline_carry_option(state, player, preferred)
+         if first[1]['carry_safe']:
+             return first[0], {
+                 **first[1], 'mode': 'goalie-avoid' if 'goalie_clearance' in first[1] else 'carry',
+@@ -614,37 +638,26 @@
+         targets.extend((player.x + dx, player.y + sign * dy)
+                        for dx, dy in ((-48, 0), (48, 0), (0, -48), (-48, -24), (48, -24),
+                                       (-48, 24), (48, 24)))
+-        targets.extend((player.x + dx, player.y + sign * dy)
+-                       for dx in (-12, 12, -24, 24) for dy in (0, 24))
+-        options = [first, *(self._carry_option(state, player, target) for target in targets)]
++        options = [first, *(self._baseline_carry_option(state, player, target) for target in targets)]
+         bounded = [option for option in options if option[1]['carry_bounded']]
+         if not bounded:
+             return route_waypoint((player.x, player.y), project_target(brake)), {
+                 'mode': 'carry-escape', 'carry_safe': False, 'carry_bounded': False,
+                 'reason': 'no bounded carry; brake before unavoidable wall or net contact',
+             }
+-        def experimental_key(option):
+-            return (
+-                physical_clearance(option[1]) > 0, carry_viable(option[1]),
+-                carry_value(option[1]) if carry_viable(option[1]) else physical_clearance(option[1]),
+-                option[1]['carry_progress'] if carry_viable(option[1]) else min(option[1]['carry_pressure'], 12),
+-                option[1]['carry_safe'], min(physical_clearance(option[1]), 16),
+-                -math.dist(option[0], preferred))
+-        def certified_key(option):
+-            return (
+-                option[1]['carry_safe'], carry_value(option[1]),
+-                option[1]['carry_progress'] if option[1]['carry_safe'] else min(option[1]['carry_pressure'], 12),
+-                min(option[1]['carry_pressure'], 12) if option[1]['carry_safe'] else min(option[1]['carry_clearance'], 16),
+-                min(option[1]['carry_clearance'], 16), -math.dist(option[0], preferred))
+-        point, details = max(bounded, key=experimental_key if self.allow_uncertified else certified_key)
++        point, details = max(bounded, key=lambda option: (
++            option[1]['carry_safe'], option[1]['carry_shot_value'],
++            option[1]['carry_progress'] if option[1]['carry_safe'] else min(option[1]['carry_pressure'], 12),
++            min(option[1]['carry_pressure'], 12) if option[1]['carry_safe'] else min(option[1]['carry_clearance'], 16),
++            min(option[1]['carry_clearance'], 16), -math.dist(option[0], preferred)))
+         mode = ('goalie-avoid' if 'goalie_clearance' in first[1] else
+                 'carry' if point == first[0] else 'carry-escape')
+         return point, {
+             **details, 'mode': mode,
+-            'reason': 'certified carrying escape' if details['carry_safe']
+-            else 'risk-assessed attacking route; defender safety uncertified' if carry_viable(details)
+-            else 'no viable carry; prioritize body and goalie separation',
++            'reason': 'escape the unsafe default carry with interception and contact clearance'
++            if details['carry_safe'] else 'no safe carry; maximize contact and interception clearance',
+         }
++
+ 
+     @staticmethod
+     def breakaway(state, player):

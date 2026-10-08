@@ -9,6 +9,8 @@ ALIASES = {'classic': 'ClassicAIV1', 'classic-v1': 'ClassicAIV1'}
 
 
 def add_classic_arguments(parser):
+    parser.add_argument('--offense-lookahead', action='store_true',
+                        help='Experimental native carry and receiver-continuation policy (default: off)')
     parser.add_argument('--cross-crease', action='store_true',
                         help='Opt-in full-team Classic held-C cross-crease finishing (default: off)')
     parser.add_argument('--deke', action='store_true',

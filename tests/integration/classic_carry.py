@@ -130,6 +130,7 @@ def native_wing_reception(*, active_defender=False, uncertain_carry=False):
                 '--state=PenguinsVsSenators.DefenseZone', f'--rf={name}', f'--action_type={schema}',
             ])
             args.one_timers = False
+            args.offense_lookahead = True
             args.uncertain_carry = uncertain_carry
             env = build_single_nhl94_env(args, {'clip_reward': False}, use_frame_skip=False)
             try:

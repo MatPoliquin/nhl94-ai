@@ -59,7 +59,7 @@ def conflicted_setup_state(*, away=False):
 
 
 class GoalieAvoidanceTests(unittest.TestCase):
-    def test_ordinary_carry_does_not_inherit_the_legacy_goalie_veto(self):
+    def test_opt_in_native_carry_does_not_inherit_the_legacy_goalie_veto(self):
         state = approach_state()
         player = state.team1.players[0]
         player.x, player.y, player.facing, player.facing_phase = 48, 190, 5, 5.0
@@ -71,7 +71,8 @@ class GoalieAvoidanceTests(unittest.TestCase):
         self.assertIsNone(goalie_avoidance(state, player, target, decision_interval=4))
         actual, _ = OffenseController(one_timers=False)._carry_option(state, player, target)
         self.assertEqual(actual, target)
-        model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED', one_timers=False))
+        model = ClassicAIV1Model(SimpleNamespace(
+            action_type='FILTERED', one_timers=False, offense_lookahead=True))
         model._steer([0] * 12, player, *target, state)
         self.assertEqual(model._last_target, target)
 

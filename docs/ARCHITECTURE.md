@@ -58,10 +58,21 @@ The original V1–V3 controllers and their legacy import aliases are removed;
 Historical benchmark reports retain their original version labels and hashes.
 The paired benchmark now defaults to V1 versus its `classic-v1-direct`
 one-timer-disabled ablation. Both variants use the same defense and progression
-planner. `agents/offense.py` selects advancement/positional passes, verified
-breakaway carries and bounded opportunity-creating cuts; `agents/passing.py`
+planner. The default `agents/possession.py` policy restores the established
+immediate carry/pass priorities and ordinary-reception cadence. It inherits
+shared lifecycle and bounded-cut machinery from `agents/offense.py`;
+`agents/passing.py`
 predicts the ROM-selected receiver, motion-backed flight and reception risk.
-Default ordinary carrying and receiver continuations share `agents/carry.py`.
+Default carries use sampled clearance and arrival estimates, not worst-case
+reach certification. Diagnostics distinguish `carry_estimated_clear` from a
+certificate: `carry_safe` is unmeasured (`None`), `carry_pressure_model` is
+`arrival-estimate`, and positional credit is not reported as finishing credit.
+This restores the earlier policy after the native-lookahead default regressed;
+the [Classic restoration report](CLASSIC_V1.md#default-offense-restoration-2026-10-08)
+records matched outcomes and component comparisons.
+
+The opt-in `--offense-lookahead` policy uses `agents/offense.py` directly.
+Its ordinary carrying and receiver continuations share `agents/carry.py`.
 It uses native grounded skating and the ordinary controller's held-button
 cadence, sweeps body clearance, and separates facing/boost-dependent body-check
 reach from access to the carried puck. Defender pressure uses a conservative
@@ -86,7 +97,9 @@ risk-discounted positional/finishing value as `carry_viable`, with an independen
 The index uses contact timing and the replan interval, not a calibrated loss
 probability; sampled exit feasibility is not a universal safety certificate.
 Per-decision caches are keyed by actual physics feedback, not actor identity.
-Without the flag, the prior certificate-only selection/ranking remains.
+Within `--offense-lookahead`, omitting `--uncertain-carry` retains certificate-only
+selection/ranking. `--uncertain-carry` and `--chance-creation` imply the native
+lookahead policy, even without the explicit lookahead flag.
 The separate opt-in `--chance-creation` selector ranks certified short carries
 by predicted ordinary-pass/one-timer windows after an action-conditioned
 stable-assignment skating scenario in `agents/responses.py`. Read-only skater
@@ -111,8 +124,8 @@ tested against fresh native recipient, ownership and requested-shooter evidence,
 not another planner's opinion. Retry/control availability, unsupported responses,
 lost carriers and missing sampling strata remain explicit; stratified,
 overlapping receiver/purpose probes are not independent match-play samples.
-Ordinary goalie clearance uses the same native held-input path/cadence in
-planning and execution; legacy cuts and optional finishers keep their existing
+With lookahead enabled, ordinary goalie clearance uses the same native held-input path/cadence in
+planning and execution; default carrying, legacy cuts and optional finishers keep their existing
 motion model. Receiver forecasts start at modeled
 first contact, retain body/stick separation, and count the pass flight in
 defender reaction time. A five-route, 18-frame continuation can improve a
@@ -124,7 +137,10 @@ extent and defender reaction during flight and carrying. Early-shot credit is
 withheld when one-timer/setup priority is unresolved, and sampled contact during
 windup receives no finishing credit. Hypothetical setup cuts do not recursively add another
 receiver carry. Fresh reception, including an unintended friendly receiver,
-interrupts cached pass input and replans from actual ownership.
+interrupts cached pass input and replans from actual ownership in the lookahead
+policy. The restored default observes and closes completed passes each frame,
+but retains its ordinary decision cadence after a friendly reception; recovered
+passes and one-timer events retain their existing immediate interrupts.
 `evaluation/carry_replay.py` forks full emulator/RNG snapshots at Ducks
 on-puck offensive-zone divergences, cloning actual default policy history into
 a supplied local reference and the opt-in policy. It compares default,
@@ -194,8 +210,8 @@ negative measurement. The refined selector rolls out this same controller,
 including observed tracking, depth/release bounds and the full live safety
 horizon, rather than using an independent imagined cut. The initially deke-only
 `agents/skating.py` preserves native fixed-point facing, friction/integration
-order and acceleration during turns; ordinary default carry/receiver forecasts
-now also reuse it. Cross-crease, legacy setup cuts and goalie routing retain
+order and acceleration during turns; experimental carry/receiver forecasts
+also reuse it. Cross-crease, default carrying, legacy setup cuts and goalie routing retain
 their conservative motion helpers. Optional precise-position, facing-phase,
 ROM-derived all-direction release bounds/durations and CPU-goalie
 decision/steering feedback stay outside normalized observations. Goalie
