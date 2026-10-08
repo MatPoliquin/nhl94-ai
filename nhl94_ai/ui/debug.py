@@ -141,7 +141,8 @@ class NHL94DebugDisplay:
             "8: Toggle AI Planner Overlays",
             "9: Toggle Teammate Scores",
             "F2: Save Screenshot",
-            "Mouse wheel / PgUp / PgDn: Scroll actions"
+            "Click Offense / Defense / Goalie while paused: Inspect latest mode details",
+            "Mouse wheel / PgUp / PgDn: Scroll overflowing agent diagnostics"
         ]
 
         # Visualization toggles
@@ -257,6 +258,10 @@ class NHL94DebugDisplay:
             if event.type == pygame.VIDEORESIZE:
                 self.window = pygame.display.set_mode((max(320, event.w), max(180, event.h)), pygame.RESIZABLE)
                 continue
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                self.inspector.set_paused(self.paused)
+                self.inspector.click(self._logical_mouse_position(event.pos))
+                continue
             if event.type == pygame.MOUSEWHEEL:
                 if self._logical_mouse_position()[0] < self.ACTION_WIDTH:
                     self.inspector.scroll_by(-event.y * 69)
@@ -266,6 +271,7 @@ class NHL94DebugDisplay:
             if event.key in (pygame.K_SPACE, pygame.K_p):
                 if not getattr(event, 'repeat', False):
                     self.paused = not self.paused
+                    self.inspector.set_paused(self.paused)
                     print('Playback paused.' if self.paused else 'Playback resumed.')
             elif event.key == pygame.K_F1:
                 if getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION':
@@ -749,6 +755,7 @@ class NHL94DebugDisplay:
         self.screen.blit(self.debug_surf, self.mini_rink_rect)
         self.screen.blit(self.game_surf, self.game_rect)
         actual = None if action is None else np.asarray(action).reshape(-1).tolist()
+        self.inspector.set_paused(self.paused)
         self.inspector.draw(
             self.screen, pygame.Rect(0, 0, self.ACTION_WIDTH, self.CANVAS_HEIGHT),
             self.font, self.big_font, self.playback_frames, actual_action=actual,
@@ -761,8 +768,8 @@ class NHL94DebugDisplay:
         self._present()
         pygame.display.flip()
 
-    def _logical_mouse_position(self):
-        x, y = pygame.mouse.get_pos()
+    def _logical_mouse_position(self, position=None):
+        x, y = pygame.mouse.get_pos() if position is None else position
         rect = self.presentation_rect
         return ((x - rect.x) * self.CANVAS_WIDTH / rect.width,
                 (y - rect.y) * self.CANVAS_HEIGHT / rect.height)

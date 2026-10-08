@@ -563,8 +563,12 @@ fonts and white/cyan/muted-gray palette. Small red/blue team markers preserve
 the mini-rink color association without low-contrast colored value columns.
 Its resizable window fits the desktop and letterboxes the logical canvas;
 resizing never changes rink coordinates or controller timing. Screenshots save
-the full logical canvas. Mouse wheel over the action panel and PgUp/PgDn scroll
-the catalogue, including while paused.
+the full logical canvas. Classic's Offense / Defense / Goalie tabs fit without
+scrolling and follow the current executor during playback. While paused, clicks
+in logical canvas coordinates select each mode's last snapshot; inactive snapshots
+are explicitly historical and never highlighted as current actions. Resume follows
+the live mode again. Mouse wheel and PgUp/PgDn remain available for overflowing
+diagnostics from other producers.
 
 `agents/decisions.py` defines immutable `DecisionSnapshot`, `ActionCandidate`
 and `DecisionScore` evidence outside neural observations and saved action IDs.
@@ -575,6 +579,12 @@ running another scorer or modifying gameplay history. It separates the tactical
 plan, execution mode, lifecycle phase and actual submitted input. Green marks
 current selections, not historical evaluation choices or accepted ROM actions.
 Human/outer-controller input overrides suppress the proposal's green highlight.
+The optional `active_mode`, `actual_slot`, `desired_slot` and `target` fields provide
+the shared summary and tab selection without interpreting background goalie
+diagnostics as active control. Default goalie holds/outlets are classified as
+Goalie despite using the offense executor; receiving passes and one-timers remain
+Offense. Execution-only states such as waiting stay in the shared summary. Goalie
+outlet evidence is adapted from existing evaluations without rerunning the scorer.
 
 Scores retain their kind instead of pretending to share one ranking scale.
 Optional raw/effective policy probabilities require an explicit network/head or
@@ -583,11 +593,13 @@ No adapter converts heuristic scores, button marginals or continuous targets
 into tactical probabilities. Future agents can supply scoped neural snapshots
 through the same `AgentOutput` field; agents without a producer show an
 unevaluated catalogue rather than fabricated values. Cached numerical scores
-have an explicit age and gray styling; current rejections replace old values,
+have a separate cache per mode, explicit age and gray styling; current rejections replace old values,
 and cached probabilities are not copied into a newly unevaluated candidate.
 The first inspector iteration is read-only: goalie Off/Selective/Always is
 status, optional tactics retain their flags, and standalone slapshot/behind-net
 tactics are marked unsupported by Classic.
+The probability column is omitted when the visible candidates have no policy
+probabilities, giving Classic's status/reason column more room.
 `evaluation.play` services this pause before inference, including each repeated
 scripted frame and target-policy inference. The paused display redraws cached
 pixels, keeps overlay/screenshot/quit controls responsive, and advances neither

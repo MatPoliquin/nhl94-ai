@@ -1,5 +1,5 @@
 """Display-only decision evidence, independent of policy action-space IDs."""
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 from typing import Literal
 
@@ -58,8 +58,14 @@ class DecisionSnapshot:
     evaluation_frame: int | None = None
     evaluation_carrier: int | None = None
     goalie_policy: str | None = None
+    active_mode: Literal['offense', 'defense', 'goalie'] | None = None
+    actual_slot: int | None = None
+    desired_slot: int | None = None
+    target: tuple[float, float] | None = None
 
     def __post_init__(self):
+        if self.active_mode not in (None, 'offense', 'defense', 'goalie'):
+            raise ValueError('Unknown active decision mode.')
         ids = [candidate.action_id for candidate in self.candidates]
         if len(ids) != len(set(ids)):
             raise ValueError('Decision candidate IDs must be unique within a snapshot.')
@@ -158,6 +164,13 @@ def _pass_candidate(player, slot, details, *, one_timer, owner, controlled, fram
 
 def _selected_ids(decision, offense, defense, goalie, controller):
     target = offense.get('desired_slot')
+    if defense:
+        mode = defense.get('mode')
+        execution = {'check-follow-through': 'check-request',
+                     'waiting-for-selection': 'wait'}.get(mode, mode)
+        return defense.get('decision', decision), execution
+    if decision.startswith('receive-pass'):
+        return f'pass:{target}', None
     if decision in ('advance-pass', 'position-pass', 'pass-release', 'pass-flight'):
         pending = controller.offense.pending
         target = pending['receiver'] if pending else target
@@ -173,7 +186,9 @@ def _selected_ids(decision, offense, defense, goalie, controller):
         return 'shoot', None
     if decision == 'pass-button-release':
         return 'wait', None
-    if decision.startswith('goalie-') and decision not in ('goalie-avoid', 'goalie-outlet'):
+    if decision in ('goalie-hold', 'goalie-outlet'):
+        return decision, None
+    if decision.startswith('goalie-') and decision != 'goalie-avoid':
         phase = goalie.get('mode', controller.goalie.phase if controller.goalie else '')
         if phase == 'possession-outlet' or phase == 'outlet-flight':
             outlet = controller.goalie.outlet if controller.goalie else None
@@ -188,13 +203,36 @@ def _selected_ids(decision, offense, defense, goalie, controller):
             'backoff': 'goalie-fallback', 'stoppage': 'wait', 'skater': 'wait',
         }
         return groups.get(phase, f'unknown:{decision}'), None
-    if defense:
-        mode = defense.get('mode')
-        execution = {'check-follow-through': 'check-request',
-                     'waiting-for-selection': 'wait'}.get(mode, mode)
-        return defense.get('decision', decision), execution
     return {'recover': 'recover-safe', 'switch': 'switch-request', 'init': 'wait',
             'one-timer-ended': 'wait'}.get(decision, decision), None
+
+
+def _active_evidence(controller):
+    """Follow the executed branch, not background/manual-goalie observations."""
+    if controller.defense_diagnostics:
+        return 'defense', controller.defense_diagnostics
+    decision = controller._last_decision
+    if decision.startswith('goalie-') and decision != 'goalie-avoid':
+        # Automatic goalie possession is handled by the ordinary offense executor.
+        return 'goalie', (controller.offense_diagnostics if decision in ('goalie-hold', 'goalie-outlet')
+                          else controller.goalie_diagnostics)
+    return 'offense', controller.offense_diagnostics
+
+
+def _outlet_candidates(state, details, frame):
+    candidates = []
+    evaluated = {row['slot']: row for row in details.get('outlet_candidates', ())}
+    for index, player in enumerate(state.team1.players):
+        slot = state.team1.skater_scnum_base() + index
+        row = evaluated.get(slot, {})
+        label = f'Outlet to {POSITIONS.get(player.role, "skater")} [{slot}]'
+        status = row.get('status', 'not-evaluated')
+        candidates.append(ActionCandidate(
+            f'outlet:{slot}', label, 'Outlets', slot,
+            _scores(row, (('pass', 'value'), ('margin', 'margin'))), source='Classic rules',
+            status='eligible' if status == 'safe' else 'not-evaluated' if not row else 'rejected',
+            reason='' if status == 'safe' else status, evaluated_frame=frame if row else None))
+    return candidates
 
 
 def classic_decision_snapshot(controller, state, action):
@@ -203,6 +241,7 @@ def classic_decision_snapshot(controller, state, action):
     defense = controller.defense_diagnostics
     goalie = controller.goalie_diagnostics
     decision = controller._last_decision
+    active_mode, evidence = _active_evidence(controller)
     frame = controller.defense.frames
     evaluated = offense.get('evaluation_frame')
     controlled = state.team1.controlled_scnum() if state.team1.defense_control is None else state.team1.defense_control
@@ -220,7 +259,7 @@ def classic_decision_snapshot(controller, state, action):
                        'one-timer-setup': controller._one_timers}[action_id]
             if not enabled:
                 status, reason = 'disabled', 'feature off'
-        elif group == 'Goalie' and controller.goalie is None and action_id != 'goalie-outlet':
+        elif group == 'Goalie' and controller.goalie is None and action_id not in ('goalie-outlet', 'goalie-hold'):
             status, reason = 'disabled', 'manual-goalie AI off'
         if action_id == 'carry':
             scores = _scores(offense, (('keep', 'retained_value'),))
@@ -245,19 +284,26 @@ def classic_decision_snapshot(controller, state, action):
                                             source='Classic rules', status='disabled', reason='feature off')
             candidates.append(candidate)
     plan, execution = _selected_ids(decision, offense, defense, goalie, controller)
+    if active_mode == 'goalie':
+        candidates.extend(_outlet_candidates(state, evidence, frame))
+    if active_mode == 'defense' and decision == 'goalie-avoid':
+        candidates = [replace(candidate, group='Defense') if candidate.action_id == 'goalie-avoid' else candidate
+                      for candidate in candidates]
     ids = {candidate.action_id for candidate in candidates}
     for selected in (plan, execution):
         if selected is not None and selected not in ids:
             candidates.append(ActionCandidate(selected, selected, 'Execution',
                                               source='Classic rules', reason='unmapped decision'))
             ids.add(selected)
-    group_order = {'Offense': 0, 'Passing': 1, 'One-timers': 2, 'Finishing': 3, 'Defense': 4, 'Goalie': 5, 'Execution': 6}
+    group_order = {'Offense': 0, 'Passing': 1, 'One-timers': 2, 'Finishing': 3, 'Defense': 4,
+                   'Goalie': 5, 'Outlets': 6, 'Execution': 7}
     candidates.sort(key=lambda candidate: group_order[candidate.group])
     return DecisionSnapshot(
         'Classic rules', frame, tuple(candidates), plan, execution, phase=decision,
-        reason=goalie.get('reason', '') if decision.startswith('goalie-') else (
-            defense.get('reason', '') if defense else offense.get('reason', offense.get('status', ''))),
+        reason=evidence.get('reason', evidence.get('status', '')),
         action_schema='HOCKEY_INTENT_DPAD' if controller._intents else 'FILTERED',
         action=tuple(float(value) for value in action), evaluation_frame=evaluated,
         evaluation_carrier=offense.get('evaluation_carrier'),
-        goalie_policy=getattr(controller.args, 'goalie_policy', 'off'))
+        goalie_policy=getattr(controller.args, 'goalie_policy', 'off'), active_mode=active_mode,
+        actual_slot=controlled, desired_slot=evidence.get('desired_slot'),
+        target=tuple(evidence['target']) if evidence.get('target') is not None else None)

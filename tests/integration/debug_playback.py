@@ -67,12 +67,24 @@ def native_debug_pause(screenshot=None):
             assert (controller._tick, controller.defense.frames, display.playback_frames) == before_clocks
             assert display.score_evaluation == before_scores
             waits.append(True)
+            if len(waits) == 1:
+                logical = display.inspector.tab_rects['defense'].center
+                rect = display.presentation_rect
+                position = (round(rect.x + logical[0] * rect.width / display.CANVAS_WIDTH),
+                            round(rect.y + logical[1] * rect.height / display.CANVAS_HEIGHT))
+                pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=position))
+            else:
+                assert display.inspector.selected_mode == 'defense'
+                assert display.inspector.historical
+                assert not display.inspector.highlighted_ids
+                assert display.inspector.max_scroll == 0
             keys = (pygame.K_8,) if len(waits) == 1 else (pygame.K_8, pygame.K_SPACE)
             for key in keys:
                 pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=key))
         with patch('pygame.time.wait', side_effect=inspect):
             player._wait_for_display()
         assert len(waits) == 2 and not display.paused
+        assert display.inspector.selected_mode == display.inspector.current.active_mode
         assert not display.show_planner_overlay
         assert ram_digest() == before_ram
         actions = player.ai_sys.predict(state, info=info, deterministic=True)
@@ -84,7 +96,7 @@ def native_debug_pause(screenshot=None):
             pygame.image.save(display.screen, screenshot)
         print(f'PASS: seeded away Classic/selective-goalie replay captures scores at frame {elapsed + 1}; '
               'inspector outputs match the bare native-cadence controller; '
-              'pause freezes ROM RAM, policy clocks and evaluation, serves overlay keys, then resumes')
+              'pause freezes ROM RAM, policy clocks and evaluation, serves tabs and overlay keys, then resumes')
     finally:
         player.close()
 

@@ -2875,18 +2875,30 @@ score kinds stay in the inspector. The
 window scales to fit the desktop and can be resized without changing game
 coordinates. **F2** saves the full-resolution logical canvas.
 
-The inspector lists carrying/setup, ordinary passes and one-timers to each live
-skater position/slot, finishing, defense and goalie actions. **Green** identifies
-the current tactical plan and execution; the lifecycle phase and actual applied
-input are shown separately. A shot/pass request is not proof of ROM acceptance.
-Mouse wheel over the panel or **PgUp/PgDn** scrolls the list; hovering a row
-exposes its full reason or additional score kinds and probability scope.
-Current rejections and disabled/unavailable actions remain visible.
+The inspector has **Offense / Defense / Goalie** tabs and automatically selects
+the mode supplying the current action. Each Classic tab fits without scrolling.
+Offense contains carrying/setup, ordinary passes, one-timers and finishing;
+Defense contains recovery, threat coverage, switching and checks; Goalie contains
+takeover/handoff, saves, holds, outlets (including receiver candidates) and clears.
+The fixed summary shows plan, execution, reason, controlled/desired player slots,
+target, applied input and evaluation age. **Green** identifies current selections;
+a shot/pass request is not proof of ROM acceptance. Hovering a row shows its
+reason or additional score kinds. Current rejections and disabled/unavailable
+actions remain visible; waiting phases stay in the summary.
+
+While paused, click a tab to inspect its latest recorded decision. Inactive-mode
+snapshots are labeled **HISTORICAL**, use recorded inputs, and have no green action
+selection. Each mode retains its own evaluation history; a mode not yet observed
+shows an empty-state message. Resume restores automatic tab selection. Receiving
+a pass remains Offense; avoiding goalie contact remains the active skater mode.
+Goalie possession/outlets use Goalie even with manual goalie policy off. Background
+goalie observations alone do not select the Goalie tab. Mouse wheel and **PgUp/PgDn**
+remain available for other agents whose diagnostics overflow the panel.
 
 The **Score / Kind** columns use existing evidence only: pass, keep-puck,
 position, carry, finish or window heuristics are not interchangeable units.
-Unknown scores are `--`. **P eff/raw** reserves separate effective/raw policy
-probabilities for future neural diagnostic producers; Classic leaves it blank.
+Unknown scores are `--`. **P eff/raw** appears only when an agent supplies
+effective/raw policy probabilities; Classic does not display that column.
 Policy P means action selection, not pass completion or goal probability, and
 each producer must name its network/head or conditional scope. Old numerical
 scores turn gray and retain their original evaluation age; they never restore

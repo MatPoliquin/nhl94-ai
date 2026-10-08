@@ -33,6 +33,15 @@ def neural_snapshot():
         ), plan_id='carry', action=tuple(np.zeros(12)), evaluation_frame=4)
 
 
+def mode_snapshot(mode, frame):
+    snapshot = catalogue_snapshot(offense_state().team1, 'Classic rules', frame)
+    plan = {'offense': 'carry', 'defense': 'protect-lane', 'goalie': 'goalie-save'}[mode]
+    candidates = tuple(replace(candidate, scores=(DecisionScore(mode, frame),), evaluated_frame=frame)
+                       if candidate.action_id == plan else candidate for candidate in snapshot.candidates)
+    return replace(snapshot, active_mode=mode, plan_id=plan, candidates=candidates,
+                   action=tuple(np.zeros(12)), goalie_policy='selective', evaluation_frame=frame)
+
+
 class DecisionContractTests(unittest.TestCase):
     def test_probability_validation_preserves_zero_and_requires_scope(self):
         candidate = ActionCandidate('shoot', 'Shoot', 'Offense', probability=0, probability_scope='finish/action')
@@ -53,6 +62,8 @@ class DecisionContractTests(unittest.TestCase):
             replace(snapshot, execution_id='missing')
         with self.assertRaises(ValueError):
             replace(snapshot, frame=-1)
+        with self.assertRaisesRegex(ValueError, 'mode'):
+            replace(snapshot, active_mode='passing')
 
     def test_classic_collection_is_read_only_and_has_no_fabricated_probabilities(self):
         controller, state = ClassicAIV1Model(), offense_state()
@@ -86,6 +97,61 @@ class DecisionContractTests(unittest.TestCase):
         self.assertEqual(snapshot.plan_id, 'pass:2')
         self.assertEqual(snapshot.phase, 'pass-flight')
         self.assertEqual(snapshot.action_schema, 'FILTERED')
+
+    def test_active_mode_and_shared_evidence_follow_executed_branch(self):
+        controller, state = ClassicAIV1Model(), offense_state()
+        scenarios = (
+            ('carry', {}, 'offense', 'carry'),
+            ('pass-flight', {}, 'offense', 'pass:2'),
+            ('receive-pass-switch', {}, 'offense', 'pass:2'),
+            ('receive-pass', {}, 'offense', 'pass:2'),
+            ('one-timer-flight', {}, 'offense', 'one-timer:2'),
+            ('goalie-avoid', {}, 'offense', 'goalie-avoid'),
+            ('recover-safe', {'decision': 'recover-safe', 'mode': 'skating'}, 'defense', 'recover-safe'),
+            ('goalie-avoid', {'decision': 'goalie-avoid', 'mode': 'goalie-avoid'}, 'defense', 'goalie-avoid'),
+            ('goalie-hold', {}, 'goalie', 'goalie-hold'),
+            ('goalie-outlet', {}, 'goalie', 'goalie-outlet'),
+            ('goalie-request-goalie', {}, 'goalie', 'goalie-takeover'),
+            ('goalie-neutral-handoff', {}, 'goalie', 'goalie-return'),
+        )
+        for decision, defense, mode, plan in scenarios:
+            with self.subTest(decision=decision, mode=mode):
+                controller._last_decision = decision
+                controller.offense.pending = {'receiver': 2}
+                controller.offense_diagnostics = {'desired_slot': 2, 'target': (12, 34), 'reason': 'offense reason'}
+                controller.defense_diagnostics = dict(defense, reason='defense reason') if defense else {}
+                controller.goalie_diagnostics = {'mode': decision.removeprefix('goalie-'), 'reason': 'goalie reason'}
+                before = pickle.dumps((controller, state))
+                snapshot = classic_decision_snapshot(controller, state, np.zeros(12))
+                self.assertEqual(pickle.dumps((controller, state)), before)
+                self.assertEqual((snapshot.active_mode, snapshot.plan_id), (mode, plan))
+                expected = 'offense' if mode == 'offense' or decision in ('goalie-hold', 'goalie-outlet') else mode
+                self.assertEqual(snapshot.reason, expected + ' reason')
+                if expected == 'offense':
+                    self.assertEqual((snapshot.desired_slot, snapshot.target), (2, (12, 34)))
+                if decision == 'goalie-hold':
+                    self.assertNotEqual(next(c for c in snapshot.candidates if c.action_id == plan).status, 'disabled')
+
+    def test_goalie_outlets_keep_evidence_in_goalie_group_with_and_without_manual_control(self):
+        for manual in (False, True):
+            controller, state = ClassicAIV1Model(), offense_state()
+            controller._last_decision = 'goalie-possession-outlet' if manual else 'goalie-outlet'
+            details = {'mode': 'possession-outlet', 'outlet_candidates': [
+                {'slot': 1, 'status': 'safe', 'value': 20},
+                {'slot': 2, 'status': 'different-rom-recipient'},
+            ]}
+            if manual:
+                controller.goalie = SimpleNamespace(phase='possession-outlet', outlet={'receiver': 1})
+                controller.goalie_diagnostics = details
+            else:
+                controller.offense_diagnostics = details
+            snapshot = classic_decision_snapshot(controller, state, np.zeros(12))
+            rows = {c.action_id: c for c in snapshot.candidates if c.group == 'Outlets'}
+            self.assertEqual(len(rows), 5)
+            self.assertEqual(snapshot.active_mode, 'goalie')
+            self.assertEqual(rows['outlet:1'].scores[0].value, 20)
+            self.assertEqual(rows['outlet:2'].status, 'rejected')
+            self.assertEqual(rows['outlet:0'].status, 'not-evaluated')
 
     def test_away_roles_use_live_player_roles_and_physical_slots(self):
         state = away_view(offense_state())
@@ -218,21 +284,99 @@ class InspectorDisplayTests(unittest.TestCase):
         self.assertEqual(display.rink_rect, geometry)
         self.assertEqual(display.screen.get_size(), (1920, 1080))
 
-    def test_catalogue_is_scrollable_while_paused_and_goalie_setting_is_read_only(self):
+    def test_every_classic_tab_fits_without_scrolling_and_preserves_all_its_rows(self):
         import pygame
         from nhl94_ai.ui.decision_panel import DecisionInspector
         inspector = DecisionInspector()
-        snapshot = catalogue_snapshot(offense_state().team1, 'Classic rules', 0)
-        inspector.update(snapshot, 0)
         surface = pygame.Surface((740, 1080))
-        inspector.draw(surface, surface.get_rect(), pygame.font.SysFont('Arial', 16),
-                       pygame.font.SysFont('Arial', 24), 0)
-        self.assertGreater(inspector.max_scroll, 0)
-        inspector.scroll_by(10000)
-        self.assertEqual(inspector.scroll, inspector.max_scroll)
-        inspector.scroll_by(-10000)
-        self.assertEqual(inspector.scroll, 0)
+        controller, state = ClassicAIV1Model(), offense_state()
+        for decision, mode in (('carry', 'offense'), ('recover-safe', 'defense'), ('goalie-outlet', 'goalie')):
+            controller._last_decision = decision
+            controller.defense_diagnostics = {'decision': decision} if mode == 'defense' else {}
+            snapshot = classic_decision_snapshot(controller, state, np.zeros(12))
+            inspector.update(snapshot, 0)
+            with patch.object(inspector, '_text', wraps=inspector._text) as text:
+                inspector.draw(surface, surface.get_rect(), pygame.font.SysFont('Arial', 16),
+                               pygame.font.SysFont('Arial', 24), 0)
+            self.assertEqual(inspector.selected_mode, mode)
+            self.assertEqual(inspector.max_scroll, 0)
+            self.assertEqual(set(inspector.row_rects), {row.candidate.action_id for row in inspector.rows()})
+            self.assertTrue(all(bounds.height == inspector.ROW_HEIGHT for bounds in inspector.row_rects.values()))
+            self.assertTrue(all(bounds.bottom <= 996 for bounds in inspector.row_rects.values()))
+            self.assertNotIn('P eff/raw', [call.args[2] for call in text.call_args_list])
+            self.assertNotIn('wait', inspector.row_rects)
+
+    def test_mode_history_is_independent_and_pause_inspection_never_highlights_old_actions(self):
+        import pygame
+        from nhl94_ai.ui.decision_panel import DecisionInspector
+        inspector = DecisionInspector()
+        surface = pygame.Surface((740, 1080))
+        font, big = pygame.font.SysFont('Arial', 16), pygame.font.SysFont('Arial', 24)
+        for mode, frame in (('offense', 4), ('defense', 8), ('goalie', 12)):
+            inspector.update(mode_snapshot(mode, frame), frame)
+            self.assertEqual(inspector.selected_mode, mode)
+            self.assertEqual(inspector.evaluation_at, frame)
+        inspector.draw(surface, surface.get_rect(), font, big, 12)
+        inspector.click(inspector.tab_rects['offense'].center)
+        self.assertEqual(inspector.selected_mode, 'goalie')
+        inspector.set_paused(True)
+        inspector.click(inspector.tab_rects['offense'].center)
+        self.assertEqual(inspector.evaluation_at, 4)
+        self.assertTrue(inspector.historical)
+        self.assertEqual(inspector.snapshot.frame, 4)
+        self.assertTrue(all(row.historical for row in inspector.rows(12)))
+        with patch.object(inspector, '_text', wraps=inspector._text) as text:
+            inspector.draw(surface, surface.get_rect(), font, big, 12, actual_action=np.ones(12))
         self.assertEqual(inspector.highlighted_ids, ())
+        texts = [call.args[2] for call in text.call_args_list]
+        self.assertTrue(any('HISTORICAL: 8' in value for value in texts))
+        self.assertIn('Recorded input: neutral', texts)
+        self.assertFalse(any('override' in value for value in texts))
+        inspector.set_paused(False)
+        self.assertEqual(inspector.selected_mode, 'goalie')
+        self.assertFalse(inspector.historical)
+        inspector.update(replace(mode_snapshot('offense', 16), evaluation_frame=None,
+                                 candidates=tuple(replace(c, scores=(), evaluated_frame=None)
+                                                  for c in mode_snapshot('offense', 16).candidates)), 16)
+        self.assertEqual(inspector.evaluation_at, 4)
+        self.assertEqual(inspector.rows()[0].candidate.scores[0].value, 4)
+        self.assertEqual(inspector.selected_ids(), ('carry',))
+        inspector.reset()
+        inspector.update(mode_snapshot('goalie', 20), 20)
+        inspector.set_paused(True)
+        inspector.draw(surface, surface.get_rect(), font, big, 20)
+        inspector.click(inspector.tab_rects['offense'].center)
+        self.assertIsNone(inspector.snapshot)
+        self.assertEqual(inspector.rows(), ())
+        self.assertIsNone(inspector.evaluation)
+
+    def test_resized_tab_clicks_and_resume_do_not_send_game_input(self):
+        import pygame
+        helper = test_debug_playback.DebugPlaybackTests()
+        self.addCleanup(helper.doCleanups)
+        display, _ = helper.display()
+        for mode, frame in (('offense', 4), ('defense', 8)):
+            display.set_ai_sys_info(SimpleNamespace(last_diagnostics={'decision_inspector': mode_snapshot(mode, frame)}))
+        pygame.event.post(pygame.event.Event(pygame.VIDEORESIZE, w=960, h=600))
+        display.process_events()
+        display.draw_frame(np.zeros((224, 256, 3), dtype=np.uint8), [{}], np.zeros(12))
+        logical = display.inspector.tab_rects['offense'].center
+        presentation = display.presentation_rect
+        position = (presentation.x + round(logical[0] * presentation.width / 1920),
+                    presentation.y + round(logical[1] * presentation.height / 1080))
+        buttons = list(display.player_actions)
+        with patch.object(display.env, 'step') as step:
+            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE))
+            pygame.event.post(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=position))
+            display.process_events()
+            self.assertTrue(display.paused)
+            self.assertEqual(display.inspector.selected_mode, 'offense')
+            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE))
+            display.process_events()
+            self.assertFalse(display.paused)
+            self.assertEqual(display.inspector.selected_mode, 'defense')
+            step.assert_not_called()
+        self.assertEqual(display.player_actions, buttons)
 
 
 if __name__ == '__main__':
