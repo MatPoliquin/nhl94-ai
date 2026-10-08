@@ -47,6 +47,8 @@ class NHL94DebugDisplay:
     def __init__(self, env, args, total_params, nn_type, button_names):
         self.env = env
         self.args = args
+        self.recorder = None
+        self._closed = False
 
         self.game_state = env.get_attr("game_state")[0]
 
@@ -227,9 +229,24 @@ class NHL94DebugDisplay:
             return normalized[0]
         return [0] * GameConsts.INPUT_MAX
 
+    def start_recording(self, path):
+        from nhl94_ai.ui.recording import MP4Recorder
+        self.recorder = MP4Recorder(path, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT))
+        print(f'Recording full 1920x1080 display to {self.recorder.path} (60 fps, no audio).')
+
     def close(self):
-        self.env.close()
-        pygame.quit()
+        if self._closed:
+            return
+        self._closed = True
+        try:
+            if self.recorder is not None:
+                self.recorder.close()
+                print(f'Saved recording: {self.recorder.path}')
+        finally:
+            try:
+                self.env.close()
+            finally:
+                pygame.quit()
 
     def reset(self, **kwargs):
         self._clear_diagnostics()
@@ -767,6 +784,8 @@ class NHL94DebugDisplay:
 
         self._present()
         pygame.display.flip()
+        if self.recorder is not None:
+            self.recorder.capture(self.screen)
 
     def _logical_mouse_position(self, position=None):
         x, y = pygame.mouse.get_pos() if position is None else position

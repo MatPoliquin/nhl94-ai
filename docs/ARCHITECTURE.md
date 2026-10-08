@@ -570,6 +570,20 @@ are explicitly historical and never highlighted as current actions. Resume follo
 the live mode again. Mouse wheel and PgUp/PgDn remain available for overflowing
 diagnostics from other producers.
 
+`nhl94 play --record-mp4 PATH` streams this full logical canvas through OpenCV's
+MP4 encoder at 60 fps, independently of the desktop window size. Recording uses
+elapsed wall time, repeats the last canvas during slow frames, and samples faster
+rendering at the video cadence. Paused inspector redraws and episode resets stay
+in the same recording. The display thread copies the canvas to immutable RGB bytes;
+a dedicated worker converts colors, writes frames, and releases the encoder.
+A queue holds at most four pending captures. When full, it drops the oldest capture
+without waiting for encoding. Capture timestamps preserve video duration across
+these drops. Shutdown freezes the end timestamp, drains the queue, and joins the
+worker; encoder failures propagate to playback. Esc, window
+close, Ctrl+C, and normal completion finalize the MP4; audio is not captured.
+The option supports the debug display modes, excluding the legacy model-versus-model
+display, and `record_mp4` paths in JSON options resolve relative to that file.
+
 `agents/decisions.py` defines immutable `DecisionSnapshot`, `ActionCandidate`
 and `DecisionScore` evidence outside neural observations and saved action IDs.
 `AgentOutput.decision` is optional and survives frame-repeat and multi-model

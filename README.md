@@ -25,6 +25,9 @@ nhl94 play --agent classic-v1 --env NHL94-Genesis-v0
 # Watch Classic as Quebec against Montreal's built-in CPU.
 nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --state CanadiensVsNordiques.start --side away --max_playback_speed 1.0
 
+# Record the full 1080p window, including the decision inspector and debug panels.
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --record-mp4 recordings/classic.mp4
+
 # Play against Classic v1 at half speed (you control the away team).
 nhl94 play --agent classic-v1 --mode player_vs_model --env NHL94-Genesis-v0 --max_playback_speed 0.5
 
@@ -51,6 +54,16 @@ work outside the checkout. Relative paths in a JSON options file are resolved
 against that file's directory. Explicit CLI flags override file settings.
 `--config` accepts either hyperparameters or an options object; see
 [configuration](docs/ARCHITECTURE.md#configuration).
+
+`play --record-mp4 PATH` saves the entire debug canvas at **1920×1080, 60 fps**,
+even when the window is resized. It follows watched playback speed and includes
+pauses, inspector tab changes, and overlays. Recording spans consecutive sessions
+until you exit with Esc, close the window, or press Ctrl+C; `--single_session`
+stops after one game. Output directories are created and an existing output file
+is replaced. Videos have no audio. The encoder uses the existing OpenCV dependency.
+Encoding runs in a separate thread. If it falls behind, older queued captures
+are dropped so playback stays responsive; the video retains its elapsed duration.
+Exiting waits for pending encoding to finish and finalizes the file.
 
 The `PvG` (Player vs Goalie) example uses
 `MightyDucksVsAllStarCampbell.Shootout.NearGoalie.Start`, not a manual-goalie or

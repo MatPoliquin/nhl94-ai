@@ -12,7 +12,7 @@ from nhl94_ai.config import load_hyperparams, resolve_hyperparams_for_model
 from nhl94_ai.evaluation.play import NHL94Player, parse_cmdline
 
 
-def native_debug_pause(screenshot=None):
+def native_debug_pause(screenshot=None, record_mp4=None):
     import pygame
     args = parse_cmdline([
         '--nn=ClassicAIV1', '--env=NHL94-Genesis-v0', '--mode=model_vs_game',
@@ -21,6 +21,7 @@ def native_debug_pause(screenshot=None):
     ])
     args.hyperparams_dict = resolve_hyperparams_for_model(
         load_hyperparams(args.hyperparams, required=True), args.nn)
+    args.record_mp4 = record_mp4
     player = NHL94Player(args, None, need_display=True)
     try:
         display = player.display_env
@@ -104,4 +105,6 @@ def native_debug_pause(screenshot=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--screenshot', help='Save the verified logical 1920x1080 inspector canvas.')
-    native_debug_pause(parser.parse_args().screenshot)
+    parser.add_argument('--record-mp4', help='Record the native replay and paused inspector to MP4.')
+    options = parser.parse_args()
+    native_debug_pause(options.screenshot, options.record_mp4)

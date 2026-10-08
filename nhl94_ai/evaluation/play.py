@@ -53,6 +53,8 @@ def build_parser():
     parser.add_argument('--hyperparams', type=str, default=default_config_path("default"))
     parser.add_argument('--video', default=False, action='store_true')
     parser.add_argument('--video_path', type=str, default='../retro_game.avi')
+    parser.add_argument('--record-mp4', metavar='PATH',
+                       help='Record the entire 1920x1080 debug display to MP4 at 60 fps, including pauses (no audio).')
     parser.add_argument('--single_session', default=False, action='store_true',
                        help='Exit after the first completed game instead of continuing to the next session')
     parser.add_argument('--seq_len', type=int, default=16,
@@ -98,6 +100,10 @@ class NHL94Player:
             args.num_players = 2
         self.logger = logger
         self.need_display = need_display
+        record_mp4 = getattr(args, 'record_mp4', None)
+        if record_mp4 and (not need_display or args.mode == 'model_vs_model'):
+            raise ValueError('--record-mp4 requires the debug display in model_vs_game, '
+                             'player_vs_game, or player_vs_model mode')
         if getattr(args, 'seed', None) is not None:
             validate_rom_seed(args.seed)
             get_game(args.env)
@@ -126,6 +132,13 @@ class NHL94Player:
             self.init_model_vs_model()
         else:
             self.init_player_or_game_mode()
+
+        if record_mp4:
+            try:
+                self.display_env.start_recording(record_mp4)
+            except BaseException:
+                self.close()
+                raise
 
     def init_target_mode(self):
         EnvironmentConfig.from_args(self.args)
