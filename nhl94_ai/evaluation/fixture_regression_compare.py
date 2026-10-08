@@ -32,7 +32,7 @@ def validate_reports(reports, *, allow_failures=False, groups=('off', 'selective
                 or set(settings['matchups']) != set(GROUPS[group])):
             raise ValueError('Reports do not implement the declared fixture regression protocol.')
         if any(settings.get(flag, False) for flag in (
-                'cross_crease', 'deke', 'uncertain_carry', 'chance_creation', 'offense_lookahead')):
+                'cross_crease', 'deke', 'uncertain_carry', 'chance_creation', 'offense_lookahead', 'classic_refinements')):
             raise ValueError('Experimental tactics must stay off in the default-policy regression.')
         for name, digest in report['sources'].items():
             if name in sources and sources[name] != digest:

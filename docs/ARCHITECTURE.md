@@ -71,6 +71,24 @@ This restores the earlier policy after the native-lookahead default regressed;
 the [Classic restoration report](CLASSIC_V1.md#default-offense-restoration-2026-10-08)
 records matched outcomes and component comparisons.
 
+Automatic and manual goalie policies share `agents.goalie.outlet_options`.
+The default path checks receiver eligibility, ROM selection, interception and
+reception before requesting B, then uses the ordinary pass lifecycle to observe
+release and actual reception. If no outlet qualifies, the automatic goalie
+holds for cover. A new request requires a fresh B edge.
+
+`--classic-refinements` independently enables `pass-timing`, `carry-motion`,
+`finishing` and `interceptions`. These are deterministic experiments, disabled
+by default after mixed or adverse gameplay results. Pass timing projects the
+native selection instant, including slot update order and puck attachment;
+carry motion shares held-input skating and swept clearance with cuts and
+breakaways. `agents/finishing.py` compares ordinary and one-timer release
+geometry, and the frame dispatcher enforces the chosen C hold. Defensive
+interceptions simulate the top two candidates with the same braking-aware
+steering used during execution, checking switching delay and controlled arrival.
+Forecasts retain approximation limits; see the
+[refinement measurements](CLASSIC_V1.md#classic-refinements-2026-10-08).
+
 The opt-in `--offense-lookahead` policy uses `agents/offense.py` directly.
 Its ordinary carrying and receiver continuations share `agents/carry.py`.
 It uses native grounded skating and the ordinary controller's held-button

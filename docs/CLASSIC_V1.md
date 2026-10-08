@@ -10,6 +10,133 @@ Historical results below and the archived benchmark files keep their original
 V4/V2/V3 labels, sources, and hashes. They are not new V1 benchmark runs, and
 comparisons against the removed controllers cannot be rerun from this tree.
 
+## Classic refinements (2026-10-08)
+
+Five deterministic changes were implemented against `05ab06e`. **Evaluated
+goalie outlets are enabled by default. The other four remain experimental:**
+native checks establish particular mechanics, while the gameplay comparisons
+below do not justify promoting the combined policy. No learned model is used.
+
+| Change | Behavior | Enable |
+| --- | --- | --- |
+| Goalie outlets | Share the manual controller's pass evaluator; require eligible receivers, ROM recipient agreement and reception safety; track actual launch/receiver/outcome; require a fresh B edge. Hold for automatic cover when no outlet qualifies. | Default |
+| Pass timing | Project puck attachment and all candidate receivers at the second held-B input, accounting for native slot update order. Reuse that launch/contact forecast through reception and flag changing recipient predictions. | `--classic-refinements pass-timing` |
+| Carry and feint motion | Share `carry_path`, actual input cadence, fractional facing and swept body clearance across ordinary carry estimates, initial/continuing cuts and breakaways. | `--classic-refinements carry-motion` |
+| Finishing | Compare eligible normal finishes and one-timers with a shared release-geometry score; choose ordinary shot aim and C hold using motion, shot power/energy and goalie pose. Release C inside the tactical input block when needed. | `--classic-refinements finishing` |
+| Interception deadlines | Keep cheap candidate ranking, then simulate the best two with the live steering rule, switching/check delays and boosts. Require controlled arrival and select the verified defender. | `--classic-refinements interceptions` |
+
+Several refinements can follow the same flag. They work with the default
+possession policy or the separately enabled `--offense-lookahead`; enabling a
+refinement does not select lookahead. They are supported for full-team Classic
+with `FILTERED` or `HOCKEY_INTENT_DPAD`. Manual goalie control still requires
+`FILTERED`. Benchmarks record the selected refinements, and the default replay
+gate rejects experimental references.
+
+The recipient forecast holds current CPU steering and sprite offsets across
+the short release window. It does not predict new CPU decisions or guarantee
+exact ROM selection in every state. Two reproduced native recipient mismatches
+are fixed; a separate 97-case artificial moving-teammate probe reduced
+mismatches from 21 to 12, with all nine changed predictions correct in that
+sample. Those remaining errors are unresolved, and this is not a gameplay
+error-rate estimate. One-frame decisions now retain B through direction
+selection instead of cancelling the request early.
+
+The carry regression test catches a teammate collision inside the next
+four-frame input block that the old sampled clearance misses. The defense test
+rejects a 56-frame interception admitted by the cheap arrival estimate. These
+are model-level counterexamples. Finishing scores are explicit geometry
+heuristics, not scoring probabilities or calibrated possession values; goalie
+motion is only projected over a short window. Interception simulation does not
+model every collision, CPU action during a switch, or future steering replan.
+
+### Refinement measurements
+
+The [comparison](benchmarks/classic-v1-refinements-comparison.json) and
+[compressed evidence archive](benchmarks/classic-v1-refinements-evidence.json.gz)
+retain report source hashes, runtime versions, physical fixtures, seeds, applied
+input hashes, event metrics and reproducible patches against `05ab06e`.
+All score comparisons use completed 300-clock-second first periods with
+four-frame offense, `FILTERED`, CPU goalies and other experimental tactics off.
+
+The initial cumulative pilot used four seeds (`20266001..20266004`) on each
+standard Buffalo/Anaheim assignment:
+
+| Cumulative implementation | GF-GA, eight periods |
+| --- | ---: |
+| Frozen baseline | 16-1 |
+| Evaluated outlets | 15-0 |
+| Add release-time pass prediction | 12-2 |
+| Add native carry/cut prediction | 14-2 |
+| Add finishing comparison | 9-3 |
+| Add simulated interception deadlines | 4-5 |
+
+The separate 40-period validation cohort (`20266101..20266120`, both standard
+assignments) scored **53-17 before and 58-7 with evaluated outlets**. The paired
+mean goal-difference change was +0.375 per period, with a seed-clustered 95%
+bootstrap interval of **[-0.025, 0.8]**: favorable evidence, not established
+superiority. Outlets plus pass/carry prediction scored 62-19. A narrower
+four-frame collision guard scored 65-14, tying outlet-only goal difference
+while conceding more; its eight-period pilot scored 10-3. That guard was not
+retained as an additional default rule. All tested variants, including failed
+experiments, are preserved in the archive.
+
+These seeds became development evidence when used to choose defaults. Fixed
+rosters and first periods do not establish full-game or human-opponent strength.
+The final current-source default reproduces all 40 outlet-only action hashes.
+On three additional roster fixtures, using ten new seeds per fixture
+(`20266201..20266210`), it scores **54-9 versus 45-19** before. The paired
+goal-difference change is +0.633 per period, with a seed-clustered 95% interval
+of [0.133, 1.133]. This is a small fixed-fixture comparison, not universal
+strength evidence.
+
+| Additional roster fixture | Baseline GF-GA | Final default GF-GA |
+| --- | ---: | ---: |
+| Pittsburgh vs Ottawa | 25-6 | 26-1 |
+| Ottawa vs Pittsburgh | 8-9 | 11-4 |
+| Quebec vs Montreal | 12-4 | 17-4 |
+
+Independent eight-period pilots at the final source revision isolate each
+refinement against the outlet-only default. They reuse the pilot seeds and are
+development measurements:
+
+| Enabled refinement | GF-GA |
+| --- | ---: |
+| None (final default) | 15-0 |
+| Pass timing only | 12-2 |
+| Carry motion only | 14-5 |
+| Finishing only | 9-2 |
+| Interception deadlines only | 10-1 |
+
+The [current-source native replay gate](benchmarks/classic-v1-refinements-gate.json)
+matches the full away period, including all 9,491 native frames and applied
+inputs. The archive contains 356 completed period records, including repeated
+seeds and parity reruns; these are not 356 independent samples.
+
+Reproduce the final standard reference and its native cadence gate with:
+
+```bash
+python -m nhl94_ai benchmark-cpu --agent classic-v1 \
+  --matchups sabres-ducks-manual ducks-sabres-manual \
+  --goalie-policy off --trials 20 --seed 20266101 --seconds 300 \
+  --frame-skip 4 --action-type FILTERED --workers 4 \
+  --output /tmp/classic-refinements-standard.json
+python -m nhl94_ai.evaluation.carry_replay_gate \
+  --benchmark /tmp/classic-refinements-standard.json \
+  --output /tmp/classic-refinements-gate.json
+```
+
+For an individual refinement pilot, add its `--classic-refinements` value to
+the benchmark command and use `--trials 4 --seed 20266001`. The additional
+roster cohort uses `--matchups penguins-senators senators-penguins
+nordiques-canadiens --trials 10 --seed 20266201`.
+
+Validation: 775 unit/discovered tests pass with one existing expected failure;
+Pylint reports 10.00/10. Explicit ROM suites `tests.integration.classic_offense`,
+`classic_carry`, `offensive_followup`, `manual_goalie` and the new
+`classic_refinements` pass. The new native checks cover both recipient
+counterexamples and exact two-frame C holds through native shot release in both
+button and intent schemas.
+
 ## Default offense restoration (2026-10-08)
 
 Ordinary `classic-v1` again uses the immediate carry/pass priorities, goalie

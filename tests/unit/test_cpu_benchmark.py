@@ -11,6 +11,22 @@ from nhl94_ai.game.state import NHL94GameState
 
 
 class CpuBenchmarkContracts(unittest.TestCase):
+    def test_refinements_reach_trials_and_are_recorded_individually(self):
+        args = build_parser().parse_args([
+            '--classic-refinements', 'pass-timing', 'interceptions', '--trials', '1', '--deke'])
+        fixtures = []
+        def match(fixture):
+            fixtures.append(fixture)
+            return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                        goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
+        with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+            report = run(args)
+        self.assertEqual(report['settings']['classic_refinements'], ['pass-timing', 'interceptions'])
+        self.assertTrue(all(fixture[7:] == (False, True, False, False, False,
+                                          ('pass-timing', 'interceptions')) for fixture in fixtures))
+        self.assertIn('nhl94_ai/agents/finishing.py', report['sources'])
+        self.assertEqual(build_parser().parse_args([]).classic_refinements, [])
+
     def test_lookahead_flag_reaches_trials_and_preserves_other_options(self):
         fixtures = []
         def match(fixture):

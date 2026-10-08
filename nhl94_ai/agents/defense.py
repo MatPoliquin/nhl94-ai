@@ -1,5 +1,6 @@
 """Target first, defender second: bounded lane protection and puck races."""
 from dataclasses import asdict, dataclass, replace
+from copy import copy
 import math
 
 import numpy as np
@@ -10,12 +11,24 @@ from nhl94_ai.agents.motion import (
     LANE_HORIZON, SHOT_SPEED_RANGE, arrival_time, blocks_shot_lane,
     boost_safe, burst_velocity, check_approach, facing, puck_path, skating, velocity,
 )
+from nhl94_ai.agents.skating import grounded_step
 
 
 SWITCH_DELAY = 6
 SWITCH_INTERVAL = 12
 SWITCH_TIMEOUT = 8
 SWITCH_MARGIN = 4
+
+
+def defensive_steering(player, target):
+    """Shared braking-aware pad for execution and deadline verification."""
+    waypoint = route_waypoint((player.x, player.y), target)
+    vx, vy = velocity(player)
+    acceleration, _, _ = skating(player)
+    brake_x = vx * abs(vx) / (2 * acceleration + abs(vx) / 64)
+    brake_y = vy * abs(vy) / (2 * acceleration + abs(vy) / 64)
+    corrections = waypoint[0] - player.x - brake_x, waypoint[1] - player.y - brake_y
+    return tuple(1 if delta > 3 else -1 if delta < -3 else 0 for delta in corrections), waypoint
 
 
 def controlled_slot(team):
@@ -62,10 +75,13 @@ class DefensePlan:
     shot_goal: tuple | None = None
     lanes: tuple = ()
     reserved_slots: tuple = ()
+    recovery_slot: int | None = None
+    skating_arrival: int | None = None
 
 
 class DefenseController:
-    def __init__(self):
+    def __init__(self, *, verify_interceptions=False):
+        self.verify_interceptions = verify_interceptions
         self.frames = 0
         self.plan = None
         self.desired_slot = None
@@ -190,18 +206,58 @@ class DefenseController:
                            shot_goal=(goal_x, state.team1.net.y), lanes=(*primary, *lanes),
                            reserved_slots=reserved)
 
-    def _cost(self, state, slot, player, target):
+    def _switch_delay(self, state, slot):
         actual = controlled_slot(state.team1)
         switch_delay = 0
         if slot != actual:
             switch_delay = SWITCH_DELAY + max(0, self.switch_at - self.frames)
             if self.pending_switch and slot == self.pending_switch['to_slot']:
                 switch_delay = max(0, self.pending_switch['frame'] + SWITCH_DELAY - self.frames)
-        cost = arrival_time(player, target, boost=self.frames >= self.boost_at) + switch_delay
+        return switch_delay
+
+    def _cost(self, state, slot, player, target):
+        cost = arrival_time(player, target, boost=self.frames >= self.boost_at) + self._switch_delay(state, slot)
         if (not self._goal_side(state.team1, target, (state.puck.x, state.puck.y), 12)
                 and not self._covered(state, (state.puck.x, state.puck.y), excluding=slot)):
             cost += 24
         return cost
+
+    def _skating_arrival(self, state, slot, player, target, deadline):
+        """Verify a ranked race using the same pad, boosts and switching delay.
+
+        A successful forecast must still be near the puck at its arrival time;
+        an earlier fly-by does not count as controlled recovery.
+        """
+        if any(getattr(player, field) is None for field in (
+                'motion_x', 'motion_y', 'weight', 'agility', 'speed', 'energy')):
+            return None
+        future = copy(player)
+        delay = self._switch_delay(state, slot)
+        boost_at, burst_until, c_down = self.boost_at, 0, self.c_down
+        if self.pending_check:
+            delay = max(delay, self.pending_check['until'] - self.frames)
+        arrived = None
+        for elapsed in range(math.ceil(deadline) + 1):
+            distance = math.dist((future.x, future.y), target)
+            relative = math.dist(velocity(future), velocity(state.puck))
+            if elapsed >= delay and distance <= 7 and relative <= 3.5 and arrived is None:
+                arrived = elapsed
+            if elapsed == math.ceil(deadline):
+                return arrived if distance <= 14 and relative <= 3.5 else None
+            if elapsed < delay or elapsed < burst_until:
+                future = grounded_step(future, (0, 0))
+                c_down = False
+                continue
+            pad, waypoint = defensive_steering(future, target)
+            boost = self.frames + elapsed >= boost_at and not c_down and boost_safe(future, waypoint)
+            future = grounded_step(future, (0, 0) if boost else pad)
+            if boost:
+                future.motion_x, future.motion_y = burst_velocity(future)
+                boost_at, burst_until = self.frames + elapsed + 36, elapsed + 24
+            c_down = boost
+            if math.dist((future.x, future.y), project_target((future.x, future.y))) > 1e-6:
+                return None
+        return None
 
     @staticmethod
     def _likely_switch(state):
@@ -308,25 +364,31 @@ class DefenseController:
             candidates = [(self._cost(state, slot, player, point), slot, player) for slot, player in reachable]
             if not candidates:
                 break
-            ours, slot, player = min(candidates, key=lambda row: row[0])
             enemy = min((arrival_time(rival, point, optimistic=True) for _, rival in opponents), default=math.inf)
-            margin = self._race_margin(player)
-            # Recovery requires time to settle the puck, not just win a collision.
-            settle = 4 + max(0, 15 - (player.stick if player.stick is not None else 5)) / 3
-            if ours + margin > time or enemy <= time + settle + margin:
-                continue
-            if (not self._goal_side(state.team1, point, (state.puck.x, state.puck.y), 12)
-                    and not self._covered(state, (state.puck.x, state.puck.y), excluding=slot, delay=time)):
-                reason = 'recovery would abandon the last goal-side defender'
-                continue
-            relative = math.dist(velocity(player), velocity(state.puck))
-            if relative > 3.5 and time < ours + 12:
-                reason = 'insufficient time to control the incoming puck'
-                continue
-            return DefensePlan(point, 'intercept-pass' if passing else 'recover-safe',
-                               'win the puck race with control and coverage margin',
-                               reception[2] if reception else None, time,
-                               None if math.isinf(enemy) else enemy)
+            for ours, slot, player in sorted(candidates, key=lambda row: row[0])[:2 if self.verify_interceptions else 1]:
+                margin = self._race_margin(player)
+                settle = 4 + max(0, 15 - (player.stick if player.stick is not None else 5)) / 3
+                if ours + margin > time or enemy <= time + settle + margin:
+                    continue
+                if (not self._goal_side(state.team1, point, (state.puck.x, state.puck.y), 12)
+                        and not self._covered(state, (state.puck.x, state.puck.y), excluding=slot, delay=time)):
+                    reason = 'recovery would abandon the last goal-side defender'
+                    continue
+                relative = math.dist(velocity(player), velocity(state.puck))
+                if relative > 3.5 and time < ours + 12:
+                    reason = 'insufficient time to control the incoming puck'
+                    continue
+                arrival = self._skating_arrival(state, slot, player, point, time) if self.verify_interceptions else ours
+                if arrival is None or arrival + margin > time:
+                    reason = 'steering cannot meet the interception with control margin'
+                    continue
+                return DefensePlan(point, 'intercept-pass' if passing else 'recover-safe',
+                                   'verified skating arrival with control and coverage margin' if self.verify_interceptions
+                                   else 'win the puck race with control and coverage margin',
+                                   reception[2] if reception else None, time,
+                                   None if math.isinf(enemy) else enemy,
+                                   recovery_slot=slot if self.verify_interceptions else None,
+                                   skating_arrival=arrival if self.verify_interceptions else None)
         if reception is not None:
             time, point, slot, _ = reception
             plan = self._lane(state, point, slot, reason, point, delay=time)
@@ -346,6 +408,9 @@ class DefenseController:
         actual = controlled_slot(state.team1)
         available = (actual, self._likely_switch(state))
         reachable = {slot: cost for slot, cost in costs.items() if slot in available}
+        if self.plan and self.plan.recovery_slot in reachable:
+            self.desired_slot = self.plan.recovery_slot
+            return self.desired_slot, costs
         best = min(reachable, key=reachable.get) if reachable else None
         current_can_wait = True
         if self.plan and self.plan.mode in ('recover-safe', 'intercept-pass') and actual in costs:
@@ -481,17 +546,13 @@ class DefenseController:
         elif self.pending_check:
             mode = 'check-follow-through'
         elif player is not None:
-            waypoint = route_waypoint((player.x, player.y), plan.target)
+            pad, waypoint = defensive_steering(player, plan.target)
             vx, vy = velocity(player)
-            acceleration, _, _ = skating(player)
-            brake_x = vx * abs(vx) / (2 * acceleration + abs(vx) / 64)
-            brake_y = vy * abs(vy) / (2 * acceleration + abs(vy) / 64)
-            corrections = waypoint[0] - player.x - brake_x, waypoint[1] - player.y - brake_y
             for delta, negative, positive in (
-                (corrections[0], Buttons.INPUT_LEFT, Buttons.INPUT_RIGHT),
-                (corrections[1], Buttons.INPUT_DOWN, Buttons.INPUT_UP),
+                (pad[0], Buttons.INPUT_LEFT, Buttons.INPUT_RIGHT),
+                (pad[1], Buttons.INPUT_DOWN, Buttons.INPUT_UP),
             ):
-                if abs(delta) > 3:
+                if delta:
                     action[positive if delta > 0 else negative] = 1
             mode = 'holding' if not action.any() else 'skating'
             direction = facing(player)

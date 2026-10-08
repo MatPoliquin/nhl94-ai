@@ -10,6 +10,17 @@ SHOT_SPEED_RANGE = (3.0, 6.0)
 BLOCK_RADIUS = 8
 
 
+def rom_direction(dx, dy):
+    """vtoa uses 2:1 sector boundaries, not the pad's nearest-angle boundary."""
+    if dx == dy == 0:
+        return 8
+    if abs(dx) > 2 * abs(dy):
+        return 2 if dx > 0 else 6
+    if abs(dy) > 2 * abs(dx):
+        return 0 if dy > 0 else 4
+    return (1 if dx > 0 else 7) if dy > 0 else (3 if dx > 0 else 5)
+
+
 def velocity(player):
     if player.motion_x is None or player.motion_y is None:
         return player.vx * 256 * VELOCITY_SCALE, player.vy * 256 * VELOCITY_SCALE

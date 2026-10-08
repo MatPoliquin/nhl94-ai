@@ -71,7 +71,7 @@ class EnvironmentConfig:
             raise ValueError('Manual goalie AI requires full-team Classic FILTERED PostPlay without self-play')
         for flag, label in (('cross_crease', 'Cross-crease'), ('deke', 'Deke'),
                             ('uncertain_carry', 'Uncertain-carry'), ('chance_creation', 'Chance-creation'),
-                            ('offense_lookahead', 'Offense-lookahead')):
+                            ('offense_lookahead', 'Offense-lookahead'), ('classic_refinements', 'Classic refinements')):
             if not getattr(args, flag, False):
                 continue
             agent = getattr(args, 'agent', None)

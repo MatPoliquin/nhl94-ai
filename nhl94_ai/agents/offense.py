@@ -13,7 +13,7 @@ from nhl94_ai.agents.motion import (
 )
 from nhl94_ai.agents.passing import (
     evaluate_pass, one_timer_contact_frame, pass_contact, pass_point_at, pass_release_frames,
-    pressure_margin, rom_direction, shot_value,
+    option_receiver, pressure_margin, rom_direction, shot_value,
 )
 from nhl94_ai.agents.responses import response_future
 from nhl94_ai.env.target_control import project_target, route_waypoint
@@ -117,13 +117,24 @@ def _braking(player, target):
             and not (player.selection_flags or 0) & 0x10)
 
 
-def _carry_motion(player, target, frames=FEINT_FRAMES):
+def _native_carrier(player):
+    return all(getattr(player, field) is not None for field in (
+        'motion_x', 'motion_y', 'weight', 'agility', 'speed', 'energy'))
+
+
+def _carry_motion(player, target, frames=FEINT_FRAMES, *, decision_interval=None):
+    if decision_interval is not None and _native_carrier(player):
+        path = carry_path(player, target, frames, decision_interval=decision_interval)
+        return ((path[-1].x, path[-1].y), velocity(path[-1])) if path is not None else None
     return (stop_projection(player, frames, bounded=True) if _braking(player, target)
             else carry_projection(player, target, frames))
 
 
-def projected_state(state, target, frames=FEINT_FRAMES):
+def projected_state(state, target, frames=FEINT_FRAMES, *, decision_interval=None):
     original = state.team1.get_player_by_scnum(state.engine.puck_owner)
+    if decision_interval is not None and _native_carrier(original):
+        path = carry_path(original, target, frames, decision_interval=decision_interval)
+        return carry_future(state, original, path[-1], frames=frames) if path is not None else None
     motion = _carry_motion(original, target, frames)
     if motion is None:
         return None
@@ -148,9 +159,9 @@ def projected_state(state, target, frames=FEINT_FRAMES):
 
 
 def reception_frames(state, option):
-    receiver = state.team1.players[option.index]
+    receiver = option_receiver(state.team1.players[option.index], option)
     passer = state.team1.get_player_by_scnum(state.engine.puck_owner)
-    contact = pass_contact(state.puck, passer, receiver)
+    contact = option.contact or pass_contact(state.puck, passer, receiver)
     if contact is None:
         raise ValueError('A safe pass option must have a reachable reception')
     return one_timer_contact_frame(state.puck, receiver, contact, pass_release_frames(receiver))
@@ -158,7 +169,7 @@ def reception_frames(state, option):
 
 def reception_state(state, option, elapsed=None):
     """Advance bodies to reception; the puck contact point is not a body center."""
-    receiver = state.team1.players[option.index]
+    receiver = option_receiver(state.team1.players[option.index], option)
     elapsed = reception_frames(state, option) if elapsed is None else elapsed
     if elapsed is None:
         raise ValueError('Cannot project a reception without modeled body/stick contact')
@@ -170,15 +181,18 @@ def reception_state(state, option, elapsed=None):
         for player in (*team.players, team.goalie):
             if not on_ice(player):
                 continue
+            source = receiver if name == 'team1' and player is team.players[option.index] else player
             (player.x, player.y), player.projection_uncertainty = bounded_projection(
-                player, elapsed, boards=player is not team.goalie)
+                source, elapsed, boards=player is not team.goalie)
+            if source is receiver:
+                player.motion_x, player.motion_y = velocity(receiver)
             player.precise_x, player.precise_y = float(player.x), float(player.y)
         setattr(future, name, team)
     future.engine = copy(state.engine)
     future.engine.puck_owner = option.slot
     future.team1.defense_control, future.team1.control = option.slot, option.index + 1
     future.puck = copy(state.puck)
-    contact = pass_contact(state.puck, state.team1.get_player_by_scnum(state.engine.puck_owner), receiver)
+    contact = option.contact or pass_contact(state.puck, state.team1.get_player_by_scnum(state.engine.puck_owner), receiver)
     future.puck.x, future.puck.y = pass_point_at(
         state.puck, receiver, contact, elapsed - pass_release_frames(receiver))
     future.puck.motion_x, future.puck.motion_y = velocity(receiver)
@@ -208,7 +222,10 @@ def carry_future(state, player, carrier, *, frames=CARRY_FRAMES):
     return future
 
 
-def carry_clearance(state, player, target):
+def carry_clearance(state, player, target, *, decision_interval=None):
+    if decision_interval is not None and _native_carrier(player):
+        path = carry_path(player, target, decision_interval=decision_interval)
+        return body_clearance(state, player, path) if path is not None else -math.inf
     clearance = math.inf
     for frames in CARRY_SAMPLES:
         motion = _carry_motion(player, target, frames)
@@ -224,8 +241,8 @@ def carry_clearance(state, player, target):
     return clearance
 
 
-def carry_clear(state, player, target):
-    return carry_clearance(state, player, target) > 0
+def carry_clear(state, player, target, *, decision_interval=None):
+    return carry_clearance(state, player, target, decision_interval=decision_interval) > 0
 
 
 def goalie_contact_time(player, goalie, clearance=GOALIE_CLEARANCE):
@@ -341,6 +358,14 @@ class OffenseController:
         self.last_request = None
         self.diagnostics = {}
         self.risk_cache = {}
+        self.pass_timing = self.carry_motion = False
+
+    @property
+    def movement_interval(self):
+        return self.decision_interval if self.carry_motion else None
+
+    def clear_carry(self, state, player, target):
+        return carry_clear(state, player, target, decision_interval=self.movement_interval)
 
     def cancel(self):
         self.pending = None
@@ -387,6 +412,7 @@ class OffenseController:
             'frame': frame, 'deadline': frame + math.ceil(option.flight_frames) + 20,
             'point': option.point, 'passes_before': state.team1.pass_attempts,
             'actual_receiver': None, 'launched': False, 'flight_observed': False,
+            'direction': option.direction,
         }
         self.last_request = dict(self.pending)
         self.pass_at = frame + 24
@@ -650,17 +676,17 @@ class OffenseController:
             else 'no viable carry; prioritize body and goalie separation',
         }
 
-    @staticmethod
-    def breakaway(state, player):
+    def breakaway(self, state, player):
         sign = 1 if state.team2.net.y > state.team1.net.y else -1
         if any(other.y * sign >= player.y * sign - 8 and abs(other.x - player.x) < 90
                for other in state.team2.players if other.role is None or other.role > 0):
             return False
         target = OffenseController.carry_target(state, player)
-        if not carry_clear(state, player, target):
+        if not self.clear_carry(state, player, target):
             return False
         for frames in (8, 16, 24):
-            motion = carry_projection(player, target, frames)
+            motion = (_carry_motion(player, target, frames, decision_interval=self.movement_interval)
+                      if self.carry_motion else carry_projection(player, target, frames))
             if motion is None:
                 return False
             point, _ = motion
@@ -680,7 +706,8 @@ class OffenseController:
             if receiver is player:
                 continue
             option, details = evaluate_pass(
-                state, player, index, receiver, purpose, decision_interval=self.decision_interval)
+                state, player, index, receiver, purpose, decision_interval=self.decision_interval,
+                release_prediction=self.pass_timing)
             details['purpose'] = purpose
             if option is not None and purpose != 'one-timer' and continuations and self.uses_lookahead:
                 option, continuation = self._receiver_continuation(state, option)
@@ -702,7 +729,7 @@ class OffenseController:
             return None
         target = self._cut_target(state, player, self.feint_target)
         if (frame < self.feint_until and pressure_margin(state.team2, (player.x, player.y), 4) >= 3
-                and target == self.feint_target and carry_clear(state, player, self.feint_target)):
+                and target == self.feint_target and self.clear_carry(state, player, self.feint_target)):
             return self._plan(state, self.feint_mode, self.feint_target,
                               'continue bounded one-timer setup' if self.feint_mode == 'one-timer-setup'
                               else 'continue bounded opportunity-creating cut')
@@ -732,8 +759,8 @@ class OffenseController:
             return None
         forward_target = (player.x, sign * 235)
         straight_target = self._cut_target(state, player, forward_target)
-        straight = (projected_state(state, straight_target)
-                    if straight_target == forward_target and carry_clear(state, player, straight_target) else None)
+        straight = (projected_state(state, straight_target, decision_interval=self.movement_interval)
+                    if straight_target == forward_target and self.clear_carry(state, player, straight_target) else None)
         one_timer_open = bool(self.passes(state, 'one-timer')[0])
         if straight is not None:
             mover = straight.team1.get_player_by_scnum(state.engine.puck_owner)
@@ -744,9 +771,9 @@ class OffenseController:
                                 if direct_passes else 0)
         cuts = []
         for target in self._cut_targets(state, player, sign):
-            if route_waypoint((player.x, player.y), target) != target or not carry_clear(state, player, target):
+            if route_waypoint((player.x, player.y), target) != target or not self.clear_carry(state, player, target):
                 continue
-            future = projected_state(state, target)
+            future = projected_state(state, target, decision_interval=self.movement_interval)
             if future is None:
                 continue
             mover = future.team1.get_player_by_scnum(state.engine.puck_owner)

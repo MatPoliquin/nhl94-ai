@@ -23,16 +23,16 @@ class PossessionOffenseController(OffenseController):
     def uses_lookahead(self):
         return self.allow_uncertified or self.chance_creation
 
-    @staticmethod
-    def _estimated_carry(state, player, target):
+    def _estimated_carry(self, state, player, target):
         target = route_waypoint((player.x, player.y), project_target(target))
         escape = goalie_avoidance(state, player, target)
         details = {}
         if escape is not None:
             target, details = escape
             target = route_waypoint((player.x, player.y), target)
-        clearance = carry_clearance(state, player, target)
-        motions = [_carry_motion(player, target, frames) for frames in CARRY_SAMPLES]
+        clearance = carry_clearance(state, player, target, decision_interval=self.movement_interval)
+        motions = [_carry_motion(player, target, frames, decision_interval=self.movement_interval)
+                   for frames in CARRY_SAMPLES]
         bounded = all(motion is not None for motion in motions)
         margin = min(pressure_margin(state.team2, motion[0], frames)
                      for motion, frames in zip(motions, CARRY_SAMPLES)) if bounded else -math.inf
@@ -45,6 +45,7 @@ class PossessionOffenseController(OffenseController):
             'carry_position_value': shot_value(state, player, motions[-1][0], FEINT_FRAMES) if clear else 0,
             'carry_shot_value': 0.0, 'carry_pressure_model': 'arrival-estimate',
             'carry_status': 'estimated-clear' if clear else 'fallback',
+            'carry_movement_model': 'native-held-input' if self.carry_motion else 'sampled-legacy',
         }
 
     def fallback_carry(self, state, player):

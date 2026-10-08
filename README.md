@@ -78,6 +78,11 @@ Its default offense restores the established carry/pass priorities and reception
 cadence after the native-lookahead policy regressed. Use `--offense-lookahead`
 to opt into that experimental policy; `--uncertain-carry` and `--chance-creation`
 also use its native forecasting. See the [restoration evidence](docs/CLASSIC_V1.md#default-offense-restoration-2026-10-08).
+Default goalie outlets now use the shared pass evaluator and track the actual
+receiver. Additional deterministic changes are individually opt-in through
+`--classic-refinements pass-timing carry-motion finishing interceptions`;
+see the [implementation and gameplay evidence](docs/CLASSIC_V1.md#classic-refinements-2026-10-08)
+before enabling them.
 Its defense chooses a safe lane/recovery target before selecting a skater and
 reacts every emulator frame. The target appears as a green square on the ice.
 Offense now evaluates advancement passes and purposeful cuts, with an amber

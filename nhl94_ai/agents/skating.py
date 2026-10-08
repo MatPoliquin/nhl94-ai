@@ -2,8 +2,7 @@
 from copy import copy
 import math
 
-from nhl94_ai.agents.motion import VELOCITY_SCALE, skating, velocity
-from nhl94_ai.agents.passing import rom_direction
+from nhl94_ai.agents.motion import VELOCITY_SCALE, rom_direction, skating, velocity
 from nhl94_ai.env.target_control import steering_direction
 
 

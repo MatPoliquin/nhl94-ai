@@ -4,13 +4,14 @@ Reactive defense chooses a target then a skater; offense ranks bounded opportuni
 There are no inherited agents or learned parameters.
 """
 import math
+from dataclasses import asdict
 
 import numpy as np
 
 from nhl94_ai.agents.defense import DefenseController, eligible, on_ice, owns_puck
 from nhl94_ai.agents.defense import controlled_slot
 from nhl94_ai.agents.carry import carry_pad
-from nhl94_ai.agents.goalie import GoalieController
+from nhl94_ai.agents.goalie import GoalieController, outlet_options
 from nhl94_ai.agents.cross_crease import CrossCreaseController, crossing_entry, evaluate_cross_crease
 from nhl94_ai.agents.deke import DekeController, evaluate_deke
 from nhl94_ai.agents.offense import (
@@ -19,6 +20,7 @@ from nhl94_ai.agents.offense import (
 )
 from nhl94_ai.agents.passing import pass_release_frames, shot_value
 from nhl94_ai.agents.possession import PossessionOffenseController
+from nhl94_ai.agents.finishing import normal_finish as evaluate_finish, one_timer_finish
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
 from nhl94_ai.env.intents import (
@@ -39,12 +41,15 @@ class ClassicAIV1Model:
 
     def __init__(self, args=None, env=None):
         self.args, self.env = args, env
+        self.refinements = frozenset(getattr(args, 'classic_refinements', ()))
         self._tick = 0
         self._switch_at = 0
         self._shot_until = 0
         self._shots_before = 0
         self._shot_slot = -1
         self._shot_side = 1
+        self._shot_hold_until = 0
+        self._one_timer_option = None
         self._c_down = False
         self._b_down = False
         self._one_timer = None
@@ -58,12 +63,14 @@ class ClassicAIV1Model:
         self._intents = getattr(args, 'action_type', 'FILTERED').upper() == 'HOCKEY_INTENT_DPAD'
         self._size = len(HOCKEY_INTENT_DPAD_ACTION_SPACE) if self._intents else Buttons.INPUT_MAX
         self._last_action_preferences = np.zeros((1, self._size), dtype=np.float32)
-        self.defense = DefenseController()
+        self.defense = DefenseController(verify_interceptions='interceptions' in self.refinements)
         self.defense_diagnostics = {}
         offense_type = OffenseController if getattr(args, 'offense_lookahead', False) else PossessionOffenseController
         self.offense = offense_type(one_timers=self._one_timers,
                                     allow_uncertified=getattr(args, 'uncertain_carry', False),
                                     chance_creation=getattr(args, 'chance_creation', False))
+        self.offense.pass_timing = 'pass-timing' in self.refinements
+        self.offense.carry_motion = 'carry-motion' in self.refinements
         if getattr(args, 'chance_creation', False) and (
                 getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
                 or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
@@ -100,7 +107,8 @@ class ClassicAIV1Model:
             raise ValueError('goalie_policy must be off, selective or always')
         if goalie_policy != 'off' and getattr(args, 'action_type', 'FILTERED').upper() != 'FILTERED':
             raise ValueError('Manual goalie AI requires FILTERED buttons')
-        self.goalie = None if goalie_policy == 'off' else GoalieController(goalie_policy)
+        self.goalie = None if goalie_policy == 'off' else GoalieController(
+            goalie_policy, pass_timing=self.offense.pass_timing)
         self.goalie_diagnostics = {}
 
     def predict(self, _observation, deterministic=True):
@@ -423,6 +431,13 @@ class ClassicAIV1Model:
         self._was_defending = defending
         self._frame_remaining -= 1
         self._defense_elapsed = frame_skip
+        if self._last_decision == 'shoot' and self.defense.frames >= self._shot_hold_until:
+            self._frame_action = self._frame_action.copy()
+            if self._intents:
+                self._frame_action[0, 0] = HOCKEY_INTENT_NOOP
+            else:
+                self._frame_action[0, Buttons.INPUT_C] = 0
+            self._c_down = False
         return self._frame_action.copy()
 
     def _goalie_escape(self, state, player, target):
@@ -469,6 +484,7 @@ class ClassicAIV1Model:
     def _one_timer_target(self, team, opponents, attack, prepare=False, state=None):
         """Rank live one-timer shots; retain the static scan without telemetry."""
         self._one_timer_flight = None
+        self._one_timer_option = None
         passer = team.get_player_by_scnum(state.engine.puck_owner) if state is not None else team.get_controlled_player()
         if not self._one_timers or self.defense.frames < self._pass_at or passer.y * attack < 100:
             return None
@@ -478,6 +494,7 @@ class ClassicAIV1Model:
             if not choices:
                 return None
             best = choices[0]
+            self._one_timer_option = best
             self._one_timer_flight = best.flight_frames + pass_release_frames(team.players[best.index])
             indices = [i for i in range(len(team.players)) if team.players[i] is not passer]
             return indices.index(best.index), best.slot
@@ -623,6 +640,17 @@ class ClassicAIV1Model:
                 'target': request['point'], 'destination': request['point'], 'waypoint': request['point'],
                 'actual_slot': actual, 'desired_slot': request['receiver'], 'pending_pass': dict(request),
             }
+            if (owner == request['passer'] and not request['launched']
+                    and self.defense.frames - request['frame'] < HOCKEY_PASS_PRESS_FRAMES):
+                receiver = team.get_player_by_scnum(request['receiver'])
+                if receiver is not None:
+                    aim_pass(action, team.get_player_by_scnum(owner), receiver)
+                    action[Buttons.INPUT_B] = 1
+                    index = team.players.index(receiver)
+                    if owner != team.goalie_scnum():
+                        index = [i for i in range(len(team.players))
+                                 if team.skater_scnum_base() + i != owner].index(index)
+                    return action, HOCKEY_INTENT_PASS_START + index
             if request['launched'] and owner < 0 and player is not None:
                 escape = self._goalie_escape(state, player, (player.x, player.y))
                 if escape is not None:
@@ -638,15 +666,28 @@ class ClassicAIV1Model:
 
         goalie_slot = team.goalie_scnum() if team.defense_goalie is None else team.defense_goalie
         if owner == goalie_slot:
-            self._last_decision = 'goalie-outlet'
             self._shot_until = 0
-            receivers = team.players[:4] if self._intents else team.players
-            index = min(range(len(receivers)), key=lambda i: math.hypot(receivers[i].x - team.goalie.x, receivers[i].y - team.goalie.y))
-            receiver = receivers[index]
+            options, candidates = outlet_options(
+                state, decision_interval=self._decision_interval, limit=4 if self._intents else None,
+                release_prediction=self.offense.pass_timing)
+            self.offense_diagnostics = {'outlet_candidates': candidates}
+            if self._b_down or not options:
+                self._last_decision = 'goalie-hold'
+                self._last_target = (team.goalie.x, team.goalie.y)
+                self.offense_diagnostics['reason'] = (
+                    'release B before requesting an outlet' if self._b_down else
+                    'no evaluated outlet; allow the automatic goalie to cover')
+                return action, HOCKEY_INTENT_NOOP
+            option = options[0]
+            receiver = team.players[option.index]
+            self._last_decision = 'goalie-outlet'
             self._last_target = (receiver.x, receiver.y)
+            self.offense.start_pass(state, option, self.defense.frames, 'goalie-outlet')
+            self._last_pass_request = dict(self.offense.last_request)
+            self.offense_diagnostics.update(desired_slot=option.slot, reason='evaluated safe goalie outlet')
             aim_pass(action, team.goalie, receiver)
-            action[Buttons.INPUT_B] = int(self._tick % 2 == 0)
-            return action, HOCKEY_INTENT_PASS_START + index if action[0] else HOCKEY_INTENT_NOOP
+            action[Buttons.INPUT_B] = 1
+            return action, HOCKEY_INTENT_PASS_START + option.index
 
         if owner >= 0 and not owned:
             self._shot_until = 0
@@ -672,12 +713,25 @@ class ClassicAIV1Model:
             normal_finish, early_finish = ordinary_shot_conditions(
                 state, player, self._decision_interval, escape)
             target = self._one_timer_target(team, opponents, attack, state=state)
+            finish = evaluate_finish(state, player, self._decision_interval) if (
+                'finishing' in self.refinements and (normal_finish or early_finish)) else None
+            one_timer_finish_option = (one_timer_finish(state, self._one_timer_option)
+                                       if 'finishing' in self.refinements else None)
+            if finish is not None:
+                self.offense_diagnostics['normal_finish'] = asdict(finish)
+            if one_timer_finish_option is not None:
+                self.offense_diagnostics['one_timer_finish'] = asdict(one_timer_finish_option)
+            if 'finishing' in self.refinements:
+                self.offense_diagnostics['finish_value_model'] = 'release-geometry-not-scoring-probability'
+            prefer_one_timer = target is not None and (not normal_finish or (
+                finish is not None and one_timer_finish_option is not None
+                and one_timer_finish_option.value > finish.value + 4))
             finisher = self._choose_finisher(state, plan, target)
             if finisher == 'cross_crease':
                 return self._cross_crease_action(state)
             if finisher == 'deke':
                 return self._deke_action(state)
-            if target is not None and not normal_finish:
+            if prefer_one_timer:
                 if self._b_down:
                     self._last_decision = 'pass-button-release'
                     return action, HOCKEY_INTENT_NOOP
@@ -712,7 +766,7 @@ class ClassicAIV1Model:
             preparing_one_timer = plan is not None and plan[0] == 'one-timer-setup'
             if normal_finish or (early_finish and not preparing_one_timer):
                 self._last_decision = 'shoot'
-                self._shot_side = -1 if opponents.goalie.x > 0 else 1
+                self._shot_side = finish.side if finish is not None else (-1 if opponents.goalie.x > 0 else 1)
                 self._last_target = self._shot_side * 13, opponents.net.y
                 self.offense_diagnostics.update(desired_slot=actual, receiver=None,
                                                 reason='finish before projected goalie contact' if goalie_danger
@@ -721,6 +775,8 @@ class ClassicAIV1Model:
                 if self._c_down:  # A shot needs a new press, even after a checking burst.
                     return action, HOCKEY_INTENT_NOOP
                 self._shot_until = self._tick + 7
+                self._shot_hold_until = self.defense.frames + (
+                    finish.hold_frames if finish is not None else self._decision_interval)
                 self._shots_before = team.stats.shots
                 self._shot_slot = owner
                 action[Buttons.INPUT_C] = 1

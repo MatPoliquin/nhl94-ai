@@ -1,0 +1,60 @@
+{
+  "protocol": "nhl94-carry-replay-gate-v1",
+  "passed": true,
+  "benchmark_report": "final-validation.json",
+  "fixture": {
+    "seed": 20266101,
+    "side": 2,
+    "matchup": "ducks-sabres-manual",
+    "seconds": 300,
+    "frame_skip": 4,
+    "action_type": "FILTERED",
+    "goalie_policy": "off"
+  },
+  "frames": 9491,
+  "actions_sha256": "169d474acf1a9883cf5b1a3e53142687eb497a34f2ba0595aa35639d54b674b2",
+  "sources": {
+    "nhl94_ai/agents/carry.py": "1f7a8ae4926bc60dab40bf5caa460f119d2fa5ae0b75395ec197ae41d2f72174",
+    "nhl94_ai/agents/offense.py": "db49c4f89ba1dc334ae6177d0906790db093af9e355515fbad9b237681f5a92c",
+    "nhl94_ai/agents/classic_v1.py": "e3cca5221849baa9d13c4be25a7a35f2a741e52cd48330809abe329baaa1b08f",
+    "nhl94_ai/agents/passing.py": "6ae526f03fe0a89c5ec6d6fd357cc4a3149f13753da5f2a475d3d1607d7f2f3f",
+    "nhl94_ai/agents/skating.py": "17748ec1e62eb00cdc90729ccdd4cc29beae87e52f033581e9f2e42bdf908bd1",
+    "nhl94_ai/agents/possession.py": "bcbaf2e9a9872e127f26fc494258319c12983996094fefdd2a1a5c5d492fd713",
+    "nhl94_ai/agents/finishing.py": "9aa94a10441139e57dab4dfff52956ad2bf9d378fa341e7d1f3861891e90686e",
+    "nhl94_ai/evaluation/carry_replay.py": "f37d3e02f434b5e5b0484d235f31d50f1a84e1187f7e7f424b34aedafb8e78ea",
+    "nhl94_ai/evaluation/carry_outcomes.py": "3c5983790d360bdefacd6e32954faa04f2bb5b4bc90d498f060a8f95520fefb6",
+    "nhl94_ai/evaluation/benchmark.py": "40cd695ab723fa931d4930f90a88aa4f3b28c4f9ef90119727a764b6e2089ee9",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "5ae1f90f40d60059e5ec9973c537f556c9a11799a79e586e4ec4ff71a7d88af1",
+    "nhl94_ai/game/ram.py": "695c63d302435317e9b22a257efe3ab4129c1cf4fded2a7f86ab17a1d5fcc817",
+    "nhl94_ai/game/state.py": "72545dc07f33383f3d6d3d3fbb389b0fe5c8a2460ff30fc001216ebfae54c062",
+    "nhl94_ai/tasks/cross_crease_setup.py": "b48a88583de919227c6f1d530b06b283c1a535f75c89f31002330a1092ca6b3c",
+    "nhl94_ai/agents/base.py": "045e70ed1426f6883904520f4034d4cdf53ccc043c92a4b8cb3c2074c4137dbc",
+    "nhl94_ai/agents/registry.py": "a2d460523f629e9a5b0609dd79e3ffde6c3a7c44c02074fcefe37ec240150b41",
+    "nhl94_ai/agents/defense.py": "d8f06a3ed0c3e879c6298bb484a4b0147c3b826bb9e5d6c224df058c57f9392c",
+    "nhl94_ai/agents/motion.py": "2c4861ce97a41c46b1a3a9d1d957ba094f28db7eb082dacd8a8a051bec11a3d0",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/env/target_control.py": "ff553f99a5348dec3fb2762be3ace81db99518bce2aabce0c389f00cdec9ddee",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/agents/cross_crease.py": "f5ce8e6852aeb6070cbca3e12d1d6c00262aafd1e03e3a18d3e0606b775220c8",
+    "nhl94_ai/agents/deke.py": "00cefffb902112ce368eaa720d7cca9ef8a887c71951f21acccfcaca186ce5b2",
+    "nhl94_ai/agents/responses.py": "a69cba84b62045e8c0bd75a27721f254943a98dfe9fd7b400cddfcf58a6b121b",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/evaluation/offense_metrics.py": "8c082dc2bd8090dae94782e3bbaae7b07b7fa0f1558cfd039cc401ad9935f130",
+    "nhl94_ai/evaluation/defense_metrics.py": "347344ebac5d11eb3563d3638db8566dd728e2bb0ca387a71f463f737c6a040e",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146",
+    "nhl94_ai/agents/goalie.py": "a012efb60f8fa0a89dfa05aa08edadbc6fddd7c9f6a74094d459526f2537eec8",
+    "nhl94_ai/evaluation/carry_replay_gate.py": "e30d6327ed162396b90988a8b2bfc6c9376796da3c63615ca1146a82fc03d664"
+  },
+  "checks": {
+    "benchmark_complete": true,
+    "current_sources_match": true,
+    "sources_unchanged_during_gate": true,
+    "replay_period_complete": true,
+    "frame_count_identical": true,
+    "applied_actions_identical": true
+  },
+  "limitations": [
+    "One complete away default period proves caller parity for this fixture, not playing strength.",
+    "This gate does not certify alternative policies, sampled defender reach or shot outcome interpretation."
+  ]
+}

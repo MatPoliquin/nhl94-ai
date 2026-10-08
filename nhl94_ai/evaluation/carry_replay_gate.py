@@ -11,7 +11,7 @@ from nhl94_ai.evaluation.carry_replay import DECISION_INTERVAL, replay_seed, sou
 REQUIRED_SOURCES = {
     f'nhl94_ai/{name}' for name in (
         'agents/base.py', 'agents/classic_v1.py', 'agents/carry.py', 'agents/offense.py', 'agents/possession.py',
-        'agents/passing.py', 'agents/skating.py', 'env/actions.py', 'env/factory.py',
+        'agents/passing.py', 'agents/skating.py', 'agents/finishing.py', 'env/actions.py', 'env/factory.py',
         'evaluation/benchmark.py', 'evaluation/cpu_benchmark.py', 'game/state.py', 'game/ram.py',
     )
 }
@@ -59,6 +59,8 @@ def validate_benchmark(report, root):
         raise ValueError('Benchmark requires chance_creation=False.')
     if settings.get('offense_lookahead', False):
         raise ValueError('Benchmark requires offense_lookahead=False.')
+    if settings.get('classic_refinements'):
+        raise ValueError('Default replay gate requires classic_refinements to be disabled.')
     if (not isinstance(settings.get('matchups'), list)
             or len(settings['matchups']) != 2 or set(settings['matchups']) != set(MATCHUPS.values())):
         raise ValueError('Benchmark must contain both standard Ducks/Sabres matchups.')

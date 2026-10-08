@@ -1,11 +1,13 @@
 """Bounded, ROM-backed pass selection and interception estimates."""
 from dataclasses import dataclass
+from copy import copy
 import math
 
 import numpy as np
 
 from nhl94_ai.agents.defense import eligible, on_ice
-from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, bounded_projection, facing, skating, velocity
+from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, bounded_projection, facing, rom_direction, skating, velocity
+from nhl94_ai.agents.skating import grounded_step
 from nhl94_ai.env.target_control import _clear_segment, project_target
 from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
 from nhl94_ai.game.geometry import aim_pass
@@ -40,6 +42,9 @@ class PassOption:
     reception_value: float | None = None
     continuation_safe: bool | None = None
     continuation_risk: float = 0.0
+    contact: tuple | None = None
+    receiver_origin: tuple | None = None
+    release_frames: int | None = None
 
     @property
     def opportunity(self):
@@ -52,17 +57,6 @@ def pad_direction(passer, receiver):
     aim_pass(buttons, passer, receiver)
     dx, dy = int(buttons[7] - buttons[6]), int(buttons[4] - buttons[5])
     return round(math.atan2(dx, dy) * 4 / math.pi) % 8 if dx or dy else 8
-
-
-def rom_direction(dx, dy):
-    """vtoa uses 2:1 sector boundaries, not the pad's nearest-angle boundary."""
-    if dx == dy == 0:
-        return 8
-    if abs(dx) > 2 * abs(dy):
-        return 2 if dx > 0 else 6
-    if abs(dy) > 2 * abs(dx):
-        return 0 if dy > 0 else 4
-    return (1 if dx > 0 else 7) if dy > 0 else (3 if dx > 0 else 5)
 
 
 def selected_receiver(team, puck, passer_slot, direction):
@@ -79,6 +73,49 @@ def selected_receiver(team, puck, passer_slot, direction):
         if abs(difference) <= 1:
             candidates.append((dx * dx + dy * dy + (difference * 256)**2, -slot, slot))
     return min(candidates)[2] if candidates else None
+
+
+def pass_launch_view(state, passer):
+    """The second held-B input selects and launches before later slots update.
+
+    Earlier teammates have moved twice; later teammates have moved once. The
+    puck is still at the end of the first frame, after pucknorm's quarter-step
+    attraction to the carrier's stick. CPU steering and sprite offsets are held
+    over this short forecast; this is not a prediction of new CPU decisions.
+    """
+    owner = state.engine.puck_owner
+    team, puck = copy(state.team1), copy(state.puck)
+    carrier = grounded_step(passer, (0, 0))
+    team.players = []
+    pads = ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 0), (0, 0))
+    for index, player in enumerate(state.team1.players):
+        slot = state.team1.skater_scnum_base() + index
+        future = copy(player)
+        if slot != owner and on_ice(player):
+            known = (player.steering in range(10) if player.steering is not None else False)
+            known &= all(getattr(player, field) is not None for field in ('weight', 'agility', 'speed', 'energy'))
+            pad = pads[player.steering] if known else (0, 0)
+            for _ in range(1 + (slot < owner)):
+                future = grounded_step(future, pad, stop=known and player.steering == 9)
+        team.players.append(future)
+    shift = 9 if puck.friction == 511 / 512 else 6
+    for axis, offset in (('x', passer.stick_x), ('y', passer.stick_y)):
+        raw = round(velocity(puck)[axis == 'y'] / VELOCITY_SCALE)
+        raw -= (raw >> shift) or bool(raw)
+        precise = getattr(puck, 'precise_' + axis)
+        integrated = math.floor((getattr(puck, axis) if precise is None else precise) + raw * VELOCITY_SCALE)
+        hotspot = getattr(carrier, axis) + offset
+        setattr(puck, axis, integrated + ((hotspot - integrated) >> 2))
+    return team, puck
+
+
+def option_receiver(receiver, option):
+    """Effective pre-release origin for consumers of the shared pass forecast."""
+    if option.receiver_origin is None:
+        return receiver
+    future = copy(receiver)
+    future.x, future.y, future.motion_x, future.motion_y = option.receiver_origin
+    return future
 
 
 def pass_speed(passer):
@@ -285,7 +322,8 @@ def shot_value(state, shooter, point=None, delay=0):
     return clear * 12 + max(0, point[1] * sign - 170) * 0.3 + accuracy * 0.3 + opening
 
 
-def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision_interval=4):
+def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision_interval=4,
+                  release_prediction=False):
     if decision_interval < 1:
         raise ValueError('Pass decision interval must be positive')
     slot = state.team1.skater_scnum_base() + index
@@ -299,15 +337,27 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
         return None, {**details, 'status': 'uncertain-reception'}
     owner = state.engine.puck_owner
     direction = pad_direction(passer, receiver)
-    if selected_receiver(state.team1, state.puck, owner, direction) != slot:
+    release = pass_release_frames(receiver)
+    live_launch = (release_prediction and passer.stick_x is not None and passer.stick_y is not None
+                   and receiver.stick_x is not None and receiver.stick_y is not None)
+    team, puck = pass_launch_view(state, passer) if live_launch else (state.team1, state.puck)
+    recipient = selected_receiver(team, puck, owner, direction)
+    details.update(recipient=recipient, recipient_model='native-slot-order-held-steering' if live_launch
+                   else 'current-position',
+                   recipient_unstable=recipient != selected_receiver(state.team1, state.puck, owner, direction))
+    if recipient != slot:
         return None, {**details, 'status': 'different-rom-recipient'}
-    contact = pass_contact(state.puck, passer, receiver)
+    contact = pass_contact(puck, passer, team.players[index], 0) if live_launch else pass_contact(
+        state.puck, passer, receiver)
     if contact is None:
         return None, {**details, 'status': 'unreachable-reception'}
     start, point, flight, speed = contact
     if state.puck.height > 8 or not _clear_segment(start, point):
         return None, {**details, 'status': 'airborne-or-unsafe-route'}
-    release = pass_release_frames(receiver)
+    if live_launch:
+        receiver = copy(team.players[index])
+        receiver.x -= velocity(receiver)[0] * release
+        receiver.y -= velocity(receiver)[1] * release
     total = flight + release
     sign = 1 if state.team2.net.y > state.team1.net.y else -1
     gain = (point[1] - passer.y) * sign
@@ -352,7 +402,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
         puck = start[0] + (point[0] - start[0]) * fraction, start[1] + (point[1] - start[1]) * fraction
         elapsed = time + release
         for friend in (*state.team1.players, state.team1.goalie):
-            if friend is passer or friend is receiver or not on_ice(friend):
+            if friend is passer or friend is state.team1.players[index] or not on_ice(friend):
                 continue
             if _swept_contact(state, friend, (previous_puck, puck), (previous_elapsed, elapsed), 8):
                 return None, {**details, 'status': 'friendly-obstruction'}
@@ -393,6 +443,8 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
                    for p in state.team2.players if on_ice(p))
     shooting = shot_value(state, receiver, point, total)
     value = gain * 0.4 + bypassed * 16 + min(margin, 20) + shooting * 0.6
-    option = PassOption(index, slot, point, flight, direction, margin, robustness, gain, bypassed, shooting, value)
+    option = PassOption(index, slot, point, flight, direction, margin, robustness, gain, bypassed, shooting, value,
+                        contact=contact, receiver_origin=(receiver.x, receiver.y, *velocity(receiver)),
+                        release_frames=release)
     return option, {**details, 'status': 'safe', 'bypassed': bypassed,
                     'shot_value': shooting, 'value': value}

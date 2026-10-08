@@ -20,6 +20,16 @@ SAVE_ANIMATIONS = frozenset((0x146, 0x178, 0x1AA, 0x1EC, 0x21E, 0x250, 0x2A2,
 DIVE_ANIMATION = 0x2F4
 
 
+def outlet_options(state, *, decision_interval=4, limit=None, release_prediction=False):
+    """Use the same eligible, receivable outlets for either goalie policy."""
+    candidates = [evaluate_pass(state, state.team1.goalie, index, player, 'outlet',
+                                decision_interval=decision_interval, release_prediction=release_prediction)
+                  for index, player in enumerate(state.team1.players[:limit])]
+    options = sorted((option for option, _ in candidates if option is not None),
+                     key=lambda option: (-option.value, option.slot))
+    return options, [details for _, details in candidates]
+
+
 @dataclass(frozen=True)
 class GoaliePlan:
     target: tuple
@@ -184,10 +194,11 @@ def goalie_steer(player, target):
 class GoalieController:
     """Exclusive per-frame input owner; slot feedback, never gameplay RAM writes."""
 
-    def __init__(self, policy):
+    def __init__(self, policy, *, pass_timing=False):
         if policy not in ('selective', 'always'):
             raise ValueError('Enabled goalie policy must be selective or always')
         self.policy = policy
+        self.pass_timing = pass_timing
         self.frames = 0
         self.phase = 'skater'
         self.started = self.release_until = self.retry_at = self.save_at = 0
@@ -518,12 +529,10 @@ class GoalieController:
         action = np.zeros(Buttons.INPUT_MAX, dtype=np.int8)
         if self.frames - self.possession_since < 8:
             return action
-        candidates = [evaluate_pass(state, state.team1.goalie, index, player, 'outlet')
-                      for index, player in enumerate(state.team1.players)]
-        self.diagnostics['outlet_candidates'] = [details for _, details in candidates]
-        options = [option for option, _ in candidates if option is not None]
+        options, self.diagnostics['outlet_candidates'] = outlet_options(
+            state, decision_interval=1, release_prediction=self.pass_timing)
         if options:
-            option = max(options, key=lambda candidate: candidate.value)
+            option = options[0]
             aim_pass(action, state.team1.goalie, state.team1.get_player_by_scnum(option.slot))
             action[Buttons.INPUT_B] = 1
             self.outlet = {'receiver': option.slot, 'started': self.frames,

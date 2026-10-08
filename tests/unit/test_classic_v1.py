@@ -12,6 +12,7 @@ from nhl94_ai.env.intents import HOCKEY_INTENT_DPAD_ACTION_SPACE
 from nhl94_ai.evaluation.benchmark import away_view
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.state import NHL94GameState
+from tests.unit.test_classic_offense import offense_state
 
 
 def shooting_state():
@@ -188,7 +189,7 @@ class ClassicV1Contracts(unittest.TestCase):
         state.team1.control = 0
         state.team1.goalie.y, state.puck.y = -250, -250
         model.predict_frame(state, frame_skip=4)
-        self.assertEqual(model._last_decision, 'goalie-outlet')
+        self.assertEqual(model._last_decision, 'goalie-hold')  # Missing motion cannot certify an outlet.
         self.assertEqual(model._shot_until, 0)
 
     def test_legal_close_finishing_does_not_require_positive_conservative_shot_value(self):
@@ -255,13 +256,17 @@ class ClassicV1Contracts(unittest.TestCase):
             np.testing.assert_array_equal(agent.get_action_preferences()[0], first)
 
     def test_goalie_intent_selects_the_intended_receiver(self):
-        state = shooting_state()
-        state.engine.puck_owner = 5
+        state = offense_state()
+        state.engine.puck_owner = state.team1.defense_control = 5
         state.team1.control = 0
         state.team1.goalie.y = -250
-        state.team1.players[2].y = -210
+        state.puck.x, state.puck.y = 0, -238
+        for index, player in enumerate(state.team1.players):
+            player.role = 4 if index == 2 else -1
+        state.team1.players[2].x, state.team1.players[2].y = 55, -175
+        for player in state.team2.players:
+            player.y = 180
         model = ClassicAIV1Model(SimpleNamespace(action_type='HOCKEY_INTENT_DPAD'))
-        model.predict_game_state(state)
         action = model.predict_game_state(state)[0]
         self.assertEqual(action[0], 9)  # PASS_TEAMMATE_3
 
