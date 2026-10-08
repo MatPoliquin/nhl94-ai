@@ -224,7 +224,7 @@ def arrival_time(player, target, *, optimistic=False, boost=False):
     return max(0, travel) + turn + min(20, lateral / (2 * acceleration))
 
 
-def puck_path(puck, horizon=64):
+def puck_path(puck, horizon=64, *, sample_interval=4):
     """Stop at uncertain wall/net contacts; never invent an exact rebound."""
     x, y = float(puck.x), float(puck.y)
     vx, vy = velocity(puck)
@@ -245,6 +245,6 @@ def puck_path(puck, horizon=64):
                     vz = 0
         if math.dist((x, y), project_target((x, y))) > 1e-6:
             break
-        if frame % 4 == 0:
+        if frame % sample_interval == 0:
             points.append((frame, (x, y), z))
     return points

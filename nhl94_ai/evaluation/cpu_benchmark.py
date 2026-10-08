@@ -344,7 +344,7 @@ def run(args):
     files.update(root / 'nhl94_ai' / name for name in (
         'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
         'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
-        'agents/offense.py', 'agents/possession.py', 'agents/passing.py', 'agents/responses.py', 'agents/finishing.py',
+        'agents/offense.py', 'agents/possession.py', 'agents/passing.py', 'agents/receiving.py', 'agents/responses.py', 'agents/finishing.py',
         'agents/goalie.py', 'agents/cross_crease.py', 'agents/deke.py', 'agents/skating.py', 'agents/registry.py'))
     sources = {str(path.relative_to(root)):
                hashlib.sha256(path.read_bytes()).hexdigest() for path in files}

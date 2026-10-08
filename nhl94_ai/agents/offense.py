@@ -403,7 +403,10 @@ class OffenseController:
             if owner < 0 and state.engine.last_puck_player == request['passer']:
                 request['launched'] = True
             return
-        self.last_pass = {**request, 'outcome': result, 'owner': owner, 'end_frame': frame}
+        self.end_pass(state, frame, result)
+
+    def end_pass(self, state, frame, result):
+        self.last_pass = {**self.pending, 'outcome': result, 'owner': state.engine.puck_owner, 'end_frame': frame}
         self.pending = None
 
     def start_pass(self, state, option, frame, purpose):

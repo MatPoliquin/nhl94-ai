@@ -318,6 +318,8 @@ def source_hashes(runtime=None):
         names = (*names, 'possession')
     if (root / 'agents/finishing.py').is_file():
         names = (*names, 'finishing')
+    if (root / 'agents/receiving.py').is_file():
+        names = (*names, 'receiving')
     result = {f'nhl94_ai/agents/{name}.py': hashlib.sha256(
         (root / 'agents' / f'{name}.py').read_bytes()).hexdigest() for name in names}
     if runtime is None:

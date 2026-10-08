@@ -9,7 +9,7 @@ from dataclasses import asdict
 import numpy as np
 
 from nhl94_ai.agents.defense import DefenseController, eligible, on_ice, owns_puck
-from nhl94_ai.agents.defense import controlled_slot
+from nhl94_ai.agents.defense import controlled_slot, defensive_steering
 from nhl94_ai.agents.carry import carry_pad
 from nhl94_ai.agents.goalie import GoalieController, outlet_options
 from nhl94_ai.agents.cross_crease import CrossCreaseController, crossing_entry, evaluate_cross_crease
@@ -19,6 +19,7 @@ from nhl94_ai.agents.offense import (
     goalie_avoidance, ordinary_shot_conditions, projected_state,
 )
 from nhl94_ai.agents.passing import pass_release_frames, shot_value
+from nhl94_ai.agents.receiving import passive_reception, reception_target
 from nhl94_ai.agents.possession import PossessionOffenseController
 from nhl94_ai.agents.finishing import normal_finish as evaluate_finish, one_timer_finish
 from nhl94_ai.game.constants import GameConsts as Buttons
@@ -413,6 +414,13 @@ class ClassicAIV1Model:
                 or self.defense.frames + 1 >= self.offense.chance_until):
             self._frame_remaining = 0
         self._observe_ordinary_pass(state)
+        reception = self._receive_pass(state)
+        if reception is not None:
+            self.defense.idle(1)
+            self._frame_remaining = 0
+            self._was_defending = False
+            self._defense_elapsed = frame_skip
+            return self._encode(*reception)
         defending = self._defending(state)
         if self._frame_remaining == 0:
             self._frame_action = self._predict_decision(state, deterministic)
@@ -551,6 +559,62 @@ class ClassicAIV1Model:
             if (outcome == 'recovered-by-passer' or self.offense.uses_lookahead
                     and outcome in ('received', 'other-receiver')):
                 self._frame_remaining = 0
+
+    def _receive_pass(self, state):
+        """Rescue marginal ordinary passes without C or unconfirmed skater input."""
+        request = self.offense.pending
+        if request is None or not request['launched']:
+            return None
+        if (state.engine.puck_owner >= 0 or state.engine.clock_stopped
+                or controlled_slot(state.team1) < 0
+                or self.defense.frames - request['frame'] < HOCKEY_PASS_PRESS_FRAMES):
+            return None
+        slot = request['actual_receiver']
+        receiver = state.team1.get_player_by_scnum(slot) if slot is not None else None
+        correction = request.get('reception_correction')
+        if receiver is None or not eligible(receiver):
+            if correction is not None:
+                self.offense.end_pass(state, self.defense.frames, 'receiver-unavailable')
+                self._frame_remaining = 0
+            return None
+        actual = controlled_slot(state.team1)
+        if correction is None:
+            forecast = passive_reception(state, receiver)
+            if (forecast is None or forecast['gap'] <= -2 or receiver.assignment != 19
+                    or receiver.decision_timer is None or forecast['frames'] <= receiver.decision_timer):
+                return None
+            correction = {'started': self.defense.frames, 'forecast': forecast, 'switch_frame': None,
+                          'from_slot': actual}
+            request['reception_correction'] = correction
+        action = np.zeros(Buttons.INPUT_MAX, dtype=np.int8)
+        intent = HOCKEY_INTENT_NOOP
+        target = reception_target(state, receiver)
+        if (target is None or actual != slot and (
+                actual != correction['from_slot'] or self.defense.frames - correction['started'] >= 16)):
+            self.offense.end_pass(state, self.defense.frames, 'reception-unreachable')
+            self._frame_remaining = 0
+            return None
+        mode = 'receive-pass-wait'
+        if actual == slot:
+            pad, target = defensive_steering(receiver, target)
+            for delta, negative, positive in ((pad[0], Buttons.INPUT_LEFT, Buttons.INPUT_RIGHT),
+                                              (pad[1], Buttons.INPUT_DOWN, Buttons.INPUT_UP)):
+                if delta:
+                    action[positive if delta > 0 else negative] = 1
+            mode = 'receive-pass'
+        elif (not self._b_down and DefenseController._likely_switch(state) == slot
+              and (correction['switch_frame'] is None or self.defense.frames - correction['switch_frame'] >= 8)):
+            action[Buttons.INPUT_B] = 1
+            correction['switch_frame'] = self.defense.frames
+            mode, intent = 'receive-pass-switch', HOCKEY_INTENT_CHANGE_PLAYER
+        self._last_decision, self._last_target = mode, target
+        self.defense_diagnostics = {}
+        self.offense_diagnostics = {'phase': 'offense', 'mode': mode, 'decision': mode,
+                                    'reason': 'correct marginal reception after native receive timer',
+                                    'target': target, 'destination': target, 'waypoint': target,
+                                    'actual_slot': actual, 'desired_slot': slot,
+                                    'reception_correction': dict(correction), 'buttons': action.tolist()}
+        return action, intent
 
     def _observe_one_timer(self, state, frame):
         if self._one_timer is None:

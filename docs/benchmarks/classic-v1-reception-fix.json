@@ -1,0 +1,149 @@
+{
+  "protocol": "classic-live-reception-fix-v1",
+  "baseline_runtime": "f8d40b7217d5dede7e1c3c170e25cf70f5d35434",
+  "working_tree_base": "2560e9017d2f10d25ca260734b18dbd372b42deb",
+  "sources": {
+    "nhl94_ai/agents/base.py": "045e70ed1426f6883904520f4034d4cdf53ccc043c92a4b8cb3c2074c4137dbc",
+    "nhl94_ai/agents/passing.py": "6ae526f03fe0a89c5ec6d6fd357cc4a3149f13753da5f2a475d3d1607d7f2f3f",
+    "nhl94_ai/agents/receiving.py": "19407f6c41e45c059b35ca292c0b6d7944b59806d7b5ae758f117811b3fdbeed",
+    "nhl94_ai/agents/finishing.py": "9aa94a10441139e57dab4dfff52956ad2bf9d378fa341e7d1f3861891e90686e",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/evaluation/benchmark.py": "2632817201cd17545c6e5f9c8911ebdfc5d4040ef788c0ad3a844014fce868a9",
+    "nhl94_ai/agents/classic_v1.py": "c1e67aa7b82d2cac1504a09011c8dd4eaaac0a685037f6870eaf4dd5dd449a06",
+    "nhl94_ai/agents/goalie.py": "a012efb60f8fa0a89dfa05aa08edadbc6fddd7c9f6a74094d459526f2537eec8",
+    "nhl94_ai/agents/offense.py": "26b62dbf221af63a1d488c23338f79f01a030cb8066ce7a4649450f734391f8a",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "5d6ae8df41115a4f68e5b415f75c095d4f6ea289144ab806298e2cb316a6b43a",
+    "nhl94_ai/agents/cross_crease.py": "f5ce8e6852aeb6070cbca3e12d1d6c00262aafd1e03e3a18d3e0606b775220c8",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/game/state.py": "72545dc07f33383f3d6d3d3fbb389b0fe5c8a2460ff30fc001216ebfae54c062",
+    "nhl94_ai/game/ram.py": "695c63d302435317e9b22a257efe3ab4129c1cf4fded2a7f86ab17a1d5fcc817",
+    "nhl94_ai/agents/responses.py": "a69cba84b62045e8c0bd75a27721f254943a98dfe9fd7b400cddfcf58a6b121b",
+    "nhl94_ai/evaluation/offense_metrics.py": "8c082dc2bd8090dae94782e3bbaae7b07b7fa0f1558cfd039cc401ad9935f130",
+    "nhl94_ai/agents/motion.py": "1a56a75b4dc06194f56423ac94f3d637c0792ae04200ad4a8112c705ea93bf10",
+    "nhl94_ai/env/target_control.py": "ff553f99a5348dec3fb2762be3ace81db99518bce2aabce0c389f00cdec9ddee",
+    "nhl94_ai/agents/deke.py": "00cefffb902112ce368eaa720d7cca9ef8a887c71951f21acccfcaca186ce5b2",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/agents/possession.py": "bcbaf2e9a9872e127f26fc494258319c12983996094fefdd2a1a5c5d492fd713",
+    "nhl94_ai/evaluation/defense_metrics.py": "347344ebac5d11eb3563d3638db8566dd728e2bb0ca387a71f463f737c6a040e",
+    "nhl94_ai/agents/carry.py": "1f7a8ae4926bc60dab40bf5caa460f119d2fa5ae0b75395ec197ae41d2f72174",
+    "nhl94_ai/agents/defense.py": "d8f06a3ed0c3e879c6298bb484a4b0147c3b826bb9e5d6c224df058c57f9392c",
+    "nhl94_ai/agents/registry.py": "a2d460523f629e9a5b0609dd79e3ffde6c3a7c44c02074fcefe37ec240150b41",
+    "nhl94_ai/agents/skating.py": "17748ec1e62eb00cdc90729ccdd4cc29beae87e52f033581e9f2e42bdf908bd1",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146"
+  },
+  "paired_native_periods": {
+    "manual": {
+      "period_pairs": 20,
+      "seeds": [
+        20267000,
+        20267001,
+        20267002,
+        20267003,
+        20267004,
+        20267005,
+        20267006,
+        20267007,
+        20267008,
+        20267009
+      ],
+      "before_goals_for_against": [
+        34,
+        13
+      ],
+      "after_goals_for_against": [
+        38,
+        13
+      ],
+      "mean_paired_goal_difference_change": 0.2,
+      "seed_clustered_bootstrap_95_interval": [
+        -0.15,
+        0.6
+      ],
+      "changed_input_periods": 13
+    },
+    "default": {
+      "period_pairs": 20,
+      "seeds": [
+        20267100,
+        20267101,
+        20267102,
+        20267103,
+        20267104,
+        20267105,
+        20267106,
+        20267107,
+        20267108,
+        20267109
+      ],
+      "before_goals_for_against": [
+        30,
+        9
+      ],
+      "after_goals_for_against": [
+        33,
+        8
+      ],
+      "mean_paired_goal_difference_change": 0.2,
+      "seed_clustered_bootstrap_95_interval": [
+        -0.15,
+        0.5
+      ],
+      "changed_input_periods": 11
+    }
+  },
+  "same_snapshot_ordinary_passes": {
+    "seeds": [
+      12000,
+      12001
+    ],
+    "cases": 36,
+    "horizon_frames": 240,
+    "before_team_recoveries": 31,
+    "after_team_recoveries": 32,
+    "previous_successes_lost": 0
+  },
+  "reported_miss": {
+    "seed": 12000,
+    "request_frame": 2640,
+    "release_frame": 2643,
+    "first_changed_input_frame": 2645,
+    "before_next_owner": 1,
+    "after_next_owner": 6,
+    "before_loose_frames": 180,
+    "after_loose_frames": 27,
+    "native_schemas_passed": [
+      "FILTERED",
+      "HOCKEY_INTENT_DPAD"
+    ]
+  },
+  "watched_seed_12000": {
+    "before_frames": 9301,
+    "after_frames": 9985,
+    "before_score": [
+      2,
+      0
+    ],
+    "after_score": [
+      4,
+      0
+    ],
+    "after_input_puck_digest": "3b691ecaa15918e93d2a399486cb613680a8062e4d98c240f7dd77a906c24944"
+  },
+  "checks": {
+    "unit_tests": 783,
+    "expected_failures": 1,
+    "native_cadence_gate": true,
+    "native_regression": "tests.integration.classic_reception",
+    "existing_native_suites": [
+      "classic_offense",
+      "manual_goalie",
+      "playback_seeds"
+    ]
+  },
+  "limitations": [
+    "Paired periods are development checks against the CPU, not a general playing-strength claim.",
+    "Both goal-difference confidence intervals include no improvement.",
+    "Snapshot forks share game histories and are not independent matches.",
+    "The correction handles marginal ordinary receptions; launch-time pass scoring remains heuristic."
+  ]
+}

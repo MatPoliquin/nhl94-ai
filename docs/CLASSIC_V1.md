@@ -10,6 +10,70 @@ Historical results below and the archived benchmark files keep their original
 V4/V2/V3 labels, sources, and hashes. They are not new V1 benchmark runs, and
 comparisons against the removed controllers cannot be rerun from this tree.
 
+## Live pass reception correction (2026-10-08)
+
+Classic now checks ordinary passes against live receiver and puck feedback on
+each native frame. This fixes the missed skater pass reproduced with:
+
+```bash
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --mode model_vs_game \
+  --state SabresVsMightyDucks.ManualGoalie.Start --side away \
+  --goalie-policy selective --max_playback_speed 1.0 --seed 12000
+```
+
+At input frame 2640, the launch evaluator predicts a safe pass to slot 6. The
+receiver changes stick position during flight, and its native receive-pass
+assignment expires before the predicted contact. Classic previously waited
+through its pass deadline; the opponent recovered after 180 loose-puck frames.
+
+The correction forecasts contact from the live puck flight and the receiver's
+current body, stick, and coasting motion. If contact has less than two rink units
+of margin and falls after the native receive timer, it requests a fresh B switch
+only when the ROM selector predicts the actual pass recipient. It waits for
+confirmed control, then steers that skater toward the moving puck each frame.
+It releases an unsuccessful handoff to normal recovery within 16 frames, or
+earlier on an unexpected selection, unavailable receiver, or unforecastable
+trajectory. It uses the existing ordinary-pass deadline and possession feedback.
+One-timer execution retains its own controller. The correction emits no C input.
+
+This behavior is enabled by default; the command needs no additional flag.
+The launch-time evaluator remains heuristic. The fix corrects marginal
+receptions using feedback after release.
+
+`tests.integration.classic_reception` replays saved button inputs to the exact
+native state, then forks the same emulator snapshot. The old execution loses
+the puck to slot 1 after **180 frames**; the correction completes the pass to
+slot 6 after **27 frames**. Both FILTERED and HOCKEY_INTENT_DPAD execution pass.
+The fixture contains button inputs and decoded feedback, not ROM/save data.
+
+Across 36 ordinary-pass snapshots from playback seeds 12000 and 12001,
+team recoveries improve from **31 to 32**, with all 31 previously successful
+cases retained. These forks share game histories and are not independent games.
+The complete watched seed-12000 period changes from 2–0 to 4–0; that seed was
+used to develop the fix.
+
+Fresh paired CPU checks use both Ducks/Sabres assignments, 300-second periods,
+and a four-frame offensive decision interval:
+
+| Goalie policy | Seeds | Paired periods | Goals for–against, before → after |
+| --- | --- | ---: | ---: |
+| Selective | 20267000–20267009 | 20 | 34–13 → 38–13 |
+| Off | 20267100–20267109 | 20 | 30–9 → 33–8 |
+
+These are favorable development checks, not established general playing-strength
+gains. Both seed-clustered bootstrap intervals for goal-difference change include
+zero. The source/cadence gate reproduces the complete 7,944-frame default away
+period for seed 20267100. Validation also includes 783 unit/discovered tests
+(one existing expected failure), pylint, and the native `classic_offense`,
+`manual_goalie`, and `playback_seeds` suites.
+
+The [measurement summary](benchmarks/classic-v1-reception-fix.json) records source
+hashes, paired results, and the native counterexample. The
+[evidence archive](benchmarks/classic-v1-reception-evidence.json.gz) contains the
+80 period records, 36 paired pass forks, runtime patch/new source, probe scripts,
+and gate result. The benchmark reference is `f8d40b7`; the reported loose-puck
+failure predates that goalie-outlet change and also reproduces at `05ab06e`.
+
 ## Classic refinements (2026-10-08)
 
 Five deterministic changes were implemented against `05ab06e`. **Evaluated
