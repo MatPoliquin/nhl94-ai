@@ -16,6 +16,9 @@ Five deterministic changes were implemented against `05ab06e`. **Evaluated
 goalie outlets are enabled by default. The other four remain experimental:**
 native checks establish particular mechanics, while the gameplay comparisons
 below do not justify promoting the combined policy. No learned model is used.
+The implementation was committed as `f8d40b7`. The
+[follow-up investigation](#why-the-refinements-regressed) distinguishes the
+repeatable pass/finishing losses from the inconclusive carry/defense pilots.
 
 | Change | Behavior | Enable |
 | --- | --- | --- |
@@ -136,6 +139,148 @@ Pylint reports 10.00/10. Explicit ROM suites `tests.integration.classic_offense`
 `classic_refinements` pass. The new native checks cover both recipient
 counterexamples and exact two-frame C holds through native shot release in both
 button and intent schemas.
+
+### Why the refinements regressed
+
+The eight-period pilots did not establish four general regressions. A new
+40-period cohort per policy, seeds `20266301..20266320` on both standard
+assignments, gives the following results against the frozen committed default:
+
+| Policy | GF-GA | Mean paired goal-difference change | Seed-clustered 95% interval |
+| --- | ---: | ---: | --- |
+| Default | 75-13 | — | — |
+| Pass timing | 59-18 | -0.525 | [-0.900, -0.100] |
+| Carry motion | 72-7 | +0.075 | [-0.425, +0.575] |
+| Finishing | 57-18 | -0.575 | [-1.050, -0.075] |
+| Interceptions | 68-15 | -0.225 | [-0.750, +0.275] |
+
+Pass timing and finishing repeat their losses on this cohort. Carry motion has
+a slightly favorable point estimate; interception verification remains
+inconclusive. The intervals are pointwise bootstrap intervals, not corrected
+for multiple comparisons, and these are fixed-roster first periods against CPU
+opponents. The [investigation comparison](benchmarks/classic-v1-refinement-diagnosis.json)
+and [raw evidence](benchmarks/classic-v1-refinement-diagnosis-evidence.json.gz)
+preserve the complete results and experimental component scripts.
+
+`evaluation/refinement_replay.py` reproduces all eight original default periods
+with identical applied-input hashes and scores, then examines alternative
+decisions from the same controller history. It samples the first six spaced
+divergences per refinement per period, at least 180 frames apart; some periods
+have fewer. The resulting **155 states and 376 native branches** restore full
+emulator state/RNG and decoded state, verify identical initial RAM, and continue
+for up to 180 frames or a goal/period end. Each primary branch retains its policy.
+These are local probes on default-visited states, not independent strength
+samples or estimates of every effect on the revised policy's own trajectories.
+
+**Pass timing combines a useful recipient correction with harmful reception
+gating.** On the unchanged default trajectories, its recipient model correctly
+predicts both observed wrong-recipient requests that it rejects. But it also
+rejects four baseline one-timers as `contested-reception-or-lane`; all four
+reach the intended receiver and produce native one-timer shots. A fifth
+one-timer rejection, for moving stick interception, correctly avoids an
+intercepted pass.
+
+An additional read-only audit reproduces all 40 fresh default periods with
+identical input hashes. Among 833 launched requests with projected selection
+and observed recipient feedback, current-position prediction makes 21 errors
+and release-time prediction makes 12: ten errors are corrected and one is
+introduced. Nevertheless, the full revised evaluator rejects **15 passes that
+actually produce native one-timer shots**: six for contested reception, four
+outside its one-timer window, three for moving stick interception, one for
+friendly stick obstruction and one for moving body interception. It also
+rejects six one-timers that are actually intercepted. These mixed outcomes
+support revisiting uncertainty and tactical thresholds, not removing all
+safety checks or equating better recipient accuracy with stronger play.
+
+At Buffalo seed `20266002`, frame 1929, the revised model still selects receiver
+2 but shifts the predicted reception about 3.7 rink units and one frame later.
+The estimated race margin falls from 3.089 to 0.008 frames, crossing the hard
+three-frame gate. The default requests the one-timer and scores in the replay;
+the revised policy chooses goalie avoidance and does not score. This is a
+forecast-and-threshold interaction, not evidence that correcting recipient
+timing itself is harmful.
+
+Splitting those effects in eight-period component pilots gives **24-0 for
+recipient selection only**, **14-4 for flight/reception changes only**, and
+**12-2 for both**, versus **15-0** for default. The selector-only experiment
+uses projected receiver choice with the established flight/reception model;
+it is a diagnostic ablation, not a claim that the resulting mixed model is
+physically coherent in every state. **Its promising pilot did not generalize:**
+on the 40-period cohort it scores **55-13 versus 75-13**, with paired mean
+goal-difference change -0.500 and interval [-0.925, -0.075]. Native one-timer
+goals fall from 53 to 32. Recipient correctness alone does not establish
+better tactical selection, and this ablation should not be promoted.
+
+**Finishing misranks shot and rebound outcomes.** On default-visited shooting
+states it chooses a two-frame hold in 34 of 48 cases and changes aim in 24.
+The new score rewards projected two-dimensional lane clearance, including a
+40-point jump at positive clearance, and slightly rewards earlier release. It
+does not value save-and-hold versus a recoverable rebound, shot height or the
+ROM's 25% normal-backhand speed penalty. It aims its scoring ray at x=±13;
+native horizontal shot aim uses x=±16 with a height component. The measured
+native release and the later recorded-shot counter are kept separate in the
+probe.
+
+At Buffalo seed `20266003`, frame 3647, changing only aim preserves the same
+six-frame native release but turns a block/deflection that Classic recovers
+and converts into a one-timer goal into a goalie-held save. At Anaheim seed
+`20266003`, frame 7106, changed aim similarly removes a rebound-and-goal
+continuation. These illustrate why a clearer initial shooting lane is not a
+complete finish value.
+
+Full-period component pilots score **10-2 for aim only** and **10-4 for hold
+selection only**. Finish-priority comparison alone reproduces all eight
+default action hashes and the **15-0** result. The priority comparison did
+not cause this pilot's loss; aim, timing and their later possession effects did.
+Matched-state aim/hold branches isolate the initial shot parameters and use
+the default for subsequent decisions, while the complete refinement branch
+retains all its finishing changes.
+
+**Interception verification has a demonstrable false rejection.**
+`DefenseController._skating_arrival` compares each future skater velocity to
+the puck's *current* velocity and requires relative speed ≤3.5 at arrival and
+at the deadline. This ignores puck deceleration and actual stick reception rules.
+At Anaheim seed `20266003`, frame 3324, the simulated defender remains within
+5.4 units of the target throughout the 24-frame window, but fails that speed
+condition. The default actually gains possession at frame 22 and records 69
+controlled-skater frames in the branch; verification switches to lane
+protection and records zero controlled-skater frames. Another rejected race
+at frame 4972 is won at frame 22 despite the fixed-target simulation missing
+the later nominal deadline. Full execution can intercept earlier and replan;
+arrival at one fixed point is an incomplete test of that behavior.
+
+**Carry prediction changes the planner much more broadly than the cut fix.**
+It changes inputs at 823 of 5,056 examined default offensive decision states;
+most changes are ordinary carry/fallback routing. Among 48 sampled
+divergences, 22 turn an estimated-clear route into an unsafe one and 21 compare
+routes already unsafe under both models. Eighteen predict collision only after
+the next four-frame input block. At Buffalo seed `20266001`, frame 201, the
+preferred route first fails swept clearance at frame 15, while the default
+changes target at frame 5. Holding the same target across an 18-frame forecast
+does not represent that tactical replan. This explains conservative detours,
+but not a general strength loss: the local branches score 6 goals versus 5,
+and the fresh full-period goal-difference estimate is slightly favorable.
+
+The next implementation work should separate recipient selection from
+reception gating, correct defensive catch/deadline validation, and replace
+finishing lane scores with measurements of goals, held saves and retained
+rebounds. Keep the native carry mechanics; evaluate a cut-only change and
+account for tactical replanning before changing ordinary fallback rankings.
+Each candidate still needs paired gameplay validation. The investigation
+changes no runtime default.
+
+Reproduce the native probes with:
+
+```bash
+python -m nhl94_ai.evaluation.refinement_replay \
+  --seed 20266001 --trials 4 --horizon 180 --limit 6 --spacing 180 \
+  --workers 4 --output /tmp/classic-refinement-probes.json
+```
+
+The fresh benchmarks use the earlier `benchmark-cpu` command with
+`--trials 20 --seed 20266301`, once with no refinements and once for each
+individual refinement. The component scripts and their exact runtime patches
+are retained in the evidence archive; they modify isolated worker processes.
 
 ## Default offense restoration (2026-10-08)
 
