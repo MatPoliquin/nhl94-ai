@@ -40,8 +40,8 @@ def native_debug_pause(screenshot=None, record_mp4=None):
             np.testing.assert_array_equal(result.action, expected)
             assert isinstance(result.decision, DecisionSnapshot)
             assert result.decision.action == tuple(result.action)
-            assert (controller._tick, controller.defense.frames, controller._frame_remaining) == (
-                reference._tick, reference.defense.frames, reference._frame_remaining)
+            assert (controller.scheduler.decisions, controller.scheduler.frames, controller.scheduler.remaining) == (
+                reference.scheduler.decisions, reference.scheduler.frames, reference.scheduler.remaining)
             comparisons.append(True)
             return result
         agent.act = checked_act
@@ -59,13 +59,13 @@ def native_debug_pause(screenshot=None, record_mp4=None):
         def ram_digest():
             return hashlib.sha256(display.env.env_method('get_ram')[0].tobytes()).hexdigest()
         before_ram = ram_digest()
-        before_clocks = controller._tick, controller.defense.frames, display.playback_frames
+        before_clocks = controller.scheduler.decisions, controller.scheduler.frames, display.playback_frames
         before_scores = deepcopy(display.score_evaluation)
         waits = []
         pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE))
         def inspect(_milliseconds):
             assert ram_digest() == before_ram
-            assert (controller._tick, controller.defense.frames, display.playback_frames) == before_clocks
+            assert (controller.scheduler.decisions, controller.scheduler.frames, display.playback_frames) == before_clocks
             assert display.score_evaluation == before_scores
             waits.append(True)
             if len(waits) == 1:

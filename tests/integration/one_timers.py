@@ -44,7 +44,7 @@ def capture_setup(seed=3000, *, from_cut=False, cpu=False, frame_skip=4):
         requested_receiver = None
         for tick in range(16000):
             update_state(state, info, env)
-            new_decision = agents[0]._frame_remaining == 0
+            new_decision = agents[0].scheduler.remaining == 0
             before = deepcopy(agents) if new_decision else None
             actions = np.concatenate([agent.predict_game_state(view)[0]
                                       for agent, view in zip(agents, (state, away_view(state)))])
@@ -57,7 +57,7 @@ def capture_setup(seed=3000, *, from_cut=False, cpu=False, frame_skip=4):
                 if not from_cut or (cut_snapshot is not None and cut_owner == state.engine.puck_owner
                                     and tick - cut_tick <= FEINT_FRAMES + 4):
                     snapshot = cut_snapshot if from_cut else (env.em.get_state(), before, info['bench_one_timers1'])
-                    requested_receiver = agents[0]._one_timer[1]
+                    requested_receiver = agents[0].one_timer.pending.receiver
                     saved_tick = tick
             _, _, terminated, truncated, info = env.step(actions)
             if snapshot and info['bench_one_timers1'] > snapshot[2] and tick - saved_tick < 56:
@@ -104,8 +104,8 @@ def replay(snapshot, schema, *, fast_pass=False, from_cut=False, frame_skip=4):
                 assert agents[0]._last_decision == ('one-timer-setup' if from_cut else 'one-timer-pass')
             if from_cut and agents[0]._last_decision == 'one-timer-setup':
                 assert agents[0]._last_target == agents[0].offense.feint_target
-            if agents[0]._last_decision == 'one-timer-pass' and agents[0]._one_timer is not None:
-                requested_receiver = agents[0]._one_timer[1]
+            if agents[0]._last_decision == 'one-timer-pass' and agents[0].one_timer.pending is not None:
+                requested_receiver = agents[0].one_timer.pending.receiver
             if intents:
                 first = processor._process_action(actions[0], macro)[0]
             else:
@@ -118,8 +118,8 @@ def replay(snapshot, schema, *, fast_pass=False, from_cut=False, frame_skip=4):
                     assert info[f"defense_{info['shot_player']}_stick"] == 0
                 update_state(state, info, env)
                 agents[0].predict_game_state(state)
-                assert agents[0]._one_timer is None, ('one-timer remains active after native release', frame_skip)
-                assert agents[0].one_timer_metrics.get('shot-released', 0) > 0, agents[0].one_timer_metrics
+                assert agents[0].one_timer.pending is None, ('one-timer remains active after native release', frame_skip)
+                assert agents[0].one_timer.metrics.get('shot-released', 0) > 0, agents[0].one_timer.metrics
                 print(f'PASS: {schema} converted the live pass into a ROM-counted one-timer'
                       + f' at decision interval {frame_skip} and completed on native release'
                       + (' after an actually executed goalie-safe setup cut' if from_cut else '')

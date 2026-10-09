@@ -141,7 +141,7 @@ def run(args):
                     error = max(abs(actual.precise_x - forecast.precise_x),
                                 abs(actual.precise_y - forecast.precise_y))
                     model.predict_frame(view, frame_skip=interval)
-                    assert model.defense.frames == CARRY_FRAMES + 1
+                    assert model.scheduler.frames == CARRY_FRAMES + 1
                     assert model._last_decision != 'create-chance', ('cached setup exceeded deadline', schema, interval)
                     rows.append({'style': style, 'width': width, 'puck_offset': puck_offset,
                                  'side': side, 'decision_interval': interval, 'direction': direction, 'action_type': schema,
@@ -149,7 +149,7 @@ def run(args):
                                  'predicted': (forecast.precise_x, forecast.precise_y),
                                  'actual': (actual.precise_x, actual.precise_y),
                                  'position_error': error, 'trajectory': trajectory,
-                                 'response': diagnostics, 'deadline_interrupt_frame': model.defense.frames})
+                                 'response': diagnostics, 'deadline_interrupt_frame': model.scheduler.frames})
         root = Path(__file__).resolve().parents[2]
         names = ('agents/responses.py', 'agents/carry.py', 'agents/skating.py',
                  'agents/classic_v1.py', 'agents/offense.py', 'env/actions.py',

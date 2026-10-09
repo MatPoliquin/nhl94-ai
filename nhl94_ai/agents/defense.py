@@ -95,8 +95,8 @@ class DefenseController:
         self.last_owner = -1
         self.diagnostics = {}
 
-    def idle(self, elapsed):
-        self.frames += elapsed
+    def idle(self, elapsed=0, *, frame=None):
+        self.frames = self.frames + elapsed if frame is None else frame
         self.plan = self.desired_slot = None
         self.switch_attempts = 0
         self.pending_switch = self.last_switch_result = self.last_selection = None
@@ -494,8 +494,8 @@ class DefenseController:
                 return {**details, 'status': 'leaves-receiver-lane'}
         return {**details, 'status': 'ready'}
 
-    def step(self, state, elapsed=1):
-        self.frames += elapsed
+    def step(self, state, elapsed=1, *, frame=None):
+        self.frames = self.frames + elapsed if frame is None else frame
         actual = controlled_slot(state.team1)
         self._observe_switch(actual)
         if owns_puck(state.team1, state.engine.puck_owner):

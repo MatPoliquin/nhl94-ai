@@ -443,11 +443,11 @@ class GoalieHandoffTests(unittest.TestCase):
         output = agent.act(AgentInput(goalie_state()))
         self.assertIn('classic_goalie', output.diagnostics)
         self.assertEqual(agent.goalie.frames, 1)
-        self.assertEqual(agent.defense.frames, 1)
+        self.assertEqual(agent.scheduler.frames, 1)
         for _ in range(6):
             agent.act(AgentInput(goalie_state()))
         self.assertEqual(agent.goalie.frames, 7)
-        self.assertEqual(agent.defense.frames, 7)
+        self.assertEqual(agent.scheduler.frames, 7)
         agent.reset()
         self.assertEqual(agent.goalie.frames, 0)
         self.assertEqual(agent.goalie.phase, 'skater')

@@ -37,7 +37,7 @@ class DefaultOutletTests(unittest.TestCase):
                 model = ClassicAIV1Model(SimpleNamespace(action_type=schema))
                 action = model.predict_frame(state)[0]
                 self.assertEqual(model._last_decision, 'goalie-outlet')
-                receiver = model.offense.pending['receiver']
+                receiver = model.offense.pass_action.pending.receiver
                 self.assertNotEqual(receiver, 0)
                 if schema == 'FILTERED':
                     self.assertEqual(action[Buttons.INPUT_B], 1)
@@ -48,14 +48,14 @@ class DefaultOutletTests(unittest.TestCase):
                 state.engine.puck_owner = -256
                 for _ in range(4):
                     action = model.predict_frame(state)[0]
-                self.assertTrue(model.offense.pending['launched'])
-                self.assertEqual(model.offense.pending['actual_receiver'], receiver)
+                self.assertTrue(model.offense.pass_action.pending.launched)
+                self.assertEqual(model.offense.pass_action.pending.actual_receiver, receiver)
                 self.assertEqual(action[Buttons.INPUT_B] if schema == 'FILTERED' else action[0],
                                  0 if schema == 'FILTERED' else HOCKEY_INTENT_NOOP)
                 state.engine.puck_owner = state.team1.defense_control = receiver
                 model.predict_frame(state)
-                self.assertIsNone(model.offense.pending)
-                self.assertEqual(model.offense.last_pass['outcome'], 'received')
+                self.assertIsNone(model.offense.pass_action.pending)
+                self.assertEqual(model.offense.pass_action.last_pass['outcome'], 'received')
 
     def test_no_eligible_outlet_holds_for_automatic_cover(self):
         state = outlet_state()
@@ -64,13 +64,13 @@ class DefaultOutletTests(unittest.TestCase):
         model = ClassicAIV1Model()
         self.assertFalse(model.predict_frame(state).any())
         self.assertEqual(model._last_decision, 'goalie-hold')
-        self.assertIsNone(model.offense.pending)
+        self.assertIsNone(model.offense.pass_action.pending)
 
     def test_outlet_requires_a_new_b_edge(self):
         model = ClassicAIV1Model()
-        model._b_down = True
+        model.buttons.b_down = True
         self.assertFalse(model.predict_frame(outlet_state()).any())
-        self.assertIsNone(model.offense.pending)
+        self.assertIsNone(model.offense.pass_action.pending)
 
     def test_one_frame_decisions_hold_b_through_native_direction_selection(self):
         state = outlet_state()
@@ -79,7 +79,7 @@ class DefaultOutletTests(unittest.TestCase):
         self.assertTrue(model.predict_frame(state, frame_skip=1)[0, Buttons.INPUT_B])
         state.engine.puck_owner = -256
         state.team1.pass_attempts = 1
-        state.engine.pass_target = model.offense.pending['receiver']
+        state.engine.pass_target = model.offense.pass_action.pending.receiver
         self.assertFalse(model.predict_frame(state, frame_skip=1)[0, Buttons.INPUT_B])
 
 

@@ -90,7 +90,7 @@ def interception_probe(state, before, baseline):
     if plan.mode not in ('recover-safe', 'intercept-pass') or player is None:
         return None
     controller = deepcopy(before.defense)
-    controller.frames = baseline.defense.frames
+    controller.frames = baseline.scheduler.frames
     trace = []
 
     def observed_step(*args, **kwargs):
@@ -181,13 +181,13 @@ def run_job(job):
             player = view.team1.get_player_by_scnum(owner)
             offense = (player is not None and player is not view.team1.goalie
                        and owner == controlled_slot(view.team1) and not view.engine.clock_stopped
-                       and (model._frame_remaining <= 0 or model._was_defending)
-                       and model._one_timer is None and model._tick >= model._shot_until)
+                       and (model.scheduler.remaining <= 0 or model.scheduler.was_defending)
+                       and model.one_timer.pending is None and model.scheduler.decisions >= model.shot.until_decision)
             defense = owner < 0 and frame % 4 == 0 and not view.engine.clock_stopped
             before = deepcopy(model) if offense or defense else None
             action = model.predict_frame(view, frame_skip=4)[0]
             request = model._last_pass_request
-            if request and request['frame'] == model.defense.frames and player is not None:
+            if request and request['frame'] == model.scheduler.frames and player is not None:
                 index = request['receiver'] - view.team1.skater_scnum_base()
                 purpose = 'one-timer' if 'one-timer' in request['purpose'] else 'outlet' if player is view.team1.goalie else (
                     'advance' if request['purpose'] == 'advance-pass' else 'position')
@@ -196,7 +196,7 @@ def run_job(job):
                 passes.append({'frame': frame, 'request': dict(request), 'revised': details})
             if offense and model._last_decision == 'shoot':
                 choice = normal_finish(view, player, 4)
-                shots.append({'frame': frame, 'baseline_side': model._shot_side,
+                shots.append({'frame': frame, 'baseline_side': model.shot.side,
                               'choice': asdict(choice) if choice else None,
                               'player': (player.x, player.y), 'puck': (view.puck.x, view.puck.y),
                               'goalie': (view.team2.goalie.x, view.team2.goalie.y),
@@ -207,8 +207,8 @@ def run_job(job):
                     alternate_action = alternate.predict_frame(view, frame_skip=4)[0]
                     changed = (not np.array_equal(action, alternate_action)
                                or (refinement == 'finishing' and model._last_decision == 'shoot'
-                                   and (model._shot_side, model._shot_hold_until) != (
-                                       alternate._shot_side, alternate._shot_hold_until)))
+                                   and (model.shot.side, model.shot.hold_until_frame) != (
+                                       alternate.shot.side, alternate.shot.hold_until_frame)))
                     counts[f'{refinement}:examined'] += 1
                     if not changed:
                         continue
@@ -233,8 +233,8 @@ def run_job(job):
                             env, snapshot, ram_digest, state, side, policy, buttons, horizon)
                     if refinement == 'finishing' and model._last_decision == alternate._last_decision == 'shoot':
                         aim, hold = deepcopy(model), deepcopy(model)
-                        aim._shot_side = alternate._shot_side
-                        hold._shot_hold_until = alternate._shot_hold_until
+                        aim.shot.side = alternate.shot.side
+                        hold.shot.hold_until_frame = alternate.shot.hold_until_frame
                         for label, policy in (('aim-only', aim), ('hold-only', hold)):
                             case['outcomes'][label] = fork(
                                 env, snapshot, ram_digest, state, side, policy, action, horizon)

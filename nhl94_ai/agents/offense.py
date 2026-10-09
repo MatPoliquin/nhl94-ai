@@ -4,6 +4,7 @@ from dataclasses import asdict, replace
 import math
 
 from nhl94_ai.agents.defense import controlled_slot, eligible, on_ice
+from nhl94_ai.agents.lifecycle import PassLifecycle
 from nhl94_ai.agents.carry import (
     CARRY_FRAMES, INTERCEPTION_MARGIN, _segment_clearance, assess_path_risk, body_clearance,
     carry_path, forecast_carry, forecast_path,
@@ -349,13 +350,11 @@ class OffenseController:
         self.chance_owner = None
         self.chance_until = self.chance_at = 0
         self.one_timer_at = 0
-        self.pending = None
+        self.pass_action = PassLifecycle()
         self.pass_at = 0
         self.feint_until = self.feint_at = 0
         self.feint_target = None
         self.feint_mode = 'feint'
-        self.last_pass = None
-        self.last_request = None
         self.diagnostics = {}
         self.risk_cache = {}
         self.pass_timing = self.carry_motion = False
@@ -368,7 +367,7 @@ class OffenseController:
         return carry_clear(state, player, target, decision_interval=self.movement_interval)
 
     def cancel(self):
-        self.pending = None
+        self.pass_action.cancel()
         self.feint_target = None
         self.feint_until = 0
         self.diagnostics = {}
@@ -380,44 +379,10 @@ class OffenseController:
         if self.chance_owner is not None and state.engine.puck_owner != self.chance_owner:
             self.chance_owner = None
             self.chance_until = 0
-        request = self.pending
-        if request is None:
-            return
-        owner = state.engine.puck_owner
-        if state.team2.owns_scnum(owner):
-            result = 'intercepted' if request['launched'] else 'lost-before-release'
-        elif owner == request['passer'] and request['flight_observed']:
-            result = 'recovered-by-passer'
-        elif frame >= request['deadline']:
-            result = 'flight-timeout' if request['launched'] else 'not-released'
-        elif owner >= 0 and owner != request['passer']:
-            result = 'received' if owner == request['receiver'] else 'other-receiver'
-        else:
-            if owner < 0:
-                request['flight_observed'] = True
-            if (request['actual_receiver'] is None and state.team1.pass_attempts is not None
-                    and request['passes_before'] is not None
-                    and state.team1.pass_attempts > request['passes_before']):
-                request['actual_receiver'] = state.engine.pass_target
-                request['launched'] = True
-            if owner < 0 and state.engine.last_puck_player == request['passer']:
-                request['launched'] = True
-            return
-        self.end_pass(state, frame, result)
-
-    def end_pass(self, state, frame, result):
-        self.last_pass = {**self.pending, 'outcome': result, 'owner': state.engine.puck_owner, 'end_frame': frame}
-        self.pending = None
+        return self.pass_action.observe(state, frame)
 
     def start_pass(self, state, option, frame, purpose):
-        self.pending = {
-            'passer': state.engine.puck_owner, 'receiver': option.slot, 'purpose': purpose,
-            'frame': frame, 'deadline': frame + math.ceil(option.flight_frames) + 20,
-            'point': option.point, 'passes_before': state.team1.pass_attempts,
-            'actual_receiver': None, 'launched': False, 'flight_observed': False,
-            'direction': option.direction,
-        }
-        self.last_request = dict(self.pending)
+        self.pass_action.start(state, option, frame, purpose)
         self.pass_at = frame + 24
         self.feint_target = None
         self.feint_until = 0
@@ -808,7 +773,7 @@ class OffenseController:
         self.diagnostics.update(
             mode=mode, decision=mode, reason=reason, target=target, destination=target, waypoint=target,
             actual_slot=actual, desired_slot=option.slot if option else actual,
-            receiver=asdict(option) if option else None, last_pass=self.last_pass)
+            receiver=asdict(option) if option else None, last_pass=self.pass_action.last_pass)
         return mode, target, option
 
     def _passing_window(self, state, frame=0):

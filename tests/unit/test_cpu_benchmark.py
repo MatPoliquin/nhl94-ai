@@ -25,6 +25,8 @@ class CpuBenchmarkContracts(unittest.TestCase):
         self.assertTrue(all(fixture[7:] == (False, True, False, False, False,
                                           ('pass-timing', 'interceptions')) for fixture in fixtures))
         self.assertIn('nhl94_ai/agents/finishing.py', report['sources'])
+        self.assertIn('nhl94_ai/agents/lifecycle.py', report['sources'])
+        self.assertIn('nhl94_ai/agents/scheduling.py', report['sources'])
         self.assertEqual(build_parser().parse_args([]).classic_refinements, [])
 
     def test_lookahead_flag_reaches_trials_and_preserves_other_options(self):

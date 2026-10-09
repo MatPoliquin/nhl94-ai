@@ -31,7 +31,7 @@ def check(args):
                 assert (initial['defense_team1'], initial['defense_team2']) == (1, 0)
                 before = initial['p1_onetimer'] & 65535
             controller = player.ai_sys.models[1].controller
-            pending = controller._one_timer
+            pending = controller.one_timer.pending
             request = controller._last_pass_request
             result = shown_step(actions)
             info = result[3][0]
@@ -40,7 +40,7 @@ def check(args):
             if current > before:
                 attempts += current - before
                 if (pending is not None and request is not None and request['purpose'] == 'one-timer'
-                        and info['shot_player'] == pending[1] == request['receiver']):
+                        and info['shot_player'] == pending.receiver == request['receiver']):
                     shots.append((frames, info['time'] & 65535, info['shot_player']))
                 before = current
             frames += 1

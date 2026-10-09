@@ -135,13 +135,13 @@ def cpu_match(fixture):
             inactive_skater_frames += sum(p.role is not None and p.role < 0
                                           for p in (*view.team1.players, *view.team2.players))
             offense.observe(frames, view)
-            before_tick = agent._tick
+            before_tick = agent.scheduler.decisions
             action = agent.predict_game_state(view)[0]
-            event = agent.offense.last_pass
+            event = agent.offense.pass_action.last_pass
             if event is not None and event['end_frame'] != last_ordinary_pass:
                 ordinary_pass_metrics[event['outcome']] += 1
                 last_ordinary_pass = event['end_frame']
-            if agent._tick != before_tick:
+            if agent.scheduler.decisions != before_tick:
                 decisions[agent._last_decision] += 1
             request = agent._last_pass_request
             if request and request['frame'] != getattr(passes, 'last_request_frame', None):
@@ -173,18 +173,18 @@ def cpu_match(fixture):
             frames += 1
             passes.observe(frames, info)
         passes.finish(frames, info, 'period_ended' if info['bench_clock'] == 0 else 'trial_incomplete')
-        agent._end_one_timer('period-ended' if info['bench_clock'] == 0 else 'trial-incomplete')
-        ended = sum(agent.one_timer_metrics.values())
-        if ended != agent.one_timer_starts:
-            raise RuntimeError(f'Unbalanced one-timer lifecycle: {agent.one_timer_starts} starts, {ended} endings.')
+        agent.end_one_timer('period-ended' if info['bench_clock'] == 0 else 'trial-incomplete')
+        ended = sum(agent.one_timer.metrics.values())
+        if ended != agent.one_timer.starts:
+            raise RuntimeError(f'Unbalanced one-timer lifecycle: {agent.one_timer.starts} starts, {ended} endings.')
         return {
             'agent': agent_name, 'matchup': matchup, 'side': side, 'seed': seed,
             'goals': [info['p1_score'], info['p2_score']],
             'shots': [info['bench_shots1'], info['bench_shots2']],
             'one_timers': [info['bench_one_timers1'], info['bench_one_timers2']],
             'one_timer_goals': [info['bench_one_timer_goals1'], info['bench_one_timer_goals2']],
-            'one_timer_metrics': dict(agent.one_timer_metrics),
-            'one_timer_accounting': {'started': agent.one_timer_starts, 'ended': ended},
+            'one_timer_metrics': dict(agent.one_timer.metrics),
+            'one_timer_accounting': {'started': agent.one_timer.starts, 'ended': ended},
             'carry_metrics': dict(agent.carry_metrics),
             'decisions': dict(decisions), 'frames': frames,
             'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
@@ -343,7 +343,7 @@ def run(args):
     root = Path(__file__).resolve().parents[2]
     files.update(root / 'nhl94_ai' / name for name in (
         'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
-        'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
+        'agents/base.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
         'agents/offense.py', 'agents/possession.py', 'agents/passing.py', 'agents/receiving.py', 'agents/responses.py', 'agents/finishing.py',
         'agents/goalie.py', 'agents/cross_crease.py', 'agents/deke.py', 'agents/skating.py', 'agents/registry.py'))
     sources = {str(path.relative_to(root)):

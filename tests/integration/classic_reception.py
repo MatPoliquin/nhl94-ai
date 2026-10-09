@@ -60,7 +60,7 @@ def run():
                     model_args.game_state = state
                     action = processor._process_action(model.predict_frame(state)[0], macro)[0]
                     if frame == 0:
-                        assert model.offense.pending['receiver'] == fixture['receiver']
+                        assert model.offense.pass_action.pending.receiver == fixture['receiver']
                     if model._last_decision == 'receive-pass-switch':
                         switches.append(frame)
                         assert action[Buttons.INPUT_B] and not action[Buttons.INPUT_C]

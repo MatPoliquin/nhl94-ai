@@ -114,11 +114,11 @@ def match(fixture):
             actions = []
             for index, view in enumerate((state, away_view(state))):
                 start = perf_counter_ns()
-                before_tick = agents[index]._tick
+                before_tick = agents[index].scheduler.decisions
                 actions.extend(agents[index].predict_game_state(view)[0])
                 durations[index] += perf_counter_ns() - start
                 calls[index] += 1
-                new_pass = agents[index]._tick != before_tick and agents[index]._last_decision == 'one-timer-pass'
+                new_pass = agents[index].scheduler.decisions != before_tick and agents[index]._last_decision == 'one-timer-pass'
                 setups[index] += new_pass
                 request = agents[index]._last_pass_request
                 if request and request['frame'] != getattr(passes[index], 'last_request_frame', None):

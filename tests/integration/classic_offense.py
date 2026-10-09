@@ -94,7 +94,7 @@ def advancement_pass(*, receiver_energy=4096):
                         assert state.team1.get_player_by_scnum(receiver).energy == receiver_energy
                         assert state.team1.get_player_by_scnum(receiver).stick == 20
                         assert model._last_decision == 'advance-pass', model.offense_diagnostics
-                        assert model.offense.pending['receiver'] == receiver
+                        assert model.offense.pass_action.pending.receiver == receiver
                     assert not model.defense_diagnostics, (schema, frame, model.defense_diagnostics)
                     if schema == 'FILTERED':
                         assert not action[Buttons.INPUT_C], (schema, frame, action)
@@ -157,7 +157,7 @@ def purposeful_feint():
                 env.step(action)
             player = get_game_state(env).team1.get_player_by_scnum(actual)
             assert player.x > before_x, (before_x, player.x)
-            assert model.offense.feint_at > model.defense.frames
+            assert model.offense.feint_at > model.scheduler.frames
             print('PASS: purposeful cut changes actual carrier direction without pass/shot input; bounded cooldown')
         finally:
             env.close()
@@ -208,13 +208,13 @@ def one_timer_setup_cut():
                     if model._last_decision == 'one-timer-setup':
                         assert model._last_target == model.offense.feint_target
                     if model._last_decision == 'one-timer-pass':
-                        requested = model._one_timer[1]
+                        requested = model.one_timer.pending.receiver
                         pose = tuple(memory.extract(base + offset, '>i4') for offset in (0, 0x14, 0x54))
                         assert pose != initial_pose, 'Setup must change native position or facing'
                     if state.team1.one_timer_attempts > before:
                         assert requested is not None and state.engine.shot_player == requested
-                        assert model._one_timer is None
-                        assert model.one_timer_metrics.get('shot-released', 0) == 1
+                        assert model.one_timer.pending is None
+                        assert model.one_timer.metrics.get('shot-released', 0) == 1
                         print(f'PASS: {schema} executes a coherent setup cut, selects receiver {requested}, '
                               f'and completes on native one-timer release in {frame} frames')
                         break

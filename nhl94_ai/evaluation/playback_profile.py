@@ -92,7 +92,7 @@ def run(args):
                 'frame': frame + 1, 'action': actions[0].tolist(), 'owner': owner,
                 'cohort': 'ai-skater-possession' if 6 <= owner < 11 else 'other',
                 'decision': controller._last_decision,
-                'clocks': [controller._tick, controller.defense.frames, controller._frame_remaining],
+                'clocks': [controller.scheduler.decisions, controller.scheduler.frames, controller.scheduler.remaining],
                 'timing_ms': {
                     'predict': (predicted - start) * 1000, 'diagnostics': (diagnosed - predicted) * 1000,
                     'step': (stepped - diagnosed - draw_duration[0]) * 1000,

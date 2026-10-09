@@ -164,8 +164,8 @@ def native_wing_reception(*, active_defender=False, uncertain_carry=False):
                         observed = state.engine.pass_target
                     if received is None and state.engine.puck_owner == receiver:
                         assert state.team1.defense_control == receiver
-                        assert model.offense.pending is None
-                        assert model.offense.last_pass['outcome'] == 'received'
+                        assert model.offense.pass_action.pending is None
+                        assert model.offense.pass_action.last_pass['outcome'] == 'received'
                         assert observed == receiver
                         assert model._last_decision not in ('pass-release', 'pass-flight')
                         received = elapsed
@@ -184,9 +184,9 @@ def native_wing_reception(*, active_defender=False, uncertain_carry=False):
                         assert state.team1.get_player_by_scnum(receiver).x < reception_position
                         if state.engine.shot_player != receiver:
                             assert state.engine.shot_player == carrier
-                            assert model.offense.last_pass['passer'] == receiver
-                            assert model.offense.last_pass['actual_receiver'] == carrier
-                            assert model.offense.last_pass['outcome'] == 'received'
+                            assert model.offense.pass_action.last_pass['passer'] == receiver
+                            assert model.offense.pass_action.last_pass['actual_receiver'] == carrier
+                            assert model.offense.pass_action.last_pass['outcome'] == 'received'
                         print(f'PASS: {schema} selects a wide receiver for a short carry, '
                               f'receives at frame {received}, replans, carries inside and '
                               f'records a verified receiver/return-pass shot at frame {elapsed}')

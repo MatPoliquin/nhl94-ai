@@ -10,7 +10,7 @@ from nhl94_ai.evaluation.carry_replay import DECISION_INTERVAL, replay_seed, sou
 
 REQUIRED_SOURCES = {
     f'nhl94_ai/{name}' for name in (
-        'agents/base.py', 'agents/classic_v1.py', 'agents/carry.py', 'agents/offense.py', 'agents/possession.py',
+        'agents/base.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/classic_v1.py', 'agents/carry.py', 'agents/offense.py', 'agents/possession.py',
         'agents/passing.py', 'agents/receiving.py', 'agents/skating.py', 'agents/finishing.py', 'env/actions.py', 'env/factory.py',
         'evaluation/benchmark.py', 'evaluation/cpu_benchmark.py', 'game/state.py', 'game/ram.py',
     )

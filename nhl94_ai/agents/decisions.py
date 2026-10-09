@@ -172,11 +172,11 @@ def _selected_ids(decision, offense, defense, goalie, controller):
     if decision.startswith('receive-pass'):
         return f'pass:{target}', None
     if decision in ('advance-pass', 'position-pass', 'pass-release', 'pass-flight'):
-        pending = controller.offense.pending
-        target = pending['receiver'] if pending else target
+        pending = controller.offense.pass_action.pending
+        target = pending.receiver if pending else target
         return f'pass:{target}', None
     if decision.startswith('one-timer-') and decision not in ('one-timer-setup', 'one-timer-ended'):
-        target = controller._one_timer[1] if controller._one_timer else target
+        target = controller.one_timer.pending.receiver if controller.one_timer.pending else target
         return f'one-timer:{target}', None
     if decision.startswith('deke-'):
         return 'deke', None
@@ -242,7 +242,7 @@ def classic_decision_snapshot(controller, state, action):
     goalie = controller.goalie_diagnostics
     decision = controller._last_decision
     active_mode, evidence = _active_evidence(controller)
-    frame = controller.defense.frames
+    frame = controller.scheduler.frames
     evaluated = offense.get('evaluation_frame')
     controlled = state.team1.controlled_scnum() if state.team1.defense_control is None else state.team1.defense_control
     source_rows = {row['slot']: row for row in offense.get('teammate_scores', ())}

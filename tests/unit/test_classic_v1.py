@@ -117,7 +117,7 @@ class ClassicV1Contracts(unittest.TestCase):
         state.engine.puck_owner = -256
         state.puck.x, state.puck.y = 30, 225
         # A defensive boost may have been submitted just before possession.
-        model._c_down = True
+        model.buttons.c_down = True
         state.engine.puck_owner = 0
         self.assertEqual(model.predict_game_state(state)[0, Buttons.INPUT_C], 0)
         self.assertEqual(model.predict_game_state(state)[0, Buttons.INPUT_C], 1)
@@ -149,7 +149,7 @@ class ClassicV1Contracts(unittest.TestCase):
                         state.team1.control = 2
                         model.predict_frame(state, frame_skip=interval)
                         self.assertEqual(model._last_decision, 'shoot')
-                        self.assertEqual(model._shot_until, 0)
+                        self.assertEqual(model.shot.until_decision, 0)
                         self.assertEqual(model.offense_diagnostics['desired_slot'], state.engine.puck_owner)
 
     def test_finishing_requires_the_puck_to_remain_in_front_of_either_net(self):
@@ -173,7 +173,7 @@ class ClassicV1Contracts(unittest.TestCase):
                         model = ClassicAIV1Model(SimpleNamespace(action_type=schema, one_timers=False))
                         model.predict_frame(state)
                         self.assertNotEqual(model._last_decision, 'shoot')
-                        self.assertEqual(model._shot_until, 0)
+                        self.assertEqual(model.shot.until_decision, 0)
                         self.assertEqual(route_waypoint((player.x, player.y), model._last_target),
                                          model._last_target)
 
@@ -190,7 +190,7 @@ class ClassicV1Contracts(unittest.TestCase):
         state.team1.goalie.y, state.puck.y = -250, -250
         model.predict_frame(state, frame_skip=4)
         self.assertEqual(model._last_decision, 'goalie-hold')  # Missing motion cannot certify an outlet.
-        self.assertEqual(model._shot_until, 0)
+        self.assertEqual(model.shot.until_decision, 0)
 
     def test_legal_close_finishing_does_not_require_positive_conservative_shot_value(self):
         from nhl94_ai.agents.passing import shot_value

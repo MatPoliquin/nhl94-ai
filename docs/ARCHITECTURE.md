@@ -60,7 +60,7 @@ The paired benchmark now defaults to V1 versus its `classic-v1-direct`
 one-timer-disabled ablation. Both variants use the same defense and progression
 planner. The default `agents/possession.py` policy restores the established
 immediate carry/pass priorities and ordinary-reception cadence. It inherits
-shared lifecycle and bounded-cut machinery from `agents/offense.py`;
+shared planning and bounded-cut machinery from `agents/offense.py`;
 `agents/passing.py`
 predicts the ROM-selected receiver, motion-backed flight and reception risk.
 Default carries use sampled clearance and arrival estimates, not worst-case
@@ -70,6 +70,15 @@ certificate: `carry_safe` is unmeasured (`None`), `carry_pressure_model` is
 This restores the earlier policy after the native-lookahead default regressed;
 the [Classic restoration report](CLASSIC_V1.md#default-offense-restoration-2026-10-08)
 records matched outcomes and component comparisons.
+
+Action state lives in `agents/lifecycle.py`: normal shots, ordinary passes with
+reception correction, and one-timers each own their feedback transitions.
+`agents/scheduling.py` owns the native-frame clock, tactical decision count,
+and cached input cadence. The Classic dispatcher coordinates input ownership
+and handoffs to defense, goalies, and specialized finishers. Decision-counted
+waits retain their original semantics when special actions suspend the planner.
+See the [lifecycle refactor](CLASSIC_V1.md#action-lifecycle-refactor-2026-10-09)
+for module boundaries and exact replay validation.
 
 Automatic and manual goalie policies share `agents.goalie.outlet_options`.
 The default path checks receiver eligibility, ROM selection, interception and

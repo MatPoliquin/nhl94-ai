@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
+from nhl94_ai.agents.lifecycle import PassState, OneTimerState
 from nhl94_ai.agents.motion import puck_path
 from nhl94_ai.agents.receiving import passive_reception
 from nhl94_ai.env.intents import HOCKEY_INTENT_CHANGE_PLAYER, HOCKEY_INTENT_NOOP
@@ -28,11 +29,11 @@ def reception_state():
 
 def waiting_model(schema='FILTERED'):
     model = ClassicAIV1Model(SimpleNamespace(action_type=schema))
-    model.defense.frames = 5
-    model.offense.pending = {'passer': 3, 'receiver': 0, 'actual_receiver': 0,
+    model.scheduler.frames = 5
+    model.offense.pass_action.pending = PassState(**{'passer': 3, 'receiver': 0, 'actual_receiver': 0,
                              'launched': True, 'flight_observed': True, 'frame': 0,
                              'deadline': 50, 'purpose': 'advance-pass', 'point': (-94, -136),
-                             'passes_before': 0}
+                             'passes_before': 0})
     return model
 
 
@@ -68,7 +69,7 @@ class ReceptionTests(unittest.TestCase):
                 self.assertEqual(action[Buttons.INPUT_B], 1)
                 self.assertFalse(action[4:9].any())
                 model._encode(action, intent)
-                model.defense.frames += 1
+                model.scheduler.frames += 1
                 action, intent = model._receive_pass(state)
                 self.assertEqual(intent, HOCKEY_INTENT_NOOP)
                 self.assertFalse(action.any())
@@ -82,10 +83,10 @@ class ReceptionTests(unittest.TestCase):
         state, model = reception_state(), waiting_model()
         with patch('nhl94_ai.agents.classic_v1.DefenseController._likely_switch', return_value=2):
             self.assertFalse(model._receive_pass(state)[0].any())
-            model.defense.frames += 16
+            model.scheduler.frames += 16
             self.assertIsNone(model._receive_pass(state))
-        self.assertIsNone(model.offense.pending)
-        self.assertEqual(model.offense.last_pass['outcome'], 'reception-unreachable')
+        self.assertIsNone(model.offense.pass_action.pending)
+        self.assertEqual(model.offense.pass_action.last_pass['outcome'], 'reception-unreachable')
 
     def test_unexpected_switch_and_unavailable_receiver_release_to_defense(self):
         for unavailable in (False, True):
@@ -96,18 +97,18 @@ class ReceptionTests(unittest.TestCase):
             else:
                 state.team1.defense_control = 2
             self.assertIsNone(model._receive_pass(state))
-            self.assertIsNone(model.offense.pending)
+            self.assertIsNone(model.offense.pass_action.pending)
             self.assertTrue(model._defending(state))
 
     def test_no_correction_before_launch_during_stoppage_or_after_possession(self):
         for condition in ('windup', 'stoppage', 'possession', 'unknown-recipient', 'unknown-control'):
             state, model = reception_state(), waiting_model()
             if condition == 'windup':
-                model.offense.pending['launched'] = False
+                model.offense.pass_action.pending.launched = False
             elif condition == 'stoppage':
                 state.engine.clock_stopped = True
             elif condition == 'unknown-recipient':
-                model.offense.pending['actual_receiver'] = None
+                model.offense.pass_action.pending.actual_receiver = None
             elif condition == 'unknown-control':
                 state.team1.defense_control = -1
             else:
@@ -120,14 +121,14 @@ class ReceptionTests(unittest.TestCase):
             model._receive_pass(state)
             state.engine.puck_owner = owner
             model._observe_ordinary_pass(state)
-            self.assertIsNone(model.offense.pending)
-            self.assertEqual(model.offense.last_pass['outcome'], outcome)
+            self.assertIsNone(model.offense.pass_action.pending)
+            self.assertEqual(model.offense.pass_action.last_pass['outcome'], outcome)
             self.assertIsNone(model._receive_pass(state))
 
     def test_one_timer_has_no_ordinary_reception_controller(self):
         model, state = waiting_model(), reception_state()
-        model.offense.pending = None
-        model._one_timer = (3, 0, 60)
+        model.offense.pass_action.pending = None
+        model.one_timer.pending = OneTimerState(3, 0, 60)
         self.assertIsNone(model._receive_pass(state))
 
 

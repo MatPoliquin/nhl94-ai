@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import patch
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
+from nhl94_ai.agents.lifecycle import PassState
 from nhl94_ai.agents.defense import DefenseController
 from nhl94_ai.agents.motion import stop_projection
 from nhl94_ai.agents.offense import (
@@ -215,7 +216,7 @@ class GoalieAvoidanceTests(unittest.TestCase):
         state.engine.puck_owner = -256
         state.team1.stats.shots = 3
         model = ClassicAIV1Model()
-        model._shot_until, model._shots_before, model._shot_slot = 10, 3, 0
+        model.shot.until_decision, model.shot.shots_before, model.shot.slot = 10, 3, 0
         action = model.predict_game_state(state)[0]
         self.assertEqual(model._last_decision, 'shot-follow-through')
         self.assertTrue(action[Buttons.INPUT_RIGHT])
@@ -231,7 +232,7 @@ class GoalieAvoidanceTests(unittest.TestCase):
         state.engine.puck_owner, state.engine.shot_player = -256, 1
         state.team1.stats.shots = 4
         model = ClassicAIV1Model()
-        model._shot_until, model._shots_before, model._shot_slot = 10, 3, 0
+        model.shot.until_decision, model.shot.shots_before, model.shot.slot = 10, 3, 0
         action = model.predict_game_state(state)[0]
         self.assertEqual(model._last_decision, 'shot-follow-through')
         self.assertTrue(action[Buttons.INPUT_RIGHT])
@@ -239,11 +240,11 @@ class GoalieAvoidanceTests(unittest.TestCase):
     def test_pass_release_aim_is_untouched_but_launched_pass_can_clear_goalie(self):
         state = approach_state()
         model = ClassicAIV1Model()
-        model.offense.pending = {
+        model.offense.pass_action.pending = PassState(**{
             'passer': 0, 'receiver': 1, 'purpose': 'advance', 'frame': 0, 'deadline': 80,
             'point': (-80, -30), 'passes_before': 0, 'actual_receiver': None, 'launched': False,
             'flight_observed': False,
-        }
+        })
         self.assertFalse(model.predict_game_state(state).any())
         state.engine.puck_owner, state.engine.last_puck_player = -256, 0
         state.team1.pass_attempts, state.engine.pass_target = 1, 1
@@ -251,7 +252,7 @@ class GoalieAvoidanceTests(unittest.TestCase):
         self.assertEqual(model._last_decision, 'goalie-avoid')
         self.assertTrue(action[Buttons.INPUT_DOWN])
         self.assertFalse(action[Buttons.INPUT_B] or action[Buttons.INPUT_C])
-        self.assertIsNotNone(model.offense.pending)
+        self.assertIsNotNone(model.offense.pass_action.pending)
 
     def test_existing_cut_is_cancelled_when_goalie_moves_into_it(self):
         state = approach_state()

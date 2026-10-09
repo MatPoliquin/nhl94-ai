@@ -210,7 +210,7 @@ class ChanceCreationTests(unittest.TestCase):
         state = response_state()
         model = ClassicAIV1Model(SimpleNamespace(chance_creation=True))
         model.offense.chance_owner, model.offense.chance_until = 0, 18
-        with patch.object(model, '_decide', return_value=(model._frame_action[0], 0)):
+        with patch.object(model, '_decide', return_value=(model.scheduler.action[0], 0)):
             model._predict_decision(state)
         self.assertIsNone(model.offense.chance_owner)
         self.assertEqual(model.offense.chance_until, 0)

@@ -20,6 +20,7 @@ from nhl94_ai.env.factory import make_retro
 from nhl94_ai.env.intents import HOCKEY_INTENT_NOOP
 from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, cpu_view, select_side
 from nhl94_ai.evaluation.carry_outcomes import CarryOutcomes
+from nhl94_ai.evaluation.lifecycle_history import cache_input, copy_history
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
 from nhl94_ai.game.ram import pass_geometry_info, restore_away_control
@@ -32,7 +33,8 @@ DECISION_INTERVAL = 4
 
 def load_reference(runtime):
     """Load an explicitly supplied local snapshot without replacing live modules."""
-    names = ('carry', 'offense', *(('possession',) if (
+    names = (*(name for name in ('scheduling', 'lifecycle')
+               if (runtime / 'nhl94_ai/agents' / (name + '.py')).is_file()), 'carry', 'offense', *(('possession',) if (
         runtime / 'nhl94_ai/agents/possession.py').is_file() else ()), 'classic_v1')
     saved = {f'nhl94_ai.agents.{name}': sys.modules.get(f'nhl94_ai.agents.{name}') for name in names}
     try:
@@ -60,8 +62,7 @@ def one_timer_options(model, state):
 def policy_from_history(history, model_class, *, experimental):
     policy = model_class(SimpleNamespace(action_type='FILTERED', uncertain_carry=experimental))
     offense = policy.offense
-    policy.__dict__.update(deepcopy(history.__dict__))
-    offense.__dict__.update(deepcopy(history.offense.__dict__))
+    copy_history(history, policy)
     if hasattr(offense, 'allow_uncertified'):
         offense.allow_uncertified = experimental
     offense.risk_cache.clear()
@@ -83,11 +84,11 @@ def forced_policy(history, state):
     """Advance the same first-frame bookkeeping without inventing an ordinary plan."""
     model = deepcopy(history)
     model._observe_ordinary_pass(state)
-    model._tick += 1
-    model.defense.idle(1)
+    model.scheduler.decisions += 1
+    model._idle(1)
     model.defense_diagnostics = model.offense_diagnostics = {}
-    model._was_defending = False
-    model._defense_elapsed = DECISION_INTERVAL
+    model.scheduler.was_defending = False
+    model.scheduler.elapsed = DECISION_INTERVAL
     return model
 
 
@@ -103,8 +104,8 @@ def branch(env, sample, policy, action, horizon, *, outcome_ended=False):
         raise RuntimeError('Replay did not restore identical RAM.')
     state = deepcopy(sample['state'])
     model = deepcopy(policy)
-    model._frame_action = model._encode(np.asarray(action, dtype=np.int8), HOCKEY_INTENT_NOOP)
-    model._frame_remaining = DECISION_INTERVAL - 1
+    cache_input(model, model._encode(np.asarray(action, dtype=np.int8), HOCKEY_INTENT_NOOP),
+                DECISION_INTERVAL - 1)
     owner_before = sample['owner']
     goals_before = env.data.lookup_all()['p2_score']
     shots_before, attempts_before = state.team2.stats.shots, state.team2.one_timer_attempts
@@ -179,15 +180,15 @@ def replay_seed(seed, reference_class, *, search_frames, horizon, min_depth,
             owned = view.engine.puck_owner == controlled_slot(view.team1) and view.engine.puck_owner >= 6
             carrier = view.team1.get_player_by_scnum(view.engine.puck_owner)
             sign = 1 if view.team2.net.y > view.team1.net.y else -1
-            pending = default.offense.pending
-            free_reception = pending is not None and owned and view.engine.puck_owner != pending['passer']
+            pending = default.offense.pass_action.pending
+            free_reception = pending is not None and owned and view.engine.puck_owner != pending.passer
             ready = (bool(strata) and owned and carrier is not view.team1.goalie
-                     and carrier.y * sign >= min_depth and default._one_timer is None
-                     and (pending is None or free_reception) and default._tick >= default._shot_until
+                     and carrier.y * sign >= min_depth and default.one_timer.pending is None
+                     and (pending is None or free_reception) and default.scheduler.decisions >= default.shot.until_decision
                      and not view.engine.clock_stopped)
             default_before = deepcopy(default) if ready else None
             action = frame_action(default, view)
-            candidate = ready and default._tick != default_before._tick
+            candidate = ready and default.scheduler.decisions != default_before.scheduler.decisions
             if candidate:
                 old = policy_from_history(default_before, reference_class, experimental=True)
                 revised = policy_from_history(default_before, ClassicAIV1Model, experimental=True)
@@ -257,7 +258,7 @@ def replay_seed(seed, reference_class, *, search_frames, horizon, min_depth,
                 if passes:
                     pass_model = forced_policy(models[2], view)
                     option = passes[0]
-                    pass_model.offense.start_pass(view, option, pass_model.defense.frames, 'position-pass')
+                    pass_model.offense.start_pass(view, option, pass_model.scheduler.frames, 'position-pass')
                     pass_action = np.zeros(12, dtype=np.int8)
                     aim_pass(pass_action, carrier, view.team1.get_player_by_scnum(option.slot))
                     pass_action[Buttons.INPUT_B] = 1
@@ -318,12 +319,13 @@ def source_hashes(runtime=None):
         names = (*names, 'possession')
     if (root / 'agents/finishing.py').is_file():
         names = (*names, 'finishing')
-    if (root / 'agents/receiving.py').is_file():
-        names = (*names, 'receiving')
+    for name in ('receiving', 'scheduling', 'lifecycle'):
+        if (root / 'agents' / (name + '.py')).is_file():
+            names = (*names, name)
     result = {f'nhl94_ai/agents/{name}.py': hashlib.sha256(
         (root / 'agents' / f'{name}.py').read_bytes()).hexdigest() for name in names}
     if runtime is None:
-        for name in ('evaluation/carry_replay.py', 'evaluation/carry_outcomes.py', 'evaluation/benchmark.py',
+        for name in ('evaluation/carry_replay.py', 'evaluation/lifecycle_history.py', 'evaluation/carry_outcomes.py', 'evaluation/benchmark.py',
                      'evaluation/cpu_benchmark.py', 'game/ram.py', 'game/state.py', 'tasks/cross_crease_setup.py',
                      'agents/base.py', 'agents/registry.py', 'agents/defense.py', 'agents/motion.py',
                      'env/factory.py', 'env/target_control.py'):

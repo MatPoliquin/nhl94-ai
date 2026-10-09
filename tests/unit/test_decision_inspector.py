@@ -12,6 +12,7 @@ import numpy as np
 
 from nhl94_ai.agents.base import AgentInput, AgentOutput, FrameRepeatAgent, ScriptedAgent
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
+from nhl94_ai.agents.lifecycle import PassState
 from nhl94_ai.agents.decisions import (
     ActionCandidate, DecisionScore, DecisionSnapshot, catalogue_snapshot, classic_decision_snapshot,
 )
@@ -92,7 +93,7 @@ class DecisionContractTests(unittest.TestCase):
     def test_pending_pass_uses_its_real_receiver_without_renaming_public_actions(self):
         controller, state = ClassicAIV1Model(), offense_state()
         controller._last_decision = 'pass-flight'
-        controller.offense.pending = {'receiver': 2}
+        controller.offense.pass_action.pending = PassState(passer=0, receiver=2, frame=0, deadline=100)
         snapshot = classic_decision_snapshot(controller, state, np.zeros(12))
         self.assertEqual(snapshot.plan_id, 'pass:2')
         self.assertEqual(snapshot.phase, 'pass-flight')
@@ -117,7 +118,7 @@ class DecisionContractTests(unittest.TestCase):
         for decision, defense, mode, plan in scenarios:
             with self.subTest(decision=decision, mode=mode):
                 controller._last_decision = decision
-                controller.offense.pending = {'receiver': 2}
+                controller.offense.pass_action.pending = PassState(passer=0, receiver=2, frame=0, deadline=100)
                 controller.offense_diagnostics = {'desired_slot': 2, 'target': (12, 34), 'reason': 'offense reason'}
                 controller.defense_diagnostics = dict(defense, reason='defense reason') if defense else {}
                 controller.goalie_diagnostics = {'mode': decision.removeprefix('goalie-'), 'reason': 'goalie reason'}
@@ -173,8 +174,8 @@ class DecisionContractTests(unittest.TestCase):
             actual = agent.act(AgentInput(state))
             np.testing.assert_array_equal(actual.action, reference.predict_frame(state, 4)[0])
             self.assertIsInstance(actual.decision, DecisionSnapshot)
-            self.assertEqual((agent.controller._tick, agent.controller.defense.frames, agent.controller._frame_remaining),
-                             (reference._tick, reference.defense.frames, reference._frame_remaining))
+            self.assertEqual((agent.controller.scheduler.decisions, agent.controller.scheduler.frames, agent.controller.scheduler.remaining),
+                             (reference.scheduler.decisions, reference.scheduler.frames, reference.scheduler.remaining))
 
     def test_probability_snapshot_survives_multi_model_and_frame_repeat_adapters(self):
         snapshot = neural_snapshot()

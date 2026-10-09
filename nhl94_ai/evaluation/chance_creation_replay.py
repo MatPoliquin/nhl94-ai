@@ -11,7 +11,7 @@ from types import SimpleNamespace
 import numpy as np
 
 from nhl94_ai.agents.carry import carry_pad, carry_path
-from nhl94_ai.agents.classic_v1 import ClassicAIV1Model, ONE_TIMER_TIMEOUT_FRAMES, ONE_TIMER_RETRY_FRAMES
+from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.defense import controlled_slot, eligible
 from nhl94_ai.agents.passing import PassOption, evaluate_pass, pad_direction, selected_receiver
 from nhl94_ai.agents.responses import response_future
@@ -66,7 +66,7 @@ def step(env, state, action, side):
 def planner_windows(model, view, frame):
     result = []
     for purpose in ('position', 'one-timer'):
-        available = model._pass_at if purpose == 'one-timer' else model.offense.pass_at
+        available = model.one_timer.retry_at_frame if purpose == 'one-timer' else model.offense.pass_at
         if frame < available:
             continue
         options, _ = model.offense.passes(view, purpose, continuations=False)
@@ -116,7 +116,7 @@ def natural_branch(env, sample, side, horizon, *, enabled, expected_action=None,
         action = frame_action(model, view)
         if elapsed == 0 and expected_action is not None and not np.array_equal(action, expected_action):
             raise RuntimeError('Replayed selected first action differs from the benchmark prefix.')
-        windows = planner_windows(model, view, model.defense.frames) if view.engine.puck_owner == initial_owner else []
+        windows = planner_windows(model, view, model.scheduler.frames) if view.engine.puck_owner == initial_owner else []
         trace.append({'elapsed': elapsed, 'owner': view.engine.puck_owner, 'decision': model._last_decision,
                       'buttons': action.tolist(), 'target': model._last_target,
                       'live_planner_windows': windows,
@@ -171,17 +171,17 @@ def forced_route(env, sample, side, target, frames):
         if elapsed % DECISION_INTERVAL == 0:
             model = forced_policy(model, view)
             pad = carry_pad(view.team1.get_player_by_scnum(owner), target)
-            model._frame_remaining = DECISION_INTERVAL
+            model.scheduler.remaining = DECISION_INTERVAL
         else:
             model._observe_ordinary_pass(view)
-            model.defense.idle(1)
+            model._idle(1)
         action = np.zeros(Buttons.INPUT_MAX, dtype=np.int8)
         action[Buttons.INPUT_LEFT if pad[0] < 0 else Buttons.INPUT_RIGHT] = abs(pad[0])
         action[Buttons.INPUT_DOWN if pad[1] < 0 else Buttons.INPUT_UP] = abs(pad[1])
         model._last_decision = 'forced-window-route'
-        model._frame_action = model._encode(action, HOCKEY_INTENT_NOOP)
-        model._frame_remaining -= 1
-        model._was_defending = False
+        model.scheduler.action = model._encode(action, HOCKEY_INTENT_NOOP)
+        model.scheduler.remaining -= 1
+        model.scheduler.was_defending = False
         trace.append({'elapsed': elapsed, 'owner': owner, 'buttons': action.tolist()})
         view, info = step(env, state, action, side)
         if info['bench_clock'] == 0:
@@ -203,21 +203,14 @@ def request_pass(history, view, receiver, purpose):
     if purpose == 'position':
         option = PassOption(index, receiver, (target.x, target.y), 48,
                             pad_direction(player, target), 0, 0, 0, 0, 0, 0)
-        model.offense.start_pass(view, option, model.defense.frames, 'position-pass')
+        model.offense.start_pass(view, option, model.scheduler.frames, 'position-pass')
     elif purpose == 'one-timer':
-        model._one_timer_started = model.defense.frames
-        model._one_timer = (view.engine.puck_owner, receiver, model.defense.frames + ONE_TIMER_TIMEOUT_FRAMES)
-        model._one_timer_launched, model._one_timer_actual = False, None
-        model._one_timer_passes_before = view.team1.pass_attempts
-        model._one_timer_attempts_before = view.team1.one_timer_attempts
-        model._one_timer_shots_before = view.team1.stats.shots
-        model.one_timer_starts += 1
-        model._pass_at = model.defense.frames + ONE_TIMER_RETRY_FRAMES
+        model.one_timer.start(view, receiver, model.scheduler.frames)
     else:
         raise ValueError(f'Unknown window purpose: {purpose}')
     model._last_decision = 'forced-window-pass'
-    model._frame_action = model._encode(action, HOCKEY_INTENT_NOOP)
-    model._frame_remaining = DECISION_INTERVAL - 1
+    model.scheduler.action = model._encode(action, HOCKEY_INTENT_NOOP)
+    model.scheduler.remaining = DECISION_INTERVAL - 1
     return model, action
 
 
@@ -234,8 +227,8 @@ def native_pass_probe(env, endpoint, side, receiver, purpose, horizon):
     info = env.data.lookup_all()
     passes_before, attempts_before = view.team1.pass_attempts, view.team1.one_timer_attempts
     shots_before, goals_before = view.team1.stats.shots, info[f'p{side}_score']
-    available = endpoint['model']._pass_at if purpose == 'one-timer' else endpoint['model'].offense.pass_at
-    policy_available = endpoint['model'].defense.frames + 1 >= available
+    available = endpoint['model'].one_timer.retry_at_frame if purpose == 'one-timer' else endpoint['model'].offense.pass_at
+    policy_available = endpoint['model'].scheduler.frames + 1 >= available
     policy_available &= view.engine.puck_owner == controlled_slot(view.team1)
     passer = view.team1.get_player_by_scnum(view.engine.puck_owner)
     target = view.team1.get_player_by_scnum(receiver)
@@ -250,7 +243,7 @@ def native_pass_probe(env, endpoint, side, receiver, purpose, horizon):
     run = 0
     accepted = recorded = scored = False
     c_requests = []
-    c_down = model._c_down
+    c_down = model.buttons.c_down
     for elapsed in range(horizon):
         action = first if elapsed == 0 else frame_action(model, view)
         if action[Buttons.INPUT_C] and not c_down:
@@ -302,8 +295,8 @@ def forecasts(sample, side, row, frames):
          'assignment': player.assignment}
         for index, player in enumerate(future.team1.players)]
     issued = bool(response['response_slots']) and response['response_clearance'] > 0
-    model.offense.one_timer_at = model._pass_at
-    options = planner_windows(model, future, model.defense.frames + 1 + frames) if issued else []
+    model.offense.one_timer_at = model.one_timer.retry_at_frame
+    options = planner_windows(model, future, model.scheduler.frames + 1 + frames) if issued else []
     return options, {**response, 'status': 'issued' if issued else 'abstained',
                      'counterfactual_outside_carry_admission': not row['carry_safe']}
 
@@ -313,7 +306,7 @@ def investigate_case(env, sample, side, model, action, *, selected, horizon, pas
     rows = diagnostics.get('chance_candidates', [])
     chosen_target = tuple(model._last_target)
     chosen_receiver = diagnostics.get('chance_receiver')
-    available_frames = (sample['model'].offense.chance_until - sample['model'].defense.frames - 1
+    available_frames = (sample['model'].offense.chance_until - sample['model'].scheduler.frames - 1
                         if sample['model'].offense.chance_owner is not None else 18)
     frames = min((row['forecast_frames'] for row in rows if 'forecast_frames' in row),
                  default=max(1, min(18, available_frames)))

@@ -166,9 +166,9 @@ class PackageContracts(unittest.TestCase):
     def test_scripted_agent_reset_clears_cooldowns(self):
         args = SimpleNamespace(action_type='FILTERED')
         agent = create_scripted('classic-v1', args)
-        agent.controller._pass_at = 100
+        agent.controller.one_timer.retry_at_frame = 100
         agent.reset()
-        self.assertEqual(agent.controller._pass_at, 0)
+        self.assertEqual(agent.controller.one_timer.retry_at_frame, 0)
 
     def test_neural_registry_constructs_matching_policy_names(self):
         self.assertIn('GRUMlpPolicy', MODEL_BUILDERS)

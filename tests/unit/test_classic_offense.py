@@ -266,15 +266,15 @@ class OneTimerPassEstimateTests(unittest.TestCase):
                 choices, details = model.offense.passes(state, 'one-timer')
                 self.assertTrue(choices, details)
                 model.predict_frame(state, frame_skip=interval)
-                self.assertIsNotNone(model._one_timer)
-                self.assertGreater(model._one_timer[2] - model._one_timer_started,
+                self.assertIsNotNone(model.one_timer.pending)
+                self.assertGreater(model.one_timer.pending.deadline - model.one_timer.pending.started,
                                    choices[0].flight_frames + 4)
-                self.assertLess(model._one_timer[2] - model._one_timer_started,
+                self.assertLess(model.one_timer.pending.deadline - model.one_timer.pending.started,
                                 choices[0].flight_frames + 25)
                 state.engine.puck_owner = -256
                 for _ in range(25):
                     model.predict_frame(state, frame_skip=interval)
-                self.assertIsNotNone(model._one_timer)
+                self.assertIsNotNone(model.one_timer.pending)
 
     def test_cue_eligibility_accounts_for_the_configured_decision_interval(self):
         state = live_one_timer_state()
@@ -308,7 +308,7 @@ class OneTimerPassEstimateTests(unittest.TestCase):
                 action = model.predict_frame(state)[0]
                 self.assertEqual(model._last_decision, 'one-timer-pass')
                 self.assertTrue(action[Buttons.INPUT_B])
-                self.assertEqual(model._one_timer[1], state.team1.skater_scnum_base() + 1)
+                self.assertEqual(model.one_timer.pending.receiver, state.team1.skater_scnum_base() + 1)
 
     def test_wide_receiver_entering_the_slot_is_judged_at_contact(self):
         state = live_one_timer_state()
@@ -480,11 +480,11 @@ class OffenseControllerTests(unittest.TestCase):
                 for _ in range(4):
                     buttons = processor._process_action(model.predict_frame(state)[0], macro)[0]
                     self.assertFalse(buttons[Buttons.INPUT_C])
-                self.assertEqual(model.offense.pending['actual_receiver'], 1)
+                self.assertEqual(model.offense.pass_action.pending.actual_receiver, 1)
                 state.engine.puck_owner, state.team1.defense_control, state.team1.control = 1, 1, 2
                 model.predict_frame(state)
-                self.assertIsNone(model.offense.pending)
-                self.assertEqual(model.offense.last_pass['outcome'], 'received')
+                self.assertIsNone(model.offense.pass_action.pending)
+                self.assertEqual(model.offense.pass_action.last_pass['outcome'], 'received')
 
     def test_original_passer_recovery_cancels_ordinary_wait_immediately(self):
         for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
@@ -493,13 +493,13 @@ class OffenseControllerTests(unittest.TestCase):
                     state = deepcopy(self.state)
                     model = ClassicAIV1Model(SimpleNamespace(action_type=schema))
                     model.predict_frame(state, interval)
-                    self.assertIsNotNone(model.offense.pending)
+                    self.assertIsNotNone(model.offense.pass_action.pending)
                     state.engine.puck_owner = -256
                     model.predict_frame(state, interval)
                     state.engine.puck_owner = 0
                     model.predict_frame(state, interval)
-                    self.assertIsNone(model.offense.pending)
-                    self.assertEqual(model.offense.last_pass['outcome'], 'recovered-by-passer')
+                    self.assertIsNone(model.offense.pass_action.pending)
+                    self.assertEqual(model.offense.pass_action.last_pass['outcome'], 'recovered-by-passer')
                     self.assertNotIn(model._last_decision, ('pass-flight', 'pass-release'))
 
     def test_a_pass_attempt_counter_does_not_mistake_initial_possession_for_recovery(self):
@@ -509,17 +509,17 @@ class OffenseControllerTests(unittest.TestCase):
         state.team1.pass_attempts, state.engine.pass_target = 1, 1
         for _ in range(5):
             model.predict_frame(state)
-        self.assertIsNotNone(model.offense.pending)
-        self.assertTrue(model.offense.pending['launched'])
-        self.assertFalse(model.offense.pending['flight_observed'])
+        self.assertIsNotNone(model.offense.pass_action.pending)
+        self.assertTrue(model.offense.pass_action.pending.launched)
+        self.assertFalse(model.offense.pass_action.pending.flight_observed)
 
     def test_turnover_immediately_cancels_pending_offense(self):
         model = ClassicAIV1Model()
         model.predict_frame(self.state)
-        self.assertIsNotNone(model.offense.pending)
+        self.assertIsNotNone(model.offense.pass_action.pending)
         self.state.engine.puck_owner = 6
         model.predict_frame(self.state)
-        self.assertIsNone(model.offense.pending)
+        self.assertIsNone(model.offense.pass_action.pending)
         self.assertEqual(model.offense_diagnostics, {})
         self.assertTrue(model.defense_diagnostics)
 
@@ -536,23 +536,23 @@ class OffenseControllerTests(unittest.TestCase):
         self.controller.start_pass(self.state, option, 0, 'advance-pass')
         self.state.engine.pass_target = 3
         self.controller.observe(self.state, 1)
-        self.assertIsNone(self.controller.pending['actual_receiver'])
+        self.assertIsNone(self.controller.pass_action.pending.actual_receiver)
         self.state.engine.puck_owner = 2
         self.controller.observe(self.state, 2)
-        self.assertEqual(self.controller.last_pass['outcome'], 'other-receiver')
+        self.assertEqual(self.controller.pass_action.last_pass['outcome'], 'other-receiver')
         self.state.engine.puck_owner = 0
         self.controller.start_pass(self.state, option, 3, 'advance-pass')
         self.controller.observe(self.state, 100)
-        self.assertEqual(self.controller.last_pass['outcome'], 'not-released')
+        self.assertEqual(self.controller.pass_action.last_pass['outcome'], 'not-released')
 
     def test_reset_clears_pending_feint_and_pass(self):
         agent = create_scripted('classic-v1', SimpleNamespace(action_type='FILTERED'))
         output = agent.act(AgentInput(self.state))
         self.assertIn('classic_offense', output.diagnostics)
-        self.assertTrue(agent.offense.pending)
+        self.assertTrue(agent.offense.pass_action.pending)
         agent.offense.feint_target = (50, 150)
         agent.reset()
-        self.assertIsNone(agent.offense.pending)
+        self.assertIsNone(agent.offense.pass_action.pending)
         self.assertIsNone(agent.offense.feint_target)
 
     def test_cut_projection_cannot_reverse_momentum_instantly(self):

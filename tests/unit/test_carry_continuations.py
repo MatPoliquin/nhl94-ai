@@ -351,7 +351,7 @@ class ReceiverContinuationTests(unittest.TestCase):
                     processor = HockeyActionController(SimpleNamespace(action_type=schema, game_state=state))
                     buttons = processor._process_action(action, processor._new_action_state())[0]
                     self.assertTrue(buttons[Buttons.INPUT_B])
-                    self.assertIsNotNone(model.offense.pending)
+                    self.assertIsNotNone(model.offense.pass_action.pending)
                     state.engine.puck_owner = -256
                     model.predict_frame(state, interval)
                     state.engine.puck_owner = 2
@@ -359,8 +359,8 @@ class ReceiverContinuationTests(unittest.TestCase):
                     state.team1.players[2].role = 4
                     state.team1.players[2].x, state.team1.players[2].y = 70, 180
                     model.predict_frame(state, interval)
-                    self.assertIsNone(model.offense.pending)
-                    self.assertEqual(model.offense.last_pass['outcome'], 'other-receiver')
+                    self.assertIsNone(model.offense.pass_action.pending)
+                    self.assertEqual(model.offense.pass_action.last_pass['outcome'], 'other-receiver')
                     self.assertEqual(model.offense_diagnostics['actual_slot'], 2)
                     self.assertNotIn(model._last_decision, ('pass-release', 'pass-flight'))
 

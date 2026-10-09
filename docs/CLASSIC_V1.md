@@ -10,6 +10,86 @@ Historical results below and the archived benchmark files keep their original
 V4/V2/V3 labels, sources, and hashes. They are not new V1 benchmark runs, and
 comparisons against the removed controllers cannot be rerun from this tree.
 
+## Action lifecycle refactor (2026-10-09)
+
+Classic's action timing and feedback handling now have explicit owners. Tactical
+ranking, thresholds, button/intent schemas, and feature defaults retain their
+existing behavior. This change adds no learned policy or training interface.
+
+| Responsibility | Implementation |
+| --- | --- |
+| Native frames, tactical decision count, cached input cadence | `agents/scheduling.py`: `ActionScheduler` |
+| Last raw B/C input, including intent-encoded input | `ButtonState` |
+| Normal shot hold and follow-through | `agents/lifecycle.py`: `ShotLifecycle` |
+| Ordinary pass release, feedback, and reception correction | `PassLifecycle`, `PassState`, `ReceptionCorrection` |
+| One-timer release, cue, completion, and outcome accounting | `OneTimerLifecycle`, `OneTimerState` |
+| Input priority, interruptions, and handoffs | `ClassicAIV1Model.predict_frame` and `_decide` |
+
+`scheduler.frames` owns Classic's general emulator-frame clock. Defense receives
+that absolute frame when Classic invokes it; standalone defensive controllers
+retain their elapsed-frame API. `scheduler.decisions` advances only when the
+tactical policy runs. Shot follow-through and the legacy setup still use decision
+deadlines; C holds and pass deadlines use native frames. Special actions can
+suspend tactical decisions, so these units are deliberately not converted by
+multiplying by the configured interval. The manual goalie's local clock retains
+its original invocation semantics.
+
+The frame dispatcher observes committed actions, handles goalie/finisher/pass
+handoffs, then runs or repeats the scheduled tactical input. Observation order
+is preserved, including reception correction before frame advancement and
+finisher execution after advancement. `input_owner` identifies the executor
+responsible for the returned input; it does not affect tactical selection.
+Ordinary passes and one-timers retain their distinct execution rules.
+
+Current inspectors and replay tools use the structured state. Historical carry
+replay snapshots use an explicit evaluation-only exporter in
+`evaluation/lifecycle_history.py`; the live controller has no forwarding aliases
+for its removed private fields. The exporter preserves the target policy's
+implementation while transferring clocks, pending actions, and outcome history.
+Source-fingerprint gates include both new runtime modules.
+
+The refactor intentionally retains two known transition behaviors: recovery by
+the original normal-shot shooter does not end follow-through early, and an
+ordinary-pass deadline takes precedence over reception observed at that same
+frame. Characterization tests keep those separate from future behavior fixes.
+
+`evaluation/lifecycle_replay.py` measures isolated source trees against a fixed
+17-period matrix: both standard assignments, two default seeds, both action
+schemas, selective goalies, decision intervals 1/4/8, another roster, and the
+experimental offense/finisher/refinement options. Each period completes 300 game
+clock seconds. Comparison requires identical per-frame actions, decisions and
+targets, complete frame counts, and all recorded outcome metrics. It reports the
+first divergent frame and records source hashes independently for each tree.
+These checks establish equivalence on the measured cases, not improved strength.
+
+Against the frozen `73c1173` baseline, all **17 complete periods and 147,623
+AI-controlled frames** match exactly, including every recorded outcome metric.
+The source/cadence gate also reproduces the complete 7,999-frame default away
+period for seed 20268001. Validation passes 809 discovered tests (one existing
+expected failure), pylint, 11 native integration suites, and a replay fork
+through the archived pre-refactor implementation. Total measured prediction
+time is 266.40 seconds before and 267.62 seconds after; concurrent workers make
+this descriptive timing, not a controlled performance comparison.
+
+The [measurement summary](benchmarks/classic-v1-lifecycle-refactor.json) records
+the fixture matrix, hashes, timing, and checks. The
+[evidence archive](benchmarks/classic-v1-lifecycle-refactor-evidence.json.gz)
+contains both complete reports and decoded input traces, the runtime/test patch,
+archived replay results, source/cadence gate, and validation logs.
+
+```bash
+python nhl94_ai/evaluation/lifecycle_replay.py \
+  --root /path/to/frozen-before --output /tmp/lifecycle-before
+python nhl94_ai/evaluation/lifecycle_replay.py \
+  --root /path/to/refactored-tree --output /tmp/lifecycle-after
+python nhl94_ai/evaluation/lifecycle_replay.py \
+  --compare /tmp/lifecycle-before/report.json /tmp/lifecycle-after/report.json \
+  --output /tmp/lifecycle-comparison.json
+```
+
+Output paths must be new. Reports and compressed traces contain decoded inputs
+and outcomes, not ROM or emulator save-state bytes.
+
 ## Live pass reception correction (2026-10-08)
 
 Classic now checks ordinary passes against live receiver and puck feedback on

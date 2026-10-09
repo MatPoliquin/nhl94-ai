@@ -1,0 +1,657 @@
+{
+  "change": "Behavior-preserving extraction of Classic action lifecycles and scheduling; no ML work.",
+  "date": "2026-10-09",
+  "reference_commit": "73c117317e03c87ca190b123de0aa0c2a6267317",
+  "sources": {
+    "nhl94_ai/__init__.py": "28cb3bc39b7421b096d4cca2fb88cde9859fd4a7613b962331838a0b92ae11d8",
+    "nhl94_ai/__main__.py": "aaafd189bd97f6f2f99ca26b6ccef1a3a2194e0aedb7d054fe74eaf846a79a03",
+    "nhl94_ai/agents/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/agents/base.py": "045e70ed1426f6883904520f4034d4cdf53ccc043c92a4b8cb3c2074c4137dbc",
+    "nhl94_ai/agents/carry.py": "1f7a8ae4926bc60dab40bf5caa460f119d2fa5ae0b75395ec197ae41d2f72174",
+    "nhl94_ai/agents/classic_v1.py": "6e09d1ddde7b2a7720cdb1182a867752a4ad182e4c0de6628f660d1a7f8814f6",
+    "nhl94_ai/agents/cross_crease.py": "f5ce8e6852aeb6070cbca3e12d1d6c00262aafd1e03e3a18d3e0606b775220c8",
+    "nhl94_ai/agents/decisions.py": "27e9ab7a7619ba449e3e9b8bd912a5fd2569e9168790e4bddb309c4c72e93b69",
+    "nhl94_ai/agents/defense.py": "ca3937e827e9621bab6d16d07d9b11ef83897699051d556740d3642b9b9f4c0a",
+    "nhl94_ai/agents/deke.py": "00cefffb902112ce368eaa720d7cca9ef8a887c71951f21acccfcaca186ce5b2",
+    "nhl94_ai/agents/finishing.py": "9aa94a10441139e57dab4dfff52956ad2bf9d378fa341e7d1f3861891e90686e",
+    "nhl94_ai/agents/goalie.py": "a012efb60f8fa0a89dfa05aa08edadbc6fddd7c9f6a74094d459526f2537eec8",
+    "nhl94_ai/agents/lifecycle.py": "ebe4e3bb741d0c9a041305bbf67f3833509b5535ae1d61c580691a0ff4fe91c7",
+    "nhl94_ai/agents/motion.py": "1a56a75b4dc06194f56423ac94f3d637c0792ae04200ad4a8112c705ea93bf10",
+    "nhl94_ai/agents/multi_model.py": "a8b3fc36471695de40fd1078e6148e94b6ef214007c921ff80e86d1982b10bcb",
+    "nhl94_ai/agents/offense.py": "3d65c62026fd604c24d94ae2e7f1a68b58fd3c1aa86e23d3a17e3c9c02e7aa58",
+    "nhl94_ai/agents/passing.py": "6ae526f03fe0a89c5ec6d6fd357cc4a3149f13753da5f2a475d3d1607d7f2f3f",
+    "nhl94_ai/agents/possession.py": "bcbaf2e9a9872e127f26fc494258319c12983996094fefdd2a1a5c5d492fd713",
+    "nhl94_ai/agents/receiving.py": "19407f6c41e45c059b35ca292c0b6d7944b59806d7b5ae758f117811b3fdbeed",
+    "nhl94_ai/agents/registry.py": "a2d460523f629e9a5b0609dd79e3ffde6c3a7c44c02074fcefe37ec240150b41",
+    "nhl94_ai/agents/responses.py": "a69cba84b62045e8c0bd75a27721f254943a98dfe9fd7b400cddfcf58a6b121b",
+    "nhl94_ai/agents/scheduling.py": "b7a37957c15920b2950144b654402d2c644acdcf4686929d661da6a462129912",
+    "nhl94_ai/agents/skating.py": "17748ec1e62eb00cdc90729ccdd4cc29beae87e52f033581e9f2e42bdf908bd1",
+    "nhl94_ai/artifacts.py": "6f4d32fd09ec198c186eda979b959fac4cc7ca285f4fffa5011b37a0c812c1be",
+    "nhl94_ai/cli/__init__.py": "33483c85d4a1e4ee0665506b30f307fcdf073a663868058e8f2417bb3b1bce02",
+    "nhl94_ai/compat.py": "2b48d74c87a1f5fbac785086461b8e481cdd5073f4da21fb5f21cd436bc5ec5b",
+    "nhl94_ai/config.py": "6366cc17a7dd6fa3370785186e61facf3dcfe4f7ed1ca9e2ecd4ba93e781b0c2",
+    "nhl94_ai/env/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146",
+    "nhl94_ai/env/compact_input.py": "cc7b5ab9aa8e9097cd37896b063428e5c04a3fd2f0d89a9545f4f3a1e82be8be",
+    "nhl94_ai/env/components.py": "5474be30f64dd01f6749b1f0ee56ca4bbd50a4b1d4f67434db22305720655f49",
+    "nhl94_ai/env/encoding.py": "a206a811bb0e9ec710055bd3570b0bbd3a79177d5fc7a69b0e2b340458314756",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/env/intents.py": "1f0af9a0a1655197238760d56cf92f459b151eb0bb5f0c678a67ded4d64bf267",
+    "nhl94_ai/env/observation.py": "39d642e31679952944df8c0cffcb3ace27f1c452fd7446cfd14d661a9e66cfdc",
+    "nhl94_ai/env/perspective.py": "d29e08c89359c07c15afbb453c1b8efbca01a75ed8cc1a16225989037505e7fc",
+    "nhl94_ai/env/target_control.py": "ff553f99a5348dec3fb2762be3ace81db99518bce2aabce0c389f00cdec9ddee",
+    "nhl94_ai/env/wrappers.py": "161bc09e5d542b7d28c365ccbc5137eb52ae00dc6c4313b9975db04bfb4d29e8",
+    "nhl94_ai/evaluation/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/evaluation/benchmark.py": "4491d4869e0e87e2c0bf7946096dbea2a2d19fd53fbc185161d3c9425b949803",
+    "nhl94_ai/evaluation/carry_outcomes.py": "3c5983790d360bdefacd6e32954faa04f2bb5b4bc90d498f060a8f95520fefb6",
+    "nhl94_ai/evaluation/carry_replay.py": "e10576373dfe929069f6b98e167b1702dcb6d82ad356c203a9c31cc20ce3c6af",
+    "nhl94_ai/evaluation/carry_replay_gate.py": "05e7f9482533f6d3e4f14675b789bca2fb94c3010ad7a95f3cf784bc6d773889",
+    "nhl94_ai/evaluation/chance_creation_probe.py": "d75664879db3a612e37344a3101917d15858e08aaf7643a216e154cd329c093b",
+    "nhl94_ai/evaluation/chance_creation_replay.py": "def151f7b36276a1c95acea67c11857a7d9ccea46f016596b90634151ad6207a",
+    "nhl94_ai/evaluation/compare.py": "84e3e4e12528c6b707f86d5ab27722863cf331bb77b9112a23214734cab9e612",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "52a23327a1351a5ec440f0e10a431b70568604d4666a327703c537c30c5bf2f0",
+    "nhl94_ai/evaluation/cross_crease_distance.py": "d47c90ed809d3785fd5ec553e3fdde4ee20aa255946d32250301f787e8caae08",
+    "nhl94_ai/evaluation/cross_crease_probe.py": "eea5673c5810fee26ecc19d044bd5750e81fb121f65ba17b818dd06496bdbef0",
+    "nhl94_ai/evaluation/cross_crease_velocity.py": "eff414fe46e130bf4a7454ca0d5149010d957d4e94a56482acd50f3e4322ac30",
+    "nhl94_ai/evaluation/defense_metrics.py": "347344ebac5d11eb3563d3638db8566dd728e2bb0ca387a71f463f737c6a040e",
+    "nhl94_ai/evaluation/fixture_regression.py": "8a3183cee559200c42ce15b85a8f509eaad41e2843cb9196c05d70944d78a941",
+    "nhl94_ai/evaluation/fixture_regression_collect.py": "cdfbb478f30e6976aa048a2fbe30378d3d145e99e63416c0aa16e262bdc01caa",
+    "nhl94_ai/evaluation/fixture_regression_compare.py": "f13f65e7d5ff0c63c8f167eccf0f058b2b35a9837e6e9784b3dea621e82d73eb",
+    "nhl94_ai/evaluation/frames.py": "78de1657d317664b30db465da9d9f705100d1a044ebb3a5287938a73aab2f770",
+    "nhl94_ai/evaluation/lifecycle_history.py": "7b60e10f4eaa994595ba892495e92e6fe9ab5873eb041d81762369a8d7b2af37",
+    "nhl94_ai/evaluation/lifecycle_replay.py": "3c3b9ef40304b2bbe361fdf66088089e817c458aee4847ce59e9b6d30015be20",
+    "nhl94_ai/evaluation/metrics.py": "9f47494e7a55d1206e84e11cce0581eee13b1e8c8568793b41d086a7e32baee5",
+    "nhl94_ai/evaluation/offense_metrics.py": "8c082dc2bd8090dae94782e3bbaae7b07b7fa0f1558cfd039cc401ad9935f130",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/evaluation/play.py": "adfb8ea042b31eabf15c35a4be4359636ce84ef6de6c3c0043e488a686986b93",
+    "nhl94_ai/evaluation/playback_profile.py": "45d02ddbe5c61a8ec28c4194e77eb7f26ca742c7fe56d36c86690fdddb6d6cdf",
+    "nhl94_ai/evaluation/refinement_replay.py": "801d6c125a231eb40f915d872d7d9370948e5633cf75dd0aeabd0fe95232d9d9",
+    "nhl94_ai/evaluation/runner.py": "78f226ad41e53f97ac51c0e2a8c6528c2a93d5b3ea4895ae9b5ba7fdcabd7771",
+    "nhl94_ai/export.py": "bd5484edf81f0c47c62755a9eed41f59755416db3fb0cdf432afb372f5b8a16b",
+    "nhl94_ai/game/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/game/constants.py": "444b21c449452eb9550666b225da0fe321fb53852a87c0646123e51a5f057601",
+    "nhl94_ai/game/features.py": "95445aeac91efa9049cedb5b6e8a1da006744c03337d49e892011b8573750c3a",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/game/ram.py": "695c63d302435317e9b22a257efe3ab4129c1cf4fded2a7f86ab17a1d5fcc817",
+    "nhl94_ai/game/specs.py": "4ed866fb7a0477ee4743263ce61599735bad64bcbee13080d22b813e3cb1ce05",
+    "nhl94_ai/game/state.py": "72545dc07f33383f3d6d3d3fbb389b0fe5c8a2460ff30fc001216ebfae54c062",
+    "nhl94_ai/model_inputs.py": "a14f1224b7f00ab149bf919509b2d259a5474016d2d47fe1f3724749899602cc",
+    "nhl94_ai/models/__init__.py": "7e3ddda256049f6d40e2b9b923d5504d11bd94a6b3134f226a4a7008782a0502",
+    "nhl94_ai/models/combined.py": "754d897247123603524afaddf430033a2441f95eaa55a82763e8a19a3a2924cc",
+    "nhl94_ai/models/factory.py": "fb685fec78cc0f6a1bd4f6895c7afd680b2ac7bedac871755692b0e9a170514b",
+    "nhl94_ai/models/hockey.py": "45a9751119de7cbdba5aa98b759d1c272b19a50e3c54c621cd46a4da7c261e76",
+    "nhl94_ai/models/mlp.py": "6385290a74f9f327e181afa2e49c440160db7560799e0a608885644c5a04d4f9",
+    "nhl94_ai/models/networks.py": "a1c09a06a64f0a0f20959d4e1d7cf8691b7d41dd154718921603fcd575949737",
+    "nhl94_ai/models/temporal.py": "4066ff7d2427229f3fad261e1d6ffa7828bbb65aa3469752562daf773676cc59",
+    "nhl94_ai/models/vision.py": "905fa0354989129b194e21257928b3eff9f42b2e9993f79265b426aed541c5e0",
+    "nhl94_ai/tasks/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/tasks/az_lostpuck.py": "8b3e568ec7e4c3a0f908f3d23b30f194ba93c33a5b92fe6961fef49c799922da",
+    "nhl94_ai/tasks/breakaway.py": "5dad3bca24112cd34fca824441fed7cc4024d5bde3677eec3b678f8dcd38eb9b",
+    "nhl94_ai/tasks/createopp.py": "fef7c1f6cc3b52bc178bcefafce9ef5f7f701494c7f55e568efb12d8727afc88",
+    "nhl94_ai/tasks/createopportunity.py": "78f788e5ee03c03cbdc7a46e7312fbb16c93436f2652e36226891be3c1cf9ca5",
+    "nhl94_ai/tasks/cross_crease_setup.py": "b48a88583de919227c6f1d530b06b283c1a535f75c89f31002330a1092ca6b3c",
+    "nhl94_ai/tasks/defense_setup.py": "873c845ea2c61325cc65be23dacd623f8ad76cb8939a420fa5d2dfbe656b939e",
+    "nhl94_ai/tasks/defensezone.py": "ec8feb6f56cc0d3ff15fd0c89f27c569048dbc89b5776e7e4810cd4c81eee692",
+    "nhl94_ai/tasks/general.py": "e01fa10b50d973ced6e463afb6f19b4de1426eef148bf594b2891a433eea70c2",
+    "nhl94_ai/tasks/getpuck.py": "19402585f3483ac32f161a0f46b92a912b1bc9ca009d98c83ce085f79cc1ada6",
+    "nhl94_ai/tasks/keeppuck.py": "521404c3d00c4f585a6d7c7435fc880669a7b9b7a3def04eab5455de28acb2f7",
+    "nhl94_ai/tasks/legacy.py": "3f29d8cec03e36b64d137650e24c099de9043624c03e4e0de301a7fddf22a88c",
+    "nhl94_ai/tasks/passing.py": "a6e4860a889114020b96395f388f2a26de7b9061e33113b83e8c8d2c9f94796d",
+    "nhl94_ai/tasks/postplay.py": "95c5ba59d483eb570d68df580dfc9776cc8ec774dafcf7e9d040f049f7d5ab6a",
+    "nhl94_ai/tasks/pvg.py": "fd1b5284ed9d218e182d3072a7043e737ff44ce596001150a400c15180bcbd4a",
+    "nhl94_ai/tasks/pvg_setup.py": "1bab9e66686f503cffd85856a5cc5bd978d1dde729b60641db5a0a40a24aa138",
+    "nhl94_ai/tasks/registry.py": "df48d7dccebdbe590875b5394fbfad929203b9a6eceb69c4b47d9e4dc77ad35b",
+    "nhl94_ai/tasks/scoregoal.py": "7670f91f1f153fd85629eb46a47a424efef421b06eae5852ebceb3a2352cf587",
+    "nhl94_ai/tasks/selfplay.py": "f7ee4b0ad4f279ab42487472b908291fabd90036587cdfbfccf2cd097344f3ef",
+    "nhl94_ai/tasks/setup.py": "83403504762d9c160b3407f5a4653fdd489cb2a711531235b16a73557c509fa6",
+    "nhl94_ai/training/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/training/bc.py": "b8137a53704f4fac92502915ef1c5c81af16e56a03089f8844a1229ace83769b",
+    "nhl94_ai/training/collect.py": "de30ee60fb2e99ce2bd4b608066a3cab74064e1dbfdc495b2495c621c54715e6",
+    "nhl94_ai/training/curriculum.py": "74df38f334128dc26f18da2eab9a150832cd77bf2416f79a4cd6977536acc154",
+    "nhl94_ai/training/dagger.py": "d09b395f3841a33b33a154a4769bbe183cbec12d053a3d268e971a509d0cab95",
+    "nhl94_ai/training/datasets.py": "4f536730f95f4ada103f752d362cb372f3808f8dc3dd2091632485a39d9cdf1d",
+    "nhl94_ai/training/es.py": "d48b0e6cf34fd94ca11f49afd7aa9cad0d37e216c6f918a7e04ccf1fdd2135c6",
+    "nhl94_ai/training/events.py": "d108cfb66354dfe5a3dd097c4ed8a9ab4a10a38d4dce1d26509a4700a677da6e",
+    "nhl94_ai/training/live.py": "5ab9af1abf19adf09add818efbd9b8d734c8311a2c9bcc2ae6c06bc3020c62bb",
+    "nhl94_ai/training/logging.py": "90058c8a625894f6564c4644d7e1639a509c1af5c07004361648743e9a5cee94",
+    "nhl94_ai/training/rl.py": "c48b34876eb51bba7a5ec6c12ed9c230cb4a349da5a367bd9c0b877d6e65ff5c",
+    "nhl94_ai/training/service.py": "3ae18935b85fc290c3f8bfa9d382692a944de65f3313b16292afdaacc5e785fb",
+    "nhl94_ai/ui/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/ui/comparison.py": "17c6e92d048d7de0cfa5c0734dbec637376f86174675789403782f889390564b",
+    "nhl94_ai/ui/debug.py": "d7a5006c6059c1f5bfad75ea568aed9afc19790595ef01427b072c3badccbe1c",
+    "nhl94_ai/ui/decision_panel.py": "f5488e367b8d08296ccf8426b7ff17eccf0d7d5d7c84cc12f472a8d5c6b284c4",
+    "nhl94_ai/ui/game.py": "6b2f956fd1bc793299971935aa84977660603cc6a4ca704595c863cdaed09b2c",
+    "nhl94_ai/ui/live.py": "fb2bf3dd57b266089494fd647573a5f17643d8d1af601d66005cd45115bccbe5",
+    "nhl94_ai/ui/pvp.py": "8a60d3c547bd294c6046b6f676a0341c61d007f813d330c97fc1c2489bd4994f",
+    "nhl94_ai/ui/recording.py": "d951845c4b96ba00b03f3d603826ba62aa9e380bae013a7f77737674aeb8a152",
+    "nhl94_ai/ui/targets.py": "4fa82ba4b54eee1e3828c22d8d8c6365edddfd659ebaf8c044e920c5603d2077",
+    "nhl94_ai/ui/terminal.py": "1ee51163a28870c96abeddf3e1c7ad47aa79db86f590652456fdef23d0b3c0f3"
+  },
+  "equivalence": {
+    "passed": true,
+    "complete_period_pairs": 17,
+    "game_clock_seconds_per_period": 300,
+    "predicted_frames_compared": 147623,
+    "checks": [
+      "every frame action, decision, and target identical",
+      "complete trace length matches period frame count",
+      "every CPU benchmark outcome and diagnostic metric identical",
+      "source hashes unchanged during each measurement"
+    ],
+    "cases": [
+      {
+        "case": "default-home-20268001",
+        "frames": 9118,
+        "actions_sha256": "39e2e1335bf5f251a166a29472c0bd1b73eb2126e98360fbd347790b3424c9ee",
+        "prediction_seconds_before": 5.838158124824986,
+        "prediction_seconds_after": 5.8627673298469745,
+        "fixture": [
+          "classic-v1",
+          "sabres-ducks-manual",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          0,
+          1
+        ]
+      },
+      {
+        "case": "default-home-20268002",
+        "frames": 9117,
+        "actions_sha256": "8b0453b58adbcb91f2259dd454dd36f561e429afb44a6dafb14ec345a104c068",
+        "prediction_seconds_before": 6.520526979351416,
+        "prediction_seconds_after": 6.654357809282374,
+        "fixture": [
+          "classic-v1",
+          "sabres-ducks-manual",
+          20268002,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          2,
+          0
+        ]
+      },
+      {
+        "case": "intents-home",
+        "frames": 9056,
+        "actions_sha256": "14b3661bc60cd62eb66631dab6d7a9088cbbf98908d8ce0f67d637b585e829d7",
+        "prediction_seconds_before": 6.441431993036531,
+        "prediction_seconds_after": 6.706287000677548,
+        "fixture": [
+          "classic-v1",
+          "sabres-ducks-manual",
+          20268001,
+          300,
+          4,
+          "HOCKEY_INTENT_DPAD",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          1,
+          1
+        ]
+      },
+      {
+        "case": "goalie-home",
+        "frames": 10043,
+        "actions_sha256": "18bc3e3b881d41928344ad6693f333a3769759c36b6a6450d161ed7c6581a387",
+        "prediction_seconds_before": 6.254590256954543,
+        "prediction_seconds_after": 6.5318865842418745,
+        "fixture": [
+          "classic-v1",
+          "sabres-ducks-manual",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "selective",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          2,
+          1
+        ]
+      },
+      {
+        "case": "default-away-20268001",
+        "frames": 7998,
+        "actions_sha256": "be12b8a3739e48490eca30d7b7c9d801477c6fbbbc7a17190999616b1fc39fa3",
+        "prediction_seconds_before": 5.707144752086606,
+        "prediction_seconds_after": 6.091117798991036,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          0,
+          1
+        ]
+      },
+      {
+        "case": "default-away-20268002",
+        "frames": 8361,
+        "actions_sha256": "f4d7b0ca17598c67cd5d7b7e3272e599b934fb2284921a7d36a4e103c95418ef",
+        "prediction_seconds_before": 6.742081364092883,
+        "prediction_seconds_after": 6.954705018666573,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268002,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          0,
+          1
+        ]
+      },
+      {
+        "case": "intents-away",
+        "frames": 7998,
+        "actions_sha256": "5d89d10f4b8bd4a4739eeac831e7498260138c1fd08154c6806b0bce0baf1d99",
+        "prediction_seconds_before": 5.7264563694479875,
+        "prediction_seconds_after": 5.822021426633,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          4,
+          "HOCKEY_INTENT_DPAD",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          0,
+          1
+        ]
+      },
+      {
+        "case": "goalie-away",
+        "frames": 8821,
+        "actions_sha256": "7bea62e483be9a934e0e3fb526ffee3cc71ca23117301dae610be889f7662c1d",
+        "prediction_seconds_before": 7.123648435343057,
+        "prediction_seconds_after": 7.2902753300149925,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "selective",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          0,
+          1
+        ]
+      },
+      {
+        "case": "interval-1",
+        "frames": 9742,
+        "actions_sha256": "69ba5b59752d3d95af929bcf3a5194fd8edb7617a6293f83c20bfd198874147c",
+        "prediction_seconds_before": 14.972296505176928,
+        "prediction_seconds_after": 15.157106992905028,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          1,
+          "FILTERED",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          0,
+          1
+        ]
+      },
+      {
+        "case": "interval-8",
+        "frames": 9150,
+        "actions_sha256": "f2b883e2a9258236966a73f6f271b3b44f131fb898d8cee23cc2014a6ba5f199",
+        "prediction_seconds_before": 4.778065666672774,
+        "prediction_seconds_after": 4.853387056617066,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          8,
+          "HOCKEY_INTENT_DPAD",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          0,
+          2
+        ]
+      },
+      {
+        "case": "roster",
+        "frames": 8388,
+        "actions_sha256": "bec872bc25df3e156a68000f43f2a4576f2bd454d65434c4870c54490e60262a",
+        "prediction_seconds_before": 5.9044817666872405,
+        "prediction_seconds_after": 6.0212234239443205,
+        "fixture": [
+          "classic-v1",
+          "penguins-senators",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "lookahead",
+        "frames": 8698,
+        "actions_sha256": "55d034161cb687c848d03db0f2be3f26f51c0ec3e172643b97cdcf895bd9368e",
+        "prediction_seconds_before": 15.80152804381214,
+        "prediction_seconds_after": 16.00583363045007,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          true,
+          []
+        ],
+        "goals": [
+          1,
+          1
+        ]
+      },
+      {
+        "case": "cross-crease",
+        "frames": 8532,
+        "actions_sha256": "825d4edf5ab8e1c21381e6b7e0ef57a5f0aa787a29d40f1492525deb59bc3e7b",
+        "prediction_seconds_before": 5.930239252920728,
+        "prediction_seconds_after": 6.034955023322254,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          true,
+          false,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          0,
+          2
+        ]
+      },
+      {
+        "case": "deke",
+        "frames": 7998,
+        "actions_sha256": "be12b8a3739e48490eca30d7b7c9d801477c6fbbbc7a17190999616b1fc39fa3",
+        "prediction_seconds_before": 8.20792455348419,
+        "prediction_seconds_after": 8.41653563635191,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          false,
+          true,
+          false,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          0,
+          1
+        ]
+      },
+      {
+        "case": "refinements",
+        "frames": 7340,
+        "actions_sha256": "6abd327c02152a5111d80a5f5770812ccdaad7265a85c942f618bdb8a783aeb6",
+        "prediction_seconds_before": 6.300977370236069,
+        "prediction_seconds_after": 6.260387419373728,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          false,
+          false,
+          false,
+          false,
+          false,
+          [
+            "pass-timing",
+            "carry-motion",
+            "finishing",
+            "interceptions"
+          ]
+        ],
+        "goals": [
+          0,
+          0
+        ]
+      },
+      {
+        "case": "chance-creation",
+        "frames": 8698,
+        "actions_sha256": "55d034161cb687c848d03db0f2be3f26f51c0ec3e172643b97cdcf895bd9368e",
+        "prediction_seconds_before": 17.19555262022186,
+        "prediction_seconds_after": 17.094171823817305,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          false,
+          false,
+          false,
+          true,
+          false,
+          []
+        ],
+        "goals": [
+          1,
+          1
+        ]
+      },
+      {
+        "case": "uncertain-carry",
+        "frames": 8565,
+        "actions_sha256": "dcc13181f311509c3660f00ddaac50ae6e202f57c2b1390a30ba444624235539",
+        "prediction_seconds_before": 136.95576677005738,
+        "prediction_seconds_after": 135.86696511006448,
+        "fixture": [
+          "classic-v1",
+          "ducks-sabres-manual",
+          20268001,
+          300,
+          4,
+          "FILTERED",
+          "off",
+          false,
+          false,
+          true,
+          false,
+          false,
+          []
+        ],
+        "goals": [
+          2,
+          0
+        ]
+      }
+    ]
+  },
+  "prediction_timing": {
+    "before_seconds": 266.4008708244073,
+    "after_seconds": 267.62398441520054,
+    "after_over_before": 1.0045912522245448,
+    "method": "Sum of timed policy calls in the 17-case matrix; three parallel workers.",
+    "limitation": "Descriptive wall time under concurrent load, not a controlled performance benchmark."
+  },
+  "validation": {
+    "unit_command": "python -m unittest discover -s tests -v",
+    "unit_tests": 809,
+    "expected_failures": 1,
+    "unexpected_failures": 0,
+    "lint_command": "python -m pylint nhl94_ai tests",
+    "pylint_score": 10.0,
+    "native_suites": [
+      "classic_carry",
+      "classic_defense",
+      "classic_offense",
+      "classic_reception",
+      "classic_refinements",
+      "cross_crease",
+      "debug_playback",
+      "deke",
+      "manual_goalie",
+      "one_timers",
+      "play_v1"
+    ],
+    "native_suite_result": "all exited successfully",
+    "source_cadence_gate": {
+      "passed": true,
+      "frames": 7999,
+      "checks": {
+        "benchmark_complete": true,
+        "current_sources_match": true,
+        "sources_unchanged_during_gate": true,
+        "replay_period_complete": true,
+        "frame_count_identical": true,
+        "applied_actions_identical": true
+      },
+      "fixture": {
+        "seed": 20268001,
+        "side": 2,
+        "matchup": "ducks-sabres-manual",
+        "seconds": 300,
+        "frame_skip": 4,
+        "action_type": "FILTERED",
+        "goalie_policy": "off"
+      }
+    },
+    "archived_runtime_replay": "Current histories successfully forked through the frozen pre-refactor implementation.",
+    "default_reference_provenance": "Four default matrix cases reused for the source/cadence gate; not additional trials."
+  },
+  "preserved_known_behaviors": [
+    "Original normal-shot shooter recovery does not end follow-through early.",
+    "Ordinary-pass deadline wins over reception observed on the same frame."
+  ],
+  "limitations": [
+    "Equivalence is established for the measured fixtures, not all possible game states.",
+    "These are behavior-preservation checks, not evidence of improved playing strength.",
+    "No machine-learning integration or training-data work was included."
+  ],
+  "evidence": {
+    "path": "classic-v1-lifecycle-refactor-evidence.json.gz",
+    "sha256": "98a752771c0e71d63106df434c8c5c3a3a56e67fa85370f1d6ded32391cfe1d5",
+    "contents": "Source fingerprints, complete before/after reports and decoded traces, source/test patch, archived replay, source gate and validation logs; no ROM/save-state bytes."
+  }
+}

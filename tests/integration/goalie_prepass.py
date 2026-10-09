@@ -25,9 +25,9 @@ VARIANTS = ('baseline', 'corrected', 'anticipation-only', 'alignment-only',
 
 
 def blocked_skater(model):
-    return (model._one_timer is not None or model.offense.pending is not None
+    return (model.one_timer.pending is not None or model.offense.pass_action.pending is not None
             or model.cross_crease is not None and model.cross_crease.plan is not None
-            or model._tick < model._shot_until or model.defense.pending_check is not None
+            or model.scheduler.decisions < model.shot.until_decision or model.defense.pending_check is not None
             or model.defense.pending_switch is not None)
 
 

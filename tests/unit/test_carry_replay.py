@@ -16,16 +16,16 @@ from tests.unit.test_classic_offense import offense_state
 class CarryReplayTests(unittest.TestCase):
     def test_policy_history_is_equal_but_not_shared(self):
         history = ClassicAIV1Model()
-        history._tick, history._frame_remaining = 17, 0
+        history.scheduler.decisions, history.scheduler.remaining = 17, 0
         history.offense.pass_at = 42
-        history.offense.last_pass = {'outcome': 'received', 'owner': 6}
-        before = deepcopy(history.offense.last_pass)
+        history.offense.pass_action.last_pass = {'outcome': 'received', 'owner': 6}
+        before = deepcopy(history.offense.pass_action.last_pass)
         policy = policy_from_history(history, ClassicAIV1Model, experimental=True)
-        self.assertEqual(policy._tick, 17)
+        self.assertEqual(policy.scheduler.decisions, 17)
         self.assertEqual(policy.offense.pass_at, 42)
         self.assertTrue(policy.offense.allow_uncertified)
-        policy.offense.last_pass['owner'] = 7
-        self.assertEqual(history.offense.last_pass, before)
+        policy.offense.pass_action.last_pass['owner'] = 7
+        self.assertEqual(history.offense.pass_action.last_pass, before)
         self.assertFalse(history.offense.allow_uncertified)
 
     def test_reference_import_restores_live_modules_on_success_and_failure(self):
@@ -83,21 +83,21 @@ class CarryReplayTests(unittest.TestCase):
             for _ in range(4):
                 frame_action(policy, state)
         self.assertEqual(dispatch.call_count, 4)
-        self.assertEqual(policy._tick, 1)
-        self.assertEqual(policy.defense.frames, 4)
-        self.assertEqual(policy._frame_remaining, 0)
+        self.assertEqual(policy.scheduler.decisions, 1)
+        self.assertEqual(policy.scheduler.frames, 4)
+        self.assertEqual(policy.scheduler.remaining, 0)
 
     def test_forced_choices_advance_first_frame_clocks_without_a_phantom_plan(self):
         history = ClassicAIV1Model()
-        history._tick, history.defense.frames = 17, 64
+        history.scheduler.decisions, history.scheduler.frames = 17, 64
         state = offense_state()
         policy = forced_policy(history, state)
-        self.assertEqual(policy._tick, 18)
-        self.assertEqual(policy.defense.frames, 65)
-        self.assertIsNone(policy._one_timer)
-        self.assertIsNone(policy.offense.pending)
-        self.assertEqual(history._tick, 17)
-        self.assertEqual(history.defense.frames, 64)
+        self.assertEqual(policy.scheduler.decisions, 18)
+        self.assertEqual(policy.scheduler.frames, 65)
+        self.assertIsNone(policy.one_timer.pending)
+        self.assertIsNone(policy.offense.pass_action.pending)
+        self.assertEqual(history.scheduler.decisions, 17)
+        self.assertEqual(history.scheduler.frames, 64)
 
 
 if __name__ == '__main__':

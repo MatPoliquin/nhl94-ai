@@ -749,7 +749,7 @@ class DefensiveCadenceTests(unittest.TestCase):
         state.engine.puck_owner = 0
         for _ in range(39):
             model.predict_frame(state, 4)
-        self.assertEqual(model.defense.frames, 40)
+        self.assertEqual(model.scheduler.frames, 40)
 
     def test_offensive_actions_keep_the_original_four_frame_interval(self):
         from tests.unit.test_v1_one_timers import cross_slot_state
@@ -786,13 +786,13 @@ class DefensiveCadenceTests(unittest.TestCase):
         state = defense_state()
         model = ClassicAIV1Model()
         model.predict_frame(state, 4)
-        first, tick = model._last_target, model._tick
+        first, tick = model._last_target, model.scheduler.decisions
         state.engine.puck_owner = -256
         state.engine.last_puck_player = 6
         state.puck.x, state.puck.y, state.puck.motion_x = -60, -160, 3
         state.team2.players[0].x, state.team2.players[0].y = 40, -160
         model.predict_frame(state, 4)
-        self.assertEqual(model._tick, tick)
+        self.assertEqual(model.scheduler.decisions, tick)
         self.assertNotEqual(model._last_target, first)
 
     def test_recovery_releases_defensive_buttons_within_the_interval(self):
@@ -814,8 +814,8 @@ class DefensiveCadenceTests(unittest.TestCase):
         action = agent.act(AgentInput(inner.game_state, observation)).action
         _, _, _, _, info = env.step(action)
         self.assertEqual(len(info['scripted_frames']), 4)
-        self.assertEqual(agent._tick, 1)
-        self.assertEqual(agent.defense.frames, 4)
+        self.assertEqual(agent.scheduler.decisions, 1)
+        self.assertEqual(agent.scheduler.frames, 4)
         self.assertEqual(info['scripted_frames'][0][0].shape, np.asarray(observation).shape)
         self.assertEqual(info['scripted_frames'][0][1].shape, (12,))
 

@@ -46,16 +46,16 @@ class ChanceReplayTests(unittest.TestCase):
 
     def test_decision_observer_is_not_copied_into_gameplay_history(self):
         history = ClassicAIV1Model()
-        history._tick, history._frame_remaining = 17, 2
-        history._b_down, history._c_down = True, True
-        history.offense.last_pass = {'owner': 0}
+        history.scheduler.decisions, history.scheduler.remaining = 17, 2
+        history.buttons.b_down, history.buttons.c_down = True, True
+        history.offense.pass_action.last_pass = {'owner': 0}
         history._predict_decision = lambda *_: None
         cloned = clone_policy(history)
         self.assertIs(cloned._predict_decision.__func__, ClassicAIV1Model._predict_decision)
-        self.assertEqual((cloned._tick, cloned._frame_remaining, cloned._b_down, cloned._c_down),
+        self.assertEqual((cloned.scheduler.decisions, cloned.scheduler.remaining, cloned.buttons.b_down, cloned.buttons.c_down),
                          (17, 2, True, True))
-        cloned.offense.last_pass['owner'] = 6
-        self.assertEqual(history.offense.last_pass['owner'], 0)
+        cloned.offense.pass_action.last_pass['owner'] = 6
+        self.assertEqual(history.offense.pass_action.last_pass['owner'], 0)
 
     def test_fresh_protocol_is_declared_and_bounded(self):
         args = build_parser().parse_args([])
@@ -85,7 +85,7 @@ class ChanceReplayTests(unittest.TestCase):
     def test_forecasts_do_not_mutate_shared_controller_history(self):
         state = response_state()
         history = ClassicAIV1Model()
-        history._pass_at = 500
+        history.one_timer.retry_at_frame = 500
         history.offense.pass_at = 500
         before = deepcopy(vars(history.offense))
         options, status = forecasts({'state': state, 'model': history}, 1,
@@ -97,14 +97,14 @@ class ChanceReplayTests(unittest.TestCase):
     def test_forced_pass_preserves_prior_clocks_and_uses_actual_native_counters(self):
         state = offense_state()
         history = ClassicAIV1Model()
-        history.defense.frames, history._tick = 64, 17
+        history.scheduler.frames, history.scheduler.decisions = 64, 17
         state.team1.one_timer_attempts = 3
         model, action = request_pass(history, state, 1, 'one-timer')
-        self.assertEqual((model.defense.frames, model._tick, model._frame_remaining), (65, 18, 3))
-        self.assertEqual(model._one_timer_attempts_before, 3)
-        self.assertEqual(model._one_timer_passes_before, state.team1.pass_attempts)
-        self.assertEqual(model._one_timer[:2], (0, 1))
-        self.assertEqual((history.defense.frames, history._tick), (64, 17))
+        self.assertEqual((model.scheduler.frames, model.scheduler.decisions, model.scheduler.remaining), (65, 18, 3))
+        self.assertEqual(model.one_timer.pending.attempts_before, 3)
+        self.assertEqual(model.one_timer.pending.passes_before, state.team1.pass_attempts)
+        self.assertEqual((model.one_timer.pending.passer, model.one_timer.pending.receiver), (0, 1))
+        self.assertEqual((history.scheduler.frames, history.scheduler.decisions), (64, 17))
         self.assertTrue(action[0])
         with self.assertRaisesRegex(ValueError, 'Unknown window'):
             request_pass(history, state, 1, 'unknown')

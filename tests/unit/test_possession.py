@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import unittest
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
+from nhl94_ai.agents.lifecycle import PassState
 from nhl94_ai.agents.offense import OffenseController
 from nhl94_ai.agents.possession import PossessionOffenseController
 from nhl94_ai.evaluation.play import parse_cmdline
@@ -82,15 +83,15 @@ class PossessionTests(unittest.TestCase):
         for lookahead in (False, True):
             model = ClassicAIV1Model(SimpleNamespace(offense_lookahead=lookahead))
             state = offense_state()
-            model.offense.pending = dict(passer=0, receiver=1, launched=True,
-                                         flight_observed=True, deadline=100)
-            model._frame_remaining = 2
+            model.offense.pass_action.pending = PassState(**dict(passer=0, receiver=1, launched=True,
+                                         flight_observed=True, frame=0, deadline=100))
+            model.scheduler.remaining = 2
             state.engine.puck_owner = 1
             state.team1.defense_control, state.team1.control = 1, 2
             model._observe_ordinary_pass(state)
-            self.assertIsNone(model.offense.pending)
-            self.assertEqual(model.offense.last_pass['outcome'], 'received')
-            self.assertEqual(model._frame_remaining, 0 if lookahead else 2)
+            self.assertIsNone(model.offense.pass_action.pending)
+            self.assertEqual(model.offense.pass_action.last_pass['outcome'], 'received')
+            self.assertEqual(model.scheduler.remaining, 0 if lookahead else 2)
 
 
 if __name__ == '__main__':
