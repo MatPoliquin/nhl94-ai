@@ -1,0 +1,325 @@
+{
+  "protocol": "classic-same-shooter-rebound-comparison-v1",
+  "date": "2026-10-10",
+  "decision": "Keep the animation-aware correction opt-in; immediate replanning does not improve scoring and readiness gating matches baseline behavior in the measured sample.",
+  "replay_totals": {
+    "legacy": {
+      "cases": 12,
+      "goals_for": 2,
+      "goals_against": 0,
+      "recorded_shots": 8,
+      "native_one_timers": 1,
+      "recovery_replans": 0
+    },
+    "immediate": {
+      "cases": 12,
+      "goals_for": 2,
+      "goals_against": 0,
+      "recorded_shots": 7,
+      "native_one_timers": 1,
+      "recovery_replans": 12
+    },
+    "ready": {
+      "cases": 12,
+      "goals_for": 2,
+      "goals_against": 0,
+      "recorded_shots": 8,
+      "native_one_timers": 1,
+      "recovery_replans": 7
+    }
+  },
+  "cases": [
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 25702,
+      "frame": 2727,
+      "animation_locked_at_recovery": true,
+      "first_unlocked_owner_frame": 5,
+      "legacy_replan_frame": 5,
+      "ready_replan_frame": 5,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 25706,
+      "frame": 5394,
+      "animation_locked_at_recovery": true,
+      "first_unlocked_owner_frame": 2,
+      "legacy_replan_frame": 1,
+      "ready_replan_frame": 1,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 25715,
+      "frame": 6177,
+      "animation_locked_at_recovery": false,
+      "first_unlocked_owner_frame": 0,
+      "legacy_replan_frame": 0,
+      "ready_replan_frame": 0,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 25716,
+      "frame": 5570,
+      "animation_locked_at_recovery": true,
+      "first_unlocked_owner_frame": 3,
+      "legacy_replan_frame": 2,
+      "ready_replan_frame": 2,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 25707,
+      "frame": 1356,
+      "animation_locked_at_recovery": true,
+      "first_unlocked_owner_frame": 7,
+      "legacy_replan_frame": 6,
+      "ready_replan_frame": 6,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 25707,
+      "frame": 3547,
+      "animation_locked_at_recovery": true,
+      "first_unlocked_owner_frame": 3,
+      "legacy_replan_frame": 3,
+      "ready_replan_frame": 3,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 25708,
+      "frame": 868,
+      "animation_locked_at_recovery": true,
+      "first_unlocked_owner_frame": 7,
+      "legacy_replan_frame": 6,
+      "ready_replan_frame": 6,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 25708,
+      "frame": 3898,
+      "animation_locked_at_recovery": true,
+      "first_unlocked_owner_frame": 3,
+      "legacy_replan_frame": 3,
+      "ready_replan_frame": 3,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 25708,
+      "frame": 3923,
+      "animation_locked_at_recovery": true,
+      "first_unlocked_owner_frame": 7,
+      "legacy_replan_frame": 6,
+      "ready_replan_frame": 6,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 25708,
+      "frame": 3963,
+      "animation_locked_at_recovery": true,
+      "first_unlocked_owner_frame": 6,
+      "legacy_replan_frame": 6,
+      "ready_replan_frame": 6,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 25715,
+      "frame": 2815,
+      "animation_locked_at_recovery": true,
+      "first_unlocked_owner_frame": 6,
+      "legacy_replan_frame": 6,
+      "ready_replan_frame": 6,
+      "ready_buttons_equal_legacy": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 25716,
+      "frame": 5250,
+      "animation_locked_at_recovery": false,
+      "first_unlocked_owner_frame": 0,
+      "legacy_replan_frame": 0,
+      "ready_replan_frame": 0,
+      "ready_buttons_equal_legacy": true
+    }
+  ],
+  "complete_periods": {
+    "immediate": {
+      "before": {
+        "total": {
+          "periods": 40,
+          "goals_for": 47,
+          "goals_against": 15,
+          "shots": 259,
+          "one_timers": 94,
+          "one_timer_goals": 34,
+          "recovery_commitments_ended": 0
+        },
+        "by_matchup": {
+          "sabres-ducks-manual": {
+            "periods": 20,
+            "goals_for": 29,
+            "goals_against": 4,
+            "shots": 143,
+            "one_timers": 46,
+            "one_timer_goals": 21,
+            "recovery_commitments_ended": 0
+          },
+          "ducks-sabres-manual": {
+            "periods": 20,
+            "goals_for": 18,
+            "goals_against": 11,
+            "shots": 116,
+            "one_timers": 48,
+            "one_timer_goals": 13,
+            "recovery_commitments_ended": 0
+          }
+        }
+      },
+      "after": {
+        "total": {
+          "periods": 40,
+          "goals_for": 47,
+          "goals_against": 16,
+          "shots": 259,
+          "one_timers": 95,
+          "one_timer_goals": 36,
+          "recovery_commitments_ended": 10
+        },
+        "by_matchup": {
+          "sabres-ducks-manual": {
+            "periods": 20,
+            "goals_for": 31,
+            "goals_against": 5,
+            "shots": 142,
+            "one_timers": 49,
+            "one_timer_goals": 24,
+            "recovery_commitments_ended": 5
+          },
+          "ducks-sabres-manual": {
+            "periods": 20,
+            "goals_for": 16,
+            "goals_against": 11,
+            "shots": 117,
+            "one_timers": 46,
+            "one_timer_goals": 12,
+            "recovery_commitments_ended": 5
+          }
+        }
+      },
+      "paired": {
+        "goal_difference_delta_per_period": -0.025,
+        "descriptive_95_percent_seed_cluster_interval": [
+          -0.225,
+          0.15
+        ],
+        "identical_complete_period_trajectories": 32,
+        "seed_clusters": 20,
+        "resamples": 20000,
+        "rng_seed": 25951
+      }
+    },
+    "ready": {
+      "before": {
+        "total": {
+          "periods": 40,
+          "goals_for": 52,
+          "goals_against": 15,
+          "shots": 242,
+          "one_timers": 112,
+          "one_timer_goals": 42,
+          "recovery_commitments_ended": 0
+        },
+        "by_matchup": {
+          "sabres-ducks-manual": {
+            "periods": 20,
+            "goals_for": 31,
+            "goals_against": 3,
+            "shots": 126,
+            "one_timers": 58,
+            "one_timer_goals": 27,
+            "recovery_commitments_ended": 0
+          },
+          "ducks-sabres-manual": {
+            "periods": 20,
+            "goals_for": 21,
+            "goals_against": 12,
+            "shots": 116,
+            "one_timers": 54,
+            "one_timer_goals": 15,
+            "recovery_commitments_ended": 0
+          }
+        }
+      },
+      "after": {
+        "total": {
+          "periods": 40,
+          "goals_for": 52,
+          "goals_against": 15,
+          "shots": 242,
+          "one_timers": 112,
+          "one_timer_goals": 42,
+          "recovery_commitments_ended": 13
+        },
+        "by_matchup": {
+          "sabres-ducks-manual": {
+            "periods": 20,
+            "goals_for": 31,
+            "goals_against": 3,
+            "shots": 126,
+            "one_timers": 58,
+            "one_timer_goals": 27,
+            "recovery_commitments_ended": 6
+          },
+          "ducks-sabres-manual": {
+            "periods": 20,
+            "goals_for": 21,
+            "goals_against": 12,
+            "shots": 116,
+            "one_timers": 54,
+            "one_timer_goals": 15,
+            "recovery_commitments_ended": 7
+          }
+        }
+      },
+      "paired": {
+        "goal_difference_delta_per_period": 0.0,
+        "descriptive_95_percent_seed_cluster_interval": [
+          0.0,
+          0.0
+        ],
+        "identical_complete_period_trajectories": 40,
+        "seed_clusters": 20,
+        "resamples": 20000,
+        "rng_seed": 25951
+      }
+    }
+  },
+  "audit": {
+    "default_preservation_periods": 40,
+    "default_preservation_frames": 359730,
+    "original_and_final_collector_matched_branches": 24,
+    "unit_tests": 895,
+    "expected_failures": 1,
+    "native_format_cadence_cases": 6,
+    "pylint": "clean"
+  },
+  "evidence": "classic-v1-rebound-recovery-evidence.json.gz",
+  "limitations": [
+    "Discovery seeds 25701\u201325720, both Sabres/Ducks assignments; first qualifying recovery per active shot commitment.",
+    "Immediate-replan fresh test seeds 25801\u201325820; revised animation-aware test seeds 25901\u201325920. Different seed sets are not directly comparable.",
+    "All complete periods use 300-second first periods, selective goalies, FILTERED input and decision interval four.",
+    "Replays restore full emulator/RNG/controller history; only the original recovery changes and later commitments use baseline behavior.",
+    "Replay goals/shots span a bounded 240-frame continuation, including later attacks; nearby recoveries can overlap.",
+    "New shot count and earlier loose puck are required. Unknown animation flags and recoveries after commitment expiry retain existing behavior.",
+    "A recovery counter records a cleared commitment, not necessarily a changed action or an earlier shot.",
+    "Two fixed rosters; no claim about other opponents, full matches or learned policy performance."
+  ]
+}

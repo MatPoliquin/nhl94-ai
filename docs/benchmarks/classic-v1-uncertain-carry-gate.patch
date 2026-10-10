@@ -1,0 +1,152 @@
+diff --git a/nhl94_ai/agents/offense.py b/nhl94_ai/agents/offense.py
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -310,9 +310,10 @@
+ 
+ 
+ class OffenseController:
+-    def __init__(self, *, one_timers=True, decision_interval=4):
++    def __init__(self, *, one_timers=True, decision_interval=4, allow_uncertified=False):
+         self.one_timers = one_timers
+         self.decision_interval = decision_interval
++        self.allow_uncertified = allow_uncertified
+         self.pending = None
+         self.pass_at = 0
+         self.feint_until = self.feint_at = 0
+@@ -391,7 +392,8 @@
+         _, safety = forecast_path(
+             state, player, path, pressure_state=pressure_state, pressure_delay=pressure_delay,
+             puck_extent=max(extent, math.dist((state.puck.x, state.puck.y), (player.x, player.y))),
+-            assess_uncertainty=True, decision_interval=self.decision_interval, risk_cache=self.risk_cache)
++            assess_uncertainty=self.allow_uncertified,
++            decision_interval=self.decision_interval, risk_cache=self.risk_cache)
+         if not carry_viable(safety):
+             return 0.0, release
+         return max(0.0, shot_value(state, player) - (
+@@ -425,7 +427,7 @@
+         path, forecast = forecast_carry(
+             state, player, target, decision_interval=self.decision_interval,
+             pressure_state=pressure_state, pressure_delay=pressure_delay,
+-            assess_uncertainty=True, risk_cache=self.risk_cache)
++            assess_uncertainty=self.allow_uncertified, risk_cache=self.risk_cache)
+         safe = forecast['carry_safe'] and details.get('goalie_avoidance_safe', True)
+         viable = carry_viable(forecast) and details.get('goalie_avoidance_safe', True)
+         position, finish, release = 0.0, 0.0, 0
+@@ -531,12 +533,20 @@
+                 'mode': 'carry-escape', 'carry_safe': False, 'carry_bounded': False,
+                 'reason': 'no bounded carry; brake before unavoidable wall or net contact',
+             }
+-        point, details = max(bounded, key=lambda option: (
+-            physical_clearance(option[1]) > 0, carry_viable(option[1]),
+-            carry_value(option[1]) if carry_viable(option[1]) else physical_clearance(option[1]),
+-            option[1]['carry_progress'] if carry_viable(option[1]) else min(option[1]['carry_pressure'], 12),
+-            option[1]['carry_safe'], min(physical_clearance(option[1]), 16),
+-            -math.dist(option[0], preferred)))
++        def experimental_key(option):
++            return (
++                physical_clearance(option[1]) > 0, carry_viable(option[1]),
++                carry_value(option[1]) if carry_viable(option[1]) else physical_clearance(option[1]),
++                option[1]['carry_progress'] if carry_viable(option[1]) else min(option[1]['carry_pressure'], 12),
++                option[1]['carry_safe'], min(physical_clearance(option[1]), 16),
++                -math.dist(option[0], preferred))
++        def certified_key(option):
++            return (
++                option[1]['carry_safe'], carry_value(option[1]),
++                option[1]['carry_progress'] if option[1]['carry_safe'] else min(option[1]['carry_pressure'], 12),
++                min(option[1]['carry_pressure'], 12) if option[1]['carry_safe'] else min(option[1]['carry_clearance'], 16),
++                min(option[1]['carry_clearance'], 16), -math.dist(option[0], preferred))
++        point, details = max(bounded, key=experimental_key if self.allow_uncertified else certified_key)
+         mode = ('goalie-avoid' if 'goalie_clearance' in first[1] else
+                 'carry' if point == first[0] else 'carry-escape')
+         return point, {
+diff --git a/nhl94_ai/agents/classic_v1.py b/nhl94_ai/agents/classic_v1.py
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -59,7 +59,8 @@
+         self._last_action_preferences = np.zeros((1, self._size), dtype=np.float32)
+         self.defense = DefenseController()
+         self.defense_diagnostics = {}
+-        self.offense = OffenseController(one_timers=self._one_timers)
++        self.offense = OffenseController(one_timers=self._one_timers,
++                                         allow_uncertified=getattr(args, 'uncertain_carry', False))
+         self.offense_diagnostics = {}
+         cross_crease = getattr(args, 'cross_crease', False)
+         if cross_crease and (getattr(args, 'action_type', 'FILTERED').upper() not in (
+diff --git a/nhl94_ai/agents/registry.py b/nhl94_ai/agents/registry.py
+--- a/nhl94_ai/agents/registry.py
++++ b/nhl94_ai/agents/registry.py
+@@ -13,6 +13,8 @@
+                         help='Opt-in full-team Classic held-C cross-crease finishing (default: off)')
+     parser.add_argument('--deke', action='store_true',
+                         help='Opt-in full-team Classic reaction-based skating dekes (default: off)')
++    parser.add_argument('--uncertain-carry', action='store_true',
++                        help='Experimental risk-assessed uncertified Classic carries (default: off)')
+     return parser
+ 
+ 
+diff --git a/nhl94_ai/config.py b/nhl94_ai/config.py
+--- a/nhl94_ai/config.py
++++ b/nhl94_ai/config.py
+@@ -69,7 +69,8 @@
+                             and getattr(args, 'rf', 'PostPlay') == 'PostPlay')
+         if goalie_policy != 'off' and not goalie_supported:
+             raise ValueError('Manual goalie AI requires full-team Classic FILTERED PostPlay without self-play')
+-        for flag, label in (('cross_crease', 'Cross-crease'), ('deke', 'Deke')):
++        for flag, label in (('cross_crease', 'Cross-crease'), ('deke', 'Deke'),
++                            ('uncertain_carry', 'Uncertain-carry')):
+             if not getattr(args, flag, False):
+                 continue
+             agent = getattr(args, 'agent', None)
+diff --git a/nhl94_ai/evaluation/cpu_benchmark.py b/nhl94_ai/evaluation/cpu_benchmark.py
+--- a/nhl94_ai/evaluation/cpu_benchmark.py
++++ b/nhl94_ai/evaluation/cpu_benchmark.py
+@@ -87,6 +87,7 @@
+     goalie_policy = options[0] if options else 'off'
+     cross_crease = bool(options[1]) if len(options) > 1 else False
+     deke = bool(options[2]) if len(options) > 2 else False
++    uncertain_carry = bool(options[3]) if len(options) > 3 else False
+     if goalie_policy != 'off' and schema != 'FILTERED':
+         raise ValueError('Manual goalie CPU trials require FILTERED buttons')
+     state_name, side = MATCHUPS[matchup]
+@@ -104,7 +105,8 @@
+         if (info['bench_team1'], info['bench_team2']) != (side, 0):
+             raise ValueError('CPU opponent still has a joystick assigned.')
+         agent = create_scripted(agent_name, SimpleNamespace(
+-            action_type=schema, goalie_policy=goalie_policy, cross_crease=cross_crease, deke=deke))
++            action_type=schema, goalie_policy=goalie_policy, cross_crease=cross_crease, deke=deke,
++            uncertain_carry=uncertain_carry))
+         agent.frame_skip = frame_skip
+         state, frames = NHL94GameState(5), 1
+         context = SimpleNamespace(action_type=schema, game_state=state)
+@@ -200,6 +202,7 @@
+             'cross_crease_metrics': dict(agent.cross_crease.metrics) if agent.cross_crease else {},
+             'cross_crease_events': agent.cross_crease.events if agent.cross_crease else [],
+             'deke': deke,
++            'uncertain_carry': uncertain_carry,
+             'deke_metrics': dict(agent.deke.metrics) if agent.deke else {},
+             'deke_events': agent.deke.events if agent.deke else [],
+         }
+@@ -304,7 +307,10 @@
+         raise ValueError('Manual goalie CPU trials require FILTERED buttons')
+     fixtures = [(args.agent, matchup, seed, args.seconds, args.frame_skip, args.action_type, args.goalie_policy)
+                 for matchup in args.matchups for seed in range(args.seed, args.seed + args.trials)]
+-    if getattr(args, 'deke', False):
++    if getattr(args, 'uncertain_carry', False):
++        fixtures = [(*fixture, bool(getattr(args, 'cross_crease', False)),
++                     bool(getattr(args, 'deke', False)), True) for fixture in fixtures]
++    elif getattr(args, 'deke', False):
+         fixtures = [(*fixture, bool(getattr(args, 'cross_crease', False)), True) for fixture in fixtures]
+     elif getattr(args, 'cross_crease', False):
+         fixtures = [(*fixture, True) for fixture in fixtures]
+diff --git a/nhl94_ai/evaluation/runner.py b/nhl94_ai/evaluation/runner.py
+--- a/nhl94_ai/evaluation/runner.py
++++ b/nhl94_ai/evaluation/runner.py
+@@ -84,6 +84,8 @@
+         raise ValueError('--cross-crease selects a Classic tactic, not a learned policy')
+     if getattr(args, 'deke', False) and args.model:
+         raise ValueError('--deke selects a Classic tactic, not a learned policy')
++    if getattr(args, 'uncertain_carry', False) and args.model:
++        raise ValueError('--uncertain-carry selects a Classic experiment, not a learned policy')
+     if args.action_type.upper() == 'TARGET_POSITION' and not args.model:
+         raise ValueError('TARGET_POSITION evaluation requires --model with a target-policy checkpoint')
+     config = EvaluationConfig(args.episodes, args.max_steps, args.seed)

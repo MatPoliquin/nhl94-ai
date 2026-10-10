@@ -1,0 +1,704 @@
+{
+  "protocol": "classic-chance-selection-comparison-v1",
+  "date": "2026-10-10",
+  "decision": "Preserve default gameplay. The learned velocity rule failed local validation; the separate readiness rule reversed its initial gain on confirmation, with unchanged combined scoring and two additional goals conceded.",
+  "geometry_audit": {
+    "cases": 635,
+    "goals": 37,
+    "auc": 0.8201663201663202,
+    "quartiles": [
+      {
+        "cases": 159,
+        "mean_score": 0.1265911486463502,
+        "goals": 2
+      },
+      {
+        "cases": 159,
+        "mean_score": 0.17915368809638427,
+        "goals": 2
+      },
+      {
+        "cases": 159,
+        "mean_score": 0.2372631433683014,
+        "goals": 7
+      },
+      {
+        "cases": 158,
+        "mean_score": 0.3649925227697456,
+        "goals": 26
+      }
+    ],
+    "sources": {
+      "classic-v1-shot-training.json.gz": "d37cd81623765b406b5186f4baf5f116f2a48a9eb635147bbac622b1a6c7626e",
+      "classic-v1-shot-validation.json.gz": "cf6740a70274674cf32c138385cf251ab091fe1e2c10945d2323a8d447f854bf",
+      "classic-v1-shot-heldout.json.gz": "dc65d41d021a295e3678a33216b8cef96ca8be55249cc39d55d92b777779617f"
+    },
+    "scope": "Descriptive old normal-shot data, baseline aim/hold only; scores are not calibrated probabilities."
+  },
+  "discovery": {
+    "cases": 298,
+    "both_finishes_available": 2,
+    "choices": {
+      "legacy": {
+        "cases": 298,
+        "goals_for": 61,
+        "goals_against": 0,
+        "attack_goals": 54,
+        "shots": 269,
+        "one_timers": 132,
+        "no_recorded_shot": 67
+      },
+      "carry": {
+        "cases": 298,
+        "goals_for": 56,
+        "goals_against": 0,
+        "attack_goals": 50,
+        "shots": 268,
+        "one_timers": 94,
+        "no_recorded_shot": 81
+      }
+    },
+    "by_readiness": {
+      "shoot-unlocked": {
+        "legacy": {
+          "cases": 148,
+          "goals_for": 17,
+          "goals_against": 0,
+          "attack_goals": 12,
+          "shots": 166,
+          "one_timers": 15,
+          "no_recorded_shot": 17
+        },
+        "carry": {
+          "cases": 148,
+          "goals_for": 16,
+          "goals_against": 0,
+          "attack_goals": 11,
+          "shots": 172,
+          "one_timers": 9,
+          "no_recorded_shot": 23
+        }
+      },
+      "shoot-locked": {
+        "legacy": {
+          "cases": 9,
+          "goals_for": 1,
+          "goals_against": 0,
+          "attack_goals": 1,
+          "shots": 3,
+          "one_timers": 2,
+          "no_recorded_shot": 6
+        },
+        "carry": {
+          "cases": 9,
+          "goals_for": 3,
+          "goals_against": 0,
+          "attack_goals": 3,
+          "shots": 8,
+          "one_timers": 1,
+          "no_recorded_shot": 2
+        }
+      },
+      "one-timer-unlocked": {
+        "legacy": {
+          "cases": 137,
+          "goals_for": 43,
+          "goals_against": 0,
+          "attack_goals": 41,
+          "shots": 97,
+          "one_timers": 114,
+          "no_recorded_shot": 43
+        },
+        "carry": {
+          "cases": 137,
+          "goals_for": 37,
+          "goals_against": 0,
+          "attack_goals": 36,
+          "shots": 85,
+          "one_timers": 84,
+          "no_recorded_shot": 55
+        }
+      },
+      "one-timer-locked": {
+        "legacy": {
+          "cases": 4,
+          "goals_for": 0,
+          "goals_against": 0,
+          "attack_goals": 0,
+          "shots": 3,
+          "one_timers": 1,
+          "no_recorded_shot": 1
+        },
+        "carry": {
+          "cases": 4,
+          "goals_for": 0,
+          "goals_against": 0,
+          "attack_goals": 0,
+          "shots": 3,
+          "one_timers": 0,
+          "no_recorded_shot": 1
+        }
+      }
+    },
+    "locked_normal_cases": [
+      {
+        "matchup": "sabres-ducks-manual",
+        "seed": 25901,
+        "frame": 3717,
+        "branches": {
+          "shoot": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 3,
+            "first_recorded_shot": null
+          },
+          "carry": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 3,
+            "first_recorded_shot": 19
+          }
+        }
+      },
+      {
+        "matchup": "sabres-ducks-manual",
+        "seed": 25903,
+        "frame": 4689,
+        "branches": {
+          "shoot": {
+            "attack_goal": 1,
+            "goals_for": 1,
+            "first_unlock": 41,
+            "first_recorded_shot": 105
+          },
+          "carry": {
+            "attack_goal": 1,
+            "goals_for": 1,
+            "first_unlock": 41,
+            "first_recorded_shot": 105
+          }
+        }
+      },
+      {
+        "matchup": "sabres-ducks-manual",
+        "seed": 25904,
+        "frame": 4363,
+        "branches": {
+          "shoot": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 10,
+            "first_recorded_shot": null
+          },
+          "carry": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 10,
+            "first_recorded_shot": null
+          }
+        }
+      },
+      {
+        "matchup": "sabres-ducks-manual",
+        "seed": 25905,
+        "frame": 3402,
+        "branches": {
+          "shoot": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 9,
+            "first_recorded_shot": null
+          },
+          "carry": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 9,
+            "first_recorded_shot": null
+          }
+        }
+      },
+      {
+        "matchup": "sabres-ducks-manual",
+        "seed": 25905,
+        "frame": 6520,
+        "branches": {
+          "shoot": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 12,
+            "first_recorded_shot": 88
+          },
+          "carry": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 12,
+            "first_recorded_shot": 95
+          }
+        }
+      },
+      {
+        "matchup": "sabres-ducks-manual",
+        "seed": 25910,
+        "frame": 6367,
+        "branches": {
+          "shoot": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 38,
+            "first_recorded_shot": null
+          },
+          "carry": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 38,
+            "first_recorded_shot": 59
+          }
+        }
+      },
+      {
+        "matchup": "sabres-ducks-manual",
+        "seed": 25913,
+        "frame": 5364,
+        "branches": {
+          "shoot": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 22,
+            "first_recorded_shot": null
+          },
+          "carry": {
+            "attack_goal": 1,
+            "goals_for": 1,
+            "first_unlock": 22,
+            "first_recorded_shot": 98
+          }
+        }
+      },
+      {
+        "matchup": "sabres-ducks-manual",
+        "seed": 25917,
+        "frame": 6381,
+        "branches": {
+          "shoot": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 27,
+            "first_recorded_shot": 152
+          },
+          "carry": {
+            "attack_goal": 1,
+            "goals_for": 1,
+            "first_unlock": 27,
+            "first_recorded_shot": 127
+          }
+        }
+      },
+      {
+        "matchup": "ducks-sabres-manual",
+        "seed": 25911,
+        "frame": 5437,
+        "branches": {
+          "shoot": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 16,
+            "first_recorded_shot": null
+          },
+          "carry": {
+            "attack_goal": 0,
+            "goals_for": 0,
+            "first_unlock": 16,
+            "first_recorded_shot": 32
+          }
+        }
+      }
+    ]
+  },
+  "learned_rule": {
+    "rule": {
+      "baseline": "shoot",
+      "action": "carry",
+      "feature": "vy",
+      "threshold": 1.0657424926757812,
+      "less_equal": true
+    },
+    "training": {
+      "totals": {
+        "cases": 218,
+        "overrides": 58,
+        "legacy_attack_goals": 37,
+        "selected_attack_goals": 42,
+        "legacy_goals": 42,
+        "selected_goals": 48,
+        "legacy_against": 0,
+        "selected_against": 0,
+        "legacy_shots": 199,
+        "selected_shots": 207,
+        "paired_reward_gain": 5
+      },
+      "seed_reward_gains": {
+        "25901": 0,
+        "25902": 1,
+        "25903": 0,
+        "25904": 0,
+        "25905": 0,
+        "25906": 0,
+        "25907": 1,
+        "25908": 0,
+        "25909": 0,
+        "25910": -1,
+        "25911": 1,
+        "25912": 0,
+        "25913": 1,
+        "25914": 2
+      }
+    },
+    "validation": {
+      "totals": {
+        "cases": 80,
+        "overrides": 18,
+        "legacy_attack_goals": 17,
+        "selected_attack_goals": 15,
+        "legacy_goals": 19,
+        "selected_goals": 18,
+        "legacy_against": 0,
+        "selected_against": 0,
+        "legacy_shots": 70,
+        "selected_shots": 70,
+        "paired_reward_gain": -2
+      },
+      "seed_reward_gains": {
+        "25915": 0,
+        "25916": 0,
+        "25917": -1,
+        "25918": 0,
+        "25919": 0,
+        "25920": -1
+      }
+    },
+    "split": {
+      "training_seeds": [
+        25901,
+        25902,
+        25903,
+        25904,
+        25905,
+        25906,
+        25907,
+        25908,
+        25909,
+        25910,
+        25911,
+        25912,
+        25913,
+        25914
+      ],
+      "validation_seeds": [
+        25915,
+        25916,
+        25917,
+        25918,
+        25919,
+        25920
+      ]
+    }
+  },
+  "readiness_rule": {
+    "version": "native-chance-rule-v1",
+    "rule": {
+      "baseline": "shoot",
+      "action": "carry",
+      "feature": "animation_locked",
+      "threshold": 0.5,
+      "less_equal": false
+    },
+    "selection": "Mechanistic readiness hypothesis inspected after discovery; local validation is descriptive, not a fresh test.",
+    "training": {
+      "totals": {
+        "cases": 218,
+        "overrides": 8,
+        "legacy_attack_goals": 37,
+        "selected_attack_goals": 38,
+        "legacy_goals": 42,
+        "selected_goals": 43,
+        "legacy_against": 0,
+        "selected_against": 0,
+        "legacy_shots": 199,
+        "selected_shots": 204,
+        "paired_reward_gain": 1
+      },
+      "seed_reward_gains": {
+        "25901": 0,
+        "25902": 0,
+        "25903": 0,
+        "25904": 0,
+        "25905": 0,
+        "25906": 0,
+        "25907": 0,
+        "25908": 0,
+        "25909": 0,
+        "25910": 0,
+        "25911": 0,
+        "25912": 0,
+        "25913": 1,
+        "25914": 0
+      }
+    },
+    "validation": {
+      "totals": {
+        "cases": 80,
+        "overrides": 1,
+        "legacy_attack_goals": 17,
+        "selected_attack_goals": 18,
+        "legacy_goals": 19,
+        "selected_goals": 20,
+        "legacy_against": 0,
+        "selected_against": 0,
+        "legacy_shots": 70,
+        "selected_shots": 70,
+        "paired_reward_gain": 1
+      },
+      "seed_reward_gains": {
+        "25915": 0,
+        "25916": 0,
+        "25917": 1,
+        "25918": 0,
+        "25919": 0,
+        "25920": 0
+      }
+    },
+    "split": {
+      "training_seeds": [
+        25901,
+        25902,
+        25903,
+        25904,
+        25905,
+        25906,
+        25907,
+        25908,
+        25909,
+        25910,
+        25911,
+        25912,
+        25913,
+        25914
+      ],
+      "validation_seeds": [
+        25915,
+        25916,
+        25917,
+        25918,
+        25919,
+        25920
+      ]
+    }
+  },
+  "complete_periods": {
+    "legacy": {
+      "total": {
+        "periods": 80,
+        "goals_for": 129,
+        "goals_against": 17,
+        "shots": 563,
+        "one_timers": 198,
+        "one_timer_goals": 93,
+        "chance_metrics": {}
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 40,
+          "goals_for": 77,
+          "goals_against": 6,
+          "shots": 332,
+          "one_timers": 107,
+          "one_timer_goals": 55,
+          "chance_metrics": {}
+        },
+        "ducks-sabres-manual": {
+          "periods": 40,
+          "goals_for": 52,
+          "goals_against": 11,
+          "shots": 231,
+          "one_timers": 91,
+          "one_timer_goals": 38,
+          "chance_metrics": {}
+        }
+      }
+    },
+    "candidate": {
+      "total": {
+        "periods": 80,
+        "goals_for": 129,
+        "goals_against": 19,
+        "shots": 580,
+        "one_timers": 201,
+        "one_timer_goals": 89,
+        "chance_metrics": {
+          "chances": 756,
+          "shoot->shoot": 439,
+          "one-timer->one-timer": 292,
+          "overrides": 25,
+          "shoot->carry": 25,
+          "resume-legacy": 25
+        }
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 40,
+          "goals_for": 78,
+          "goals_against": 6,
+          "shots": 335,
+          "one_timers": 113,
+          "one_timer_goals": 54,
+          "chance_metrics": {
+            "chances": 431,
+            "shoot->shoot": 253,
+            "one-timer->one-timer": 168,
+            "overrides": 10,
+            "shoot->carry": 10,
+            "resume-legacy": 10
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 40,
+          "goals_for": 51,
+          "goals_against": 13,
+          "shots": 245,
+          "one_timers": 88,
+          "one_timer_goals": 35,
+          "chance_metrics": {
+            "chances": 325,
+            "one-timer->one-timer": 124,
+            "overrides": 15,
+            "shoot->shoot": 186,
+            "shoot->carry": 15,
+            "resume-legacy": 15
+          }
+        }
+      }
+    }
+  },
+  "paired": {
+    "goal_difference_delta_per_period": -0.025,
+    "descriptive_95_percent_seed_cluster_interval": [
+      -0.125,
+      0.075
+    ],
+    "identical_complete_period_trajectories": 61,
+    "seed_clusters": 40,
+    "resamples": 20000,
+    "rng_seed": 26051
+  },
+  "independent_stages": {
+    "initial": {
+      "totals": {
+        "legacy": {
+          "periods": 40,
+          "goals_for": 66,
+          "goals_against": 10,
+          "shots": 282,
+          "one_timers": 111,
+          "one_timer_goals": 49,
+          "chance_metrics": {}
+        },
+        "candidate": {
+          "periods": 40,
+          "goals_for": 70,
+          "goals_against": 11,
+          "shots": 286,
+          "one_timers": 105,
+          "one_timer_goals": 46,
+          "chance_metrics": {
+            "chances": 359,
+            "shoot->shoot": 207,
+            "one-timer->one-timer": 138,
+            "overrides": 14,
+            "shoot->carry": 14,
+            "resume-legacy": 14
+          }
+        }
+      },
+      "paired": {
+        "goal_difference_delta_per_period": 0.075,
+        "descriptive_95_percent_seed_cluster_interval": [
+          -0.05,
+          0.225
+        ],
+        "identical_complete_period_trajectories": 30,
+        "seed_clusters": 20,
+        "resamples": 20000,
+        "rng_seed": 26051
+      }
+    },
+    "confirmation": {
+      "totals": {
+        "legacy": {
+          "periods": 40,
+          "goals_for": 63,
+          "goals_against": 7,
+          "shots": 281,
+          "one_timers": 87,
+          "one_timer_goals": 44,
+          "chance_metrics": {}
+        },
+        "candidate": {
+          "periods": 40,
+          "goals_for": 59,
+          "goals_against": 8,
+          "shots": 294,
+          "one_timers": 96,
+          "one_timer_goals": 43,
+          "chance_metrics": {
+            "chances": 397,
+            "shoot->shoot": 232,
+            "one-timer->one-timer": 154,
+            "overrides": 11,
+            "shoot->carry": 11,
+            "resume-legacy": 11
+          }
+        }
+      },
+      "paired": {
+        "goal_difference_delta_per_period": -0.125,
+        "descriptive_95_percent_seed_cluster_interval": [
+          -0.275,
+          0.0
+        ],
+        "identical_complete_period_trajectories": 31,
+        "seed_clusters": 20,
+        "resamples": 20000,
+        "rng_seed": 26051
+      }
+    }
+  },
+  "audit": {
+    "unit_tests": 906,
+    "expected_failures": 1,
+    "pylint": "clean",
+    "exact_default_periods": 40,
+    "exact_default_frames": 352477,
+    "native_case_baseline_forks_verified": 298,
+    "repeated_control_forks": 40,
+    "complete_fresh_comparison_periods": 160,
+    "discarded_pilot": "Inactive wrapper attachment caught by zero decision counters; fixed, regression-tested, and all complete comparisons rerun."
+  },
+  "evidence": "classic-v1-chance-selection-evidence.json.gz",
+  "limitations": [
+    "First spaced legacy finish decisions, including locked/button-held starts.",
+    "Only admitted normal shots/one-timers and one-decision carry are compared.",
+    "Identical emulator/RNG/controller history; all later decisions use Classic.",
+    "Goals include later attacks in 240 frames; attack_goal excludes credit after opponent possession.",
+    "Overlapping cases are correlated; split complete seeds for learning.",
+    "Two fixed rosters and first periods; not game-wide expected goals.",
+    "Training seeds 25901\u201325914, untouched validation 25915\u201325920; fresh full-period seeds 26001\u201326020 and unchanged confirmation seeds 26101\u201326120.",
+    "Rule selection searches nine predeclared features and quantile thresholds on training only.",
+    "Learned velocity rule failed held-out local validation and was not taken into full periods.",
+    "Separate readiness rule selected after inspecting all discovery cases; its first fresh test is the full-period comparison.",
+    "A rule can defer for one decision; the next attack decision uses Classic before the rule can defer again.",
+    "Local replay applies one intervention; full periods can encounter multiple interventions and shifted states.",
+    "Readiness, velocity and geometry are features, not independently validated causal mechanisms.",
+    "The exploratory locked-shot gains occurred with first recorded shots 98 and 127 frames later; they do not prove that four-frame deferral reliably waits out native animation locks.",
+    "No gameplay flag or default policy was changed."
+  ]
+}

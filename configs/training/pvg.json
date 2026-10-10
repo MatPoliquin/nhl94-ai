@@ -1,0 +1,23 @@
+{
+  "options": {
+    "env": "NHL94-Genesis-v0",
+    "state": "MightyDucksVsAllStarCampbell.Shootout.NearGoalie.Start",
+    "rf": "PvG",
+    "nn": "MlpPolicy",
+    "alg": "ppo2",
+    "action_type": "FILTERED",
+    "num_players": 1,
+    "num_env": 16,
+    "num_timesteps": 100000000,
+    "hyperparams": "nhl94.json",
+    "model_input": "pvg",
+    "model_input_config": "../model_input.json",
+    "output_basedir": "~/OUTPUT/pvg",
+    "seed": 0,
+    "policy_seed": 0,
+    "headless": true,
+    "live_eval_freq": 20000,
+    "live_eval_episodes": 50,
+    "live_fps": 60
+  }
+}

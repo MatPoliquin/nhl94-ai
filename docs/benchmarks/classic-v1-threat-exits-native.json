@@ -1,0 +1,332 @@
+{
+  "motion_maximum_errors": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "active_pressure": [
+    {
+      "side": 1,
+      "profile": "low",
+      "scenario": "head-on",
+      "safe": false,
+      "pressure": -2,
+      "viable": true,
+      "risk": 0.19047619047619047,
+      "status": "uncertified-clear-samples",
+      "defender_movement": 2.7032012939453125,
+      "body_contact_frame": null,
+      "defender_turning": 0.9375,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 1,
+      "profile": "low",
+      "scenario": "flank",
+      "safe": false,
+      "pressure": -18,
+      "viable": false,
+      "risk": 1.0,
+      "status": "projected-body-contact",
+      "defender_movement": 4.761416690410386,
+      "body_contact_frame": null,
+      "defender_turning": 0.3583984375,
+      "checking_animation": true,
+      "possession_loss_frame": 14
+    },
+    {
+      "side": 1,
+      "profile": "low",
+      "scenario": "trailing",
+      "safe": true,
+      "pressure": 4,
+      "viable": true,
+      "risk": 0.0,
+      "status": "certified-clear",
+      "defender_movement": 5.74077570554812,
+      "body_contact_frame": null,
+      "defender_turning": 0.0,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 1,
+      "profile": "low",
+      "scenario": "remote",
+      "safe": true,
+      "pressure": 4,
+      "viable": true,
+      "risk": 0.0,
+      "status": "certified-clear",
+      "defender_movement": 5.730196361960521,
+      "body_contact_frame": null,
+      "defender_turning": 1.04931640625,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 1,
+      "profile": "high",
+      "scenario": "head-on",
+      "safe": false,
+      "pressure": -10,
+      "viable": false,
+      "risk": 0.47619047619047616,
+      "status": "uncertified-modeled-contact",
+      "defender_movement": 5.1872100830078125,
+      "body_contact_frame": null,
+      "defender_turning": 0.9375,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 1,
+      "profile": "high",
+      "scenario": "flank",
+      "safe": false,
+      "pressure": -18,
+      "viable": false,
+      "risk": 1.0,
+      "status": "projected-body-contact",
+      "defender_movement": 7.7010498046875,
+      "body_contact_frame": null,
+      "defender_turning": 0.0,
+      "checking_animation": false,
+      "possession_loss_frame": 16
+    },
+    {
+      "side": 1,
+      "profile": "high",
+      "scenario": "trailing",
+      "safe": false,
+      "pressure": -2,
+      "viable": true,
+      "risk": 0.19047619047619047,
+      "status": "uncertified-clear-samples",
+      "defender_movement": 10.958795619645919,
+      "body_contact_frame": null,
+      "defender_turning": 0.0,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 1,
+      "profile": "high",
+      "scenario": "remote",
+      "safe": true,
+      "pressure": 4,
+      "viable": true,
+      "risk": 0.0,
+      "status": "certified-clear",
+      "defender_movement": 10.958795619645919,
+      "body_contact_frame": null,
+      "defender_turning": 0.966552734375,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 2,
+      "profile": "low",
+      "scenario": "head-on",
+      "safe": false,
+      "pressure": -4,
+      "viable": true,
+      "risk": 0.19047619047619047,
+      "status": "uncertified-clear-samples",
+      "defender_movement": 0.99505615234375,
+      "body_contact_frame": null,
+      "defender_turning": 1.875,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 2,
+      "profile": "low",
+      "scenario": "flank",
+      "safe": false,
+      "pressure": -18,
+      "viable": false,
+      "risk": 1.0,
+      "status": "projected-body-contact",
+      "defender_movement": 0.0,
+      "body_contact_frame": null,
+      "defender_turning": 0.75,
+      "checking_animation": true,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 2,
+      "profile": "low",
+      "scenario": "trailing",
+      "safe": true,
+      "pressure": 4,
+      "viable": true,
+      "risk": 0.0,
+      "status": "certified-clear",
+      "defender_movement": 5.74077570554812,
+      "body_contact_frame": null,
+      "defender_turning": 0.0,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 2,
+      "profile": "low",
+      "scenario": "remote",
+      "safe": true,
+      "pressure": 4,
+      "viable": true,
+      "risk": 0.0,
+      "status": "certified-clear",
+      "defender_movement": 5.544574103114049,
+      "body_contact_frame": null,
+      "defender_turning": 0.1787109375,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 2,
+      "profile": "high",
+      "scenario": "head-on",
+      "safe": false,
+      "pressure": -11,
+      "viable": true,
+      "risk": 0.19047619047619047,
+      "status": "uncertified-clear-samples",
+      "defender_movement": 1.91021728515625,
+      "body_contact_frame": null,
+      "defender_turning": 1.875,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 2,
+      "profile": "high",
+      "scenario": "flank",
+      "safe": false,
+      "pressure": -18,
+      "viable": false,
+      "risk": 1.0,
+      "status": "projected-body-contact",
+      "defender_movement": 0.0,
+      "body_contact_frame": null,
+      "defender_turning": 0.75,
+      "checking_animation": true,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 2,
+      "profile": "high",
+      "scenario": "trailing",
+      "safe": false,
+      "pressure": -2,
+      "viable": true,
+      "risk": 0.19047619047619047,
+      "status": "uncertified-clear-samples",
+      "defender_movement": 10.958795619645919,
+      "body_contact_frame": null,
+      "defender_turning": 0.0,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    },
+    {
+      "side": 2,
+      "profile": "high",
+      "scenario": "remote",
+      "safe": true,
+      "pressure": 4,
+      "viable": true,
+      "risk": 0.0,
+      "status": "certified-clear",
+      "defender_movement": 10.589553869989649,
+      "body_contact_frame": null,
+      "defender_turning": 0.15478515625,
+      "checking_animation": false,
+      "possession_loss_frame": null
+    }
+  ],
+  "default_wing": [
+    {
+      "schema": "FILTERED",
+      "reception_frame": 5,
+      "recorded_shot_frame": 138,
+      "shooter": 0,
+      "initial_receiver": 0,
+      "values": {
+        "position": 47.9,
+        "finish": 0.0,
+        "opportunity": 28.74
+      }
+    },
+    {
+      "schema": "HOCKEY_INTENT_DPAD",
+      "reception_frame": 5,
+      "recorded_shot_frame": 138,
+      "shooter": 0,
+      "initial_receiver": 0,
+      "values": {
+        "position": 47.9,
+        "finish": 0.0,
+        "opportunity": 28.74
+      }
+    }
+  ],
+  "idle_wing": [
+    {
+      "schema": "FILTERED",
+      "reception_frame": 5,
+      "recorded_shot_frame": 107,
+      "shooter": 1,
+      "initial_receiver": 0,
+      "values": {
+        "position": 47.9,
+        "finish": 0.0,
+        "opportunity": 28.74
+      }
+    },
+    {
+      "schema": "HOCKEY_INTENT_DPAD",
+      "reception_frame": 5,
+      "recorded_shot_frame": 107,
+      "shooter": 1,
+      "initial_receiver": 0,
+      "values": {
+        "position": 47.9,
+        "finish": 0.0,
+        "opportunity": 28.74
+      }
+    }
+  ],
+  "active_wing": [
+    {
+      "schema": "FILTERED",
+      "reception_frame": 5,
+      "safe_through_frame": 23,
+      "values": {
+        "position": 47.9,
+        "finish": 0.0,
+        "opportunity": 28.74
+      }
+    },
+    {
+      "schema": "HOCKEY_INTENT_DPAD",
+      "reception_frame": 5,
+      "safe_through_frame": 23,
+      "values": {
+        "position": 47.9,
+        "finish": 0.0,
+        "opportunity": 28.74
+      }
+    }
+  ],
+  "sources": {
+    "agents/carry.py": "425a03f07eb619ff5dcd3ebd9d23f2781617607f8d6bd5c63e2d5bb32d666855",
+    "agents/offense.py": "452a948edac9a6d049b287e68a0f1436dceb82789f8c9de7b72c792873fbef8f",
+    "agents/classic_v1.py": "9add26d7b5d970ac66a37086b5901bf81f18214ddde4ced2e14f02fa8d7536c4",
+    "agents/passing.py": "1650f9054a67e542f038b6362bf1019b58e98320850bc096d78d9f0e4ba10cec",
+    "game/state.py": "4299cae30c31333fa406cea0a21de9202a5704250742686cacd83c3729042d3b",
+    "agents/skating.py": "1a8435b78633369273eb7ceb2cb3da2cd59d2cdf368241cc9df2d54fe398e076",
+    "tests/integration/classic_carry.py": "fb80e6ccfe68a98805eabbea1146609d7bfde2f0cceb74fa5c2abe81d35550a7"
+  }
+}

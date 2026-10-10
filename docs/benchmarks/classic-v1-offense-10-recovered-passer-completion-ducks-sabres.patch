@@ -1,0 +1,21 @@
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -413,7 +413,7 @@
+     def _observe_one_timer(self, state):
+         if self._one_timer is None:
+             return False
+-        passer, slot, _ = self._one_timer
++        _, slot, _ = self._one_timer
+         if state.engine.clock_stopped:
+             self._end_one_timer('play-stopped')
+             return True
+@@ -421,8 +421,7 @@
+         released = (attempts is not None and self._one_timer_attempts_before is not None
+                     and attempts > self._one_timer_attempts_before)
+         recorded = state.team1.stats.shots > self._one_timer_shots_before
+-        if (state.engine.puck_owner != passer and state.engine.shot_player == slot
+-                and (released or recorded)):
++        if state.engine.shot_player == slot and (released or recorded):
+             self._end_one_timer('shot-released')
+         elif self.defense.frames >= self._one_timer[2]:
+             self._end_one_timer('timeout')

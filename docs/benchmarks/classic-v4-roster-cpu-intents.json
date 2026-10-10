@@ -1,0 +1,3203 @@
+{
+  "protocol": "nhl94-cpu-first-period-v1",
+  "settings": {
+    "agent": "classic-v4",
+    "matchups": [
+      "penguins-senators",
+      "senators-penguins",
+      "nordiques-canadiens"
+    ],
+    "trials": 10,
+    "seed": 9000,
+    "seconds": 300,
+    "frame_skip": 4,
+    "action_type": "HOCKEY_INTENT_DPAD",
+    "workers": 4,
+    "output": "/tmp/nhl94-v4-roster-cpu-intents.json",
+    "config": null
+  },
+  "sources": {
+    "nhl94_ai/env/actions.py": "123ddff2363574d47d8b6f002a2d0459cf40ee35e06a102562839ecf9da28daa",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "8acb54bcceb81d331ac2fb8b855761feefcf79d50beb8cc24ab710040e33a248",
+    "nhl94_ai/game/ram.py": "d95a3b51c77a03bd806a3cea7b469c8cae6afb1e5eea1483c370f76ea3708175",
+    "nhl94_ai/game/state.py": "d7c02f585814cee57e93684dba5cc9bc0b749d725f11baea45dc9505d85a67de",
+    "nhl94_ai/env/factory.py": "e0ff55468159a1711e465512140a702d99578ed6abf76384ec51dc8adf669c47",
+    "nhl94_ai/agents/classic_v4.py": "da7b56cb7964db7f9b3b363753c579657456becbc66d6de3176acf0b37e7be66",
+    "nhl94_ai/evaluation/benchmark.py": "8d932420998e57a5bf93d8966e8d0a9df2ec096a7f2ff230b9e4f5042b27e0cf"
+  },
+  "versions": {
+    "nhl94-ai": "0.1.0",
+    "stable-retro": "1.0.1",
+    "numpy": "2.5.1"
+  },
+  "limitations": [
+    "Fixed starting rosters, first periods only; not full-game win rates.",
+    "Away trials transfer the joystick to the away team and correct RAM control observations.",
+    "Home trials retain normal star-derived control inference. Both use the raw emulator to clock zero.",
+    "Team changes also change opponents; this does not isolate any individual rating effect."
+  ],
+  "summary": {
+    "penguins-senators": {
+      "periods": 10,
+      "wins": 4,
+      "draws": 4,
+      "losses": 2,
+      "goals_for": 7,
+      "goals_against": 5,
+      "one_timer_setups": 19,
+      "one_timers": 8,
+      "one_timer_goals": 2,
+      "periods_without_one_timers": 5
+    },
+    "senators-penguins": {
+      "periods": 10,
+      "wins": 1,
+      "draws": 8,
+      "losses": 1,
+      "goals_for": 5,
+      "goals_against": 6,
+      "one_timer_setups": 18,
+      "one_timers": 6,
+      "one_timer_goals": 4,
+      "periods_without_one_timers": 7
+    },
+    "nordiques-canadiens": {
+      "periods": 10,
+      "wins": 1,
+      "draws": 4,
+      "losses": 5,
+      "goals_for": 5,
+      "goals_against": 13,
+      "one_timer_setups": 17,
+      "one_timers": 3,
+      "one_timer_goals": 2,
+      "periods_without_one_timers": 8
+    }
+  },
+  "matches": [
+    {
+      "agent": "classic-v4",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 9000,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        5,
+        3
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1600,
+        "carry": 507,
+        "switch": 78,
+        "one-timer-setup": 17,
+        "shoot": 12,
+        "shot-follow-through": 60,
+        "goalie-outlet": 8,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 3,
+        "one-timer-wait": 34
+      },
+      "frames": 9289,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "866eaaa197a45d3a305611b9c72ef67ef970c8d530a163a5264f0eeef933a93c",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 9001,
+      "goals": [
+        1,
+        2
+      ],
+      "shots": [
+        2,
+        5
+      ],
+      "one_timers": [
+        1,
+        1
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "recover": 1602,
+        "carry": 505,
+        "switch": 74,
+        "goalie-outlet": 34,
+        "shoot": 4,
+        "shot-follow-through": 8,
+        "one-timer-setup": 48,
+        "one-timer-pass": 3,
+        "one-timer-wait": 43,
+        "one-timer-shoot": 8
+      },
+      "frames": 9316,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "57e639dc45194e9010d421811c413cbfeb01fb21d8e0facacbda92f35427db4d",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 9002,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        1,
+        6
+      ],
+      "one_timers": [
+        4,
+        3
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "recover": 1251,
+        "carry": 507,
+        "shoot": 9,
+        "shot-follow-through": 54,
+        "switch": 76,
+        "goalie-outlet": 39,
+        "one-timer-setup": 11,
+        "one-timer-pass": 4,
+        "one-timer-shoot": 15,
+        "one-timer-wait": 46
+      },
+      "frames": 8048,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "eda2dfdf41147046f153c848ffd80188f2d28b2d5983cf728ab80808a5ac216c",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 9003,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        2,
+        8
+      ],
+      "one_timers": [
+        0,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "recover": 1597,
+        "carry": 464,
+        "switch": 85,
+        "shoot": 7,
+        "shot-follow-through": 34,
+        "goalie-outlet": 42,
+        "one-timer-setup": 15,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 1
+      },
+      "frames": 8986,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "4a24e230e44c99f79934e6bcd6c35078e9d4f4589be79d5c2503fdfb0e805585",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 9004,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        6
+      ],
+      "one_timers": [
+        1,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1352,
+        "carry": 567,
+        "shoot": 7,
+        "shot-follow-through": 30,
+        "switch": 60,
+        "goalie-outlet": 31,
+        "one-timer-setup": 24,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 12
+      },
+      "frames": 8340,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "a0eb57da7569748dfd71a89c7e5432cccb073464d3ffe4f6127e4ad74dd40e33",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 9005,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1573,
+        "carry": 511,
+        "switch": 74,
+        "goalie-outlet": 20,
+        "shoot": 6,
+        "shot-follow-through": 25,
+        "one-timer-setup": 14,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 3
+      },
+      "frames": 8912,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "e0e372e2eb157cf3eef8d480cb6cbdd072c292b4ed968b06f29a7b06dacf14ba",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 9006,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        5,
+        8
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1292,
+        "switch": 74,
+        "carry": 564,
+        "shoot": 9,
+        "shot-follow-through": 39,
+        "goalie-outlet": 25,
+        "one-timer-pass": 2,
+        "one-timer-wait": 14,
+        "one-timer-shoot": 7,
+        "one-timer-setup": 4
+      },
+      "frames": 8118,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "1940bfa3f64ceb68b3e631b884c54a05c789fe4990a5f1c74583c64ad6df029e",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 9007,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        0,
+        3
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1256,
+        "switch": 65,
+        "carry": 605,
+        "goalie-outlet": 19,
+        "shoot": 2,
+        "shot-follow-through": 12,
+        "one-timer-pass": 1,
+        "one-timer-wait": 17
+      },
+      "frames": 7908,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "1443d6cd633176c3a75345cfa1d2b320cb474c7622e5651e327f64608a1422fc",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 9008,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        1,
+        5
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1401,
+        "carry": 612,
+        "shoot": 10,
+        "shot-follow-through": 57,
+        "switch": 71,
+        "one-timer-setup": 8,
+        "goalie-outlet": 4
+      },
+      "frames": 8651,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "daa899870dbd3f9ea8ca39fdeb8b0b96c3010153fad08a5d98d395d4ebfe273c",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "penguins-senators",
+      "side": 1,
+      "seed": 9009,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        2,
+        6
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1333,
+        "carry": 593,
+        "switch": 58,
+        "goalie-outlet": 44,
+        "shoot": 9,
+        "shot-follow-through": 54,
+        "one-timer-setup": 14,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 7,
+        "one-timer-wait": 19
+      },
+      "frames": 8535,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "41ebb9b8edec56454ca57805f4e92930f23419c16c08c8011a1701b8d6ea8ca5",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 9000,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        6,
+        0
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1262,
+        "switch": 65,
+        "carry": 561,
+        "goalie-outlet": 29,
+        "one-timer-setup": 4,
+        "shoot": 6,
+        "shot-follow-through": 28,
+        "one-timer-pass": 1,
+        "one-timer-wait": 16,
+        "one-timer-shoot": 1
+      },
+      "frames": 7892,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "ba7cf43fd5d220de53f5d47908ad11b3f9a0b11d1f27d0e347391b39db7aca89",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 9001,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        3,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1295,
+        "carry": 582,
+        "switch": 69,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "goalie-outlet": 10,
+        "one-timer-setup": 3
+      },
+      "frames": 7843,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "1293ad152afe2018009b8934479f66638c5a22bb042d6d5c510518e0964930d2",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 9002,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        2,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1138,
+        "carry": 718,
+        "shoot": 5,
+        "shot-follow-through": 22,
+        "switch": 52,
+        "goalie-outlet": 19,
+        "one-timer-setup": 8
+      },
+      "frames": 7846,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "76eb7b77bf0806493fcf6a3bfe3f917e4e44db1be76acc3227e034888bff4f68",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 9003,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        8,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1630,
+        "carry": 533,
+        "switch": 60,
+        "one-timer-pass": 3,
+        "one-timer-wait": 15,
+        "one-timer-shoot": 10,
+        "shoot": 3,
+        "shot-follow-through": 12,
+        "goalie-outlet": 41
+      },
+      "frames": 9227,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "57f4c7f9b5a158d111e6a03e4530f097b31b30cbf84a5a39c730364eb9af5be5",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 9004,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        7,
+        2
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1482,
+        "carry": 659,
+        "switch": 56,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 6,
+        "one-timer-wait": 10,
+        "goalie-outlet": 39,
+        "shoot": 4,
+        "shot-follow-through": 19,
+        "one-timer-setup": 16
+      },
+      "frames": 9173,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "9b31f476aeca75c9aaa1520e69e7602ad667fcd139d91f2019832383ad299447",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 9005,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        5,
+        1
+      ],
+      "one_timers": [
+        2,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "recover": 1374,
+        "carry": 510,
+        "switch": 62,
+        "goalie-outlet": 20,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 7,
+        "one-timer-wait": 10,
+        "shoot": 3,
+        "shot-follow-through": 17
+      },
+      "frames": 8016,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "bf1422af5a01fc524a586025aea44c1bc1df126fff545b26706a52515c79b412",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 9006,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1530,
+        "switch": 55,
+        "goalie-outlet": 5,
+        "carry": 708,
+        "one-timer-setup": 7,
+        "shoot": 1,
+        "shot-follow-through": 6
+      },
+      "frames": 9247,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "a4691c9cc5932a91dc474c91f2e4ae7cc8c45cb534f27a6011c31c9c7cf9f822",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 9007,
+      "goals": [
+        2,
+        2
+      ],
+      "shots": [
+        5,
+        3
+      ],
+      "one_timers": [
+        3,
+        3
+      ],
+      "one_timer_goals": [
+        0,
+        2
+      ],
+      "decisions": {
+        "recover": 2013,
+        "carry": 704,
+        "shoot": 2,
+        "shot-follow-through": 6,
+        "switch": 61,
+        "one-timer-setup": 44,
+        "one-timer-pass": 6,
+        "one-timer-shoot": 24,
+        "one-timer-wait": 61,
+        "goalie-outlet": 8
+      },
+      "frames": 11714,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "dd2787febd72742c7baf20538853962a2e8d2eafcc0205fef941c1fc1c99680d",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 9008,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        7,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1373,
+        "carry": 646,
+        "switch": 62,
+        "shoot": 2,
+        "shot-follow-through": 12,
+        "goalie-outlet": 33,
+        "one-timer-setup": 8,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 9,
+        "one-timer-wait": 8
+      },
+      "frames": 8617,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "2c69b447598441a3a1135b8db71d7489f2882d9fee18915e681c50e609fadaa1",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "senators-penguins",
+      "side": 2,
+      "seed": 9009,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timers": [
+        0,
+        2
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "recover": 1666,
+        "switch": 62,
+        "carry": 626,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 9,
+        "one-timer-wait": 14,
+        "one-timer-setup": 8,
+        "goalie-outlet": 11,
+        "shoot": 1,
+        "shot-follow-through": 6
+      },
+      "frames": 9624,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        17,
+        15
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Jaromir Jagr",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 1,
+          "name": "Kevin Stevens",
+          "shot_accuracy": 22
+        },
+        {
+          "slot": 2,
+          "name": "Mario Lemieux",
+          "shot_accuracy": 30
+        },
+        {
+          "slot": 3,
+          "name": "Ulf Samuelsson",
+          "shot_accuracy": 2
+        },
+        {
+          "slot": 4,
+          "name": "Larry Murphy",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 5,
+          "name": "Tom Barrasso",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Bob Kudelski",
+          "shot_accuracy": 17
+        },
+        {
+          "slot": 7,
+          "name": "Sylvain Turgeon",
+          "shot_accuracy": 6
+        },
+        {
+          "slot": 8,
+          "name": "Jamie Baker",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 9,
+          "name": "Norm Maciver",
+          "shot_accuracy": 5
+        },
+        {
+          "slot": 10,
+          "name": "Brad Shaw",
+          "shot_accuracy": 0
+        },
+        {
+          "slot": 11,
+          "name": "Peter Sidorkwicz",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "cb1c950eafa9ffea1e26a2cdd383cb43d9d36a8913419352b617ee5d594ac06c",
+      "initial_state_sha256": "6e4b9024dd0f9f4f92e6e44af71667a62fa88aa7bec7560dc202dc474f9221c7"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9000,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        5,
+        3
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1292,
+        "carry": 638,
+        "one-timer-setup": 22,
+        "switch": 62,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 2,
+        "one-timer-wait": 12,
+        "goalie-outlet": 14,
+        "shoot": 5,
+        "shot-follow-through": 20
+      },
+      "frames": 8275,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "6c7f00abccc24290385ac3b6197edb759730b07c32a096ea69f4ee80ec7d15e7",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9001,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        7,
+        0
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1356,
+        "carry": 599,
+        "switch": 63,
+        "shoot": 10,
+        "shot-follow-through": 44,
+        "goalie-outlet": 28,
+        "one-timer-pass": 1,
+        "one-timer-shoot": 1,
+        "one-timer-setup": 12
+      },
+      "frames": 8455,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "d8970cfcf24fb661a61d0383558a082938717df6b417d7ee109d2a42e6768173",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9002,
+      "goals": [
+        0,
+        0
+      ],
+      "shots": [
+        5,
+        2
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1096,
+        "carry": 747,
+        "shoot": 5,
+        "shot-follow-through": 24,
+        "switch": 44,
+        "goalie-outlet": 21,
+        "one-timer-setup": 20
+      },
+      "frames": 7827,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "f0a1ec5b24ed190566276d9b6dfb00d562912ccfa394f5f220f0ffb14d1ae65b",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9003,
+      "goals": [
+        4,
+        0
+      ],
+      "shots": [
+        7,
+        0
+      ],
+      "one_timers": [
+        4,
+        0
+      ],
+      "one_timer_goals": [
+        1,
+        0
+      ],
+      "decisions": {
+        "recover": 1951,
+        "switch": 77,
+        "carry": 497,
+        "one-timer-pass": 4,
+        "one-timer-shoot": 7,
+        "one-timer-wait": 22,
+        "one-timer-setup": 16,
+        "shoot": 2,
+        "shot-follow-through": 12,
+        "goalie-outlet": 10
+      },
+      "frames": 10393,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "88adfb47a79e1b4fb50b9e7e4d845d4ebc93d4bcb9bdf1aed03cd6fa0e0a1618",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9004,
+      "goals": [
+        1,
+        1
+      ],
+      "shots": [
+        10,
+        2
+      ],
+      "one_timers": [
+        3,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1470,
+        "carry": 581,
+        "switch": 78,
+        "goalie-outlet": 15,
+        "shoot": 3,
+        "shot-follow-through": 13
+      },
+      "frames": 8638,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "2e9e09d8c9d6649e4ca8d43cd3a9089e016ec2e8682e7dd4db806069ef229d90",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9005,
+      "goals": [
+        2,
+        1
+      ],
+      "shots": [
+        4,
+        3
+      ],
+      "one_timers": [
+        0,
+        1
+      ],
+      "one_timer_goals": [
+        0,
+        1
+      ],
+      "decisions": {
+        "recover": 1689,
+        "carry": 607,
+        "switch": 59,
+        "one-timer-setup": 27,
+        "shoot": 3,
+        "shot-follow-through": 6,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 8,
+        "goalie-outlet": 13,
+        "one-timer-wait": 10
+      },
+      "frames": 9695,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "3ce29b3e6892a66d3807dcab0f86838b7e6608d4f83b5b2420c0688500e57c38",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9006,
+      "goals": [
+        2,
+        0
+      ],
+      "shots": [
+        10,
+        0
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1732,
+        "switch": 74,
+        "goalie-outlet": 34,
+        "carry": 534,
+        "shoot": 3,
+        "shot-follow-through": 12,
+        "one-timer-pass": 1
+      },
+      "frames": 9561,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "2122438c916cd0f1c266e9dab835171f77d28c9cd10fa4a635c8c256a398aa0c",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9007,
+      "goals": [
+        2,
+        2
+      ],
+      "shots": [
+        4,
+        2
+      ],
+      "one_timers": [
+        2,
+        2
+      ],
+      "one_timer_goals": [
+        2,
+        1
+      ],
+      "decisions": {
+        "recover": 1940,
+        "switch": 75,
+        "carry": 572,
+        "one-timer-setup": 12,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 16,
+        "one-timer-wait": 18,
+        "shoot": 2,
+        "shot-follow-through": 11,
+        "goalie-outlet": 10
+      },
+      "frames": 10632,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "cdbef440606145b52bd35f9f3111d3a9404899a4ee2723c8304cb5f0236eb697",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9008,
+      "goals": [
+        1,
+        0
+      ],
+      "shots": [
+        4,
+        0
+      ],
+      "one_timers": [
+        0,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1660,
+        "carry": 591,
+        "switch": 51,
+        "one-timer-pass": 3,
+        "one-timer-shoot": 10,
+        "one-timer-wait": 15,
+        "goalie-outlet": 21,
+        "shoot": 5,
+        "shot-follow-through": 24,
+        "one-timer-setup": 19
+      },
+      "frames": 9596,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "9236a5f986c7100455b0a82cb5c311056a644ed5f1dd155981d03d713b2da899",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    },
+    {
+      "agent": "classic-v4",
+      "matchup": "nordiques-canadiens",
+      "side": 2,
+      "seed": 9009,
+      "goals": [
+        0,
+        1
+      ],
+      "shots": [
+        4,
+        3
+      ],
+      "one_timers": [
+        1,
+        0
+      ],
+      "one_timer_goals": [
+        0,
+        0
+      ],
+      "decisions": {
+        "recover": 1528,
+        "carry": 516,
+        "shoot": 11,
+        "shot-follow-through": 44,
+        "switch": 63,
+        "goalie-outlet": 21,
+        "one-timer-setup": 13,
+        "one-timer-pass": 2,
+        "one-timer-shoot": 1,
+        "one-timer-wait": 12
+      },
+      "frames": 8843,
+      "clock_remaining": 0,
+      "completed": true,
+      "teams": [
+        11,
+        18
+      ],
+      "lineup": [
+        {
+          "slot": 0,
+          "name": "Brian Bellows",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 1,
+          "name": "Vincent Damphousse",
+          "shot_accuracy": 16
+        },
+        {
+          "slot": 2,
+          "name": "Kirk Muller",
+          "shot_accuracy": 20
+        },
+        {
+          "slot": 3,
+          "name": "Eric Desjardins",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 4,
+          "name": "Matt Schneider",
+          "shot_accuracy": 11
+        },
+        {
+          "slot": 5,
+          "name": "Patrick Roy",
+          "shot_accuracy": null
+        },
+        {
+          "slot": 6,
+          "name": "Owen Nolan",
+          "shot_accuracy": 18
+        },
+        {
+          "slot": 7,
+          "name": "Joe Sakic",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 8,
+          "name": "Mats Sundin",
+          "shot_accuracy": 25
+        },
+        {
+          "slot": 9,
+          "name": "Steve Duchesne",
+          "shot_accuracy": 12
+        },
+        {
+          "slot": 10,
+          "name": "Curtis Leschyshyn",
+          "shot_accuracy": 15
+        },
+        {
+          "slot": 11,
+          "name": "Ron Hextall",
+          "shot_accuracy": null
+        }
+      ],
+      "actions_sha256": "6f51e31c1ac8ac7654e131e16c1d1d2fa41e9eb9fabac0c46ca74dbdfd9a61d2",
+      "initial_state_sha256": "25f4aaa1bff63f0781970cd7a1d555dbdc3577e0dfd262b430b1f553e454898a"
+    }
+  ]
+}

@@ -1,0 +1,5181 @@
+{
+  "version": "native-one-timer-admission-rule-v1",
+  "rule": null,
+  "split": {
+    "training": {
+      "sha256": "d28a8e8996e6af29f3d9dbc528aca777d07272c895530da2a0bdbbafd99a9416",
+      "cases": 319,
+      "seeds": [
+        26101,
+        26102,
+        26103,
+        26104,
+        26105,
+        26106,
+        26107,
+        26108,
+        26109,
+        26110,
+        26111,
+        26112,
+        26113,
+        26114,
+        26115,
+        26116,
+        26117,
+        26118,
+        26119,
+        26120
+      ],
+      "matchups": [
+        "ducks-sabres-manual",
+        "sabres-ducks-manual"
+      ]
+    },
+    "validation": {
+      "sha256": "2d86345c591e11ae3098e649c6a6b88d3883188ecbeeade340a42d5f25d4d9aa",
+      "cases": 170,
+      "seeds": [
+        26401,
+        26402,
+        26403,
+        26404,
+        26405,
+        26406,
+        26407,
+        26408,
+        26409,
+        26410
+      ],
+      "matchups": [
+        "ducks-sabres-manual",
+        "sabres-ducks-manual"
+      ]
+    }
+  },
+  "selection": {
+    "features": [
+      "contact_depth",
+      "contact_x",
+      "flight",
+      "margin",
+      "shot_value_gain",
+      "lateral_pass",
+      "receiver_vx",
+      "receiver_vy",
+      "goalie_vx",
+      "goalie_lateral_distance",
+      "carrier_animation_locked",
+      "receiver_animation_locked",
+      "baseline_shoot",
+      "baseline_pass"
+    ],
+    "quantiles": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "min_cases": 20,
+    "min_seeds": 5,
+    "min_training_reward_gain": 3,
+    "target": "Attack goal minus opponent continuation goal within the bounded replay.",
+    "receiver_choice": "Original shot-value, margin, slot ranking within the single relaxed gate."
+  },
+  "training": {
+    "totals": {
+      "cases": 319,
+      "overrides": 0,
+      "legacy_attack_goals": 62,
+      "selected_attack_goals": 62,
+      "legacy_against": 0,
+      "selected_against": 0,
+      "legacy_continuation_goals": 65,
+      "selected_continuation_goals": 65,
+      "paired_reward_gain": 0,
+      "selected_intended_one_timers": 4,
+      "selected_intended_one_timer_goals": 2
+    },
+    "decisions": [
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 333,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 985,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2989,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3769,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4433,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4952,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5531,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6267,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7132,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7540,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7956,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26101,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8016,
+        "baseline": "one-timer-setup",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26101,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4781,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6866,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26101,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7238,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1654,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1670,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3443,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3729,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4065,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4389,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5443,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5539,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5647,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5667,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6431,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7084,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8592,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1297,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1520,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26102,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1572,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26102,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4295,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5479,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6563,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26102,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7860,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 929,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1841,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3034,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4230,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4370,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4999,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5059,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5824,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6257,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6877,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7571,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1998,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4496,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4620,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6244,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6480,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26103,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6620,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "sabres-ducks-manual",
+        "frame": 601,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "sabres-ducks-manual",
+        "frame": 661,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2243,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2868,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4311,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4375,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4451,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1276,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1388,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1396,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1648,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26104,
+        "matchup": "ducks-sabres-manual",
+        "frame": 8946,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 849,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1770,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1830,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3037,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3733,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4353,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4429,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4437,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4549,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5653,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5873,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5969,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "sabres-ducks-manual",
+        "frame": 10117,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1197,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1265,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6853,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6949,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26105,
+        "matchup": "ducks-sabres-manual",
+        "frame": 8852,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 377,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 885,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1037,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1825,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1953,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2808,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3088,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4207,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4846,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5726,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5846,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7878,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8874,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "ducks-sabres-manual",
+        "frame": 353,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2540,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26106,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5082,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5110,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7900,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26106,
+        "matchup": "ducks-sabres-manual",
+        "frame": 8716,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26106,
+        "matchup": "ducks-sabres-manual",
+        "frame": 9876,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 469,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1506,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1730,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1794,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3207,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4061,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5094,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5868,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5948,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6144,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6184,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6204,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7192,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8818,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8854,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1853,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26107,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1917,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26107,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2795,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26107,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4307,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26107,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5103,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26107,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6059,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26107,
+        "matchup": "ducks-sabres-manual",
+        "frame": 8231,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "sabres-ducks-manual",
+        "frame": 513,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1010,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26108,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3386,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5375,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7048,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8250,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "ducks-sabres-manual",
+        "frame": 501,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1422,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2346,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3878,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4842,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6398,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26108,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6618,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "sabres-ducks-manual",
+        "frame": 317,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26109,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1500,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3163,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3223,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3800,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26109,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5519,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5727,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7013,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7715,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8466,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "ducks-sabres-manual",
+        "frame": 321,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1056,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2929,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26109,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7960,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26109,
+        "matchup": "ducks-sabres-manual",
+        "frame": 8080,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1305,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1489,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2745,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3796,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4580,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4648,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5260,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5700,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5884,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5988,
+        "baseline": "advance-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6056,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6772,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6832,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 549,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1602,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2706,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4697,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4765,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4933,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7128,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7384,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 9336,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 9444,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26110,
+        "matchup": "ducks-sabres-manual",
+        "frame": 10191,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1117,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1177,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1295,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1871,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7673,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7877,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2029,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2129,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4513,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5650,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26111,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6566,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26112,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1986,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26112,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2887,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26112,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2971,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26112,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4155,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26112,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4819,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26112,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5143,
+        "baseline": "advance-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26112,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5583,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26112,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2440,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26112,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4627,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26112,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5850,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26112,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5894,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26112,
+        "matchup": "ducks-sabres-manual",
+        "frame": 8397,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26112,
+        "matchup": "ducks-sabres-manual",
+        "frame": 9406,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26113,
+        "matchup": "sabres-ducks-manual",
+        "frame": 513,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1587,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1651,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2321,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3422,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26113,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5526,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5586,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6390,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "ducks-sabres-manual",
+        "frame": 678,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1414,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2062,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3017,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26113,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6728,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 341,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 429,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1031,
+        "baseline": "one-timer-setup",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3978,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4330,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6246,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6334,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6427,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7804,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8256,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8996,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "sabres-ducks-manual",
+        "frame": 9080,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "ducks-sabres-manual",
+        "frame": 888,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1765,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3703,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4446,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5632,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26114,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5692,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26114,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5816,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26114,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5888,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26114,
+        "matchup": "ducks-sabres-manual",
+        "frame": 8198,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26114,
+        "matchup": "ducks-sabres-manual",
+        "frame": 8394,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "sabres-ducks-manual",
+        "frame": 341,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1017,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2387,
+        "baseline": "advance-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26115,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3976,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5053,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5664,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7926,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8162,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "ducks-sabres-manual",
+        "frame": 301,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1660,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2587,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5047,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26115,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6162,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26116,
+        "matchup": "sabres-ducks-manual",
+        "frame": 321,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26116,
+        "matchup": "sabres-ducks-manual",
+        "frame": 433,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26116,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1590,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26116,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1690,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26116,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4056,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26116,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5893,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26116,
+        "matchup": "sabres-ducks-manual",
+        "frame": 10005,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26116,
+        "matchup": "sabres-ducks-manual",
+        "frame": 10061,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26116,
+        "matchup": "ducks-sabres-manual",
+        "frame": 709,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26116,
+        "matchup": "ducks-sabres-manual",
+        "frame": 777,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26116,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6307,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26116,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6311,
+        "baseline": "advance-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26116,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6539,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26116,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6647,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1542,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2408,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3497,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3981,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4875,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4951,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5555,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6279,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6355,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7751,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8424,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "ducks-sabres-manual",
+        "frame": 641,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26117,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3406,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5446,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26117,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6568,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26118,
+        "matchup": "sabres-ducks-manual",
+        "frame": 349,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26118,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1972,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26118,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2020,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26118,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3045,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26118,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3105,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26118,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3177,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26118,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6428,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26118,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6452,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26118,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3586,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26118,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5066,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26118,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6139,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26118,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6199,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 385,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 393,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1850,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2655,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2851,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3385,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3585,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3877,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4121,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4181,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4923,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5387,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5463,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6702,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1490,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4256,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5663,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26119,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6623,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "sabres-ducks-manual",
+        "frame": 337,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "sabres-ducks-manual",
+        "frame": 409,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "sabres-ducks-manual",
+        "frame": 927,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3890,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26120,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4806,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5934,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6786,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "ducks-sabres-manual",
+        "frame": 317,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1041,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1209,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2149,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26120,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2945,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      }
+    ]
+  },
+  "validation": {
+    "totals": {
+      "cases": 170,
+      "overrides": 0,
+      "legacy_attack_goals": 44,
+      "selected_attack_goals": 44,
+      "legacy_against": 1,
+      "selected_against": 1,
+      "legacy_continuation_goals": 46,
+      "selected_continuation_goals": 46,
+      "paired_reward_gain": 0,
+      "selected_intended_one_timers": 4,
+      "selected_intended_one_timer_goals": 3
+    },
+    "decisions": [
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 713,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2216,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3082,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3114,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4404,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4717,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5021,
+        "baseline": "advance-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6596,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7739,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7879,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26401,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7971,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26401,
+        "matchup": "ducks-sabres-manual",
+        "frame": 413,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1717,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2857,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5015,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6098,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6274,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26401,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7417,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "sabres-ducks-manual",
+        "frame": 755,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1119,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1191,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2427,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3732,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3924,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26402,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4992,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26402,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6107,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26402,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6135,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26402,
+        "matchup": "sabres-ducks-manual",
+        "frame": 9032,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "ducks-sabres-manual",
+        "frame": 557,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2433,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4455,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4919,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5887,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26402,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5975,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1017,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1875,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2923,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2999,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4604,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4664,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4724,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5892,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7068,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8232,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8304,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 9150,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "sabres-ducks-manual",
+        "frame": 9210,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1045,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1105,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3320,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4373,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26403,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4473,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26403,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5313,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26403,
+        "matchup": "ducks-sabres-manual",
+        "frame": 8798,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 837,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1997,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2069,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3390,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3826,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5246,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6198,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6250,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8270,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": -1,
+        "selected_reward": -1
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 9507,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "sabres-ducks-manual",
+        "frame": 9587,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2735,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2911,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3843,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26404,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6502,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "sabres-ducks-manual",
+        "frame": 869,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1073,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2160,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26405,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2320,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26405,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3218,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5790,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7467,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7899,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8203,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8411,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1954,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26405,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2202,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26405,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5244,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6606,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6666,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7351,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26405,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7695,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2693,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3782,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26406,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3826,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26406,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5406,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26406,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6290,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6498,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7166,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7938,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8103,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2897,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3876,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3952,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4662,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26406,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5819,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6499,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7257,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26406,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7569,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 345,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 409,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1461,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1525,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1569,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2361,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2473,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3438,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4682,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4770,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5626,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6866,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6926,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "ducks-sabres-manual",
+        "frame": 809,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26407,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1101,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26407,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2337,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2381,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26407,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3360,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26407,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3448,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1073,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1141,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2122,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5147,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6307,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6395,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6595,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6671,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6731,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6751,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7418,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7442,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26408,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8293,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "ducks-sabres-manual",
+        "frame": 501,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26408,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3905,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4997,
+        "baseline": "advance-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "ducks-sabres-manual",
+        "frame": 5933,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26408,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6765,
+        "baseline": "feint",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 469,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1390,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2613,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 2705,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 3448,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4212,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4320,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5072,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5304,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5907,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6458,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 1,
+        "selected_reward": 1
+      },
+      {
+        "seed": 26409,
+        "matchup": "ducks-sabres-manual",
+        "frame": 349,
+        "baseline": "shoot",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1073,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1833,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2049,
+        "baseline": "one-timer-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26409,
+        "matchup": "ducks-sabres-manual",
+        "frame": 6662,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "sabres-ducks-manual",
+        "frame": 1357,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4195,
+        "baseline": "carry-breakaway",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4487,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "sabres-ducks-manual",
+        "frame": 4667,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "sabres-ducks-manual",
+        "frame": 5346,
+        "baseline": "advance-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "sabres-ducks-manual",
+        "frame": 6090,
+        "baseline": "carry-escape",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7515,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "sabres-ducks-manual",
+        "frame": 7611,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "sabres-ducks-manual",
+        "frame": 8227,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "ducks-sabres-manual",
+        "frame": 337,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "ducks-sabres-manual",
+        "frame": 2194,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "ducks-sabres-manual",
+        "frame": 3345,
+        "baseline": "position-pass",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "ducks-sabres-manual",
+        "frame": 4682,
+        "baseline": "goalie-avoid",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      },
+      {
+        "seed": 26410,
+        "matchup": "ducks-sabres-manual",
+        "frame": 7222,
+        "baseline": "carry",
+        "selected_slot": null,
+        "gate": null,
+        "legacy_reward": 0,
+        "selected_reward": 0
+      }
+    ]
+  },
+  "top_training_rules": [],
+  "supported_rule_count": 108,
+  "best_supported_training_rules": [
+    {
+      "rule": {
+        "gate": "position",
+        "feature": "goalie_vx",
+        "threshold": -0.05252838134765625,
+        "less_equal": true
+      },
+      "totals": {
+        "cases": 319,
+        "overrides": 20,
+        "legacy_attack_goals": 62,
+        "selected_attack_goals": 64,
+        "legacy_against": 0,
+        "selected_against": 0,
+        "legacy_continuation_goals": 65,
+        "selected_continuation_goals": 66,
+        "paired_reward_gain": 2,
+        "selected_intended_one_timers": 16,
+        "selected_intended_one_timer_goals": 6
+      }
+    },
+    {
+      "rule": {
+        "gate": "position",
+        "feature": "lateral_pass",
+        "threshold": 18.231564778194027,
+        "less_equal": false
+      },
+      "totals": {
+        "cases": 319,
+        "overrides": 25,
+        "legacy_attack_goals": 62,
+        "selected_attack_goals": 63,
+        "legacy_against": 0,
+        "selected_against": 0,
+        "legacy_continuation_goals": 65,
+        "selected_continuation_goals": 65,
+        "paired_reward_gain": 1,
+        "selected_intended_one_timers": 21,
+        "selected_intended_one_timer_goals": 7
+      }
+    },
+    {
+      "rule": {
+        "gate": "position",
+        "feature": "goalie_lateral_distance",
+        "threshold": 32.61847121725559,
+        "less_equal": true
+      },
+      "totals": {
+        "cases": 319,
+        "overrides": 37,
+        "legacy_attack_goals": 62,
+        "selected_attack_goals": 63,
+        "legacy_against": 0,
+        "selected_against": 0,
+        "legacy_continuation_goals": 65,
+        "selected_continuation_goals": 65,
+        "paired_reward_gain": 1,
+        "selected_intended_one_timers": 26,
+        "selected_intended_one_timer_goals": 8
+      }
+    },
+    {
+      "rule": {
+        "gate": "position",
+        "feature": "margin",
+        "threshold": 20.88197857895493,
+        "less_equal": true
+      },
+      "totals": {
+        "cases": 319,
+        "overrides": 25,
+        "legacy_attack_goals": 62,
+        "selected_attack_goals": 62,
+        "legacy_against": 0,
+        "selected_against": 0,
+        "legacy_continuation_goals": 65,
+        "selected_continuation_goals": 65,
+        "paired_reward_gain": 0,
+        "selected_intended_one_timers": 17,
+        "selected_intended_one_timer_goals": 6
+      }
+    },
+    {
+      "rule": {
+        "gate": "position",
+        "feature": "receiver_vx",
+        "threshold": 0.0988311767578125,
+        "less_equal": true
+      },
+      "totals": {
+        "cases": 319,
+        "overrides": 27,
+        "legacy_attack_goals": 62,
+        "selected_attack_goals": 62,
+        "legacy_against": 0,
+        "selected_against": 0,
+        "legacy_continuation_goals": 65,
+        "selected_continuation_goals": 65,
+        "paired_reward_gain": 0,
+        "selected_intended_one_timers": 23,
+        "selected_intended_one_timer_goals": 8
+      }
+    }
+  ],
+  "fixed_gate_controls": {
+    "training": {
+      "window": {
+        "cases": 319,
+        "overrides": 273,
+        "legacy_attack_goals": 62,
+        "selected_attack_goals": 28,
+        "legacy_against": 0,
+        "selected_against": 1,
+        "legacy_continuation_goals": 65,
+        "selected_continuation_goals": 32,
+        "paired_reward_gain": -35,
+        "selected_intended_one_timers": 189,
+        "selected_intended_one_timer_goals": 7
+      },
+      "position": {
+        "cases": 319,
+        "overrides": 50,
+        "legacy_attack_goals": 62,
+        "selected_attack_goals": 58,
+        "legacy_against": 0,
+        "selected_against": 0,
+        "legacy_continuation_goals": 65,
+        "selected_continuation_goals": 61,
+        "paired_reward_gain": -4,
+        "selected_intended_one_timers": 35,
+        "selected_intended_one_timer_goals": 9
+      }
+    },
+    "validation": {
+      "window": {
+        "cases": 170,
+        "overrides": 153,
+        "legacy_attack_goals": 44,
+        "selected_attack_goals": 21,
+        "legacy_against": 1,
+        "selected_against": 0,
+        "legacy_continuation_goals": 46,
+        "selected_continuation_goals": 24,
+        "paired_reward_gain": -22,
+        "selected_intended_one_timers": 108,
+        "selected_intended_one_timer_goals": 9
+      },
+      "position": {
+        "cases": 170,
+        "overrides": 20,
+        "legacy_attack_goals": 44,
+        "selected_attack_goals": 41,
+        "legacy_against": 1,
+        "selected_against": 1,
+        "legacy_continuation_goals": 46,
+        "selected_continuation_goals": 43,
+        "paired_reward_gain": -3,
+        "selected_intended_one_timers": 14,
+        "selected_intended_one_timer_goals": 7
+      }
+    }
+  },
+  "limitations": [
+    "Training alone chooses one rule; validation is a fixed-policy check.",
+    "Threshold search can overfit small correlated samples; fresh complete periods are required.",
+    "The diagnostic action can replace a preferred normal shot, so this is not merely deleting a gate.",
+    "Missing features keep Classic. Native executability is verified separately from eventual return."
+  ]
+}

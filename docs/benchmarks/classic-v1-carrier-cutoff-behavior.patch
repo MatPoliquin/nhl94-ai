@@ -1,0 +1,230 @@
+--- a/nhl94_ai/agents/defense.py
++++ b/nhl94_ai/agents/defense.py
+@@ -16,6 +16,9 @@
+ SWITCH_INTERVAL = 12
+ SWITCH_TIMEOUT = 8
+ SWITCH_MARGIN = 4
++CARRIER_HORIZON = LANE_HORIZON
++CUTOFF_MARGIN = 4
++CUTOFF_GAP = 8
+ 
+ 
+ def controlled_slot(team):
+@@ -62,6 +65,18 @@
+     shot_goal: tuple | None = None
+     lanes: tuple = ()
+     reserved_slots: tuple = ()
++    carrier_arrival: float | None = None
++    carrier_point: tuple | None = None
++    cutoff_slot: int | None = None
++
++
++@dataclass(frozen=True)
++class CarrierCutoff:
++    carrier_slot: int
++    defender_slot: int
++    deadline: int
++    point: tuple
++    target: tuple
+ 
+ 
+ class DefenseController:
+@@ -77,6 +92,9 @@
+         self.last_selection = None
+         self.b_down = self.c_down = False
+         self.last_owner = -1
++        self.carrier_cutoff = None
++        self.cutoff_retry_at = 0
++        self.cutoff_owner = -1
+         self.diagnostics = {}
+ 
+     def idle(self, elapsed):
+@@ -85,6 +103,9 @@
+         self.switch_attempts = 0
+         self.pending_switch = self.last_switch_result = self.last_selection = None
+         self.pending_check = None
++        self.carrier_cutoff = None
++        self.cutoff_retry_at = 0
++        self.cutoff_owner = -1
+         self.b_down = self.c_down = False
+         self.diagnostics = {}
+ 
+@@ -243,12 +264,113 @@
+         missing = player.motion_x is None or player.speed is None or player.energy is None
+         return 10 if missing else 5
+ 
++    def _leaves_receiver_lane(self, state, carrier_slot, actual):
++        sign = 1 if state.team1.net.y > 0 else -1
++        return any(
++            lane.blockers == (actual,)
++            for slot, receiver in skaters(state.team2)
++            if slot != carrier_slot and abs(receiver.x) <= Buttons.SLOT_BAND_MAX_X
++            and Buttons.SLOT_BAND_MIN_Y < receiver.y * sign < 244
++            for lane in self._shot_lanes(state, (receiver.x, receiver.y), slot)
++        )
++
++    def _continue_cutoff(self, state, slot, carrier, candidates, lane):
++        request = self.carrier_cutoff
++        if request is None:
++            return None
++        player = next((player for number, player in candidates if number == request.defender_slot), None)
++        vx, vy = velocity(carrier)
++        remaining = request.deadline - self.frames
++        forecast = carrier.x + vx * max(0, remaining), carrier.y + vy * max(0, remaining)
++        arrived = player is not None and math.dist((player.x, player.y), request.target) <= 7
++        timely = player is not None and (
++            arrived or self._cost(state, request.defender_slot, player, request.target) + CUTOFF_MARGIN <= remaining)
++        if (request.carrier_slot == slot and remaining >= -CUTOFF_MARGIN
++                and math.dist(forecast, request.point) <= CUTOFF_GAP and timely):
++            return replace(lane, target=request.target, mode='intercept-carrier',
++                           reason='retain reachable cutoff; do not move its deadline ahead of carrier',
++                           carrier_arrival=max(0, remaining), carrier_point=request.point,
++                           cutoff_slot=request.defender_slot)
++        self.carrier_cutoff = None
++        self.cutoff_retry_at = self.frames + SWITCH_INTERVAL if request.carrier_slot == slot else self.frames
++        return None
++
++    def _cutoff_candidates(self, state, carrier_slot):
++        available = controlled_slot(state.team1), self._likely_switch(state)
++        required = ('motion_x', 'motion_y', 'speed', 'agility', 'weight', 'energy', 'facing')
++        return [(number, player) for number, player in skaters(state.team1)
++                if number in available and all(getattr(player, name) is not None for name in required)
++                and not self._leaves_receiver_lane(state, carrier_slot, number)]
++
++    def _carrier_plan(self, state, slot, carrier):
++        if slot != self.cutoff_owner:
++            self.carrier_cutoff = None
++            self.cutoff_retry_at = 0
++            self.cutoff_owner = slot
++        vx, vy = velocity(carrier)
++        threat = project_target((carrier.x + vx * 8, carrier.y + vy * 8))
++        lane = self._lane(state, threat, slot, check_receivers=True)
++        sign = 1 if state.team1.net.y > 0 else -1
++        actual = controlled_slot(state.team1)
++        if lane.mode != 'protect-lane' or lane.reserved_slots or actual < 0:
++            self.carrier_cutoff = None
++            return lane
++        if self.pending_switch or self.pending_check:
++            self.carrier_cutoff = None
++            return lane
++        can_start = abs(carrier.y) < Buttons.SLOT_BAND_MIN_Y and vy * sign > 0.25
++        if not can_start and self.carrier_cutoff is None:
++            return lane
++        if carrier.motion_x is None or carrier.motion_y is None:
++            self.carrier_cutoff = None
++            return replace(lane, reason='carrier cutoff needs live motion; protect shooting lane')
++        candidates = self._cutoff_candidates(state, slot)
++        if not candidates:
++            self.carrier_cutoff = None
++            return replace(lane, reason='no verified free cutoff skater; protect shooting lane')
++        continuing = self._continue_cutoff(state, slot, carrier, candidates, lane)
++        if continuing is not None:
++            return continuing
++        if not can_start:
++            return lane
++        horizon = CARRIER_HORIZON if self.frames >= self.cutoff_retry_at else 0
++        for frames in range(8, horizon + 1, 4):
++            point = carrier.x + vx * frames, carrier.y + vy * frames
++            if (math.dist(point, project_target(point)) > 1e-6 or point[1] * sign >= 224):
++                break
++            dx, dy = lane.shot_goal[0] - point[0], state.team1.net.y - point[1]
++            length = max(1, math.hypot(dx, dy))
++            target = point[0] + dx * CUTOFF_GAP / length, point[1] + dy * CUTOFF_GAP / length
++            if math.dist(target, project_target(target)) > 1e-6:
++                continue
++            arrivals = [(self._cost(state, number, player, target), number)
++                        for number, player in candidates
++                        if route_waypoint((player.x, player.y), target) == target]
++            timely = [(time, number) for time, number in arrivals if time + CUTOFF_MARGIN <= frames]
++            if timely:
++                _, number = min(timely)
++                self.carrier_cutoff = CarrierCutoff(slot, number, self.frames + frames, point, target)
++                return replace(lane, target=target, mode='intercept-carrier',
++                               reason='reach goal-side cutoff before carrier, including turn and switch delay',
++                               carrier_arrival=frames, carrier_point=point, cutoff_slot=number)
++        player = next((player for number, player in candidates if number == actual), None)
++        if player is None or self._goal_side(state.team1, (player.x, player.y), (carrier.x, carrier.y)):
++            return lane
++        depth = Buttons.SLOT_BAND_MIN_Y + 32
++        fraction = (depth - carrier.y * sign) / (abs(state.team1.net.y) - carrier.y * sign)
++        target = (carrier.x + (lane.shot_goal[0] - carrier.x) * fraction, sign * depth)
++        return replace(lane, target=project_target(target), mode='retreat-lane',
++                       reason='no reachable carrier cutoff; recover inner defensive lane instead of chasing')
++
+     def choose_target(self, state):
+         owner = state.engine.puck_owner
+         opponents = skaters(state.team2)
+         goalie = state.team2.goalie
+         goalie_slot = state.team2.goalie_scnum() if state.team2.defense_goalie is None else state.team2.defense_goalie
+         if owner == goalie_slot:
++            self.carrier_cutoff = None
++            self.cutoff_retry_at = 0
++            self.cutoff_owner = -1
+             if opponents:
+                 slot, receiver = min(opponents, key=lambda row: math.dist(
+                     (row[1].x, row[1].y), (goalie.x, goalie.y)))
+@@ -260,10 +382,11 @@
+         carrier = next(((slot, player) for slot, player in opponents if slot == owner), None)
+         if carrier is not None:
+             slot, player = carrier
+-            vx, vy = velocity(player)
+-            threat = project_target((player.x + vx * 8, player.y + vy * 8))
+-            return self._lane(state, threat, slot, check_receivers=True)
+-
++            return self._carrier_plan(state, slot, player)
++
++        self.carrier_cutoff = None
++        self.cutoff_retry_at = 0
++        self.cutoff_owner = -1
+         path = puck_path(state.puck)
+         friends = skaters(state.team1)
+         actual, likely = controlled_slot(state.team1), self._likely_switch(state)
+@@ -345,14 +468,22 @@
+         costs = {slot: self._cost(state, slot, player, target) for slot, player in candidates}
+         actual = controlled_slot(state.team1)
+         available = (actual, self._likely_switch(state))
++        if self.plan and self.plan.mode == 'intercept-carrier':
++            available = tuple(slot for slot, _ in self._cutoff_candidates(state, self.plan.threat_slot))
+         reachable = {slot: cost for slot, cost in costs.items() if slot in available}
+         best = min(reachable, key=reachable.get) if reachable else None
+         current_can_wait = True
+         if self.plan and self.plan.mode in ('recover-safe', 'intercept-pass') and actual in costs:
+             player = next(player for slot, player in candidates if slot == actual)
+             current_can_wait = costs[actual] + self._race_margin(player) <= self.plan.puck_arrival
+-        if actual in costs and costs[actual] <= costs[best] + SWITCH_MARGIN and current_can_wait:
++        elif self.plan and self.plan.mode == 'intercept-carrier' and actual in costs:
++            current_can_wait = costs[actual] + CUTOFF_MARGIN <= self.plan.carrier_arrival
++        if actual in reachable and costs[actual] <= costs[best] + SWITCH_MARGIN and current_can_wait:
+             best = actual
++        if self.plan and self.plan.mode == 'intercept-carrier' and best is not None:
++            self.plan = replace(self.plan, cutoff_slot=best)
++            if self.carrier_cutoff is not None:
++                self.carrier_cutoff = replace(self.carrier_cutoff, defender_slot=best)
+         self.desired_slot = best
+         return best, costs
+ 
+@@ -419,14 +550,8 @@
+                 closest = max(0, min(duration, -(dx * rx + dy * ry) / max(0.01, rx * rx + ry * ry)))
+                 if math.hypot(dx + rx * closest, dy + ry * closest) <= 16:
+                     return {**details, 'status': 'obstructed-contact'}
+-        sign = 1 if state.team1.net.y > 0 else -1
+-        for slot, receiver in skaters(state.team2):
+-            if (slot == owner or abs(receiver.x) > Buttons.SLOT_BAND_MAX_X
+-                    or not Buttons.SLOT_BAND_MIN_Y < receiver.y * sign < 244):
+-                continue
+-            lanes = self._shot_lanes(state, (receiver.x, receiver.y), slot)
+-            if any(lane.blockers == (actual,) for lane in lanes):
+-                return {**details, 'status': 'leaves-receiver-lane'}
++        if self._leaves_receiver_lane(state, owner, actual):
++            return {**details, 'status': 'leaves-receiver-lane'}
+         return {**details, 'status': 'ready'}
+ 
+     def step(self, state, elapsed=1):
+@@ -448,6 +573,7 @@
+             plan = replace(plan, target=self.plan.target)
+         self.plan = plan
+         best, costs = self.select_player(state, plan.target)
++        plan = self.plan
+         action = np.zeros(Buttons.INPUT_MAX, dtype=np.int8)
+         mode, waypoint = 'waiting-for-selection', plan.target
+         player = next((p for slot, p in skaters(state.team1) if slot == actual), None)

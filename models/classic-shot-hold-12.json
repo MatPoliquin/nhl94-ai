@@ -1,0 +1,6 @@
+{
+  "version": "native-shot-fixed-hold-v1",
+  "hold": 12,
+  "purpose": "Unlearned comparison control: preserve legacy aim, extend an admitted normal shot to 12 frames when release remains in front of the net.",
+  "selection": "Unlearned longest-hold comparison control; no fitted parameters."
+}

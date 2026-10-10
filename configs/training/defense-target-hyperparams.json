@@ -1,0 +1,24 @@
+{
+  "learning_rate": 0.00025,
+  "batch_size": 512,
+  "n_steps": 2048,
+  "n_epochs": 4,
+  "gamma": 0.99,
+  "clip_range": 0.2,
+  "vf_coef": 0.5,
+  "ent_coef": 0.01,
+  "squash_output": true,
+  "log_std_init": -0.6931471805599453,
+  "max_grad_norm": 0.5,
+  "clip_range_vf": null,
+  "net_arch": {
+    "pi": [256, 256],
+    "vf": [256, 256]
+  },
+  "features_dim": 128,
+  "frame_skip": 4,
+  "sticky_actions": false,
+  "sticky_action_prob": 0.25,
+  "clip_reward": false,
+  "model_input": "default"
+}

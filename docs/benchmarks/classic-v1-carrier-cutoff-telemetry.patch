@@ -1,0 +1,116 @@
+--- a/nhl94_ai/evaluation/cpu_benchmark.py
++++ b/nhl94_ai/evaluation/cpu_benchmark.py
+@@ -17,6 +17,7 @@
+ from nhl94_ai.game.ram import pass_geometry_info, restore_away_control, select_cpu_side
+ from nhl94_ai.evaluation.pass_outcomes import PassOutcomes
+ from nhl94_ai.evaluation.offense_metrics import OffenseMetrics
++from nhl94_ai.evaluation.defense_metrics import CarrierDefenseMetrics
+ 
+ 
+ MATCHUPS = {
+@@ -116,6 +117,7 @@
+         last_ordinary_pass = None
+         passes = PassOutcomes(side)
+         offense = OffenseMetrics()
++        carrier_defense = CarrierDefenseMetrics()
+         budget = seconds * 120 + 6000
+         while info['bench_clock'] > 0 and frames < budget:
+             info = pass_geometry_info(env, info)
+@@ -136,6 +138,7 @@
+                 passes.start(frames, info, request['passer'], request['receiver'], request['purpose'])
+                 passes.last_request_frame = request['frame']
+             diagnostics = agent.defense_diagnostics
++            carrier_defense.observe(view, diagnostics)
+             if diagnostics:
+                 defense_frames[diagnostics['decision']] += 1
+                 if diagnostics['mode'].endswith('-request'):
+@@ -152,6 +155,7 @@
+                 info = restore_away_control(env.data, info, controller_prefix='bench', player_prefix='cpu', slots=6)
+             if diagnostics and before_owner != info['puck_owner'] == diagnostics['acting_slot']:
+                 controlled_recoveries += 1
++            carrier_defense.after_step(info['puck_owner'])
+             frames += 1
+             passes.observe(frames, info)
+         passes.finish(frames, info, 'period_ended' if info['bench_clock'] == 0 else 'trial_incomplete')
+@@ -171,6 +175,7 @@
+             'decisions': dict(decisions), 'frames': frames,
+             'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
+             'controlled_recoveries': controlled_recoveries,
++            'carrier_defense_metrics': carrier_defense.summary(),
+             'inactive_skater_frames': inactive_skater_frames,
+             'ordinary_pass_metrics': dict(ordinary_pass_metrics),
+             'pass_outcomes': passes.summary(), 'pass_events': passes.events,
+@@ -224,6 +229,11 @@
+         for row in rows:
+             ordinary_pass_metrics.update(row.get('ordinary_pass_metrics', {}))
+         summary[matchup]['ordinary_pass_metrics'] = dict(ordinary_pass_metrics)
++        summary[matchup]['carrier_defense_metrics'] = {
++            zone: dict(sum((Counter(row.get('carrier_defense_metrics', {}).get(zone, {}))
++                            for row in rows), Counter()))
++            for zone in sorted({zone for row in rows for zone in row.get('carrier_defense_metrics', {})})
++        }
+         carry_metrics = Counter()
+         for row in rows:
+             carry_metrics.update(row.get('carry_metrics', {}))
+@@ -274,6 +284,7 @@
+         fixtures = [(*fixture, True) for fixture in fixtures]
+     controller = create_scripted(args.agent, SimpleNamespace(action_type=args.action_type)).controller
+     files = {Path(__file__), Path(inspect.getfile(PassOutcomes)), Path(inspect.getfile(OffenseMetrics)),
++             Path(inspect.getfile(CarrierDefenseMetrics)),
+              Path(inspect.getfile(HockeyActionController)), Path(inspect.getfile(NHL94GameState)),
+              Path(inspect.getfile(update_state))}
+     files.update(Path(inspect.getfile(cls)) for cls in type(controller).__mro__ if cls is not object)
+--- /dev/null
++++ b/nhl94_ai/evaluation/defense_metrics.py
+@@ -0,0 +1,51 @@
++"""Read-only carrier-defense telemetry, not causal tackle attribution."""
++from collections import Counter
++import math
++
++from nhl94_ai.agents.defense import controlled_slot, eligible
++from nhl94_ai.game.constants import GameConsts
++
++
++class CarrierDefenseMetrics:
++    def __init__(self):
++        self.zones = {}
++        self.previous = None
++        self.recovery_context = None
++
++    def observe(self, state, diagnostics):
++        self.recovery_context = None
++        owner, actual = state.engine.puck_owner, controlled_slot(state.team1)
++        carrier = next((player for index, player in enumerate(state.team2.players)
++                        if state.team2.skater_scnum_base() + index == owner and eligible(player)), None)
++        player = next((player for index, player in enumerate(state.team1.players)
++                       if state.team1.skater_scnum_base() + index == actual and eligible(player)), None)
++        if not diagnostics or carrier is None or player is None:
++            self.previous = None
++            return
++        sign = 1 if state.team1.net.y > 0 else -1
++        depth = carrier.y * sign
++        zone = ('neutral' if abs(depth) < GameConsts.SLOT_BAND_MIN_Y else
++                'defensive' if depth >= GameConsts.SLOT_BAND_MIN_Y else 'attacking')
++        counts = self.zones.setdefault(zone, Counter())
++        goal_side = player.y * sign >= depth
++        counts['frames'] += 1
++        counts['goal_side_frames' if goal_side else 'behind_carrier_frames'] += 1
++        counts['close_frames'] += math.dist((player.x, player.y), (carrier.x, carrier.y)) <= 30
++        counts['cutoff_frames'] += diagnostics['decision'] == 'intercept-carrier'
++        counts['retreat_frames'] += diagnostics['decision'] == 'retreat-lane'
++        counts['poke_requests'] += diagnostics['mode'] == 'poke-request'
++        counts['check_requests'] += diagnostics['mode'] == 'check-request'
++        if self.previous == (owner, actual, False) and goal_side:
++            counts['goal_side_regained'] += 1
++        self.previous = owner, actual, goal_side
++        self.recovery_context = zone, owner, actual
++
++    def after_step(self, owner):
++        if self.recovery_context is not None:
++            zone, before, actual = self.recovery_context
++            if before != owner == actual:
++                self.zones[zone]['direct_controlled_recoveries'] += 1
++        self.recovery_context = None
++
++    def summary(self):
++        return {zone: dict(counts) for zone, counts in self.zones.items()}

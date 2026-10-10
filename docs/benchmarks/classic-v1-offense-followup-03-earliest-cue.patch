@@ -1,0 +1,41 @@
+--- a/nhl94_ai/agents/passing.py
++++ b/nhl94_ai/agents/passing.py
+@@ -198,6 +198,25 @@
+     if math.dist(point, project_target(point)) > 1e-6:
+         return None
+     return start, point, time, speed
++
++
++def one_timer_contact_frame(puck, receiver, contact, release):
++    """First modeled body/stick contact, not the later closest-approach frame."""
++    start, point, flight, _ = contact
++    vx, vy = velocity(receiver)
++    fx, fy = facing(receiver)
++    offset = ((receiver.stick_x, receiver.stick_y) if receiver.stick_x is not None
++              and receiver.stick_y is not None else (fx * 10, fy * 10))
++    live = receiver.stick_x is not None and receiver.stick_y is not None
++    for time in (*range(1, math.ceil(flight)), flight):
++        fraction = ((1 - puck.friction**time) / (1 - puck.friction**flight)
++                    if live and puck.friction != 1 else time / flight)
++        position = start[0] + (point[0] - start[0]) * fraction, start[1] + (point[1] - start[1]) * fraction
++        body = receiver.x + vx * (release + time), receiver.y + vy * (release + time)
++        stick = body[0] + offset[0], body[1] + offset[1]
++        if math.dist(position, body) <= 8 or math.dist(position, stick) <= 14:
++            return release + time
++    return None
+ 
+ 
+ def pressure_margin(opponents, point, time):
+@@ -282,7 +301,11 @@
+             return None, {**details, 'status': 'outside-one-timer-window'}
+         cue = math.ceil(max(HOCKEY_PASS_PRESS_FRAMES, release) / decision_interval) * decision_interval
+         details['cue_frame'] = cue
+-        if flight < 4 or total <= cue:
++        first_contact = one_timer_contact_frame(state.puck, receiver, contact, release)
++        details['first_contact_frame'] = first_contact
++        if first_contact is None:
++            return None, {**details, 'status': 'unreachable-reception'}
++        if flight < 4 or first_contact <= cue:
+             return None, {**details, 'status': 'too-short-for-one-timer-cue'}
+     crosses_zone = state.puck.y * sign < 88 <= point[1] * sign
+     if crosses_zone and state.engine.offsides_enabled is None:

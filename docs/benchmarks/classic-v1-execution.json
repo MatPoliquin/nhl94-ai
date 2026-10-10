@@ -1,0 +1,850 @@
+{
+  "protocol": "classic-execution-comparison-v1",
+  "decision": "Keep default Classic unchanged; both new policies remain experimental.",
+  "settings": {
+    "seeds": [
+      25441,
+      25460
+    ],
+    "matchups": [
+      "sabres-ducks-manual",
+      "ducks-sabres-manual"
+    ],
+    "seconds": 300,
+    "frame_skip": 4,
+    "goalie_policy": "selective",
+    "periods_per_arm": 40
+  },
+  "complete_periods": {
+    "baseline": {
+      "periods": 40,
+      "goals_for": 57,
+      "goals_against": 16,
+      "shots": 249,
+      "one_timers": 90,
+      "one_timer_goals": 41,
+      "ordinary_pass_metrics": {
+        "received": 549,
+        "other-receiver": 25,
+        "intercepted": 27,
+        "flight-timeout": 44,
+        "lost-before-release": 1,
+        "reception-unreachable": 6,
+        "recovered-by-passer": 3
+      },
+      "shot_placement_metrics": {},
+      "reception_metrics": {
+        "corrections": 28,
+        "switches": 25,
+        "steered-frames": 537,
+        "corrected:received": 12,
+        "corrected:flight-timeout": 5,
+        "corrected:reception-unreachable": 6,
+        "corrected:intercepted": 3,
+        "corrected:other-receiver": 2
+      }
+    },
+    "shot": {
+      "periods": 40,
+      "goals_for": 52,
+      "goals_against": 14,
+      "shots": 234,
+      "one_timers": 97,
+      "one_timer_goals": 33,
+      "ordinary_pass_metrics": {
+        "received": 583,
+        "other-receiver": 17,
+        "intercepted": 27,
+        "flight-timeout": 33,
+        "reception-unreachable": 7,
+        "recovered-by-passer": 2,
+        "receiver-unavailable": 1
+      },
+      "shot_placement_metrics": {
+        "shots": 188,
+        "overrides": 185,
+        "aim-overrides": 92,
+        "hold-overrides": 185,
+        "missing-feedback": 11
+      },
+      "reception_metrics": {
+        "corrections": 42,
+        "switches": 38,
+        "steered-frames": 770,
+        "corrected:intercepted": 7,
+        "corrected:received": 16,
+        "corrected:reception-unreachable": 7,
+        "corrected:flight-timeout": 6,
+        "corrected:other-receiver": 1,
+        "corrected:receiver-unavailable": 1
+      }
+    },
+    "fixed-hold": {
+      "periods": 40,
+      "goals_for": 49,
+      "goals_against": 13,
+      "shots": 224,
+      "one_timers": 89,
+      "one_timer_goals": 31,
+      "ordinary_pass_metrics": {
+        "received": 552,
+        "other-receiver": 23,
+        "intercepted": 25,
+        "flight-timeout": 46,
+        "reception-unreachable": 6,
+        "recovered-by-passer": 6,
+        "receiver-unavailable": 1
+      },
+      "shot_placement_metrics": {
+        "shots": 197,
+        "overrides": 196,
+        "hold-overrides": 196
+      },
+      "reception_metrics": {
+        "corrections": 33,
+        "switches": 27,
+        "steered-frames": 606,
+        "corrected:intercepted": 5,
+        "corrected:received": 15,
+        "corrected:reception-unreachable": 6,
+        "corrected:recovered-by-passer": 1,
+        "corrected:receiver-unavailable": 1,
+        "corrected:other-receiver": 1,
+        "corrected:flight-timeout": 4
+      }
+    },
+    "reception": {
+      "periods": 40,
+      "goals_for": 55,
+      "goals_against": 21,
+      "shots": 248,
+      "one_timers": 101,
+      "one_timer_goals": 43,
+      "ordinary_pass_metrics": {
+        "received": 537,
+        "other-receiver": 16,
+        "flight-timeout": 45,
+        "receiver-unavailable": 2,
+        "intercepted": 26,
+        "reception-unreachable": 13,
+        "recovered-by-passer": 5,
+        "not-released": 1
+      },
+      "shot_placement_metrics": {},
+      "reception_metrics": {
+        "corrections": 63,
+        "switches": 56,
+        "steered-frames": 1535,
+        "corrected:flight-timeout": 8,
+        "corrected:receiver-unavailable": 2,
+        "corrected:received": 32,
+        "corrected:reception-unreachable": 13,
+        "corrected:other-receiver": 5,
+        "corrected:intercepted": 3
+      }
+    }
+  },
+  "paired_vs_baseline": {
+    "shot": {
+      "goal_differential_change_per_period": -0.075,
+      "descriptive_95_percent_seed_cluster_interval": [
+        -0.675,
+        0.575
+      ],
+      "seed_clusters": [
+        [
+          25441,
+          0.0
+        ],
+        [
+          25442,
+          1.0
+        ],
+        [
+          25443,
+          3.0
+        ],
+        [
+          25444,
+          -1.0
+        ],
+        [
+          25445,
+          -1.0
+        ],
+        [
+          25446,
+          -1.5
+        ],
+        [
+          25447,
+          0.5
+        ],
+        [
+          25448,
+          1.0
+        ],
+        [
+          25449,
+          0.0
+        ],
+        [
+          25450,
+          -1.0
+        ],
+        [
+          25451,
+          -1.5
+        ],
+        [
+          25452,
+          -0.5
+        ],
+        [
+          25453,
+          -1.5
+        ],
+        [
+          25454,
+          -1.5
+        ],
+        [
+          25455,
+          -1.5
+        ],
+        [
+          25456,
+          1.5
+        ],
+        [
+          25457,
+          0.0
+        ],
+        [
+          25458,
+          1.0
+        ],
+        [
+          25459,
+          3.0
+        ],
+        [
+          25460,
+          -1.5
+        ]
+      ],
+      "resamples": 20000,
+      "rng_seed": 25551,
+      "caution": "Both assignments resampled together; exploratory first-period evidence, not proof of superiority."
+    },
+    "fixed-hold": {
+      "goal_differential_change_per_period": -0.125,
+      "descriptive_95_percent_seed_cluster_interval": [
+        -0.6,
+        0.35
+      ],
+      "seed_clusters": [
+        [
+          25441,
+          0.0
+        ],
+        [
+          25442,
+          -0.5
+        ],
+        [
+          25443,
+          1.0
+        ],
+        [
+          25444,
+          -1.5
+        ],
+        [
+          25445,
+          -1.5
+        ],
+        [
+          25446,
+          -1.0
+        ],
+        [
+          25447,
+          0.0
+        ],
+        [
+          25448,
+          2.0
+        ],
+        [
+          25449,
+          -0.5
+        ],
+        [
+          25450,
+          -0.5
+        ],
+        [
+          25451,
+          0.5
+        ],
+        [
+          25452,
+          0.0
+        ],
+        [
+          25453,
+          -2.0
+        ],
+        [
+          25454,
+          -1.0
+        ],
+        [
+          25455,
+          -1.5
+        ],
+        [
+          25456,
+          1.0
+        ],
+        [
+          25457,
+          0.0
+        ],
+        [
+          25458,
+          0.5
+        ],
+        [
+          25459,
+          2.0
+        ],
+        [
+          25460,
+          0.5
+        ]
+      ],
+      "resamples": 20000,
+      "rng_seed": 25551,
+      "caution": "Both assignments resampled together; exploratory first-period evidence, not proof of superiority."
+    },
+    "reception": {
+      "goal_differential_change_per_period": -0.175,
+      "descriptive_95_percent_seed_cluster_interval": [
+        -0.625,
+        0.275
+      ],
+      "seed_clusters": [
+        [
+          25441,
+          -1.0
+        ],
+        [
+          25442,
+          0.0
+        ],
+        [
+          25443,
+          0.0
+        ],
+        [
+          25444,
+          -1.0
+        ],
+        [
+          25445,
+          -1.0
+        ],
+        [
+          25446,
+          -2.5
+        ],
+        [
+          25447,
+          0.5
+        ],
+        [
+          25448,
+          1.5
+        ],
+        [
+          25449,
+          0.5
+        ],
+        [
+          25450,
+          0.5
+        ],
+        [
+          25451,
+          -0.5
+        ],
+        [
+          25452,
+          0.0
+        ],
+        [
+          25453,
+          -1.0
+        ],
+        [
+          25454,
+          -1.5
+        ],
+        [
+          25455,
+          -0.5
+        ],
+        [
+          25456,
+          0.0
+        ],
+        [
+          25457,
+          1.0
+        ],
+        [
+          25458,
+          -0.5
+        ],
+        [
+          25459,
+          2.0
+        ],
+        [
+          25460,
+          0.0
+        ]
+      ],
+      "resamples": 20000,
+      "rng_seed": 25551,
+      "caution": "Both assignments resampled together; exploratory first-period evidence, not proof of superiority."
+    }
+  },
+  "shot_data": {
+    "training": {
+      "file": "docs/benchmarks/classic-v1-shot-training.json.gz",
+      "sha256": "d37cd81623765b406b5186f4baf5f116f2a48a9eb635147bbac622b1a6c7626e",
+      "periods": 80,
+      "cases": 421,
+      "alternatives": 5034,
+      "observations": {
+        "normal-shot-starts": 443,
+        "unforecastable": 21
+      },
+      "end_reasons": {
+        "new-possession": 4497,
+        "shot-resolved": 97,
+        "goal": 178,
+        "bounded-horizon-no-goal": 181,
+        "stoppage": 81
+      }
+    },
+    "validation": {
+      "file": "docs/benchmarks/classic-v1-shot-validation.json.gz",
+      "sha256": "cf6740a70274674cf32c138385cf251ab091fe1e2c10945d2323a8d447f854bf",
+      "periods": 20,
+      "cases": 102,
+      "alternatives": 1212,
+      "observations": {
+        "normal-shot-starts": 111,
+        "unforecastable": 9
+      },
+      "end_reasons": {
+        "new-possession": 1059,
+        "bounded-horizon-no-goal": 49,
+        "goal": 78,
+        "shot-resolved": 14,
+        "period-ended": 12
+      }
+    },
+    "heldout": {
+      "file": "docs/benchmarks/classic-v1-shot-heldout.json.gz",
+      "sha256": "dc65d41d021a295e3678a33216b8cef96ca8be55249cc39d55d92b777779617f",
+      "periods": 20,
+      "cases": 112,
+      "alternatives": 1341,
+      "observations": {
+        "normal-shot-starts": 121,
+        "unforecastable": 9
+      },
+      "end_reasons": {
+        "bounded-horizon-no-goal": 51,
+        "new-possession": 1213,
+        "goal": 60,
+        "shot-resolved": 17
+      }
+    }
+  },
+  "shot_model": {
+    "file": "models/classic-shot-placement-v1.json",
+    "sha256": "a78d363921c1ca85ac7265c98001f0a037f01fdd5de31707f7d00fc638c198d3",
+    "model": {
+      "version": "native-shot-logistic-v1",
+      "features": [
+        "puck_x",
+        "net_distance_y",
+        "puck_x_squared",
+        "distance_squared",
+        "carrier_vx",
+        "carrier_vy",
+        "goalie_x",
+        "goalie_depth",
+        "goalie_vx",
+        "goalie_vy",
+        "facing_x",
+        "facing_y",
+        "accuracy",
+        "power",
+        "energy",
+        "pressure",
+        "goalie_down",
+        "nearest_defender",
+        "aim",
+        "neutral",
+        "hold",
+        "hold_squared",
+        "aim_carrier_x",
+        "aim_goalie_x",
+        "aim_goalie_vx",
+        "aim_carrier_vx",
+        "aim_facing_x",
+        "hold_carrier_vy",
+        "hold_goalie_vx",
+        "hold_distance",
+        "aim_hold",
+        "aim_hold_goalie_x",
+        "release_x",
+        "release_distance",
+        "release_frames",
+        "shot_speed",
+        "lane_clearance",
+        "geometry_quality"
+      ],
+      "mean": [
+        -0.014964370546318342,
+        0.63971496437054,
+        0.10959248812351523,
+        0.4395420427553548,
+        -0.005123446503048014,
+        0.21139619695885448,
+        0.0026603325415677373,
+        0.464192399049869,
+        -0.0011843955431867941,
+        0.0006370997485525613,
+        -0.06226414117718812,
+        0.5637074849737153,
+        0.46983372921615396,
+        0.4839271575613738,
+        0.999999999999938,
+        0.44368231524639956,
+        0.007125890736342045,
+        0.2436736535362135,
+        0.0,
+        0.33333333333332993,
+        0.5185735022433317,
+        0.3879074294008989,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.10931599590072966,
+        -0.0006157227448468202,
+        0.33275006598046863,
+        0.0,
+        0.0,
+        -0.017305027711797403,
+        0.560241488519404,
+        0.5349762470308945,
+        0.3220476997719783,
+        -0.13755852405129101,
+        0.19598026982393468
+      ],
+      "scale": [
+        0.33070917093069585,
+        0.17408850368630124,
+        0.11939171721914273,
+        0.19366343816603054,
+        0.14631088352728416,
+        0.1867897997424026,
+        0.1792954039307007,
+        0.07942527248282948,
+        0.0595675864811085,
+        0.026448557630428096,
+        0.6191095003293388,
+        0.5431946931902684,
+        0.288424518530912,
+        0.09182925032628905,
+        1.0,
+        0.46340380794698943,
+        0.08411368745665602,
+        0.23557430681143587,
+        0.8164965809277345,
+        0.47140452079101863,
+        0.3449477528147898,
+        0.38612973158116737,
+        0.27029920227224025,
+        0.1464101982784555,
+        0.048646343829638804,
+        0.11953555772963621,
+        0.5080507826812816,
+        0.13691923827138405,
+        0.03690050008883545,
+        0.24662301234286912,
+        0.5085321552605387,
+        0.09069576884366887,
+        0.3455668216666571,
+        0.15517690042138169,
+        0.3620219831728477,
+        0.06535202930708445,
+        0.11234833035704404,
+        0.09899963224392996
+      ],
+      "weights": [
+        -0.005642193299450687,
+        -0.2195702077037279,
+        -0.17201369566824848,
+        -0.26928762925762817,
+        0.009007642231848476,
+        0.010594405802594513,
+        0.11497310541485949,
+        0.24291560025225845,
+        0.010382883477829029,
+        0.10502408215746689,
+        -0.006942034405574923,
+        0.0433717588559018,
+        0.0874457481711779,
+        -0.04045919561917149,
+        4.2211665561667384e-30,
+        -0.0682332291548715,
+        -0.006762165800078211,
+        -0.23650745177009144,
+        -0.011859334243180017,
+        -0.13504851874942306,
+        0.03231419144589638,
+        0.012374033680440103,
+        -0.016274822894926756,
+        -0.07049505271793752,
+        -0.09078638404053893,
+        0.02685051701479047,
+        -0.04539916499512858,
+        -0.009860998205825793,
+        0.11950251134810208,
+        -0.00760648801705212,
+        -0.010014303208765932,
+        -0.10370323317818171,
+        0.0027864952014342607,
+        -0.2489450733973194,
+        0.014305885633781039,
+        0.01873433443284436,
+        0.5058029656340532,
+        0.3512806467437227
+      ],
+      "bias": -4.072365770415368,
+      "min_gain": 0,
+      "fit": {
+        "method": "ridge-logistic",
+        "ridge": 10,
+        "case_weight": 1,
+        "cases": 421,
+        "alternatives": 5034,
+        "observed_goal_rate": 0.035629453681710214
+      },
+      "training": {
+        "file": "/tmp/nhl94-shot-training.json.gz",
+        "sha256": "d37cd81623765b406b5186f4baf5f116f2a48a9eb635147bbac622b1a6c7626e",
+        "cases": 421,
+        "excluded": {},
+        "seeds": [
+          25301,
+          25302,
+          25303,
+          25304,
+          25305,
+          25306,
+          25307,
+          25308,
+          25309,
+          25310,
+          25311,
+          25312,
+          25313,
+          25314,
+          25315,
+          25316,
+          25317,
+          25318,
+          25319,
+          25320,
+          25321,
+          25322,
+          25323,
+          25324,
+          25325,
+          25326,
+          25327,
+          25328,
+          25329,
+          25330,
+          25331,
+          25332,
+          25333,
+          25334,
+          25335,
+          25336,
+          25337,
+          25338,
+          25339,
+          25340
+        ]
+      },
+      "validation": {
+        "file": "/tmp/nhl94-shot-validation.json.gz",
+        "sha256": "cf6740a70274674cf32c138385cf251ab091fe1e2c10945d2323a8d447f854bf",
+        "cases": 102,
+        "excluded": {},
+        "seeds": [
+          25341,
+          25342,
+          25343,
+          25344,
+          25345,
+          25346,
+          25347,
+          25348,
+          25349,
+          25350
+        ]
+      }
+    }
+  },
+  "shot_validation": {
+    "cases": 102,
+    "legacy_goals": 14,
+    "selected_goals": 15,
+    "oracle_goals": 29,
+    "overrides": 95,
+    "aim_overrides": 37,
+    "hold_overrides": 95
+  },
+  "shot_heldout": {
+    "cases": 112,
+    "legacy_goals": 6,
+    "selected_goals": 13,
+    "oracle_goals": 23,
+    "overrides": 109,
+    "aim_overrides": 55,
+    "hold_overrides": 109
+  },
+  "fixed_hold_local_control": {
+    "validation": {
+      "1": {
+        "cases": 102,
+        "goals": 11
+      },
+      "4": {
+        "cases": 102,
+        "goals": 14
+      },
+      "8": {
+        "cases": 102,
+        "goals": 14
+      },
+      "12": {
+        "cases": 102,
+        "goals": 15
+      }
+    },
+    "heldout": {
+      "1": {
+        "cases": 112,
+        "goals": 4
+      },
+      "4": {
+        "cases": 112,
+        "goals": 6
+      },
+      "8": {
+        "cases": 112,
+        "goals": 11
+      },
+      "12": {
+        "cases": 112,
+        "goals": 11
+      }
+    }
+  },
+  "reception_replay": {
+    "cases": 296,
+    "totals": {
+      "legacy": {
+        "intended_reception": 252,
+        "team_reception": 269,
+        "intercepted": 11
+      },
+      "stick": {
+        "intended_reception": 251,
+        "team_reception": 268,
+        "intercepted": 11
+      }
+    },
+    "changed_receptions": [
+      {
+        "seed": 25506,
+        "matchup": "ducks-sabres-manual",
+        "frame": 1661,
+        "legacy": {
+          "intended_reception": true,
+          "team_reception": true,
+          "intercepted": false,
+          "owner": 6,
+          "frames": 44,
+          "end_reason": "new-possession",
+          "metrics": {
+            "corrections": 1,
+            "switches": 1,
+            "steered-frames": 27
+          }
+        },
+        "stick": {
+          "intended_reception": false,
+          "team_reception": false,
+          "intercepted": false,
+          "owner": -247,
+          "frames": 46,
+          "end_reason": "reception-unreachable",
+          "metrics": {
+            "corrections": 1,
+            "switches": 1,
+            "steered-frames": 28,
+            "corrected:reception-unreachable": 1
+          }
+        }
+      }
+    ]
+  },
+  "audit": {
+    "comparisons": 10,
+    "compared_frames": 88228
+  },
+  "verification": {
+    "unit_tests": 873,
+    "existing_expected_failures": 1,
+    "pylint": "10.00/10",
+    "native_shot_cases": 40,
+    "native_reception_checks": "18 current contact scenarios plus the original seeded reception regression"
+  },
+  "evidence": {
+    "file": "docs/benchmarks/classic-v1-execution-evidence.json.gz",
+    "sha256": "cb1cd8f11fcba7185d516148365411a363defed7f5c4b209239ec3230ecfb285"
+  },
+  "limitations": [
+    "Two fixed rosters, first periods only, and exploratory comparisons.",
+    "No demonstrated reliable gain in overall strength; intervals include no difference.",
+    "Learned labels stop at primary outcome/new possession/120 frames; timeouts are zero.",
+    "Fixed-hold full-period control does not require the learned model feature-availability gate.",
+    "Receiving contact forecast does not fully simulate future animation hotspots or catch eligibility."
+  ]
+}

@@ -1,0 +1,616 @@
+{
+  "protocol": "nhl94-goalie-timing-matched-first-period-v1",
+  "source_archive_base_commit": "5109c57fa493249c82efe3088268bd3e4acbdde3",
+  "bootstrap": {
+    "draws": 10000,
+    "rng_seed": 94,
+    "cluster": "ROM seed; retain all fixture sides",
+    "delta": "corrected selective minus pre-fix selective",
+    "interval_units": "total change over the reported number of periods"
+  },
+  "runtime_source_differences": [
+    "nhl94_ai/agents/goalie.py"
+  ],
+  "settings_and_saved_lineups_matched": true,
+  "combined": {
+    "periods_per_version": 80,
+    "matched_seed_clusters": 20,
+    "before": {
+      "goals_for": 115,
+      "goals_against": 33,
+      "goal_difference": 82,
+      "wins": 49,
+      "draws": 23,
+      "losses": 8,
+      "shots_for": 526,
+      "shots_against": 284,
+      "opponent_one_timers": 105,
+      "opponent_one_timer_goals": 16,
+      "controlled_catches": 131,
+      "save_animations": 175,
+      "dive_animations": 15,
+      "takeovers": 325,
+      "takeover_cancelled": 196,
+      "handoff_timeouts": 0
+    },
+    "after": {
+      "goals_for": 127,
+      "goals_against": 31,
+      "goal_difference": 96,
+      "wins": 56,
+      "draws": 18,
+      "losses": 6,
+      "shots_for": 531,
+      "shots_against": 300,
+      "opponent_one_timers": 97,
+      "opponent_one_timer_goals": 13,
+      "controlled_catches": 123,
+      "save_animations": 163,
+      "dive_animations": 17,
+      "takeovers": 329,
+      "takeover_cancelled": 179,
+      "handoff_timeouts": 0
+    },
+    "after_minus_before": {
+      "goals_for": {
+        "total_delta": 12,
+        "total_delta_95pct_seed_cluster_bootstrap": [
+          -8.0,
+          33.0
+        ],
+        "per_period_delta": 0.15
+      },
+      "goals_against": {
+        "total_delta": -2,
+        "total_delta_95pct_seed_cluster_bootstrap": [
+          -14.0,
+          10.0
+        ],
+        "per_period_delta": -0.025
+      },
+      "goal_difference": {
+        "total_delta": 14,
+        "total_delta_95pct_seed_cluster_bootstrap": [
+          -7.0,
+          36.0
+        ],
+        "per_period_delta": 0.175
+      },
+      "wins": {
+        "total_delta": 7,
+        "total_delta_95pct_seed_cluster_bootstrap": [
+          -1.0,
+          15.0
+        ],
+        "per_period_delta": 0.0875
+      },
+      "opponent_one_timer_goals": {
+        "total_delta": -3,
+        "total_delta_95pct_seed_cluster_bootstrap": [
+          -10.0,
+          5.0
+        ],
+        "per_period_delta": -0.0375
+      },
+      "controlled_catches": {
+        "total_delta": -8,
+        "total_delta_95pct_seed_cluster_bootstrap": [
+          -27.0,
+          14.0
+        ],
+        "per_period_delta": -0.1
+      }
+    },
+    "before_goal_context": {
+      "score:not_effective_manual:skater": 15,
+      "score:effective_manual:save-recovery": 15,
+      "one_timer_goals:effective_manual:save-recovery": 7,
+      "one_timer_goals:not_effective_manual:skater": 7,
+      "score:effective_manual:positioning": 3,
+      "one_timer_goals:effective_manual:positioning": 2
+    },
+    "after_goal_context": {
+      "score:not_effective_manual:skater": 16,
+      "score:effective_manual:positioning": 3,
+      "one_timer_goals:effective_manual:positioning": 2,
+      "score:effective_manual:save-recovery": 12,
+      "one_timer_goals:effective_manual:save-recovery": 7,
+      "one_timer_goals:not_effective_manual:skater": 4
+    }
+  },
+  "by_matchup": {
+    "sabres-ducks-manual": {
+      "periods_per_version": 20,
+      "matched_seed_clusters": 20,
+      "before": {
+        "goals_for": 25,
+        "goals_against": 2,
+        "goal_difference": 23,
+        "wins": 16,
+        "draws": 4,
+        "losses": 0,
+        "shots_for": 126,
+        "shots_against": 53,
+        "opponent_one_timers": 26,
+        "opponent_one_timer_goals": 0,
+        "controlled_catches": 30,
+        "save_animations": 28,
+        "dive_animations": 4,
+        "takeovers": 84,
+        "takeover_cancelled": 47,
+        "handoff_timeouts": 0
+      },
+      "after": {
+        "goals_for": 36,
+        "goals_against": 4,
+        "goal_difference": 32,
+        "wins": 17,
+        "draws": 2,
+        "losses": 1,
+        "shots_for": 144,
+        "shots_against": 56,
+        "opponent_one_timers": 24,
+        "opponent_one_timer_goals": 2,
+        "controlled_catches": 26,
+        "save_animations": 31,
+        "dive_animations": 3,
+        "takeovers": 81,
+        "takeover_cancelled": 59,
+        "handoff_timeouts": 0
+      },
+      "after_minus_before": {
+        "goals_for": {
+          "total_delta": 11,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            0.0,
+            24.0
+          ],
+          "per_period_delta": 0.55
+        },
+        "goals_against": {
+          "total_delta": 2,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            0.0,
+            5.0
+          ],
+          "per_period_delta": 0.1
+        },
+        "goal_difference": {
+          "total_delta": 9,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -2.0,
+            23.0
+          ],
+          "per_period_delta": 0.45
+        },
+        "wins": {
+          "total_delta": 1,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -3.0,
+            5.0
+          ],
+          "per_period_delta": 0.05
+        },
+        "opponent_one_timer_goals": {
+          "total_delta": 2,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            0.0,
+            5.0
+          ],
+          "per_period_delta": 0.1
+        },
+        "controlled_catches": {
+          "total_delta": -4,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -17.0,
+            7.0
+          ],
+          "per_period_delta": -0.2
+        }
+      },
+      "before_goal_context": {
+        "score:not_effective_manual:skater": 2
+      },
+      "after_goal_context": {
+        "score:not_effective_manual:skater": 2,
+        "score:effective_manual:positioning": 1,
+        "one_timer_goals:effective_manual:positioning": 1,
+        "score:effective_manual:save-recovery": 1,
+        "one_timer_goals:effective_manual:save-recovery": 1
+      }
+    },
+    "ducks-sabres-manual": {
+      "periods_per_version": 20,
+      "matched_seed_clusters": 20,
+      "before": {
+        "goals_for": 27,
+        "goals_against": 10,
+        "goal_difference": 17,
+        "wins": 10,
+        "draws": 7,
+        "losses": 3,
+        "shots_for": 130,
+        "shots_against": 87,
+        "opponent_one_timers": 31,
+        "opponent_one_timer_goals": 7,
+        "controlled_catches": 27,
+        "save_animations": 51,
+        "dive_animations": 0,
+        "takeovers": 75,
+        "takeover_cancelled": 62,
+        "handoff_timeouts": 0
+      },
+      "after": {
+        "goals_for": 28,
+        "goals_against": 5,
+        "goal_difference": 23,
+        "wins": 14,
+        "draws": 6,
+        "losses": 0,
+        "shots_for": 128,
+        "shots_against": 77,
+        "opponent_one_timers": 24,
+        "opponent_one_timer_goals": 3,
+        "controlled_catches": 29,
+        "save_animations": 46,
+        "dive_animations": 2,
+        "takeovers": 86,
+        "takeover_cancelled": 39,
+        "handoff_timeouts": 0
+      },
+      "after_minus_before": {
+        "goals_for": {
+          "total_delta": 1,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -11.0,
+            13.0
+          ],
+          "per_period_delta": 0.05
+        },
+        "goals_against": {
+          "total_delta": -5,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -12.0,
+            3.0
+          ],
+          "per_period_delta": -0.25
+        },
+        "goal_difference": {
+          "total_delta": 6,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -10.0,
+            22.0
+          ],
+          "per_period_delta": 0.3
+        },
+        "wins": {
+          "total_delta": 4,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -2.0,
+            10.0
+          ],
+          "per_period_delta": 0.2
+        },
+        "opponent_one_timer_goals": {
+          "total_delta": -4,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -9.0,
+            0.0
+          ],
+          "per_period_delta": -0.2
+        },
+        "controlled_catches": {
+          "total_delta": 2,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -9.0,
+            14.0
+          ],
+          "per_period_delta": 0.1
+        }
+      },
+      "before_goal_context": {
+        "score:not_effective_manual:skater": 6,
+        "score:effective_manual:save-recovery": 3,
+        "one_timer_goals:effective_manual:save-recovery": 2,
+        "one_timer_goals:not_effective_manual:skater": 4,
+        "score:effective_manual:positioning": 1,
+        "one_timer_goals:effective_manual:positioning": 1
+      },
+      "after_goal_context": {
+        "score:not_effective_manual:skater": 3,
+        "score:effective_manual:positioning": 1,
+        "one_timer_goals:effective_manual:positioning": 1,
+        "one_timer_goals:not_effective_manual:skater": 2,
+        "score:effective_manual:save-recovery": 1
+      }
+    },
+    "ducks-campbell-manual": {
+      "periods_per_version": 20,
+      "matched_seed_clusters": 20,
+      "before": {
+        "goals_for": 16,
+        "goals_against": 13,
+        "goal_difference": 3,
+        "wins": 5,
+        "draws": 10,
+        "losses": 5,
+        "shots_for": 137,
+        "shots_against": 91,
+        "opponent_one_timers": 28,
+        "opponent_one_timer_goals": 6,
+        "controlled_catches": 41,
+        "save_animations": 62,
+        "dive_animations": 7,
+        "takeovers": 98,
+        "takeover_cancelled": 49,
+        "handoff_timeouts": 0
+      },
+      "after": {
+        "goals_for": 19,
+        "goals_against": 15,
+        "goal_difference": 4,
+        "wins": 8,
+        "draws": 8,
+        "losses": 4,
+        "shots_for": 129,
+        "shots_against": 107,
+        "opponent_one_timers": 26,
+        "opponent_one_timer_goals": 5,
+        "controlled_catches": 38,
+        "save_animations": 59,
+        "dive_animations": 10,
+        "takeovers": 93,
+        "takeover_cancelled": 43,
+        "handoff_timeouts": 0
+      },
+      "after_minus_before": {
+        "goals_for": {
+          "total_delta": 3,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -6.0,
+            11.0
+          ],
+          "per_period_delta": 0.15
+        },
+        "goals_against": {
+          "total_delta": 2,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -5.0,
+            9.0
+          ],
+          "per_period_delta": 0.1
+        },
+        "goal_difference": {
+          "total_delta": 1,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -9.0,
+            10.0
+          ],
+          "per_period_delta": 0.05
+        },
+        "wins": {
+          "total_delta": 3,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -3.0,
+            9.0
+          ],
+          "per_period_delta": 0.15
+        },
+        "opponent_one_timer_goals": {
+          "total_delta": -1,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -4.0,
+            2.0
+          ],
+          "per_period_delta": -0.05
+        },
+        "controlled_catches": {
+          "total_delta": -3,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -14.0,
+            8.0
+          ],
+          "per_period_delta": -0.15
+        }
+      },
+      "before_goal_context": {
+        "score:effective_manual:save-recovery": 7,
+        "score:not_effective_manual:skater": 4,
+        "one_timer_goals:not_effective_manual:skater": 3,
+        "score:effective_manual:positioning": 2,
+        "one_timer_goals:effective_manual:save-recovery": 2,
+        "one_timer_goals:effective_manual:positioning": 1
+      },
+      "after_goal_context": {
+        "score:not_effective_manual:skater": 7,
+        "one_timer_goals:not_effective_manual:skater": 2,
+        "score:effective_manual:save-recovery": 7,
+        "score:effective_manual:positioning": 1,
+        "one_timer_goals:effective_manual:save-recovery": 3
+      }
+    },
+    "campbell-ducks-manual": {
+      "periods_per_version": 20,
+      "matched_seed_clusters": 20,
+      "before": {
+        "goals_for": 47,
+        "goals_against": 8,
+        "goal_difference": 39,
+        "wins": 18,
+        "draws": 2,
+        "losses": 0,
+        "shots_for": 133,
+        "shots_against": 53,
+        "opponent_one_timers": 20,
+        "opponent_one_timer_goals": 3,
+        "controlled_catches": 33,
+        "save_animations": 34,
+        "dive_animations": 4,
+        "takeovers": 68,
+        "takeover_cancelled": 38,
+        "handoff_timeouts": 0
+      },
+      "after": {
+        "goals_for": 44,
+        "goals_against": 7,
+        "goal_difference": 37,
+        "wins": 17,
+        "draws": 2,
+        "losses": 1,
+        "shots_for": 130,
+        "shots_against": 60,
+        "opponent_one_timers": 23,
+        "opponent_one_timer_goals": 3,
+        "controlled_catches": 30,
+        "save_animations": 27,
+        "dive_animations": 2,
+        "takeovers": 69,
+        "takeover_cancelled": 38,
+        "handoff_timeouts": 0
+      },
+      "after_minus_before": {
+        "goals_for": {
+          "total_delta": -3,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -12.0,
+            7.0
+          ],
+          "per_period_delta": -0.15
+        },
+        "goals_against": {
+          "total_delta": -1,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -5.0,
+            3.0
+          ],
+          "per_period_delta": -0.05
+        },
+        "goal_difference": {
+          "total_delta": -2,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -12.0,
+            9.0
+          ],
+          "per_period_delta": -0.1
+        },
+        "wins": {
+          "total_delta": -1,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -4.0,
+            2.0
+          ],
+          "per_period_delta": -0.05
+        },
+        "opponent_one_timer_goals": {
+          "total_delta": 0,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -3.0,
+            3.0
+          ],
+          "per_period_delta": 0.0
+        },
+        "controlled_catches": {
+          "total_delta": -3,
+          "total_delta_95pct_seed_cluster_bootstrap": [
+            -11.0,
+            4.0
+          ],
+          "per_period_delta": -0.15
+        }
+      },
+      "before_goal_context": {
+        "score:not_effective_manual:skater": 3,
+        "score:effective_manual:save-recovery": 5,
+        "one_timer_goals:effective_manual:save-recovery": 3
+      },
+      "after_goal_context": {
+        "score:not_effective_manual:skater": 4,
+        "score:effective_manual:save-recovery": 3,
+        "one_timer_goals:effective_manual:save-recovery": 3
+      }
+    }
+  },
+  "cpu_goalie_off_reference": {
+    "sabres-ducks-manual": {
+      "goals_for": 33,
+      "goals_against": 9,
+      "goal_difference": 24,
+      "wins": 12,
+      "draws": 5,
+      "losses": 3,
+      "shots_for": 149,
+      "shots_against": 53,
+      "opponent_one_timers": 22,
+      "opponent_one_timer_goals": 3,
+      "controlled_catches": 0,
+      "save_animations": 0,
+      "dive_animations": 0,
+      "takeovers": 0,
+      "takeover_cancelled": 0,
+      "handoff_timeouts": 0
+    },
+    "ducks-sabres-manual": {
+      "goals_for": 17,
+      "goals_against": 14,
+      "goal_difference": 3,
+      "wins": 8,
+      "draws": 8,
+      "losses": 4,
+      "shots_for": 123,
+      "shots_against": 98,
+      "opponent_one_timers": 22,
+      "opponent_one_timer_goals": 3,
+      "controlled_catches": 0,
+      "save_animations": 0,
+      "dive_animations": 0,
+      "takeovers": 0,
+      "takeover_cancelled": 0,
+      "handoff_timeouts": 0
+    },
+    "ducks-campbell-manual": {
+      "goals_for": 17,
+      "goals_against": 16,
+      "goal_difference": 1,
+      "wins": 6,
+      "draws": 6,
+      "losses": 8,
+      "shots_for": 116,
+      "shots_against": 94,
+      "opponent_one_timers": 26,
+      "opponent_one_timer_goals": 4,
+      "controlled_catches": 0,
+      "save_animations": 0,
+      "dive_animations": 0,
+      "takeovers": 0,
+      "takeover_cancelled": 0,
+      "handoff_timeouts": 0
+    },
+    "campbell-ducks-manual": {
+      "goals_for": 48,
+      "goals_against": 5,
+      "goal_difference": 43,
+      "wins": 18,
+      "draws": 2,
+      "losses": 0,
+      "shots_for": 161,
+      "shots_against": 63,
+      "opponent_one_timers": 25,
+      "opponent_one_timer_goals": 1,
+      "controlled_catches": 0,
+      "save_animations": 0,
+      "dive_animations": 0,
+      "takeovers": 0,
+      "takeover_cancelled": 0,
+      "handoff_timeouts": 0
+    }
+  },
+  "limitations": [
+    "Development comparison: natural replay work inspected four of these seeds.",
+    "No tuning used corrected benchmark scores; this is not an untouched held-out cohort.",
+    "Fixed saves/ratings, 300-second first periods, not full-game win rates.",
+    "Goalie input changes subsequent skater play; do not causally attribute score changes to saves.",
+    "One-timer goals decreased overall but some individual matchup concessions increased.",
+    "Animation confirmation and catches are not prevented-goal counts.",
+    "RAM observations and unchanged environment setup/away routing are not pixel-only play."
+  ]
+}

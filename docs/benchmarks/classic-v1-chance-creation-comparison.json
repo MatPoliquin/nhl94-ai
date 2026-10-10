@@ -1,0 +1,751 @@
+{
+  "protocol": "nhl94-chance-creation-paired-comparison-v1",
+  "reports": {
+    "baseline": "benchmarks/classic-v1-chance-creation-baseline.json",
+    "candidate": "benchmarks/classic-v1-chance-creation-candidate.json"
+  },
+  "settings": {
+    "agent": "classic-v1",
+    "matchups": [
+      "sabres-ducks-manual",
+      "ducks-sabres-manual"
+    ],
+    "goalie_policy": "off",
+    "trials": 20,
+    "seed": 20262701,
+    "seconds": 300,
+    "frame_skip": 4,
+    "action_type": "FILTERED",
+    "workers": 4,
+    "cross_crease": false,
+    "deke": false,
+    "uncertain_carry": false,
+    "chance_creation": false,
+    "config": null
+  },
+  "sources": {
+    "nhl94_ai/evaluation/offense_metrics.py": "8c082dc2bd8090dae94782e3bbaae7b07b7fa0f1558cfd039cc401ad9935f130",
+    "nhl94_ai/agents/carry.py": "425a03f07eb619ff5dcd3ebd9d23f2781617607f8d6bd5c63e2d5bb32d666855",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/agents/responses.py": "a69cba84b62045e8c0bd75a27721f254943a98dfe9fd7b400cddfcf58a6b121b",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "4f2ac2e943a60e4a2a9be9d7eadb6a2553592961253d27e275bab60516ccd6eb",
+    "nhl94_ai/game/ram.py": "695c63d302435317e9b22a257efe3ab4129c1cf4fded2a7f86ab17a1d5fcc817",
+    "nhl94_ai/agents/defense.py": "b6f7960ccb8c409e6990012d1f5e9ef2df1b51f01db4add2fe3e2e8329795fd7",
+    "nhl94_ai/agents/goalie.py": "84e619bf1217885877e9dbfe446f14e3fa9a7fd09b90d30dbc5d6a3399c15952",
+    "nhl94_ai/agents/base.py": "c63fad330377fdcf6dc5329b1810b41d2e58bc963f143b01f4903e0fe0030792",
+    "nhl94_ai/evaluation/benchmark.py": "40cd695ab723fa931d4930f90a88aa4f3b28c4f9ef90119727a764b6e2089ee9",
+    "nhl94_ai/agents/cross_crease.py": "f5ce8e6852aeb6070cbca3e12d1d6c00262aafd1e03e3a18d3e0606b775220c8",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146",
+    "nhl94_ai/evaluation/defense_metrics.py": "347344ebac5d11eb3563d3638db8566dd728e2bb0ca387a71f463f737c6a040e",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/env/target_control.py": "9365b9f7e63383ccd0c02c672e506858cd911e48bb3830f86ee62638c7cd6052",
+    "nhl94_ai/agents/offense.py": "0c5278ae9cc4fc03ebf226edb617aa1e750a381eba336192ee9593e89fc4e558",
+    "nhl94_ai/agents/classic_v1.py": "4bc56b486a1d8f54824bcdae84afd525afe90e64872182cf07c3c6e0a5fc2aff",
+    "nhl94_ai/agents/registry.py": "2ada3d5765f11d7b31e7ccbfe42b542cd12b4ee169f5c715bf05a112b1416887",
+    "nhl94_ai/game/state.py": "72545dc07f33383f3d6d3d3fbb389b0fe5c8a2460ff30fc001216ebfae54c062",
+    "nhl94_ai/agents/motion.py": "830614cef7753733a22a52fed921bf526da5f8646fce3eef12a908b7b44f971a",
+    "nhl94_ai/agents/skating.py": "071d32ea0489fe9db3da69700a2aef3fe52f5b60ea5d2039b69cd81ab77dd536",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/agents/passing.py": "1650f9054a67e542f038b6362bf1019b58e98320850bc096d78d9f0e4ba10cec",
+    "nhl94_ai/agents/deke.py": "00cefffb902112ce368eaa720d7cca9ef8a887c71951f21acccfcaca186ce5b2"
+  },
+  "versions": {
+    "nhl94-ai": "0.1.0",
+    "stable-retro": "1.0.1",
+    "numpy": "2.5.1"
+  },
+  "validation": {
+    "all_80_periods_complete": true,
+    "matched_seeds_sides_starts_lineups": true,
+    "identical_current_sources": true,
+    "all_actors_active": true,
+    "balanced_one_timer_accounting": true
+  },
+  "summary": {
+    "baseline": {
+      "combined": {
+        "periods": 40,
+        "goals_for": 46,
+        "goals_against": 10,
+        "wins": 23,
+        "draws": 12,
+        "losses": 5,
+        "scoreless_periods": 15,
+        "shots": 169,
+        "opponent_shots": 129,
+        "one_timer_attempts": 102,
+        "one_timer_goals": 38,
+        "create_chance_decisions": 0,
+        "offense_entries": 275,
+        "offense_controlled_entries": 272,
+        "offense_entry_frames_total": 65979,
+        "offense_entry_threats_total": 1,
+        "offense_turnovers": 274,
+        "offense_zone_turnovers": 155,
+        "offense_possession_losses": 388,
+        "offense_zone_possession_losses": 268,
+        "offense_goalie_contact_impulses": 126
+      },
+      "teams": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "goals_for": 30,
+          "goals_against": 5,
+          "wins": 14,
+          "draws": 4,
+          "losses": 2,
+          "scoreless_periods": 5,
+          "shots": 90,
+          "opponent_shots": 53,
+          "one_timer_attempts": 57,
+          "one_timer_goals": 24,
+          "create_chance_decisions": 0,
+          "offense_entries": 143,
+          "offense_controlled_entries": 142,
+          "offense_entry_frames_total": 29786,
+          "offense_entry_threats_total": 0,
+          "offense_turnovers": 144,
+          "offense_zone_turnovers": 87,
+          "offense_possession_losses": 205,
+          "offense_zone_possession_losses": 147,
+          "offense_goalie_contact_impulses": 85
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "goals_for": 16,
+          "goals_against": 5,
+          "wins": 9,
+          "draws": 8,
+          "losses": 3,
+          "scoreless_periods": 10,
+          "shots": 79,
+          "opponent_shots": 76,
+          "one_timer_attempts": 45,
+          "one_timer_goals": 14,
+          "create_chance_decisions": 0,
+          "offense_entries": 132,
+          "offense_controlled_entries": 130,
+          "offense_entry_frames_total": 36193,
+          "offense_entry_threats_total": 1,
+          "offense_turnovers": 130,
+          "offense_zone_turnovers": 68,
+          "offense_possession_losses": 183,
+          "offense_zone_possession_losses": 121,
+          "offense_goalie_contact_impulses": 41
+        }
+      },
+      "native_summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 14,
+          "draws": 4,
+          "losses": 2,
+          "goals_for": 30,
+          "goals_against": 5,
+          "one_timer_setups": 87,
+          "one_timers": 57,
+          "one_timer_goals": 24,
+          "periods_without_one_timers": 0,
+          "pass_outcomes": {
+            "one_timer_shot": 56,
+            "received_without_shot": 352,
+            "intercepted": 40,
+            "flight_timeout": 16,
+            "not_released": 1,
+            "returned_to_passer": 4
+          },
+          "wrong_recipient": 11,
+          "offense_metrics": {
+            "entries": 143,
+            "controlled_entries": 142,
+            "entry_frames_total": 29786,
+            "entry_threats_total": 0,
+            "turnovers": 144,
+            "zone_turnovers": 87,
+            "possession_losses": 205,
+            "zone_possession_losses": 147,
+            "goalie_contact_impulses": 85
+          },
+          "goalie_contact_phases": {
+            "defense": 74,
+            "offense": 11
+          },
+          "goalie_contact_decisions": {
+            "contain-boards": 2,
+            "goalie-avoid": 73,
+            "protect-lane": 3,
+            "carry-escape": 5,
+            "deny-reception": 1,
+            "one-timer-wait": 1
+          },
+          "one_timer_metrics": {
+            "shot-released": 56,
+            "timeout": 18,
+            "possession-changed": 11,
+            "receiver-mismatch": 1,
+            "recovered-by-passer": 1
+          },
+          "one_timer_accounting": {
+            "started": 87,
+            "ended": 87
+          },
+          "ordinary_pass_metrics": {
+            "received": 317,
+            "flight-timeout": 28,
+            "intercepted": 15,
+            "other-receiver": 21,
+            "recovered-by-passer": 1
+          },
+          "carrier_defense_metrics": {
+            "attacking": {
+              "frames": 11790,
+              "goal_side_frames": 9478,
+              "close_frames": 2362,
+              "poke_requests": 24,
+              "check_requests": 8,
+              "behind_carrier_frames": 2312,
+              "goal_side_regained": 23
+            },
+            "defensive": {
+              "frames": 9997,
+              "behind_carrier_frames": 5734,
+              "close_frames": 4533,
+              "poke_requests": 35,
+              "goal_side_frames": 4263,
+              "goal_side_regained": 37,
+              "check_requests": 6,
+              "direct_controlled_recoveries": 3
+            },
+            "neutral": {
+              "frames": 12411,
+              "behind_carrier_frames": 3247,
+              "close_frames": 3519,
+              "poke_requests": 30,
+              "goal_side_frames": 9164,
+              "goal_side_regained": 14,
+              "check_requests": 13
+            }
+          },
+          "carry_metrics": {
+            "least-risk": 10148,
+            "safe-default": 1601,
+            "safe-escape": 650
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "deke_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 309,
+              "intercepted": 19,
+              "flight_timeout": 11,
+              "returned_to_passer": 3
+            },
+            "one-timer": {
+              "one_timer_shot": 56,
+              "flight_timeout": 5,
+              "intercepted": 17,
+              "received_without_shot": 7,
+              "not_released": 1,
+              "returned_to_passer": 1
+            },
+            "position-pass": {
+              "received_without_shot": 36,
+              "intercepted": 4
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 9,
+          "draws": 8,
+          "losses": 3,
+          "goals_for": 16,
+          "goals_against": 5,
+          "one_timer_setups": 63,
+          "one_timers": 45,
+          "one_timer_goals": 14,
+          "periods_without_one_timers": 3,
+          "pass_outcomes": {
+            "received_without_shot": 352,
+            "flight_timeout": 16,
+            "intercepted": 44,
+            "period_ended": 6,
+            "one_timer_shot": 45,
+            "returned_to_passer": 3
+          },
+          "wrong_recipient": 5,
+          "offense_metrics": {
+            "entries": 132,
+            "controlled_entries": 130,
+            "entry_frames_total": 36193,
+            "entry_threats_total": 1,
+            "turnovers": 130,
+            "zone_turnovers": 68,
+            "possession_losses": 183,
+            "zone_possession_losses": 121,
+            "goalie_contact_impulses": 41
+          },
+          "goalie_contact_phases": {
+            "offense": 3,
+            "defense": 38
+          },
+          "goalie_contact_decisions": {
+            "one-timer-wait": 1,
+            "goalie-avoid": 36,
+            "deny-reception": 1,
+            "protect-lane": 2,
+            "carry-escape": 1
+          },
+          "one_timer_metrics": {
+            "possession-changed": 9,
+            "period-ended": 1,
+            "shot-released": 45,
+            "timeout": 7,
+            "receiver-mismatch": 1
+          },
+          "one_timer_accounting": {
+            "started": 63,
+            "ended": 63
+          },
+          "ordinary_pass_metrics": {
+            "received": 328,
+            "flight-timeout": 32,
+            "other-receiver": 17,
+            "intercepted": 20,
+            "recovered-by-passer": 1
+          },
+          "carrier_defense_metrics": {
+            "attacking": {
+              "frames": 9091,
+              "behind_carrier_frames": 1479,
+              "close_frames": 1738,
+              "goal_side_frames": 7612,
+              "poke_requests": 15,
+              "goal_side_regained": 18,
+              "check_requests": 1
+            },
+            "defensive": {
+              "frames": 12660,
+              "behind_carrier_frames": 7502,
+              "close_frames": 3679,
+              "poke_requests": 32,
+              "goal_side_frames": 5158,
+              "goal_side_regained": 33,
+              "check_requests": 2
+            },
+            "neutral": {
+              "frames": 9880,
+              "goal_side_frames": 6470,
+              "close_frames": 2678,
+              "poke_requests": 28,
+              "behind_carrier_frames": 3410,
+              "goal_side_regained": 16,
+              "direct_controlled_recoveries": 1
+            }
+          },
+          "carry_metrics": {
+            "least-risk": 12253,
+            "safe-escape": 574,
+            "safe-default": 1539
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "deke_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 330,
+              "flight_timeout": 12,
+              "intercepted": 28,
+              "returned_to_passer": 3,
+              "period_ended": 5
+            },
+            "one-timer": {
+              "intercepted": 11,
+              "period_ended": 1,
+              "one_timer_shot": 45,
+              "flight_timeout": 3,
+              "received_without_shot": 3
+            },
+            "position-pass": {
+              "intercepted": 5,
+              "received_without_shot": 19,
+              "flight_timeout": 1
+            }
+          }
+        }
+      }
+    },
+    "candidate": {
+      "combined": {
+        "periods": 40,
+        "goals_for": 49,
+        "goals_against": 11,
+        "wins": 24,
+        "draws": 12,
+        "losses": 4,
+        "scoreless_periods": 13,
+        "shots": 180,
+        "opponent_shots": 128,
+        "one_timer_attempts": 106,
+        "one_timer_goals": 40,
+        "create_chance_decisions": 4,
+        "offense_entries": 277,
+        "offense_controlled_entries": 274,
+        "offense_entry_frames_total": 66080,
+        "offense_entry_threats_total": 1,
+        "offense_turnovers": 274,
+        "offense_zone_turnovers": 153,
+        "offense_possession_losses": 393,
+        "offense_zone_possession_losses": 271,
+        "offense_goalie_contact_impulses": 138
+      },
+      "teams": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "goals_for": 32,
+          "goals_against": 5,
+          "wins": 15,
+          "draws": 4,
+          "losses": 1,
+          "scoreless_periods": 4,
+          "shots": 100,
+          "opponent_shots": 52,
+          "one_timer_attempts": 61,
+          "one_timer_goals": 25,
+          "create_chance_decisions": 3,
+          "offense_entries": 147,
+          "offense_controlled_entries": 146,
+          "offense_entry_frames_total": 30314,
+          "offense_entry_threats_total": 0,
+          "offense_turnovers": 144,
+          "offense_zone_turnovers": 86,
+          "offense_possession_losses": 209,
+          "offense_zone_possession_losses": 150,
+          "offense_goalie_contact_impulses": 97
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "goals_for": 17,
+          "goals_against": 6,
+          "wins": 9,
+          "draws": 8,
+          "losses": 3,
+          "scoreless_periods": 9,
+          "shots": 80,
+          "opponent_shots": 76,
+          "one_timer_attempts": 45,
+          "one_timer_goals": 15,
+          "create_chance_decisions": 1,
+          "offense_entries": 130,
+          "offense_controlled_entries": 128,
+          "offense_entry_frames_total": 35766,
+          "offense_entry_threats_total": 1,
+          "offense_turnovers": 130,
+          "offense_zone_turnovers": 67,
+          "offense_possession_losses": 184,
+          "offense_zone_possession_losses": 121,
+          "offense_goalie_contact_impulses": 41
+        }
+      },
+      "native_summary": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "wins": 15,
+          "draws": 4,
+          "losses": 1,
+          "goals_for": 32,
+          "goals_against": 5,
+          "one_timer_setups": 88,
+          "one_timers": 61,
+          "one_timer_goals": 25,
+          "periods_without_one_timers": 0,
+          "pass_outcomes": {
+            "one_timer_shot": 59,
+            "received_without_shot": 349,
+            "intercepted": 41,
+            "flight_timeout": 17,
+            "not_released": 1,
+            "returned_to_passer": 4
+          },
+          "wrong_recipient": 10,
+          "offense_metrics": {
+            "entries": 147,
+            "controlled_entries": 146,
+            "entry_frames_total": 30314,
+            "entry_threats_total": 0,
+            "turnovers": 144,
+            "zone_turnovers": 86,
+            "possession_losses": 209,
+            "zone_possession_losses": 150,
+            "goalie_contact_impulses": 97
+          },
+          "goalie_contact_phases": {
+            "defense": 84,
+            "offense": 13
+          },
+          "goalie_contact_decisions": {
+            "contain-boards": 2,
+            "goalie-avoid": 84,
+            "deny-goalie-outlet": 1,
+            "protect-lane": 3,
+            "carry-escape": 5,
+            "deny-reception": 1,
+            "one-timer-wait": 1
+          },
+          "one_timer_metrics": {
+            "shot-released": 59,
+            "timeout": 16,
+            "possession-changed": 11,
+            "receiver-mismatch": 1,
+            "recovered-by-passer": 1
+          },
+          "one_timer_accounting": {
+            "started": 88,
+            "ended": 88
+          },
+          "ordinary_pass_metrics": {
+            "received": 318,
+            "flight-timeout": 28,
+            "intercepted": 15,
+            "other-receiver": 21,
+            "recovered-by-passer": 1
+          },
+          "carrier_defense_metrics": {
+            "attacking": {
+              "frames": 11766,
+              "goal_side_frames": 9730,
+              "close_frames": 2292,
+              "poke_requests": 24,
+              "check_requests": 7,
+              "behind_carrier_frames": 2036,
+              "goal_side_regained": 24
+            },
+            "defensive": {
+              "frames": 10176,
+              "behind_carrier_frames": 5674,
+              "close_frames": 4515,
+              "poke_requests": 37,
+              "goal_side_frames": 4502,
+              "goal_side_regained": 41,
+              "check_requests": 6,
+              "direct_controlled_recoveries": 3
+            },
+            "neutral": {
+              "frames": 12679,
+              "behind_carrier_frames": 3371,
+              "close_frames": 3540,
+              "poke_requests": 31,
+              "goal_side_frames": 9308,
+              "goal_side_regained": 14,
+              "check_requests": 13
+            }
+          },
+          "carry_metrics": {
+            "least-risk": 10188,
+            "safe-default": 1645,
+            "safe-escape": 667
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "deke_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 312,
+              "intercepted": 19,
+              "flight_timeout": 12,
+              "returned_to_passer": 3
+            },
+            "one-timer": {
+              "one_timer_shot": 59,
+              "flight_timeout": 5,
+              "intercepted": 18,
+              "received_without_shot": 4,
+              "not_released": 1,
+              "returned_to_passer": 1
+            },
+            "position-pass": {
+              "received_without_shot": 33,
+              "intercepted": 4
+            }
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "wins": 9,
+          "draws": 8,
+          "losses": 3,
+          "goals_for": 17,
+          "goals_against": 6,
+          "one_timer_setups": 62,
+          "one_timers": 45,
+          "one_timer_goals": 15,
+          "periods_without_one_timers": 3,
+          "pass_outcomes": {
+            "received_without_shot": 349,
+            "flight_timeout": 16,
+            "intercepted": 43,
+            "period_ended": 6,
+            "one_timer_shot": 45,
+            "returned_to_passer": 3
+          },
+          "wrong_recipient": 6,
+          "offense_metrics": {
+            "entries": 130,
+            "controlled_entries": 128,
+            "entry_frames_total": 35766,
+            "entry_threats_total": 1,
+            "turnovers": 130,
+            "zone_turnovers": 67,
+            "possession_losses": 184,
+            "zone_possession_losses": 121,
+            "goalie_contact_impulses": 41
+          },
+          "goalie_contact_phases": {
+            "offense": 3,
+            "defense": 38
+          },
+          "goalie_contact_decisions": {
+            "one-timer-wait": 1,
+            "goalie-avoid": 36,
+            "deny-reception": 1,
+            "protect-lane": 2,
+            "carry-escape": 1
+          },
+          "one_timer_metrics": {
+            "possession-changed": 8,
+            "period-ended": 1,
+            "shot-released": 45,
+            "timeout": 7,
+            "receiver-mismatch": 1
+          },
+          "one_timer_accounting": {
+            "started": 62,
+            "ended": 62
+          },
+          "ordinary_pass_metrics": {
+            "received": 324,
+            "flight-timeout": 33,
+            "other-receiver": 17,
+            "intercepted": 20,
+            "recovered-by-passer": 1
+          },
+          "carrier_defense_metrics": {
+            "attacking": {
+              "frames": 9054,
+              "behind_carrier_frames": 1496,
+              "close_frames": 1722,
+              "goal_side_frames": 7558,
+              "poke_requests": 15,
+              "goal_side_regained": 18,
+              "check_requests": 1
+            },
+            "defensive": {
+              "frames": 12852,
+              "behind_carrier_frames": 7725,
+              "close_frames": 3731,
+              "poke_requests": 32,
+              "goal_side_frames": 5127,
+              "goal_side_regained": 34,
+              "check_requests": 2
+            },
+            "neutral": {
+              "frames": 9918,
+              "goal_side_frames": 6508,
+              "close_frames": 2677,
+              "poke_requests": 28,
+              "behind_carrier_frames": 3410,
+              "goal_side_regained": 16,
+              "direct_controlled_recoveries": 1
+            }
+          },
+          "carry_metrics": {
+            "least-risk": 12087,
+            "safe-escape": 574,
+            "safe-default": 1538
+          },
+          "goalie_metrics": {},
+          "cross_crease_metrics": {},
+          "deke_metrics": {},
+          "passes_by_purpose": {
+            "advance-pass": {
+              "received_without_shot": 329,
+              "flight_timeout": 12,
+              "intercepted": 28,
+              "returned_to_passer": 3,
+              "period_ended": 5
+            },
+            "one-timer": {
+              "intercepted": 10,
+              "period_ended": 1,
+              "one_timer_shot": 45,
+              "flight_timeout": 3,
+              "received_without_shot": 3
+            },
+            "position-pass": {
+              "intercepted": 5,
+              "received_without_shot": 17,
+              "flight_timeout": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "changed_periods": [
+    {
+      "side": 1,
+      "seed": 20262703,
+      "chance_decisions": 1,
+      "baseline_goals": [
+        0,
+        1
+      ],
+      "candidate_goals": [
+        2,
+        1
+      ]
+    },
+    {
+      "side": 1,
+      "seed": 20262712,
+      "chance_decisions": 1,
+      "baseline_goals": [
+        0,
+        0
+      ],
+      "candidate_goals": [
+        0,
+        0
+      ]
+    },
+    {
+      "side": 2,
+      "seed": 20262710,
+      "chance_decisions": 1,
+      "baseline_goals": [
+        0,
+        0
+      ],
+      "candidate_goals": [
+        1,
+        1
+      ]
+    }
+  ],
+  "paired_goal_difference": {
+    "mean_change_per_period": 0.05,
+    "clustered_95_percent_interval": [
+      0.0,
+      0.15
+    ],
+    "resamples": 10000,
+    "bootstrap_seed": 94,
+    "cluster": "ROM seed; both sides retained together"
+  },
+  "limitations": [
+    "Development comparison, not held-out confirmation or full-game win rates.",
+    "Only four selected chance-creation decisions; too little exposure to establish general usefulness.",
+    "New decisions change subsequent trajectories; this does not isolate individual goals or passes."
+  ]
+}

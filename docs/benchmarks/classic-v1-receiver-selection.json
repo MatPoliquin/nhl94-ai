@@ -1,0 +1,1507 @@
+{
+  "protocol": "classic-receiver-selection-comparison-v1",
+  "date": "2026-10-09",
+  "default_changed": false,
+  "weights_fitted": false,
+  "conclusion": "No reliable overall improvement established; both receiver variants remain opt-in.",
+  "profiles": {
+    "legacy": "Observe the original admitted receiver pool; preserve the original selection.",
+    "value": "Rerank the original admitted pool after the original pass decision.",
+    "all-safe": "Rerank every ordinary receiver passing strict reception gates; retain the original pass trigger."
+  },
+  "full_period_totals": {
+    "first_legacy": {
+      "periods": 20,
+      "goals_for": 30,
+      "goals_against": 6,
+      "wins": 15,
+      "draws": 3,
+      "losses": 2,
+      "shots": 138,
+      "one_timers": 44,
+      "one_timer_goals": 16,
+      "passes": 368,
+      "multi-receiver": 14,
+      "overrides": 0,
+      "advance:overrides": 0,
+      "unforecastable-use-legacy": 15,
+      "one-timer:overrides": 0,
+      "position:overrides": 0,
+      "goal_difference": 24
+    },
+    "first_value": {
+      "periods": 20,
+      "goals_for": 25,
+      "goals_against": 6,
+      "wins": 14,
+      "draws": 3,
+      "losses": 3,
+      "shots": 131,
+      "one_timers": 39,
+      "one_timer_goals": 14,
+      "passes": 353,
+      "multi-receiver": 13,
+      "overrides": 5,
+      "advance:overrides": 4,
+      "unforecastable-use-legacy": 15,
+      "one-timer:overrides": 1,
+      "position:overrides": 0,
+      "goal_difference": 19
+    },
+    "fresh_legacy": {
+      "periods": 20,
+      "goals_for": 29,
+      "goals_against": 11,
+      "wins": 10,
+      "draws": 5,
+      "losses": 5,
+      "shots": 141,
+      "one_timers": 47,
+      "one_timer_goals": 19,
+      "passes": 389,
+      "multi-receiver": 6,
+      "overrides": 0,
+      "advance:overrides": 0,
+      "unforecastable-use-legacy": 14,
+      "one-timer:overrides": 0,
+      "position:overrides": 0,
+      "goal_difference": 18
+    },
+    "fresh_value": {
+      "periods": 20,
+      "goals_for": 30,
+      "goals_against": 10,
+      "wins": 11,
+      "draws": 4,
+      "losses": 5,
+      "shots": 143,
+      "one_timers": 48,
+      "one_timer_goals": 20,
+      "passes": 385,
+      "multi-receiver": 6,
+      "overrides": 1,
+      "advance:overrides": 1,
+      "unforecastable-use-legacy": 14,
+      "one-timer:overrides": 0,
+      "position:overrides": 0,
+      "goal_difference": 20
+    },
+    "fresh_all_safe": {
+      "periods": 20,
+      "goals_for": 25,
+      "goals_against": 7,
+      "wins": 12,
+      "draws": 5,
+      "losses": 3,
+      "shots": 133,
+      "one_timers": 51,
+      "one_timer_goals": 18,
+      "passes": 411,
+      "multi-receiver": 126,
+      "overrides": 41,
+      "advance:overrides": 41,
+      "unforecastable-use-legacy": 13,
+      "one-timer:overrides": 0,
+      "position:overrides": 0,
+      "goal_difference": 18
+    }
+  },
+  "paired_comparisons": {
+    "first_value_minus_legacy": {
+      "mean_gd_delta_per_period": -0.25,
+      "seed_cluster_bootstrap_95": [
+        -0.85,
+        0.2
+      ],
+      "clusters": 10,
+      "resamples": 20000,
+      "rng_seed": 25243,
+      "changed_periods": 5,
+      "paired_periods": [
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25061,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25062,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25063,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25064,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25065,
+          "gd_delta": -3
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25066,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25067,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25068,
+          "gd_delta": -2
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25069,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25070,
+          "gd_delta": 2
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25061,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25062,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25063,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25064,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25065,
+          "gd_delta": -2
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25066,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25067,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25068,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25069,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25070,
+          "gd_delta": 0
+        }
+      ],
+      "method": "Resample seed clusters with both manual assignments together; descriptive small-sample interval."
+    },
+    "fresh_value_minus_legacy": {
+      "mean_gd_delta_per_period": 0.1,
+      "seed_cluster_bootstrap_95": [
+        0.0,
+        0.3
+      ],
+      "clusters": 10,
+      "resamples": 20000,
+      "rng_seed": 25243,
+      "changed_periods": 1,
+      "paired_periods": [
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25261,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25262,
+          "gd_delta": 2
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25263,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25264,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25265,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25266,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25267,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25268,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25269,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25270,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25261,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25262,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25263,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25264,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25265,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25266,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25267,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25268,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25269,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25270,
+          "gd_delta": 0
+        }
+      ],
+      "method": "Resample seed clusters with both manual assignments together; descriptive small-sample interval."
+    },
+    "fresh_all_safe_minus_legacy": {
+      "mean_gd_delta_per_period": 0.0,
+      "seed_cluster_bootstrap_95": [
+        -0.65,
+        0.6
+      ],
+      "clusters": 10,
+      "resamples": 20000,
+      "rng_seed": 25243,
+      "changed_periods": 15,
+      "paired_periods": [
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25261,
+          "gd_delta": 1
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25262,
+          "gd_delta": 2
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25263,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25264,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25265,
+          "gd_delta": -1
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25266,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25267,
+          "gd_delta": -2
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25268,
+          "gd_delta": -5
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25269,
+          "gd_delta": 2
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25270,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25261,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25262,
+          "gd_delta": 1
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25263,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25264,
+          "gd_delta": 2
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25265,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25266,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25267,
+          "gd_delta": -1
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25268,
+          "gd_delta": 1
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25269,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25270,
+          "gd_delta": 0
+        }
+      ],
+      "method": "Resample seed clusters with both manual assignments together; descriptive small-sample interval."
+    },
+    "fresh_all_safe_minus_value": {
+      "mean_gd_delta_per_period": -0.1,
+      "seed_cluster_bootstrap_95": [
+        -0.7,
+        0.45
+      ],
+      "clusters": 10,
+      "resamples": 20000,
+      "rng_seed": 25243,
+      "changed_periods": 14,
+      "paired_periods": [
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25261,
+          "gd_delta": 1
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25262,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25263,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25264,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25265,
+          "gd_delta": -1
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25266,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25267,
+          "gd_delta": -2
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25268,
+          "gd_delta": -5
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25269,
+          "gd_delta": 2
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25270,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25261,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25262,
+          "gd_delta": 1
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25263,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25264,
+          "gd_delta": 2
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25265,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25266,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25267,
+          "gd_delta": -1
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25268,
+          "gd_delta": 1
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25269,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25270,
+          "gd_delta": 0
+        }
+      ],
+      "method": "Resample seed clusters with both manual assignments together; descriptive small-sample interval."
+    },
+    "pooled_original_value_minus_legacy": {
+      "mean_gd_delta_per_period": -0.075,
+      "seed_cluster_bootstrap_95": [
+        -0.4,
+        0.2
+      ],
+      "clusters": 20,
+      "resamples": 20000,
+      "rng_seed": 25243,
+      "changed_periods": 6,
+      "paired_periods": [
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25061,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25062,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25063,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25064,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25065,
+          "gd_delta": -3
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25066,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25067,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25068,
+          "gd_delta": -2
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25069,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25070,
+          "gd_delta": 2
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25061,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25062,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25063,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25064,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25065,
+          "gd_delta": -2
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25066,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25067,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25068,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25069,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25070,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25261,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25262,
+          "gd_delta": 2
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25263,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25264,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25265,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25266,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25267,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25268,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25269,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "sabres-ducks-manual",
+          "seed": 25270,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25261,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25262,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25263,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25264,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25265,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25266,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25267,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25268,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25269,
+          "gd_delta": 0
+        },
+        {
+          "matchup": "ducks-sabres-manual",
+          "seed": 25270,
+          "gd_delta": 0
+        }
+      ],
+      "method": "Resample seed clusters with both manual assignments together; descriptive small-sample interval."
+    }
+  },
+  "replays": {
+    "original_240": {
+      "counts": {
+        "passes": 900,
+        "one-timer:passes": 166,
+        "value-disagreements": 11,
+        "multi-receiver": 25,
+        "advance:passes": 646,
+        "position:passes": 88
+      },
+      "coverage": {
+        "periods": 44,
+        "cases": 25,
+        "branches": 50,
+        "one-timer:cases": 1,
+        "one-timer:next:one-timer": 2,
+        "advance:cases": 22,
+        "advance:next:retain": 44,
+        "position:cases": 2,
+        "position:next:retain": 4
+      },
+      "policy_outcomes": {
+        "legacy": {
+          "cases": 25,
+          "goals_for": 0,
+          "goals_against": 0,
+          "shots": 4,
+          "one_timers": 0,
+          "ordinary_turnovers": 4,
+          "pass:intercepted": 2,
+          "wrong-recipient": 0,
+          "pass:received_without_shot": 22,
+          "pass:flight_timeout": 1
+        },
+        "value": {
+          "cases": 25,
+          "goals_for": 0,
+          "goals_against": 0,
+          "shots": 5,
+          "one_timers": 1,
+          "ordinary_turnovers": 6,
+          "pass:one_timer_shot": 1,
+          "wrong-recipient": 0,
+          "pass:received_without_shot": 23,
+          "pass:returned_to_passer": 1
+        }
+      }
+    },
+    "original_900": {
+      "counts": {
+        "passes": 900,
+        "one-timer:passes": 166,
+        "value-disagreements": 11,
+        "multi-receiver": 25,
+        "advance:passes": 646,
+        "position:passes": 88
+      },
+      "coverage": {
+        "periods": 44,
+        "cases": 25,
+        "branches": 50,
+        "one-timer:cases": 1,
+        "one-timer:next:one-timer": 2,
+        "advance:cases": 22,
+        "advance:next:retain": 44,
+        "position:cases": 2,
+        "position:next:retain": 4
+      },
+      "policy_outcomes": {
+        "legacy": {
+          "cases": 25,
+          "goals_for": 4,
+          "goals_against": 0,
+          "shots": 18,
+          "one_timers": 5,
+          "ordinary_turnovers": 9,
+          "pass:intercepted": 2,
+          "wrong-recipient": 0,
+          "pass:received_without_shot": 22,
+          "pass:flight_timeout": 1
+        },
+        "value": {
+          "cases": 25,
+          "goals_for": 5,
+          "goals_against": 0,
+          "shots": 23,
+          "one_timers": 6,
+          "ordinary_turnovers": 8,
+          "pass:one_timer_shot": 1,
+          "wrong-recipient": 0,
+          "pass:received_without_shot": 23,
+          "pass:returned_to_passer": 1
+        }
+      }
+    },
+    "expanded_900": {
+      "counts": {
+        "passes": 92,
+        "advance:passes": 65,
+        "value-disagreements": 10,
+        "multi-receiver": 31,
+        "position:passes": 9,
+        "one-timer:passes": 18
+      },
+      "coverage": {
+        "periods": 4,
+        "cases": 29,
+        "branches": 63,
+        "advance:cases": 28,
+        "advance:next:retain": 58,
+        "advance:next:unforecastable": 3,
+        "position:cases": 1,
+        "position:next:one-timer": 2
+      },
+      "policy_outcomes": {
+        "legacy": {
+          "cases": 29,
+          "goals_for": 5,
+          "goals_against": 1,
+          "shots": 21,
+          "one_timers": 8,
+          "ordinary_turnovers": 5,
+          "pass:received_without_shot": 27,
+          "wrong-recipient": 1,
+          "pass:intercepted": 1,
+          "pass:flight_timeout": 1
+        },
+        "value": {
+          "cases": 29,
+          "goals_for": 5,
+          "goals_against": 1,
+          "shots": 20,
+          "one_timers": 6,
+          "ordinary_turnovers": 8,
+          "pass:received_without_shot": 29,
+          "wrong-recipient": 1
+        }
+      }
+    }
+  },
+  "settings": {
+    "first_legacy": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 25061,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-receiver-legacy.json",
+      "receiver_selection": "legacy",
+      "possession_ablation": null,
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "first_value": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 25061,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-receiver-value.json",
+      "receiver_selection": "value",
+      "possession_ablation": null,
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "fresh_legacy": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 25261,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-receiver-v2-legacy.json",
+      "receiver_selection": "legacy",
+      "possession_ablation": null,
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "fresh_value": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 25261,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-receiver-v2-value.json",
+      "receiver_selection": "value",
+      "possession_ablation": null,
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "fresh_all_safe": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 25261,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-receiver-v2-all-safe.json",
+      "receiver_selection": "all-safe",
+      "possession_ablation": null,
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "default_prefix": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 2,
+      "seed": 25041,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-receiver-prefix.json",
+      "receiver_selection": null,
+      "possession_ablation": null,
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "historical_parity": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 1,
+      "seed": 24961,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-receiver-historical.json",
+      "receiver_selection": "legacy",
+      "possession_ablation": null,
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "original_short_pilot": {
+      "seed": 25041,
+      "trials": 2,
+      "horizon": 240,
+      "limit": 24,
+      "spacing": 60,
+      "workers": 2,
+      "goalie_policy": "selective",
+      "output": "/tmp/nhl94-receiver-replay.json"
+    },
+    "original_short_development": {
+      "seed": 25101,
+      "trials": 20,
+      "horizon": 240,
+      "limit": 24,
+      "spacing": 60,
+      "workers": 4,
+      "goalie_policy": "selective",
+      "output": "/tmp/nhl94-receiver-replay-development.json"
+    },
+    "original_long_pilot": {
+      "seed": 25041,
+      "trials": 2,
+      "horizon": 900,
+      "limit": 24,
+      "spacing": 60,
+      "workers": 2,
+      "goalie_policy": "selective",
+      "output": "/tmp/nhl94-receiver-replay-pilot-long.json"
+    },
+    "original_long_development": {
+      "seed": 25101,
+      "trials": 20,
+      "horizon": 900,
+      "limit": 24,
+      "spacing": 60,
+      "workers": 4,
+      "goalie_policy": "selective",
+      "output": "/tmp/nhl94-receiver-replay-long.json"
+    },
+    "expanded_long": {
+      "seed": 25241,
+      "trials": 2,
+      "horizon": 900,
+      "limit": 24,
+      "spacing": 60,
+      "workers": 2,
+      "goalie_policy": "selective",
+      "all_safe": true,
+      "output": "/tmp/nhl94-receiver-replay-expanded.json"
+    }
+  },
+  "checks": [
+    {
+      "check": "replay-default",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25041,
+      "frames": 9188,
+      "actions_sha256": "756fbb342956d6a4d2baea056751c080de01c625bbd788f078f8da7b6241abb8",
+      "passed": true
+    },
+    {
+      "check": "replay-default",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25042,
+      "frames": 9798,
+      "actions_sha256": "22ac1c0ae80969b84e1131f8b33a16df408e8fb714addb0af077c15f318018d3",
+      "passed": true
+    },
+    {
+      "check": "replay-default",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25041,
+      "frames": 8453,
+      "actions_sha256": "5301101cab33fe9acf31eefd44dc595c11ac2c38f2411c4b75fa7fab81793ddd",
+      "passed": true
+    },
+    {
+      "check": "replay-default",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25042,
+      "frames": 10254,
+      "actions_sha256": "224d912c3d9351c75f308efd7fecc2b8549bf9703436264c2d191f10093c303d",
+      "passed": true
+    },
+    {
+      "check": "historical",
+      "matchup": "sabres-ducks-manual",
+      "seed": 24961,
+      "frames": 10380,
+      "actions_sha256": "c7e96726a60b0c14444fa155a31d275f90ec464d9959667d1084a9a57dda57ec",
+      "passed": true
+    },
+    {
+      "check": "historical",
+      "matchup": "ducks-sabres-manual",
+      "seed": 24961,
+      "frames": 8578,
+      "actions_sha256": "aceafec1db2a1dbad9aee722aa7989afd4bbae3cdd091fff8ddf9e7ac3e5e1b9",
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25041,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25042,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25041,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25042,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25101,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25102,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25103,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25104,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25105,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25106,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25107,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25108,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25109,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25110,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25111,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25112,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25113,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25114,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25115,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25116,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25117,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25118,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25119,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "sabres-ducks-manual",
+      "seed": 25120,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25101,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25102,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25103,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25104,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25105,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25106,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25107,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25108,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25109,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25110,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25111,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25112,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25113,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25114,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25115,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25116,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25117,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25118,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25119,
+      "passed": true
+    },
+    {
+      "check": "identical-baseline-and-cases-across-horizons",
+      "matchup": "ducks-sabres-manual",
+      "seed": 25120,
+      "passed": true
+    }
+  ],
+  "validation": {
+    "unit_tests": 856,
+    "existing_expected_failures": 1,
+    "pylint": "clean",
+    "native_scenarios": 13,
+    "confirmed_receptions": 12,
+    "characterized_admitted_miss": 1,
+    "native_encodings": [
+      "FILTERED",
+      "HOCKEY_INTENT_DPAD"
+    ],
+    "native_intervals": [
+      1,
+      4,
+      8
+    ],
+    "complete_period_parity_comparisons": 6,
+    "complete_period_parity_frames": 56651
+  },
+  "post_measurement_change": "Display-only correction: show expanded receivers as admitted despite legacy worthwhile=False.",
+  "dataset": {
+    "examples": 113,
+    "states": 54,
+    "horizon": 900,
+    "file": "classic-v1-receiver-alternatives.jsonl.gz",
+    "split_rule": "Group by seed, keeping both assignments and all alternatives from a state together.",
+    "training_status": "Counterfactual development data only; no model fitted or calibrated.",
+    "bytes": 267076,
+    "sha256": "7db00c03494f7c5222afbc3e1d2a86affc554d39e5af4a383d778f7f40f973ce"
+  },
+  "limitations": [
+    "Two fixed rosters, first periods, selective goalies, four-frame offense; not full-game win rates.",
+    "Replay samples first spaced multi-receiver passes; not an unbiased state sample.",
+    "Local branches continue with the original policy and stop at horizon, first goal, or period end.",
+    "Native pass-target selection and the player who ultimately receives are distinct fields.",
+    "More one-timers or pass completions do not establish improved scoring or goal differential.",
+    "Admission and continuation models can be wrong; all-safe is not a guarantee of reception.",
+    "Predictive goal/continuation training needs broader attacking-zone, velocity and roster coverage."
+  ],
+  "evidence": {
+    "file": "classic-v1-receiver-selection-evidence.json.gz",
+    "bytes": 989908,
+    "sha256": "68d825343e0f5d4cc891eb7204f5bd53d3279a1017f62ce0be5ae3e7439095f2"
+  }
+}

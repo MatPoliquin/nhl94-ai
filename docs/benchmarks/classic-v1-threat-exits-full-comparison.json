@@ -1,0 +1,873 @@
+{
+  "protocol": "nhl94-threat-exits-paired-v1",
+  "reports": {
+    "baseline": "classic-v1-threat-exits-full-baseline.json",
+    "final": "classic-v1-threat-exits-full-final.json"
+  },
+  "settings": {
+    "agent": "classic-v1",
+    "matchups": [
+      "sabres-ducks-manual",
+      "ducks-sabres-manual"
+    ],
+    "goalie_policy": "off",
+    "trials": 20,
+    "seed": 20262004,
+    "seconds": 300,
+    "frame_skip": 4,
+    "action_type": "FILTERED",
+    "workers": 4,
+    "cross_crease": false,
+    "deke": false,
+    "config": null
+  },
+  "policy_sources": {
+    "nhl94_ai/agents/skating.py": "1a8435b78633369273eb7ceb2cb3da2cd59d2cdf368241cc9df2d54fe398e076",
+    "nhl94_ai/agents/registry.py": "a974768725c2f91f61c729960d1b67490940009a9b940d707b91640ae87ceb88",
+    "nhl94_ai/agents/motion.py": "830614cef7753733a22a52fed921bf526da5f8646fce3eef12a908b7b44f971a",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "a9ec9154cf0ec6d39950d649e8c2e39c5681d1ab2fd9c89a25a439fc2844b1f7",
+    "nhl94_ai/agents/goalie.py": "84e619bf1217885877e9dbfe446f14e3fa9a7fd09b90d30dbc5d6a3399c15952",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/game/ram.py": "ae6d562c2ff37bafe08bc6c68d7b19098ee82753c00d6786a8658a0cff00f17a",
+    "nhl94_ai/agents/passing.py": "1650f9054a67e542f038b6362bf1019b58e98320850bc096d78d9f0e4ba10cec",
+    "nhl94_ai/agents/defense.py": "b6f7960ccb8c409e6990012d1f5e9ef2df1b51f01db4add2fe3e2e8329795fd7",
+    "nhl94_ai/agents/offense.py": "452a948edac9a6d049b287e68a0f1436dceb82789f8c9de7b72c792873fbef8f",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/evaluation/benchmark.py": "40cd695ab723fa931d4930f90a88aa4f3b28c4f9ef90119727a764b6e2089ee9",
+    "nhl94_ai/agents/deke.py": "00cefffb902112ce368eaa720d7cca9ef8a887c71951f21acccfcaca186ce5b2",
+    "nhl94_ai/agents/cross_crease.py": "f5ce8e6852aeb6070cbca3e12d1d6c00262aafd1e03e3a18d3e0606b775220c8",
+    "nhl94_ai/agents/base.py": "c63fad330377fdcf6dc5329b1810b41d2e58bc963f143b01f4903e0fe0030792",
+    "nhl94_ai/evaluation/defense_metrics.py": "347344ebac5d11eb3563d3638db8566dd728e2bb0ca387a71f463f737c6a040e",
+    "nhl94_ai/evaluation/offense_metrics.py": "08d7b6ab75310a18af66633986773a452c1bb90dd50ec57fb3816e7c4ec08354",
+    "nhl94_ai/agents/carry.py": "425a03f07eb619ff5dcd3ebd9d23f2781617607f8d6bd5c63e2d5bb32d666855",
+    "nhl94_ai/env/target_control.py": "9365b9f7e63383ccd0c02c672e506858cd911e48bb3830f86ee62638c7cd6052",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/agents/classic_v1.py": "9add26d7b5d970ac66a37086b5901bf81f18214ddde4ced2e14f02fa8d7536c4",
+    "nhl94_ai/game/state.py": "4299cae30c31333fa406cea0a21de9202a5704250742686cacd83c3729042d3b",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146"
+  },
+  "summary": {
+    "baseline": {
+      "total": {
+        "periods": 40,
+        "goals_for": 54,
+        "goals_against": 14,
+        "wins": 23,
+        "draws": 12,
+        "losses": 5,
+        "scoreless_periods": 13,
+        "shots": 175,
+        "opponent_shots": 109,
+        "one_timers": 111,
+        "one_timer_goals": 43,
+        "carry_opportunity_decisions": 8,
+        "carry_metrics": {
+          "least-risk": 23395,
+          "safe-default": 3066,
+          "safe-escape": 1533
+        },
+        "offense_metrics": {
+          "entries": 297,
+          "controlled_entries": 295,
+          "entry_frames_total": 66941,
+          "turnovers": 302,
+          "zone_turnovers": 175,
+          "possession_losses": 409,
+          "zone_possession_losses": 280,
+          "goalie_contact_impulses": 196,
+          "entry_threats_total": 12
+        },
+        "ordinary_pass_metrics": {
+          "received": 638,
+          "flight-timeout": 76,
+          "other-receiver": 29,
+          "intercepted": 44,
+          "recovered-by-passer": 4,
+          "not-released": 1
+        }
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "goals_for": 28,
+          "goals_against": 3,
+          "wins": 12,
+          "draws": 7,
+          "losses": 1,
+          "scoreless_periods": 8,
+          "shots": 110,
+          "opponent_shots": 35,
+          "one_timers": 66,
+          "one_timer_goals": 21,
+          "carry_opportunity_decisions": 4,
+          "carry_metrics": {
+            "least-risk": 10776,
+            "safe-default": 1572,
+            "safe-escape": 892
+          },
+          "offense_metrics": {
+            "entries": 167,
+            "controlled_entries": 166,
+            "entry_frames_total": 34800,
+            "turnovers": 146,
+            "zone_turnovers": 98,
+            "possession_losses": 218,
+            "zone_possession_losses": 169,
+            "goalie_contact_impulses": 140,
+            "entry_threats_total": 1
+          },
+          "ordinary_pass_metrics": {
+            "received": 339,
+            "flight-timeout": 41,
+            "other-receiver": 17,
+            "intercepted": 13,
+            "recovered-by-passer": 2
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "goals_for": 26,
+          "goals_against": 11,
+          "wins": 11,
+          "draws": 5,
+          "losses": 4,
+          "scoreless_periods": 5,
+          "shots": 65,
+          "opponent_shots": 74,
+          "one_timers": 45,
+          "one_timer_goals": 22,
+          "carry_opportunity_decisions": 4,
+          "carry_metrics": {
+            "least-risk": 12619,
+            "safe-escape": 641,
+            "safe-default": 1494
+          },
+          "offense_metrics": {
+            "entries": 130,
+            "controlled_entries": 129,
+            "entry_frames_total": 32141,
+            "turnovers": 156,
+            "zone_turnovers": 77,
+            "possession_losses": 191,
+            "zone_possession_losses": 111,
+            "goalie_contact_impulses": 56,
+            "entry_threats_total": 11
+          },
+          "ordinary_pass_metrics": {
+            "received": 299,
+            "other-receiver": 12,
+            "intercepted": 31,
+            "flight-timeout": 35,
+            "not-released": 1,
+            "recovered-by-passer": 2
+          }
+        }
+      }
+    },
+    "final": {
+      "total": {
+        "periods": 40,
+        "goals_for": 57,
+        "goals_against": 13,
+        "wins": 28,
+        "draws": 8,
+        "losses": 4,
+        "scoreless_periods": 9,
+        "shots": 206,
+        "opponent_shots": 128,
+        "one_timers": 137,
+        "one_timer_goals": 48,
+        "carry_opportunity_decisions": 84,
+        "carry_metrics": {
+          "least-risk": 15591,
+          "uncertified-viable": 9753,
+          "safe-default": 1011,
+          "safe-escape": 427
+        },
+        "offense_metrics": {
+          "entries": 290,
+          "controlled_entries": 288,
+          "entry_frames_total": 58740,
+          "turnovers": 274,
+          "zone_turnovers": 180,
+          "possession_losses": 423,
+          "zone_possession_losses": 329,
+          "goalie_contact_impulses": 119,
+          "entry_threats_total": 5
+        },
+        "ordinary_pass_metrics": {
+          "received": 522,
+          "flight-timeout": 58,
+          "other-receiver": 28,
+          "intercepted": 29,
+          "recovered-by-passer": 5,
+          "not-released": 1
+        }
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "goals_for": 34,
+          "goals_against": 5,
+          "wins": 17,
+          "draws": 2,
+          "losses": 1,
+          "scoreless_periods": 3,
+          "shots": 110,
+          "opponent_shots": 52,
+          "one_timers": 74,
+          "one_timer_goals": 29,
+          "carry_opportunity_decisions": 59,
+          "carry_metrics": {
+            "least-risk": 6626,
+            "uncertified-viable": 4852,
+            "safe-default": 637,
+            "safe-escape": 272
+          },
+          "offense_metrics": {
+            "entries": 149,
+            "controlled_entries": 148,
+            "entry_frames_total": 27951,
+            "turnovers": 139,
+            "zone_turnovers": 94,
+            "possession_losses": 218,
+            "zone_possession_losses": 173,
+            "goalie_contact_impulses": 76
+          },
+          "ordinary_pass_metrics": {
+            "received": 268,
+            "flight-timeout": 32,
+            "other-receiver": 15,
+            "intercepted": 17,
+            "recovered-by-passer": 3
+          }
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "goals_for": 23,
+          "goals_against": 8,
+          "wins": 11,
+          "draws": 6,
+          "losses": 3,
+          "scoreless_periods": 6,
+          "shots": 96,
+          "opponent_shots": 76,
+          "one_timers": 63,
+          "one_timer_goals": 19,
+          "carry_opportunity_decisions": 25,
+          "carry_metrics": {
+            "least-risk": 8965,
+            "uncertified-viable": 4901,
+            "safe-escape": 155,
+            "safe-default": 374
+          },
+          "offense_metrics": {
+            "entries": 141,
+            "controlled_entries": 140,
+            "entry_frames_total": 30789,
+            "turnovers": 135,
+            "zone_turnovers": 86,
+            "possession_losses": 205,
+            "zone_possession_losses": 156,
+            "entry_threats_total": 5,
+            "goalie_contact_impulses": 43
+          },
+          "ordinary_pass_metrics": {
+            "received": 254,
+            "flight-timeout": 26,
+            "intercepted": 12,
+            "other-receiver": 13,
+            "recovered-by-passer": 2,
+            "not-released": 1
+          }
+        }
+      }
+    }
+  },
+  "pairs": [
+    {
+      "side": 1,
+      "seed": 20262004,
+      "baseline_goals": [
+        4,
+        1
+      ],
+      "final_goals": [
+        2,
+        0
+      ],
+      "goal_difference_delta": -1,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262005,
+      "baseline_goals": [
+        0,
+        0
+      ],
+      "final_goals": [
+        4,
+        0
+      ],
+      "goal_difference_delta": 4,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262006,
+      "baseline_goals": [
+        0,
+        0
+      ],
+      "final_goals": [
+        2,
+        0
+      ],
+      "goal_difference_delta": 2,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262007,
+      "baseline_goals": [
+        1,
+        0
+      ],
+      "final_goals": [
+        0,
+        1
+      ],
+      "goal_difference_delta": -2,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262008,
+      "baseline_goals": [
+        0,
+        0
+      ],
+      "final_goals": [
+        1,
+        0
+      ],
+      "goal_difference_delta": 1,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262009,
+      "baseline_goals": [
+        2,
+        0
+      ],
+      "final_goals": [
+        1,
+        0
+      ],
+      "goal_difference_delta": -1,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262010,
+      "baseline_goals": [
+        1,
+        0
+      ],
+      "final_goals": [
+        1,
+        0
+      ],
+      "goal_difference_delta": 0,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262011,
+      "baseline_goals": [
+        0,
+        0
+      ],
+      "final_goals": [
+        2,
+        0
+      ],
+      "goal_difference_delta": 2,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262012,
+      "baseline_goals": [
+        1,
+        0
+      ],
+      "final_goals": [
+        2,
+        0
+      ],
+      "goal_difference_delta": 1,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262013,
+      "baseline_goals": [
+        0,
+        0
+      ],
+      "final_goals": [
+        0,
+        0
+      ],
+      "goal_difference_delta": 0,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262014,
+      "baseline_goals": [
+        3,
+        1
+      ],
+      "final_goals": [
+        2,
+        1
+      ],
+      "goal_difference_delta": -1,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262015,
+      "baseline_goals": [
+        1,
+        0
+      ],
+      "final_goals": [
+        3,
+        1
+      ],
+      "goal_difference_delta": 1,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262016,
+      "baseline_goals": [
+        5,
+        0
+      ],
+      "final_goals": [
+        2,
+        1
+      ],
+      "goal_difference_delta": -4,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262017,
+      "baseline_goals": [
+        1,
+        0
+      ],
+      "final_goals": [
+        2,
+        0
+      ],
+      "goal_difference_delta": 1,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262018,
+      "baseline_goals": [
+        3,
+        0
+      ],
+      "final_goals": [
+        0,
+        0
+      ],
+      "goal_difference_delta": -3,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262019,
+      "baseline_goals": [
+        0,
+        0
+      ],
+      "final_goals": [
+        1,
+        0
+      ],
+      "goal_difference_delta": 1,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262020,
+      "baseline_goals": [
+        4,
+        0
+      ],
+      "final_goals": [
+        2,
+        0
+      ],
+      "goal_difference_delta": -2,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262021,
+      "baseline_goals": [
+        0,
+        1
+      ],
+      "final_goals": [
+        2,
+        0
+      ],
+      "goal_difference_delta": 3,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262022,
+      "baseline_goals": [
+        0,
+        0
+      ],
+      "final_goals": [
+        3,
+        1
+      ],
+      "goal_difference_delta": 2,
+      "actions_identical": false
+    },
+    {
+      "side": 1,
+      "seed": 20262023,
+      "baseline_goals": [
+        2,
+        0
+      ],
+      "final_goals": [
+        2,
+        0
+      ],
+      "goal_difference_delta": 0,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262004,
+      "baseline_goals": [
+        1,
+        0
+      ],
+      "final_goals": [
+        1,
+        0
+      ],
+      "goal_difference_delta": 0,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262005,
+      "baseline_goals": [
+        1,
+        2
+      ],
+      "final_goals": [
+        1,
+        4
+      ],
+      "goal_difference_delta": 2,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262006,
+      "baseline_goals": [
+        1,
+        0
+      ],
+      "final_goals": [
+        0,
+        2
+      ],
+      "goal_difference_delta": 3,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262007,
+      "baseline_goals": [
+        0,
+        1
+      ],
+      "final_goals": [
+        0,
+        2
+      ],
+      "goal_difference_delta": 1,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262008,
+      "baseline_goals": [
+        0,
+        1
+      ],
+      "final_goals": [
+        0,
+        1
+      ],
+      "goal_difference_delta": 0,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262009,
+      "baseline_goals": [
+        0,
+        2
+      ],
+      "final_goals": [
+        1,
+        1
+      ],
+      "goal_difference_delta": -2,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262010,
+      "baseline_goals": [
+        1,
+        0
+      ],
+      "final_goals": [
+        1,
+        2
+      ],
+      "goal_difference_delta": 2,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262011,
+      "baseline_goals": [
+        0,
+        2
+      ],
+      "final_goals": [
+        0,
+        1
+      ],
+      "goal_difference_delta": -1,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262012,
+      "baseline_goals": [
+        0,
+        0
+      ],
+      "final_goals": [
+        0,
+        0
+      ],
+      "goal_difference_delta": 0,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262013,
+      "baseline_goals": [
+        0,
+        2
+      ],
+      "final_goals": [
+        0,
+        0
+      ],
+      "goal_difference_delta": -2,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262014,
+      "baseline_goals": [
+        1,
+        2
+      ],
+      "final_goals": [
+        0,
+        3
+      ],
+      "goal_difference_delta": 2,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262015,
+      "baseline_goals": [
+        1,
+        1
+      ],
+      "final_goals": [
+        1,
+        1
+      ],
+      "goal_difference_delta": 0,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262016,
+      "baseline_goals": [
+        1,
+        1
+      ],
+      "final_goals": [
+        0,
+        1
+      ],
+      "goal_difference_delta": 1,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262017,
+      "baseline_goals": [
+        1,
+        0
+      ],
+      "final_goals": [
+        1,
+        1
+      ],
+      "goal_difference_delta": 1,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262018,
+      "baseline_goals": [
+        1,
+        1
+      ],
+      "final_goals": [
+        1,
+        0
+      ],
+      "goal_difference_delta": -1,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262019,
+      "baseline_goals": [
+        1,
+        1
+      ],
+      "final_goals": [
+        0,
+        2
+      ],
+      "goal_difference_delta": 2,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262020,
+      "baseline_goals": [
+        0,
+        3
+      ],
+      "final_goals": [
+        0,
+        1
+      ],
+      "goal_difference_delta": -2,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262021,
+      "baseline_goals": [
+        0,
+        1
+      ],
+      "final_goals": [
+        1,
+        0
+      ],
+      "goal_difference_delta": -2,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262022,
+      "baseline_goals": [
+        0,
+        2
+      ],
+      "final_goals": [
+        0,
+        1
+      ],
+      "goal_difference_delta": -1,
+      "actions_identical": false
+    },
+    {
+      "side": 2,
+      "seed": 20262023,
+      "baseline_goals": [
+        1,
+        4
+      ],
+      "final_goals": [
+        0,
+        0
+      ],
+      "goal_difference_delta": -3,
+      "actions_identical": false
+    }
+  ],
+  "paired_goal_difference_delta": 4,
+  "seed_clustered_95_percent_interval": [
+    -19.0,
+    28.0
+  ],
+  "bootstrap": {
+    "draws": 10000,
+    "seed": 94,
+    "unit": "ROM seed with both AI sides kept together"
+  },
+  "checks": {
+    "completed_periods": 80,
+    "paired_initial_states_teams_lineups": true,
+    "sources_unchanged_and_identical": true,
+    "zero_inactive_skater_frames": true,
+    "balanced_one_timer_lifecycles": true,
+    "default_matches_historical_action_traces": true
+  },
+  "limitations": [
+    "The usual previously measured development seeds; not a new held-out evaluation.",
+    "Fixed saved rosters/ratings, 300-clock-second first periods, goalie assistance off.",
+    "Ordinary turnover metrics exclude recorded-shot follow-through, not every unrecorded shot release.",
+    "Historical 48-20 is the earlier prototype, not this revised opt-in policy."
+  ]
+}

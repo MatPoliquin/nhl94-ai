@@ -1,0 +1,938 @@
+{
+  "runtime_revision": "f8d40b7217d5dede7e1c3c170e25cf70f5d35434",
+  "protocol": "classic-refinement-regression-diagnosis-v1",
+  "confirmation": {
+    "pass-timing": {
+      "baseline": {
+        "periods": 40,
+        "goals_for": 75,
+        "goals_against": 13,
+        "goal_difference": 62,
+        "wins": 31,
+        "draws": 7,
+        "losses": 2,
+        "scoreless_periods": 5,
+        "recorded_shots": 270,
+        "opponent_shots": 124,
+        "native_one_timers": 106,
+        "native_one_timer_goals": 53,
+        "ordinary_turnovers": 304,
+        "zone_turnovers": 192,
+        "goalie_contact_impulses": 148
+      },
+      "current": {
+        "periods": 40,
+        "goals_for": 59,
+        "goals_against": 18,
+        "goal_difference": 41,
+        "wins": 22,
+        "draws": 14,
+        "losses": 4,
+        "scoreless_periods": 10,
+        "recorded_shots": 275,
+        "opponent_shots": 129,
+        "native_one_timers": 92,
+        "native_one_timer_goals": 44,
+        "ordinary_turnovers": 322,
+        "zone_turnovers": 207,
+        "goalie_contact_impulses": 180
+      },
+      "delta": {
+        "periods": 0,
+        "goals_for": -16,
+        "goals_against": 5,
+        "goal_difference": -21,
+        "wins": -9,
+        "draws": 7,
+        "losses": 2,
+        "scoreless_periods": 5,
+        "recorded_shots": 5,
+        "opponent_shots": 5,
+        "native_one_timers": -14,
+        "native_one_timer_goals": -9,
+        "ordinary_turnovers": 18,
+        "zone_turnovers": 15,
+        "goalie_contact_impulses": 32
+      },
+      "paired_periods": 40,
+      "seed_clusters": 20,
+      "changed_input_periods": 40,
+      "mean_goal_difference_change": -0.525,
+      "goal_difference_seed_bootstrap_95": [
+        -0.9,
+        -0.1
+      ],
+      "observed_score_regression": true,
+      "pointwise_interval_below_zero": true,
+      "goalie_metrics": {
+        "baseline": {},
+        "current": {}
+      }
+    },
+    "carry-motion": {
+      "baseline": {
+        "periods": 40,
+        "goals_for": 75,
+        "goals_against": 13,
+        "goal_difference": 62,
+        "wins": 31,
+        "draws": 7,
+        "losses": 2,
+        "scoreless_periods": 5,
+        "recorded_shots": 270,
+        "opponent_shots": 124,
+        "native_one_timers": 106,
+        "native_one_timer_goals": 53,
+        "ordinary_turnovers": 304,
+        "zone_turnovers": 192,
+        "goalie_contact_impulses": 148
+      },
+      "current": {
+        "periods": 40,
+        "goals_for": 72,
+        "goals_against": 7,
+        "goal_difference": 65,
+        "wins": 33,
+        "draws": 6,
+        "losses": 1,
+        "scoreless_periods": 4,
+        "recorded_shots": 269,
+        "opponent_shots": 108,
+        "native_one_timers": 116,
+        "native_one_timer_goals": 48,
+        "ordinary_turnovers": 291,
+        "zone_turnovers": 187,
+        "goalie_contact_impulses": 170
+      },
+      "delta": {
+        "periods": 0,
+        "goals_for": -3,
+        "goals_against": -6,
+        "goal_difference": 3,
+        "wins": 2,
+        "draws": -1,
+        "losses": -1,
+        "scoreless_periods": -1,
+        "recorded_shots": -1,
+        "opponent_shots": -16,
+        "native_one_timers": 10,
+        "native_one_timer_goals": -5,
+        "ordinary_turnovers": -13,
+        "zone_turnovers": -5,
+        "goalie_contact_impulses": 22
+      },
+      "paired_periods": 40,
+      "seed_clusters": 20,
+      "changed_input_periods": 40,
+      "mean_goal_difference_change": 0.075,
+      "goal_difference_seed_bootstrap_95": [
+        -0.425,
+        0.575
+      ],
+      "observed_score_regression": false,
+      "pointwise_interval_below_zero": false,
+      "goalie_metrics": {
+        "baseline": {},
+        "current": {}
+      }
+    },
+    "finishing": {
+      "baseline": {
+        "periods": 40,
+        "goals_for": 75,
+        "goals_against": 13,
+        "goal_difference": 62,
+        "wins": 31,
+        "draws": 7,
+        "losses": 2,
+        "scoreless_periods": 5,
+        "recorded_shots": 270,
+        "opponent_shots": 124,
+        "native_one_timers": 106,
+        "native_one_timer_goals": 53,
+        "ordinary_turnovers": 304,
+        "zone_turnovers": 192,
+        "goalie_contact_impulses": 148
+      },
+      "current": {
+        "periods": 40,
+        "goals_for": 57,
+        "goals_against": 18,
+        "goal_difference": 39,
+        "wins": 25,
+        "draws": 9,
+        "losses": 6,
+        "scoreless_periods": 10,
+        "recorded_shots": 249,
+        "opponent_shots": 139,
+        "native_one_timers": 90,
+        "native_one_timer_goals": 42,
+        "ordinary_turnovers": 305,
+        "zone_turnovers": 189,
+        "goalie_contact_impulses": 117
+      },
+      "delta": {
+        "periods": 0,
+        "goals_for": -18,
+        "goals_against": 5,
+        "goal_difference": -23,
+        "wins": -6,
+        "draws": 2,
+        "losses": 4,
+        "scoreless_periods": 5,
+        "recorded_shots": -21,
+        "opponent_shots": 15,
+        "native_one_timers": -16,
+        "native_one_timer_goals": -11,
+        "ordinary_turnovers": 1,
+        "zone_turnovers": -3,
+        "goalie_contact_impulses": -31
+      },
+      "paired_periods": 40,
+      "seed_clusters": 20,
+      "changed_input_periods": 38,
+      "mean_goal_difference_change": -0.575,
+      "goal_difference_seed_bootstrap_95": [
+        -1.05,
+        -0.075
+      ],
+      "observed_score_regression": true,
+      "pointwise_interval_below_zero": true,
+      "goalie_metrics": {
+        "baseline": {},
+        "current": {}
+      }
+    },
+    "interceptions": {
+      "baseline": {
+        "periods": 40,
+        "goals_for": 75,
+        "goals_against": 13,
+        "goal_difference": 62,
+        "wins": 31,
+        "draws": 7,
+        "losses": 2,
+        "scoreless_periods": 5,
+        "recorded_shots": 270,
+        "opponent_shots": 124,
+        "native_one_timers": 106,
+        "native_one_timer_goals": 53,
+        "ordinary_turnovers": 304,
+        "zone_turnovers": 192,
+        "goalie_contact_impulses": 148
+      },
+      "current": {
+        "periods": 40,
+        "goals_for": 68,
+        "goals_against": 15,
+        "goal_difference": 53,
+        "wins": 26,
+        "draws": 11,
+        "losses": 3,
+        "scoreless_periods": 6,
+        "recorded_shots": 268,
+        "opponent_shots": 117,
+        "native_one_timers": 103,
+        "native_one_timer_goals": 49,
+        "ordinary_turnovers": 294,
+        "zone_turnovers": 188,
+        "goalie_contact_impulses": 166
+      },
+      "delta": {
+        "periods": 0,
+        "goals_for": -7,
+        "goals_against": 2,
+        "goal_difference": -9,
+        "wins": -5,
+        "draws": 4,
+        "losses": 1,
+        "scoreless_periods": 1,
+        "recorded_shots": -2,
+        "opponent_shots": -7,
+        "native_one_timers": -3,
+        "native_one_timer_goals": -4,
+        "ordinary_turnovers": -10,
+        "zone_turnovers": -4,
+        "goalie_contact_impulses": 18
+      },
+      "paired_periods": 40,
+      "seed_clusters": 20,
+      "changed_input_periods": 40,
+      "mean_goal_difference_change": -0.225,
+      "goal_difference_seed_bootstrap_95": [
+        -0.75,
+        0.275
+      ],
+      "observed_score_regression": true,
+      "pointwise_interval_below_zero": false,
+      "goalie_metrics": {
+        "baseline": {},
+        "current": {}
+      }
+    }
+  },
+  "component_pilots": {
+    "aim-only": {
+      "baseline": {
+        "periods": 8,
+        "goals_for": 15,
+        "goals_against": 0,
+        "goal_difference": 15,
+        "wins": 7,
+        "draws": 1,
+        "losses": 0,
+        "scoreless_periods": 1,
+        "recorded_shots": 71,
+        "opponent_shots": 19,
+        "native_one_timers": 29,
+        "native_one_timer_goals": 12,
+        "ordinary_turnovers": 52,
+        "zone_turnovers": 33,
+        "goalie_contact_impulses": 37
+      },
+      "current": {
+        "periods": 8,
+        "goals_for": 10,
+        "goals_against": 2,
+        "goal_difference": 8,
+        "wins": 5,
+        "draws": 2,
+        "losses": 1,
+        "scoreless_periods": 3,
+        "recorded_shots": 77,
+        "opponent_shots": 22,
+        "native_one_timers": 27,
+        "native_one_timer_goals": 8,
+        "ordinary_turnovers": 51,
+        "zone_turnovers": 37,
+        "goalie_contact_impulses": 32
+      },
+      "delta": {
+        "periods": 0,
+        "goals_for": -5,
+        "goals_against": 2,
+        "goal_difference": -7,
+        "wins": -2,
+        "draws": 1,
+        "losses": 1,
+        "scoreless_periods": 2,
+        "recorded_shots": 6,
+        "opponent_shots": 3,
+        "native_one_timers": -2,
+        "native_one_timer_goals": -4,
+        "ordinary_turnovers": -1,
+        "zone_turnovers": 4,
+        "goalie_contact_impulses": -5
+      },
+      "paired_periods": 8,
+      "seed_clusters": 4,
+      "changed_input_periods": 8,
+      "mean_goal_difference_change": -0.875,
+      "goal_difference_seed_bootstrap_95": [
+        -1.75,
+        0.0
+      ],
+      "observed_score_regression": true,
+      "pointwise_interval_below_zero": false,
+      "goalie_metrics": {
+        "baseline": {},
+        "current": {}
+      }
+    },
+    "hold-only": {
+      "baseline": {
+        "periods": 8,
+        "goals_for": 15,
+        "goals_against": 0,
+        "goal_difference": 15,
+        "wins": 7,
+        "draws": 1,
+        "losses": 0,
+        "scoreless_periods": 1,
+        "recorded_shots": 71,
+        "opponent_shots": 19,
+        "native_one_timers": 29,
+        "native_one_timer_goals": 12,
+        "ordinary_turnovers": 52,
+        "zone_turnovers": 33,
+        "goalie_contact_impulses": 37
+      },
+      "current": {
+        "periods": 8,
+        "goals_for": 10,
+        "goals_against": 4,
+        "goal_difference": 6,
+        "wins": 5,
+        "draws": 2,
+        "losses": 1,
+        "scoreless_periods": 2,
+        "recorded_shots": 57,
+        "opponent_shots": 28,
+        "native_one_timers": 18,
+        "native_one_timer_goals": 8,
+        "ordinary_turnovers": 52,
+        "zone_turnovers": 25,
+        "goalie_contact_impulses": 22
+      },
+      "delta": {
+        "periods": 0,
+        "goals_for": -5,
+        "goals_against": 4,
+        "goal_difference": -9,
+        "wins": -2,
+        "draws": 1,
+        "losses": 1,
+        "scoreless_periods": 1,
+        "recorded_shots": -14,
+        "opponent_shots": 9,
+        "native_one_timers": -11,
+        "native_one_timer_goals": -4,
+        "ordinary_turnovers": 0,
+        "zone_turnovers": -8,
+        "goalie_contact_impulses": -15
+      },
+      "paired_periods": 8,
+      "seed_clusters": 4,
+      "changed_input_periods": 8,
+      "mean_goal_difference_change": -1.125,
+      "goal_difference_seed_bootstrap_95": [
+        -3.125,
+        0.25
+      ],
+      "observed_score_regression": true,
+      "pointwise_interval_below_zero": false,
+      "goalie_metrics": {
+        "baseline": {},
+        "current": {}
+      }
+    },
+    "priority-only": {
+      "baseline": {
+        "periods": 8,
+        "goals_for": 15,
+        "goals_against": 0,
+        "goal_difference": 15,
+        "wins": 7,
+        "draws": 1,
+        "losses": 0,
+        "scoreless_periods": 1,
+        "recorded_shots": 71,
+        "opponent_shots": 19,
+        "native_one_timers": 29,
+        "native_one_timer_goals": 12,
+        "ordinary_turnovers": 52,
+        "zone_turnovers": 33,
+        "goalie_contact_impulses": 37
+      },
+      "current": {
+        "periods": 8,
+        "goals_for": 15,
+        "goals_against": 0,
+        "goal_difference": 15,
+        "wins": 7,
+        "draws": 1,
+        "losses": 0,
+        "scoreless_periods": 1,
+        "recorded_shots": 71,
+        "opponent_shots": 19,
+        "native_one_timers": 29,
+        "native_one_timer_goals": 12,
+        "ordinary_turnovers": 52,
+        "zone_turnovers": 33,
+        "goalie_contact_impulses": 37
+      },
+      "delta": {
+        "periods": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_difference": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreless_periods": 0,
+        "recorded_shots": 0,
+        "opponent_shots": 0,
+        "native_one_timers": 0,
+        "native_one_timer_goals": 0,
+        "ordinary_turnovers": 0,
+        "zone_turnovers": 0,
+        "goalie_contact_impulses": 0
+      },
+      "paired_periods": 8,
+      "seed_clusters": 4,
+      "changed_input_periods": 0,
+      "mean_goal_difference_change": 0.0,
+      "goal_difference_seed_bootstrap_95": [
+        0.0,
+        0.0
+      ],
+      "observed_score_regression": false,
+      "pointwise_interval_below_zero": false,
+      "goalie_metrics": {
+        "baseline": {},
+        "current": {}
+      }
+    },
+    "flight-only": {
+      "baseline": {
+        "periods": 8,
+        "goals_for": 15,
+        "goals_against": 0,
+        "goal_difference": 15,
+        "wins": 7,
+        "draws": 1,
+        "losses": 0,
+        "scoreless_periods": 1,
+        "recorded_shots": 71,
+        "opponent_shots": 19,
+        "native_one_timers": 29,
+        "native_one_timer_goals": 12,
+        "ordinary_turnovers": 52,
+        "zone_turnovers": 33,
+        "goalie_contact_impulses": 37
+      },
+      "current": {
+        "periods": 8,
+        "goals_for": 14,
+        "goals_against": 4,
+        "goal_difference": 10,
+        "wins": 5,
+        "draws": 3,
+        "losses": 0,
+        "scoreless_periods": 0,
+        "recorded_shots": 67,
+        "opponent_shots": 29,
+        "native_one_timers": 22,
+        "native_one_timer_goals": 10,
+        "ordinary_turnovers": 54,
+        "zone_turnovers": 34,
+        "goalie_contact_impulses": 44
+      },
+      "delta": {
+        "periods": 0,
+        "goals_for": -1,
+        "goals_against": 4,
+        "goal_difference": -5,
+        "wins": -2,
+        "draws": 2,
+        "losses": 0,
+        "scoreless_periods": -1,
+        "recorded_shots": -4,
+        "opponent_shots": 10,
+        "native_one_timers": -7,
+        "native_one_timer_goals": -2,
+        "ordinary_turnovers": 2,
+        "zone_turnovers": 1,
+        "goalie_contact_impulses": 7
+      },
+      "paired_periods": 8,
+      "seed_clusters": 4,
+      "changed_input_periods": 8,
+      "mean_goal_difference_change": -0.625,
+      "goal_difference_seed_bootstrap_95": [
+        -1.625,
+        0.5
+      ],
+      "observed_score_regression": true,
+      "pointwise_interval_below_zero": false,
+      "goalie_metrics": {
+        "baseline": {},
+        "current": {}
+      }
+    },
+    "selector-only": {
+      "baseline": {
+        "periods": 8,
+        "goals_for": 15,
+        "goals_against": 0,
+        "goal_difference": 15,
+        "wins": 7,
+        "draws": 1,
+        "losses": 0,
+        "scoreless_periods": 1,
+        "recorded_shots": 71,
+        "opponent_shots": 19,
+        "native_one_timers": 29,
+        "native_one_timer_goals": 12,
+        "ordinary_turnovers": 52,
+        "zone_turnovers": 33,
+        "goalie_contact_impulses": 37
+      },
+      "current": {
+        "periods": 8,
+        "goals_for": 24,
+        "goals_against": 0,
+        "goal_difference": 24,
+        "wins": 7,
+        "draws": 1,
+        "losses": 0,
+        "scoreless_periods": 1,
+        "recorded_shots": 79,
+        "opponent_shots": 12,
+        "native_one_timers": 33,
+        "native_one_timer_goals": 20,
+        "ordinary_turnovers": 53,
+        "zone_turnovers": 26,
+        "goalie_contact_impulses": 29
+      },
+      "delta": {
+        "periods": 0,
+        "goals_for": 9,
+        "goals_against": 0,
+        "goal_difference": 9,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreless_periods": 0,
+        "recorded_shots": 8,
+        "opponent_shots": -7,
+        "native_one_timers": 4,
+        "native_one_timer_goals": 8,
+        "ordinary_turnovers": 1,
+        "zone_turnovers": -7,
+        "goalie_contact_impulses": -8
+      },
+      "paired_periods": 8,
+      "seed_clusters": 4,
+      "changed_input_periods": 7,
+      "mean_goal_difference_change": 1.125,
+      "goal_difference_seed_bootstrap_95": [
+        -0.25,
+        2.5
+      ],
+      "observed_score_regression": false,
+      "pointwise_interval_below_zero": false,
+      "goalie_metrics": {
+        "baseline": {},
+        "current": {}
+      }
+    }
+  },
+  "selector_confirmation": {
+    "baseline": {
+      "periods": 40,
+      "goals_for": 75,
+      "goals_against": 13,
+      "goal_difference": 62,
+      "wins": 31,
+      "draws": 7,
+      "losses": 2,
+      "scoreless_periods": 5,
+      "recorded_shots": 270,
+      "opponent_shots": 124,
+      "native_one_timers": 106,
+      "native_one_timer_goals": 53,
+      "ordinary_turnovers": 304,
+      "zone_turnovers": 192,
+      "goalie_contact_impulses": 148
+    },
+    "current": {
+      "periods": 40,
+      "goals_for": 55,
+      "goals_against": 13,
+      "goal_difference": 42,
+      "wins": 27,
+      "draws": 7,
+      "losses": 6,
+      "scoreless_periods": 7,
+      "recorded_shots": 262,
+      "opponent_shots": 103,
+      "native_one_timers": 89,
+      "native_one_timer_goals": 32,
+      "ordinary_turnovers": 300,
+      "zone_turnovers": 194,
+      "goalie_contact_impulses": 162
+    },
+    "delta": {
+      "periods": 0,
+      "goals_for": -20,
+      "goals_against": 0,
+      "goal_difference": -20,
+      "wins": -4,
+      "draws": 0,
+      "losses": 4,
+      "scoreless_periods": 2,
+      "recorded_shots": -8,
+      "opponent_shots": -21,
+      "native_one_timers": -17,
+      "native_one_timer_goals": -21,
+      "ordinary_turnovers": -4,
+      "zone_turnovers": 2,
+      "goalie_contact_impulses": 14
+    },
+    "paired_periods": 40,
+    "seed_clusters": 20,
+    "changed_input_periods": 32,
+    "mean_goal_difference_change": -0.5,
+    "goal_difference_seed_bootstrap_95": [
+      -0.925,
+      -0.075
+    ],
+    "observed_score_regression": true,
+    "pointwise_interval_below_zero": true,
+    "goalie_metrics": {
+      "baseline": {},
+      "current": {}
+    }
+  },
+  "default_reference": {
+    "periods": 40,
+    "goals_for": 75,
+    "goals_against": 13,
+    "goal_difference": 62,
+    "wins": 31,
+    "draws": 7,
+    "losses": 2,
+    "scoreless_periods": 5,
+    "recorded_shots": 270,
+    "opponent_shots": 124,
+    "native_one_timers": 106,
+    "native_one_timer_goals": 53,
+    "ordinary_turnovers": 304,
+    "zone_turnovers": 192,
+    "goalie_contact_impulses": 148
+  },
+  "same_state_probes": {
+    "counts": {
+      "interceptions:examined": 4479,
+      "pass-timing:examined": 5056,
+      "carry-motion:examined": 5056,
+      "carry-motion:changed": 823,
+      "carry-motion:carry-escape->carry-escape": 406,
+      "finishing:examined": 5056,
+      "carry-motion:carry->carry-escape": 212,
+      "carry-motion:carry-escape->carry": 144,
+      "pass-timing:changed": 81,
+      "pass-timing:feint->carry": 5,
+      "carry-motion:feint->carry": 4,
+      "finishing:changed": 39,
+      "finishing:shoot->shoot": 39,
+      "interceptions:changed": 77,
+      "interceptions:recover-safe->deny-reception": 25,
+      "pass-timing:carry->advance-pass": 16,
+      "pass-timing:feint->position-pass": 2,
+      "pass-timing:feint->carry-escape": 1,
+      "carry-motion:feint->carry-escape": 4,
+      "carry-motion:feint->goalie-avoid": 1,
+      "pass-timing:goalie-avoid->one-timer-pass": 4,
+      "carry-motion:goalie-avoid->goalie-avoid": 32,
+      "pass-timing:carry-escape->advance-pass": 8,
+      "interceptions:recover-safe->protect-lane": 19,
+      "pass-timing:carry->one-timer-pass": 2,
+      "interceptions:intercept-pass->deny-reception": 10,
+      "interceptions:intercept-pass->intercept-pass": 4,
+      "carry-motion:carry->feint": 6,
+      "carry-motion:goalie-avoid->feint": 3,
+      "interceptions:recover-safe->recover-safe": 2,
+      "carry-motion:feint->feint": 4,
+      "pass-timing:one-timer-pass->goalie-avoid": 3,
+      "pass-timing:advance-pass->carry": 17,
+      "pass-timing:carry-escape->one-timer-pass": 5,
+      "pass-timing:one-timer-pass->feint": 1,
+      "interceptions:recover-safe->contain-boards": 4,
+      "carry-motion:carry-escape->goalie-avoid": 2,
+      "pass-timing:advance-pass->carry-escape": 5,
+      "pass-timing:feint->goalie-avoid": 1,
+      "pass-timing:position-pass->carry": 3,
+      "carry-motion:position-pass->carry-breakaway": 1,
+      "pass-timing:one-timer-setup->goalie-avoid": 2,
+      "pass-timing:one-timer-setup->one-timer-pass": 1,
+      "pass-timing:carry-escape->feint": 1,
+      "pass-timing:position-pass->carry-escape": 1,
+      "pass-timing:carry->one-timer-setup": 1,
+      "interceptions:intercept-pass->protect-lane": 11,
+      "carry-motion:carry-breakaway->carry-escape": 1,
+      "carry-motion:carry-escape->carry-breakaway": 1,
+      "interceptions:intercept-pass->contain-boards": 2,
+      "carry-motion:carry->one-timer-setup": 1,
+      "carry-motion:carry-escape->feint": 1,
+      "pass-timing:advance-pass->advance-pass": 1,
+      "pass-timing:one-timer-pass->carry": 1
+    },
+    "outcomes": {
+      "carry-motion": {
+        "sampled_states": 48,
+        "branches": {
+          "baseline": {
+            "goals_for": 5,
+            "goals_against": 0,
+            "shots": 21,
+            "one_timers": 8
+          },
+          "revised": {
+            "goals_for": 6,
+            "goals_against": 0,
+            "shots": 13,
+            "one_timers": 6
+          }
+        }
+      },
+      "pass-timing": {
+        "sampled_states": 48,
+        "branches": {
+          "baseline": {
+            "goals_for": 8,
+            "goals_against": 0,
+            "shots": 16,
+            "one_timers": 13
+          },
+          "revised": {
+            "goals_for": 6,
+            "goals_against": 0,
+            "shots": 16,
+            "one_timers": 8
+          }
+        }
+      },
+      "finishing": {
+        "sampled_states": 33,
+        "branches": {
+          "baseline": {
+            "goals_for": 3,
+            "goals_against": 0,
+            "shots": 40,
+            "one_timers": 2
+          },
+          "revised": {
+            "goals_for": 2,
+            "goals_against": 0,
+            "shots": 41,
+            "one_timers": 1
+          },
+          "aim-only": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "shots": 33,
+            "one_timers": 2
+          },
+          "hold-only": {
+            "goals_for": 3,
+            "goals_against": 0,
+            "shots": 36,
+            "one_timers": 1
+          }
+        }
+      },
+      "interceptions": {
+        "sampled_states": 26,
+        "branches": {
+          "baseline": {
+            "goals_for": 0,
+            "goals_against": 0,
+            "shots": 3,
+            "one_timers": 1
+          },
+          "revised": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "shots": 1,
+            "one_timers": 0
+          }
+        }
+      }
+    },
+    "carry_classification": {
+      "safe_to_unsafe": 22,
+      "both_unsafe": 21,
+      "collision_after_first_input_block": 18,
+      "initial_overlap": 0
+    },
+    "normal_shot_choices": {
+      "evaluated": 48,
+      "hold_2": 34,
+      "changed_aim": 24,
+      "hold_4": 14
+    },
+    "rejected_baseline_passes": {
+      "one-timer:contested-reception-or-lane:one_timer_shot": 4,
+      "advance-pass:different-rom-recipient:received_without_shot": 2,
+      "one-timer:moving-stick-interception:intercepted": 1,
+      "advance-pass:too-fast-to-control:returned_to_passer": 1,
+      "advance-pass:contested-reception-or-lane:received_without_shot": 7,
+      "advance-pass:moving-stick-interception:received_without_shot": 2,
+      "advance-pass:moving-stick-interception:period_ended": 2,
+      "advance-pass:unreachable-reception:received_without_shot": 1,
+      "advance-pass:moving-interception:received_without_shot": 1,
+      "advance-pass:contested-reception-or-lane:intercepted": 2,
+      "advance-pass:too-fast-to-control:intercepted": 1,
+      "advance-pass:insufficient-progress:received_without_shot": 2,
+      "position-pass:contested-reception-or-lane:intercepted": 1,
+      "advance-pass:too-fast-to-control:period_ended": 1
+    }
+  },
+  "confirmation_pass_audit": {
+    "recipient_accuracy": {
+      "evaluated_launched_requests": 833,
+      "current_correct": 812,
+      "projected_correct": 821,
+      "corrected_errors": 10,
+      "introduced_errors": 1
+    },
+    "rejected_pass_outcomes": {
+      "advance-pass:contested-reception-or-lane:received_without_shot": 22,
+      "advance-pass:insufficient-progress:intercepted": 3,
+      "position-pass:moving-stick-interception:intercepted": 1,
+      "position-pass:moving-stick-interception:received_without_shot": 1,
+      "one-timer:contested-reception-or-lane:one_timer_shot": 6,
+      "one-timer:outside-one-timer-window:one_timer_shot": 4,
+      "one-timer:friendly-stick-obstruction:one_timer_shot": 1,
+      "advance-pass:too-fast-to-control:received_without_shot": 13,
+      "position-pass:contested-reception-or-lane:received_without_shot": 2,
+      "advance-pass:moving-stick-interception:received_without_shot": 8,
+      "advance-pass:unreachable-reception:received_without_shot": 10,
+      "advance-pass:contested-reception-or-lane:intercepted": 3,
+      "advance-pass:different-rom-recipient:received_without_shot": 5,
+      "advance-pass:too-fast-to-control:flight_timeout": 1,
+      "advance-pass:too-fast-to-control:intercepted": 4,
+      "one-timer:different-rom-recipient:intercepted": 1,
+      "advance-pass:friendly-stick-obstruction:received_without_shot": 4,
+      "one-timer:moving-stick-interception:one_timer_shot": 3,
+      "position-pass:too-fast-to-control:received_without_shot": 3,
+      "advance-pass:different-rom-recipient:intercepted": 2,
+      "advance-pass:friendly-obstruction:received_without_shot": 2,
+      "position-pass:friendly-stick-obstruction:received_without_shot": 1,
+      "position-pass:moving-interception:received_without_shot": 3,
+      "advance-pass:moving-interception:intercepted": 1,
+      "advance-pass:too-fast-to-control:returned_to_passer": 1,
+      "one-timer:moving-stick-interception:intercepted": 2,
+      "one-timer:outside-one-timer-window:intercepted": 1,
+      "position-pass:contested-reception-or-lane:flight_timeout": 1,
+      "advance-pass:unreachable-reception:intercepted": 1,
+      "one-timer:moving-interception:received_without_shot": 1,
+      "advance-pass:different-rom-recipient:flight_timeout": 2,
+      "advance-pass:insufficient-progress:received_without_shot": 3,
+      "position-pass:too-fast-to-control:intercepted": 1,
+      "one-timer:different-rom-recipient:received_without_shot": 1,
+      "one-timer:contested-reception-or-lane:intercepted": 2,
+      "one-timer:moving-interception:one_timer_shot": 1
+    }
+  },
+  "verification": {
+    "runtime_sources_match_current_checkout": true,
+    "probe_default_input_hashes_match": 8,
+    "audit_default_input_hashes_match": 40,
+    "component_priority_only_input_hashes_match": 8,
+    "complete_matched_fixture_seed_matrices": true,
+    "initial_branch_ram_verified": true,
+    "matched_states": 155,
+    "native_branches": 376,
+    "full_period_records_including_parity_reruns": 328
+  },
+  "interpretation": {
+    "pass-timing": "Repeating full-period loss. Correct recipient timing does not validate its flight/reception gates or tactical selection; selector-only pilot gains also fail larger confirmation.",
+    "finishing": "Repeating full-period loss. Pilot priority-only inputs are identical to default; aim/hold components lose strength and omit rebound/possession value.",
+    "carry-motion": "No established general regression. Fresh estimate is slightly positive; longer-horizon gates and changed fallback ranking produce frequent detours.",
+    "interceptions": "Strength effect inconclusive. Concrete native false rejection is caused by an overly strict current-puck relative-speed test and fixed-target deadline validation."
+  },
+  "limitations": [
+    "Fixed-roster CPU first periods; no full-game or human-opponent claim.",
+    "Pointwise bootstrap intervals are not adjusted for multiple comparisons.",
+    "Local probes overlap across refinements and visit default-policy states only.",
+    "Primary branches retain their own policies; aim/hold branches modify the initial shot only.",
+    "Scores and errors from different trajectories cannot alone prove causation."
+  ],
+  "evidence": {
+    "path": "classic-v1-refinement-diagnosis-evidence.json.gz",
+    "sha256": "8b005addcd4ca34f350c0d76d7420ab61289a10c4c1a6a6ef9af8295488e935a"
+  }
+}

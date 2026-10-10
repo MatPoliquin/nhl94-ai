@@ -1,0 +1,41 @@
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -405,7 +405,7 @@
+ 
+     def _observe_follow_through(self, state):
+         owner = state.engine.puck_owner
+-        if (self._tick < self._shot_until and state.team1.owns_scnum(owner)
++        if (self._tick < self._shot_until and owns_puck(state.team1, owner)
+                 and owner != self._shot_slot):
+             self._shot_until = 0
+             self._frame_remaining = 0
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -250,9 +250,13 @@
+         margin = min(pressure_margin(state.team2, motion[0], frames)
+                      for motion, frames in zip(motions, CARRY_SAMPLES)) if bounded else -math.inf
+         safe = clearance > 0 and margin >= 3 and details.get('goalie_avoidance_safe', True)
++        sign = 1 if state.team2.net.y > state.team1.net.y else -1
++        progress = (motions[-1][0][1] - player.y) * sign if bounded else -math.inf
++        opportunity = shot_value(state, player, motions[-1][0], FEINT_FRAMES) if safe else 0
+         return target, {
+             **details, 'carry_safe': safe, 'carry_bounded': bounded,
+             'carry_clearance': clearance, 'carry_pressure': margin,
++            'carry_progress': progress, 'carry_shot_value': opportunity,
+         }
+ 
+     def fallback_carry(self, state, player):
+@@ -284,9 +288,10 @@
+                 'reason': 'no bounded carry; brake before unavoidable wall or net contact',
+             }
+         point, details = max(bounded, key=lambda option: (
+-            option[1]['carry_safe'], min(option[1]['carry_pressure'], 12),
+-            min(option[1]['carry_clearance'], 16), (option[0][1] - player.y) * sign,
+-            -math.dist(option[0], preferred)))
++            option[1]['carry_safe'], option[1]['carry_shot_value'],
++            option[1]['carry_progress'] if option[1]['carry_safe'] else min(option[1]['carry_pressure'], 12),
++            min(option[1]['carry_pressure'], 12) if option[1]['carry_safe'] else min(option[1]['carry_clearance'], 16),
++            min(option[1]['carry_clearance'], 16), -math.dist(option[0], preferred)))
+         mode = ('goalie-avoid' if 'goalie_clearance' in first[1] else
+                 'carry' if point == first[0] else 'carry-escape')
+         return point, {

@@ -1,0 +1,144 @@
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -12,8 +12,8 @@
+ from nhl94_ai.agents.goalie import GoalieController
+ from nhl94_ai.agents.cross_crease import CrossCreaseController, crossing_entry, evaluate_cross_crease
+ from nhl94_ai.agents.offense import (
+-    GOALIE_HORIZON, GOALIE_SHOT_CLEARANCE, OffenseController, carry_clear,
+-    goalie_avoidance, goalie_contact_time, projected_state,
++    GOALIE_HORIZON, GOALIE_SHOT_CLEARANCE, SHOT_RELEASE_DELAY, OffenseController, carry_clear,
++    goalie_avoidance, goalie_contact_time, projected_state, shot_release_in_front,
+ )
+ from nhl94_ai.agents.passing import pass_release_frames, shot_value
+ from nhl94_ai.game.constants import GameConsts as Buttons
+@@ -24,6 +24,7 @@
+     HOCKEY_INTENT_PASS_START, HOCKEY_INTENT_POKE_CHECK,
+ )
+ from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
++from nhl94_ai.env.target_control import route_waypoint
+ 
+ 
+ ONE_TIMER_TIMEOUT_FRAMES = 72
+@@ -523,7 +524,9 @@
+             escape = goalie_avoidance(state, player, self.offense.carry_target(state, player))
+             shot_safe = goalie_contact_time(
+                 player, opponents.goalie, clearance=GOALIE_SHOT_CLEARANCE) > GOALIE_HORIZON
+-            normal_finish = progress > shot_y and abs(player.x) < 48 and shot_safe
++            release_in_front = shot_release_in_front(
++                state, player, self._decision_interval + SHOT_RELEASE_DELAY)
++            normal_finish = progress > shot_y and abs(player.x) < 48 and shot_safe and release_in_front
+             target = self._one_timer_target(team, opponents, attack, state=state)
+             if self._choose_cross_crease(state, plan, target):
+                 return self._cross_crease_action(state)
+@@ -558,7 +561,8 @@
+ 
+             goalie_danger = progress > 175 and escape is not None
+             preparing_one_timer = plan is not None and plan[0] == 'one-timer-setup'
+-            if normal_finish or (goalie_danger and abs(player.x) < 48 and shot_safe and not preparing_one_timer):
++            if normal_finish or (goalie_danger and abs(player.x) < 48 and shot_safe
++                                 and release_in_front and not preparing_one_timer):
+                 self._last_decision = 'shoot'
+                 self._shot_side = -1 if opponents.goalie.x > 0 else 1
+                 self._last_target = self._shot_side * 13, opponents.net.y
+@@ -590,6 +594,8 @@
+                                if team.skater_scnum_base() + i != actual]
+                     return action, HOCKEY_INTENT_PASS_START + indices.index(option.index)
+                 # Live cuts already evaluated this exact goalie-safe route.
++                if mode == 'carry-breakaway' and not release_in_front:
++                    point = route_waypoint((player.x, player.y), point)
+                 self._steer(action, player, *point, None if mode in ('feint', 'one-timer-setup') else state)
+                 return action, HOCKEY_INTENT_NOOP
+ 
+@@ -610,7 +616,10 @@
+                 self._setup_until = 0
+ 
+             self._last_decision = 'carry'
+-            self._steer(action, player, *self.offense.carry_target(state, player), state)
++            point = self.offense.carry_target(state, player)
++            if not release_in_front:
++                point = route_waypoint((player.x, player.y), point)
++            self._steer(action, player, *point, state)
+             if self._last_decision != 'goalie-avoid':
+                 self.offense_diagnostics['reason'] = (
+                     'missing feedback; retain legacy carry/setup' if player.passing is None
+--- a/nhl94_ai/agents/cross_crease.py
++++ b/nhl94_ai/agents/cross_crease.py
+@@ -9,7 +9,7 @@
+ 
+ from nhl94_ai.agents.defense import controlled_slot, eligible
+ from nhl94_ai.agents.goalie import DIVE_ANIMATION, SAVE_ANIMATIONS
+-from nhl94_ai.agents.motion import arrival_time, skate_step, skating, stop_projection, velocity
++from nhl94_ai.agents.motion import arrival_time, coast_projection, skate_step, skating, stop_projection, velocity
+ from nhl94_ai.agents.offense import (
+     GOALIE_SHOT_CLEARANCE, _braking, _carry_motion, goalie_avoidance,
+ )
+@@ -51,16 +51,6 @@
+ def crossing_entry(state, player):
+     sign = 1 if state.team2.net.y > state.team1.net.y else -1
+     return player is not None and 88 <= player.y * sign <= 244 and 8 <= abs(player.x) <= 120
+-
+-
+-def coast_projection(player, frames):
+-    """ShotMode uses aim, not skating acceleration; retain existing inertia."""
+-    x, y = float(player.x), float(player.y)
+-    vx, vy = velocity(player)
+-    for _ in range(frames):
+-        vx, vy = vx * 63 / 64, vy * 63 / 64
+-        x, y = x + vx, y + vy
+-    return x, y
+ 
+ 
+ def shot_lane_clear(state, point, side, delay=0, *, include_goalie=True):
+--- a/nhl94_ai/agents/motion.py
++++ b/nhl94_ai/agents/motion.py
+@@ -14,6 +14,16 @@
+     if player.motion_x is None or player.motion_y is None:
+         return player.vx * 256 * VELOCITY_SCALE, player.vy * 256 * VELOCITY_SCALE
+     return player.motion_x, player.motion_y
++
++
++def coast_projection(player, frames):
++    """ShotMode uses aim, not skating acceleration; retain existing inertia."""
++    x, y = float(player.x), float(player.y)
++    vx, vy = velocity(player)
++    for _ in range(frames):
++        vx, vy = vx * 63 / 64, vy * 63 / 64
++        x, y = x + vx, y + vy
++    return x, y
+ 
+ 
+ def skate_step(motion, heading, turning, pad, acceleration, limit):
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -4,7 +4,7 @@
+ import math
+ 
+ from nhl94_ai.agents.defense import controlled_slot, eligible
+-from nhl94_ai.agents.motion import arrival_time, facing, skate_step, skating, stop_projection, velocity
++from nhl94_ai.agents.motion import arrival_time, coast_projection, facing, skate_step, skating, stop_projection, velocity
+ from nhl94_ai.agents.passing import evaluate_pass, pressure_margin, rom_direction, shot_value
+ from nhl94_ai.env.target_control import project_target, route_waypoint
+ 
+@@ -13,6 +13,14 @@
+ GOALIE_CLEARANCE = 32
+ GOALIE_SHOT_CLEARANCE = 24
+ GOALIE_HORIZON = 32
++SHOT_RELEASE_DELAY = 2
++
++
++def shot_release_in_front(state, player, frames):
++    sign = 1 if state.team2.net.y > state.team1.net.y else -1
++    point = state.puck if state.engine.puck_owner_known else player
++    _, y = coast_projection(player, frames)
++    return max(point.y * sign, (point.y + y - player.y) * sign) < state.team2.net.y * sign
+ 
+ 
+ def carry_projection(player, target, frames=FEINT_FRAMES):
+@@ -363,6 +371,7 @@
+         sign = 1 if state.team2.net.y > state.team1.net.y else -1
+         finish_depth = 198 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * 0.4
+         if (player.y * sign > finish_depth and abs(player.x) < 48
++                and shot_release_in_front(state, player, self.decision_interval + SHOT_RELEASE_DELAY)
+                 and pressure_margin(state.team2, (player.x, player.y), 8) >= 3):
+             self.feint_target = None
+             self.diagnostics['status'] = 'close-to-finish'

@@ -1,0 +1,3198 @@
+{
+  "protocol": "classic-four-control-rates-v1",
+  "settings": {
+    "intervals": [
+      0,
+      4,
+      10,
+      20
+    ],
+    "seeds": [
+      26501,
+      26502,
+      26503,
+      26504,
+      26505,
+      26506,
+      26507,
+      26508,
+      26509,
+      26510
+    ],
+    "matchups": [
+      "sabres-ducks-manual",
+      "ducks-sabres-manual",
+      "ducks-campbell-manual",
+      "campbell-ducks-manual"
+    ],
+    "seconds": 300,
+    "tactical_interval": 4,
+    "goalie_policy": "selective",
+    "action_type": "FILTERED",
+    "workers": 8
+  },
+  "semantics": {
+    "0": "Original reactive controller without a limiter",
+    "positive": "Read controller state and change any button only every N native frames",
+    "clocks": "Elapsed native frames continue advancing during held inputs",
+    "decoding": "Native telemetry/decoding continues; held frames never enter the controller",
+    "retuned": false,
+    "extra_inference_latency_frames": 0
+  },
+  "overall": {
+    "0": {
+      "periods": 40,
+      "wins": 27,
+      "draws": 10,
+      "losses": 3,
+      "goals_for": 60,
+      "goals_against": 13,
+      "goal_difference": 47,
+      "shots_for": 258,
+      "shots_against": 142,
+      "one_timer_attempts": 106,
+      "one_timer_goals": 39,
+      "other_goals": 21,
+      "one_timer_setups": 159,
+      "native_inputs": 359495,
+      "controller_observations": 359495,
+      "goalie_handoff_timeouts": 0,
+      "periods_with_goalie_handoff_timeouts": 0,
+      "goalie_metrics": {
+        "takeover_requests": 247,
+        "idle:prepare-goalie": 483,
+        "idle:waiting-for-control": 3623,
+        "takeovers": 166,
+        "idle:release-goalie": 332,
+        "idle:holding-position": 6662,
+        "automatic_handoffs": 112,
+        "idle:neutral-handoff": 588,
+        "idle:save-recovery": 3976,
+        "idle:possession-outlet": 2793,
+        "outlet_requests": 92,
+        "outlets_launched": 83,
+        "outlet_receptions": 53,
+        "idle:outlet-flight": 1542,
+        "takeover_cancelled": 80,
+        "save_requests": 76,
+        "idle:save-commitment": 84,
+        "controlled_catches": 60,
+        "save_animations": 74,
+        "outlet_timeouts": 17,
+        "idle:positioning": 17,
+        "idle:stoppage": 3074,
+        "outlet_interrupted": 9,
+        "clear_requests": 12,
+        "clear_possession_ended": 12,
+        "cpu_fallback_frames": 563,
+        "idle:cpu-fallback": 547,
+        "return_requests": 16,
+        "idle:request-skater": 17,
+        "returns": 16,
+        "outlet_other_owner": 12,
+        "dive_requests": 5,
+        "dive_animations": 5,
+        "save_cancelled": 2
+      },
+      "one_timer_metrics": {
+        "shot-released": 104,
+        "period-ended": 1,
+        "possession-changed": 32,
+        "timeout": 21,
+        "receiver-mismatch": 1
+      },
+      "runtime_warnings": {}
+    },
+    "4": {
+      "periods": 40,
+      "wins": 25,
+      "draws": 13,
+      "losses": 2,
+      "goals_for": 64,
+      "goals_against": 21,
+      "goal_difference": 43,
+      "shots_for": 274,
+      "shots_against": 163,
+      "one_timer_attempts": 103,
+      "one_timer_goals": 50,
+      "other_goals": 14,
+      "one_timer_setups": 143,
+      "native_inputs": 363985,
+      "controller_observations": 91011,
+      "goalie_handoff_timeouts": 0,
+      "periods_with_goalie_handoff_timeouts": 0,
+      "goalie_metrics": {
+        "takeover_requests": 250,
+        "idle:prepare-goalie": 250,
+        "idle:waiting-for-control": 1045,
+        "takeovers": 183,
+        "idle:release-goalie": 183,
+        "idle:holding-position": 1360,
+        "save_requests": 88,
+        "idle:save-commitment": 88,
+        "controlled_catches": 65,
+        "save_animations": 87,
+        "idle:save-recovery": 868,
+        "idle:possession-outlet": 1068,
+        "outlet_requests": 100,
+        "outlets_launched": 100,
+        "idle:outlet-flight": 490,
+        "outlet_receptions": 67,
+        "idle:neutral-handoff": 303,
+        "takeover_cancelled": 67,
+        "clear_requests": 15,
+        "clear_possession_ended": 15,
+        "cpu_fallback_frames": 154,
+        "idle:cpu-fallback": 139,
+        "return_requests": 15,
+        "idle:request-skater": 15,
+        "returns": 15,
+        "automatic_handoffs": 122,
+        "outlet_other_owner": 17,
+        "outlet_timeouts": 16,
+        "idle:positioning": 16,
+        "idle:stoppage": 1299,
+        "save_cancelled": 1,
+        "dive_requests": 1,
+        "dive_animations": 1
+      },
+      "one_timer_metrics": {
+        "shot-released": 103,
+        "possession-changed": 24,
+        "timeout": 13,
+        "period-ended": 2,
+        "receiver-mismatch": 1
+      },
+      "runtime_warnings": {}
+    },
+    "10": {
+      "periods": 40,
+      "wins": 17,
+      "draws": 12,
+      "losses": 11,
+      "goals_for": 48,
+      "goals_against": 33,
+      "goal_difference": 15,
+      "shots_for": 189,
+      "shots_against": 144,
+      "one_timer_attempts": 78,
+      "one_timer_goals": 32,
+      "other_goals": 16,
+      "one_timer_setups": 129,
+      "native_inputs": 368310,
+      "controller_observations": 36849,
+      "goalie_handoff_timeouts": 5,
+      "periods_with_goalie_handoff_timeouts": 4,
+      "goalie_metrics": {
+        "takeover_requests": 248,
+        "idle:prepare-goalie": 248,
+        "idle:waiting-for-control": 408,
+        "takeovers": 167,
+        "idle:release-goalie": 167,
+        "controlled_catches": 49,
+        "idle:possession-outlet": 415,
+        "clear_requests": 23,
+        "outlet_timeouts": 39,
+        "idle:positioning": 39,
+        "idle:save-recovery": 301,
+        "cpu_fallback_frames": 131,
+        "idle:cpu-fallback": 99,
+        "return_requests": 32,
+        "idle:request-skater": 52,
+        "returns": 27,
+        "idle:neutral-handoff": 279,
+        "takeover_cancelled": 80,
+        "save_requests": 44,
+        "idle:save-commitment": 44,
+        "save_animations": 42,
+        "outlet_requests": 82,
+        "outlets_launched": 82,
+        "idle:outlet-flight": 155,
+        "outlet_other_owner": 11,
+        "automatic_handoffs": 106,
+        "idle:holding-position": 136,
+        "outlet_receptions": 55,
+        "idle:stoppage": 1140,
+        "dive_requests": 8,
+        "dive_animations": 7,
+        "handoff_timeouts": 5,
+        "idle:backoff": 5,
+        "save_cancelled": 2
+      },
+      "one_timer_metrics": {
+        "timeout": 25,
+        "shot-released": 74,
+        "possession-changed": 27,
+        "receiver-mismatch": 2,
+        "play-stopped": 1
+      },
+      "runtime_warnings": {
+        "Manual goalie return not confirmed within 60 frames; releasing input and backing off.": 5
+      }
+    },
+    "20": {
+      "periods": 40,
+      "wins": 4,
+      "draws": 11,
+      "losses": 25,
+      "goals_for": 22,
+      "goals_against": 75,
+      "goal_difference": -53,
+      "shots_for": 108,
+      "shots_against": 139,
+      "one_timer_attempts": 15,
+      "one_timer_goals": 6,
+      "other_goals": 16,
+      "one_timer_setups": 115,
+      "native_inputs": 375422,
+      "controller_observations": 18789,
+      "goalie_handoff_timeouts": 626,
+      "periods_with_goalie_handoff_timeouts": 40,
+      "goalie_metrics": {
+        "takeover_requests": 22,
+        "idle:prepare-goalie": 22,
+        "takeover_cancelled": 10,
+        "idle:neutral-handoff": 383,
+        "idle:holding-position": 68,
+        "automatic_handoffs": 183,
+        "idle:waiting-for-control": 813,
+        "takeovers": 12,
+        "idle:release-goalie": 12,
+        "controlled_catches": 33,
+        "idle:possession-outlet": 115,
+        "outlet_requests": 35,
+        "outlets_launched": 35,
+        "idle:outlet-flight": 39,
+        "outlet_timeouts": 12,
+        "idle:positioning": 12,
+        "cpu_fallback_frames": 958,
+        "return_requests": 801,
+        "idle:request-skater": 1419,
+        "handoff_timeouts": 626,
+        "idle:backoff": 626,
+        "returns": 160,
+        "idle:cpu-fallback": 171,
+        "idle:stoppage": 2083,
+        "save_requests": 26,
+        "idle:save-commitment": 26,
+        "save_animations": 25,
+        "idle:save-recovery": 50,
+        "dive_requests": 10,
+        "dive_animations": 10,
+        "outlet_receptions": 18,
+        "save_cancelled": 1,
+        "clear_requests": 7,
+        "clear_possession_ended": 7,
+        "outlet_other_owner": 5
+      },
+      "one_timer_metrics": {
+        "possession-changed": 65,
+        "shot-released": 12,
+        "timeout": 34,
+        "play-stopped": 3,
+        "period-ended": 1
+      },
+      "runtime_warnings": {
+        "Manual goalie return not confirmed within 60 frames; releasing input and backing off.": 626
+      }
+    }
+  },
+  "per_matchup": {
+    "sabres-ducks-manual": {
+      "0": {
+        "periods": 10,
+        "wins": 9,
+        "draws": 1,
+        "losses": 0,
+        "goals_for": 17,
+        "goals_against": 1,
+        "goal_difference": 16,
+        "shots_for": 61,
+        "shots_against": 23,
+        "one_timer_attempts": 26,
+        "one_timer_goals": 11,
+        "other_goals": 6,
+        "one_timer_setups": 46,
+        "native_inputs": 89337,
+        "controller_observations": 89337,
+        "goalie_handoff_timeouts": 0,
+        "periods_with_goalie_handoff_timeouts": 0,
+        "goalie_metrics": {
+          "takeover_requests": 54,
+          "idle:prepare-goalie": 107,
+          "idle:waiting-for-control": 753,
+          "takeovers": 31,
+          "idle:release-goalie": 62,
+          "idle:holding-position": 1706,
+          "automatic_handoffs": 23,
+          "idle:neutral-handoff": 146,
+          "idle:save-recovery": 823,
+          "idle:possession-outlet": 906,
+          "outlet_requests": 25,
+          "outlets_launched": 23,
+          "outlet_receptions": 16,
+          "idle:outlet-flight": 414,
+          "takeover_cancelled": 22,
+          "save_requests": 11,
+          "idle:save-commitment": 12,
+          "controlled_catches": 12,
+          "save_animations": 11,
+          "outlet_timeouts": 5,
+          "idle:positioning": 5,
+          "outlet_interrupted": 2,
+          "clear_requests": 4,
+          "clear_possession_ended": 4,
+          "cpu_fallback_frames": 107,
+          "idle:cpu-fallback": 103,
+          "return_requests": 4,
+          "idle:request-skater": 4,
+          "returns": 4,
+          "idle:stoppage": 384,
+          "dive_requests": 2,
+          "dive_animations": 2,
+          "outlet_other_owner": 2
+        },
+        "one_timer_metrics": {
+          "shot-released": 25,
+          "period-ended": 1,
+          "possession-changed": 10,
+          "timeout": 10
+        },
+        "runtime_warnings": {}
+      },
+      "4": {
+        "periods": 10,
+        "wins": 6,
+        "draws": 4,
+        "losses": 0,
+        "goals_for": 18,
+        "goals_against": 4,
+        "goal_difference": 14,
+        "shots_for": 72,
+        "shots_against": 30,
+        "one_timer_attempts": 27,
+        "one_timer_goals": 12,
+        "other_goals": 6,
+        "one_timer_setups": 40,
+        "native_inputs": 91872,
+        "controller_observations": 22971,
+        "goalie_handoff_timeouts": 0,
+        "periods_with_goalie_handoff_timeouts": 0,
+        "goalie_metrics": {
+          "takeover_requests": 53,
+          "idle:prepare-goalie": 53,
+          "idle:waiting-for-control": 219,
+          "takeovers": 39,
+          "idle:release-goalie": 39,
+          "idle:holding-position": 316,
+          "save_requests": 17,
+          "idle:save-commitment": 17,
+          "controlled_catches": 14,
+          "save_animations": 17,
+          "idle:save-recovery": 216,
+          "idle:possession-outlet": 327,
+          "outlet_requests": 25,
+          "outlets_launched": 25,
+          "idle:outlet-flight": 136,
+          "outlet_receptions": 17,
+          "idle:neutral-handoff": 76,
+          "takeover_cancelled": 14,
+          "clear_requests": 7,
+          "clear_possession_ended": 7,
+          "cpu_fallback_frames": 59,
+          "idle:cpu-fallback": 51,
+          "return_requests": 8,
+          "idle:request-skater": 8,
+          "returns": 8,
+          "automatic_handoffs": 27,
+          "outlet_other_owner": 3,
+          "outlet_timeouts": 5,
+          "idle:positioning": 5,
+          "idle:stoppage": 192
+        },
+        "one_timer_metrics": {
+          "shot-released": 27,
+          "possession-changed": 5,
+          "timeout": 6,
+          "period-ended": 1,
+          "receiver-mismatch": 1
+        },
+        "runtime_warnings": {}
+      },
+      "10": {
+        "periods": 10,
+        "wins": 6,
+        "draws": 3,
+        "losses": 1,
+        "goals_for": 15,
+        "goals_against": 5,
+        "goal_difference": 10,
+        "shots_for": 50,
+        "shots_against": 22,
+        "one_timer_attempts": 15,
+        "one_timer_goals": 9,
+        "other_goals": 6,
+        "one_timer_setups": 29,
+        "native_inputs": 92896,
+        "controller_observations": 9293,
+        "goalie_handoff_timeouts": 2,
+        "periods_with_goalie_handoff_timeouts": 2,
+        "goalie_metrics": {
+          "takeover_requests": 50,
+          "idle:prepare-goalie": 50,
+          "idle:waiting-for-control": 90,
+          "takeovers": 38,
+          "idle:release-goalie": 38,
+          "controlled_catches": 11,
+          "idle:possession-outlet": 92,
+          "clear_requests": 5,
+          "outlet_timeouts": 8,
+          "idle:positioning": 8,
+          "idle:save-recovery": 64,
+          "cpu_fallback_frames": 34,
+          "idle:cpu-fallback": 24,
+          "return_requests": 10,
+          "idle:request-skater": 18,
+          "returns": 8,
+          "idle:neutral-handoff": 61,
+          "takeover_cancelled": 11,
+          "save_requests": 8,
+          "idle:save-commitment": 8,
+          "save_animations": 8,
+          "outlet_requests": 21,
+          "outlets_launched": 21,
+          "idle:outlet-flight": 38,
+          "outlet_other_owner": 2,
+          "automatic_handoffs": 24,
+          "outlet_receptions": 16,
+          "idle:holding-position": 41,
+          "dive_requests": 3,
+          "dive_animations": 2,
+          "idle:stoppage": 192,
+          "handoff_timeouts": 2,
+          "idle:backoff": 2
+        },
+        "one_timer_metrics": {
+          "timeout": 7,
+          "shot-released": 15,
+          "possession-changed": 6,
+          "receiver-mismatch": 1
+        },
+        "runtime_warnings": {
+          "Manual goalie return not confirmed within 60 frames; releasing input and backing off.": 2
+        }
+      },
+      "20": {
+        "periods": 10,
+        "wins": 1,
+        "draws": 3,
+        "losses": 6,
+        "goals_for": 6,
+        "goals_against": 20,
+        "goal_difference": -14,
+        "shots_for": 31,
+        "shots_against": 32,
+        "one_timer_attempts": 2,
+        "one_timer_goals": 1,
+        "other_goals": 5,
+        "one_timer_setups": 35,
+        "native_inputs": 93606,
+        "controller_observations": 4685,
+        "goalie_handoff_timeouts": 140,
+        "periods_with_goalie_handoff_timeouts": 10,
+        "goalie_metrics": {
+          "takeover_requests": 8,
+          "idle:prepare-goalie": 8,
+          "takeover_cancelled": 2,
+          "idle:neutral-handoff": 93,
+          "idle:holding-position": 9,
+          "automatic_handoffs": 44,
+          "idle:waiting-for-control": 189,
+          "takeovers": 6,
+          "idle:release-goalie": 6,
+          "controlled_catches": 8,
+          "idle:possession-outlet": 18,
+          "outlet_requests": 8,
+          "outlets_launched": 8,
+          "idle:outlet-flight": 6,
+          "outlet_timeouts": 2,
+          "idle:positioning": 2,
+          "cpu_fallback_frames": 210,
+          "return_requests": 183,
+          "idle:request-skater": 323,
+          "handoff_timeouts": 140,
+          "idle:backoff": 140,
+          "returns": 41,
+          "idle:cpu-fallback": 30,
+          "idle:stoppage": 527,
+          "save_requests": 7,
+          "idle:save-commitment": 7,
+          "save_animations": 7,
+          "idle:save-recovery": 4,
+          "dive_requests": 2,
+          "dive_animations": 2,
+          "outlet_receptions": 5,
+          "outlet_other_owner": 1
+        },
+        "one_timer_metrics": {
+          "possession-changed": 21,
+          "timeout": 12,
+          "shot-released": 2
+        },
+        "runtime_warnings": {
+          "Manual goalie return not confirmed within 60 frames; releasing input and backing off.": 140
+        }
+      }
+    },
+    "ducks-sabres-manual": {
+      "0": {
+        "periods": 10,
+        "wins": 5,
+        "draws": 4,
+        "losses": 1,
+        "goals_for": 10,
+        "goals_against": 3,
+        "goal_difference": 7,
+        "shots_for": 62,
+        "shots_against": 43,
+        "one_timer_attempts": 26,
+        "one_timer_goals": 7,
+        "other_goals": 3,
+        "one_timer_setups": 40,
+        "native_inputs": 87392,
+        "controller_observations": 87392,
+        "goalie_handoff_timeouts": 0,
+        "periods_with_goalie_handoff_timeouts": 0,
+        "goalie_metrics": {
+          "takeover_requests": 61,
+          "idle:prepare-goalie": 119,
+          "idle:waiting-for-control": 888,
+          "takeover_cancelled": 17,
+          "idle:neutral-handoff": 140,
+          "takeovers": 44,
+          "idle:release-goalie": 88,
+          "idle:holding-position": 1604,
+          "automatic_handoffs": 32,
+          "idle:save-recovery": 1119,
+          "idle:possession-outlet": 489,
+          "idle:stoppage": 1153,
+          "save_requests": 23,
+          "idle:save-commitment": 26,
+          "save_animations": 23,
+          "controlled_catches": 11,
+          "outlet_requests": 18,
+          "outlets_launched": 16,
+          "idle:outlet-flight": 280,
+          "outlet_receptions": 11,
+          "outlet_timeouts": 2,
+          "idle:positioning": 2,
+          "cpu_fallback_frames": 126,
+          "idle:cpu-fallback": 123,
+          "return_requests": 3,
+          "idle:request-skater": 3,
+          "returns": 3,
+          "outlet_other_owner": 3,
+          "outlet_interrupted": 2,
+          "clear_requests": 2,
+          "clear_possession_ended": 2,
+          "dive_requests": 1,
+          "dive_animations": 1
+        },
+        "one_timer_metrics": {
+          "shot-released": 25,
+          "possession-changed": 11,
+          "timeout": 4
+        },
+        "runtime_warnings": {}
+      },
+      "4": {
+        "periods": 10,
+        "wins": 6,
+        "draws": 4,
+        "losses": 0,
+        "goals_for": 17,
+        "goals_against": 7,
+        "goal_difference": 10,
+        "shots_for": 67,
+        "shots_against": 48,
+        "one_timer_attempts": 26,
+        "one_timer_goals": 14,
+        "other_goals": 3,
+        "one_timer_setups": 35,
+        "native_inputs": 92068,
+        "controller_observations": 23020,
+        "goalie_handoff_timeouts": 0,
+        "periods_with_goalie_handoff_timeouts": 0,
+        "goalie_metrics": {
+          "idle:possession-outlet": 165,
+          "outlet_requests": 22,
+          "outlets_launched": 22,
+          "idle:outlet-flight": 107,
+          "outlet_receptions": 16,
+          "idle:neutral-handoff": 68,
+          "takeover_requests": 63,
+          "idle:prepare-goalie": 63,
+          "idle:waiting-for-control": 267,
+          "takeover_cancelled": 17,
+          "takeovers": 46,
+          "idle:release-goalie": 46,
+          "idle:holding-position": 358,
+          "save_requests": 25,
+          "idle:save-commitment": 25,
+          "save_animations": 24,
+          "idle:save-recovery": 187,
+          "controlled_catches": 12,
+          "automatic_handoffs": 30,
+          "outlet_timeouts": 3,
+          "idle:positioning": 3,
+          "save_cancelled": 1,
+          "outlet_other_owner": 3,
+          "cpu_fallback_frames": 17,
+          "idle:cpu-fallback": 15,
+          "return_requests": 2,
+          "idle:request-skater": 2,
+          "returns": 2,
+          "idle:stoppage": 483,
+          "dive_requests": 1,
+          "dive_animations": 1
+        },
+        "one_timer_metrics": {
+          "shot-released": 26,
+          "possession-changed": 6,
+          "timeout": 3
+        },
+        "runtime_warnings": {}
+      },
+      "10": {
+        "periods": 10,
+        "wins": 3,
+        "draws": 5,
+        "losses": 2,
+        "goals_for": 6,
+        "goals_against": 6,
+        "goal_difference": 0,
+        "shots_for": 39,
+        "shots_against": 36,
+        "one_timer_attempts": 17,
+        "one_timer_goals": 5,
+        "other_goals": 1,
+        "one_timer_setups": 28,
+        "native_inputs": 87086,
+        "controller_observations": 8714,
+        "goalie_handoff_timeouts": 1,
+        "periods_with_goalie_handoff_timeouts": 1,
+        "goalie_metrics": {
+          "takeover_requests": 68,
+          "idle:prepare-goalie": 68,
+          "idle:waiting-for-control": 108,
+          "takeovers": 43,
+          "idle:release-goalie": 43,
+          "automatic_handoffs": 34,
+          "idle:neutral-handoff": 79,
+          "takeover_cancelled": 25,
+          "idle:holding-position": 36,
+          "idle:possession-outlet": 131,
+          "clear_requests": 11,
+          "outlet_timeouts": 13,
+          "idle:positioning": 13,
+          "idle:save-recovery": 99,
+          "cpu_fallback_frames": 65,
+          "idle:cpu-fallback": 54,
+          "save_requests": 13,
+          "idle:save-commitment": 13,
+          "save_animations": 12,
+          "controlled_catches": 8,
+          "return_requests": 11,
+          "idle:request-skater": 15,
+          "returns": 10,
+          "outlet_requests": 12,
+          "outlets_launched": 12,
+          "idle:outlet-flight": 20,
+          "outlet_receptions": 8,
+          "idle:stoppage": 220,
+          "outlet_other_owner": 2,
+          "handoff_timeouts": 1,
+          "idle:backoff": 1,
+          "save_cancelled": 1
+        },
+        "one_timer_metrics": {
+          "possession-changed": 6,
+          "timeout": 6,
+          "shot-released": 15,
+          "receiver-mismatch": 1
+        },
+        "runtime_warnings": {
+          "Manual goalie return not confirmed within 60 frames; releasing input and backing off.": 1
+        }
+      },
+      "20": {
+        "periods": 10,
+        "wins": 1,
+        "draws": 4,
+        "losses": 5,
+        "goals_for": 5,
+        "goals_against": 11,
+        "goal_difference": -6,
+        "shots_for": 26,
+        "shots_against": 29,
+        "one_timer_attempts": 4,
+        "one_timer_goals": 1,
+        "other_goals": 4,
+        "one_timer_setups": 22,
+        "native_inputs": 88637,
+        "controller_observations": 4437,
+        "goalie_handoff_timeouts": 164,
+        "periods_with_goalie_handoff_timeouts": 10,
+        "goalie_metrics": {
+          "cpu_fallback_frames": 265,
+          "return_requests": 215,
+          "idle:waiting-for-control": 217,
+          "idle:request-skater": 378,
+          "handoff_timeouts": 164,
+          "idle:backoff": 164,
+          "idle:cpu-fallback": 54,
+          "idle:stoppage": 351,
+          "returns": 47,
+          "idle:neutral-handoff": 98,
+          "automatic_handoffs": 43,
+          "idle:save-recovery": 11,
+          "idle:possession-outlet": 19,
+          "outlet_requests": 7,
+          "outlets_launched": 7,
+          "outlet_receptions": 4,
+          "controlled_catches": 5,
+          "idle:outlet-flight": 7,
+          "idle:holding-position": 9,
+          "save_requests": 5,
+          "idle:save-commitment": 5,
+          "save_cancelled": 1,
+          "save_animations": 4,
+          "dive_requests": 2,
+          "dive_animations": 2,
+          "takeover_requests": 3,
+          "idle:prepare-goalie": 3,
+          "takeover_cancelled": 1,
+          "clear_requests": 1,
+          "clear_possession_ended": 1,
+          "takeovers": 2,
+          "idle:release-goalie": 2,
+          "outlet_other_owner": 2,
+          "outlet_timeouts": 1,
+          "idle:positioning": 1
+        },
+        "one_timer_metrics": {
+          "possession-changed": 13,
+          "timeout": 5,
+          "shot-released": 4
+        },
+        "runtime_warnings": {
+          "Manual goalie return not confirmed within 60 frames; releasing input and backing off.": 164
+        }
+      }
+    },
+    "ducks-campbell-manual": {
+      "0": {
+        "periods": 10,
+        "wins": 6,
+        "draws": 3,
+        "losses": 1,
+        "goals_for": 11,
+        "goals_against": 7,
+        "goal_difference": 4,
+        "shots_for": 59,
+        "shots_against": 46,
+        "one_timer_attempts": 30,
+        "one_timer_goals": 7,
+        "other_goals": 4,
+        "one_timer_setups": 37,
+        "native_inputs": 89354,
+        "controller_observations": 89354,
+        "goalie_handoff_timeouts": 0,
+        "periods_with_goalie_handoff_timeouts": 0,
+        "goalie_metrics": {
+          "takeover_requests": 73,
+          "idle:prepare-goalie": 144,
+          "takeover_cancelled": 23,
+          "idle:neutral-handoff": 168,
+          "idle:possession-outlet": 643,
+          "outlet_requests": 22,
+          "outlets_launched": 19,
+          "idle:outlet-flight": 451,
+          "outlet_timeouts": 5,
+          "idle:positioning": 5,
+          "automatic_handoffs": 34,
+          "idle:waiting-for-control": 1101,
+          "takeovers": 50,
+          "idle:release-goalie": 100,
+          "idle:holding-position": 1741,
+          "outlet_interrupted": 3,
+          "save_requests": 24,
+          "idle:save-commitment": 24,
+          "save_animations": 23,
+          "idle:save-recovery": 1106,
+          "controlled_catches": 15,
+          "outlet_receptions": 13,
+          "cpu_fallback_frames": 255,
+          "idle:cpu-fallback": 248,
+          "dive_requests": 2,
+          "dive_animations": 2,
+          "return_requests": 7,
+          "idle:request-skater": 8,
+          "returns": 7,
+          "idle:stoppage": 576,
+          "clear_requests": 3,
+          "clear_possession_ended": 3,
+          "save_cancelled": 1,
+          "outlet_other_owner": 1
+        },
+        "one_timer_metrics": {
+          "shot-released": 30,
+          "possession-changed": 4,
+          "timeout": 3
+        },
+        "runtime_warnings": {}
+      },
+      "4": {
+        "periods": 10,
+        "wins": 6,
+        "draws": 2,
+        "losses": 2,
+        "goals_for": 11,
+        "goals_against": 7,
+        "goal_difference": 4,
+        "shots_for": 61,
+        "shots_against": 53,
+        "one_timer_attempts": 24,
+        "one_timer_goals": 8,
+        "other_goals": 3,
+        "one_timer_setups": 31,
+        "native_inputs": 86933,
+        "controller_observations": 21738,
+        "goalie_handoff_timeouts": 0,
+        "periods_with_goalie_handoff_timeouts": 0,
+        "goalie_metrics": {
+          "takeover_requests": 72,
+          "idle:prepare-goalie": 72,
+          "idle:waiting-for-control": 281,
+          "takeovers": 48,
+          "idle:release-goalie": 48,
+          "idle:holding-position": 304,
+          "automatic_handoffs": 31,
+          "idle:neutral-handoff": 84,
+          "controlled_catches": 20,
+          "idle:possession-outlet": 312,
+          "outlet_requests": 26,
+          "outlets_launched": 26,
+          "idle:outlet-flight": 120,
+          "outlet_other_owner": 6,
+          "takeover_cancelled": 24,
+          "save_requests": 27,
+          "idle:save-commitment": 27,
+          "save_animations": 27,
+          "idle:save-recovery": 260,
+          "clear_requests": 5,
+          "clear_possession_ended": 5,
+          "cpu_fallback_frames": 54,
+          "idle:cpu-fallback": 52,
+          "return_requests": 2,
+          "idle:request-skater": 2,
+          "returns": 2,
+          "outlet_receptions": 16,
+          "outlet_timeouts": 4,
+          "idle:positioning": 4,
+          "idle:stoppage": 480
+        },
+        "one_timer_metrics": {
+          "shot-released": 24,
+          "possession-changed": 5,
+          "timeout": 1,
+          "period-ended": 1
+        },
+        "runtime_warnings": {}
+      },
+      "10": {
+        "periods": 10,
+        "wins": 1,
+        "draws": 2,
+        "losses": 7,
+        "goals_for": 6,
+        "goals_against": 11,
+        "goal_difference": -5,
+        "shots_for": 43,
+        "shots_against": 44,
+        "one_timer_attempts": 22,
+        "one_timer_goals": 6,
+        "other_goals": 0,
+        "one_timer_setups": 38,
+        "native_inputs": 87736,
+        "controller_observations": 8779,
+        "goalie_handoff_timeouts": 2,
+        "periods_with_goalie_handoff_timeouts": 1,
+        "goalie_metrics": {
+          "takeover_requests": 69,
+          "idle:prepare-goalie": 69,
+          "idle:waiting-for-control": 117,
+          "takeovers": 48,
+          "idle:release-goalie": 48,
+          "automatic_handoffs": 25,
+          "idle:neutral-handoff": 71,
+          "idle:save-recovery": 75,
+          "idle:possession-outlet": 104,
+          "outlet_requests": 22,
+          "outlets_launched": 22,
+          "idle:outlet-flight": 45,
+          "outlet_timeouts": 11,
+          "idle:positioning": 11,
+          "idle:holding-position": 22,
+          "save_requests": 13,
+          "idle:save-commitment": 13,
+          "save_animations": 12,
+          "controlled_catches": 18,
+          "outlet_receptions": 15,
+          "idle:stoppage": 367,
+          "takeover_cancelled": 21,
+          "outlet_other_owner": 2,
+          "cpu_fallback_frames": 27,
+          "return_requests": 10,
+          "idle:request-skater": 18,
+          "handoff_timeouts": 2,
+          "idle:backoff": 2,
+          "returns": 8,
+          "save_cancelled": 1,
+          "clear_requests": 6,
+          "idle:cpu-fallback": 17,
+          "dive_requests": 3,
+          "dive_animations": 3
+        },
+        "one_timer_metrics": {
+          "possession-changed": 9,
+          "shot-released": 22,
+          "timeout": 7
+        },
+        "runtime_warnings": {
+          "Manual goalie return not confirmed within 60 frames; releasing input and backing off.": 2
+        }
+      },
+      "20": {
+        "periods": 10,
+        "wins": 1,
+        "draws": 1,
+        "losses": 8,
+        "goals_for": 5,
+        "goals_against": 27,
+        "goal_difference": -22,
+        "shots_for": 23,
+        "shots_against": 45,
+        "one_timer_attempts": 5,
+        "one_timer_goals": 3,
+        "other_goals": 2,
+        "one_timer_setups": 29,
+        "native_inputs": 100657,
+        "controller_observations": 5037,
+        "goalie_handoff_timeouts": 153,
+        "periods_with_goalie_handoff_timeouts": 10,
+        "goalie_metrics": {
+          "cpu_fallback_frames": 214,
+          "return_requests": 186,
+          "idle:waiting-for-control": 187,
+          "idle:request-skater": 338,
+          "handoff_timeouts": 153,
+          "idle:backoff": 153,
+          "save_requests": 11,
+          "idle:save-commitment": 11,
+          "save_animations": 11,
+          "idle:stoppage": 718,
+          "returns": 27,
+          "idle:neutral-handoff": 82,
+          "idle:cpu-fallback": 32,
+          "controlled_catches": 11,
+          "idle:possession-outlet": 47,
+          "outlet_requests": 11,
+          "outlets_launched": 11,
+          "idle:outlet-flight": 12,
+          "outlet_receptions": 5,
+          "automatic_handoffs": 43,
+          "outlet_timeouts": 5,
+          "idle:positioning": 5,
+          "idle:holding-position": 19,
+          "dive_requests": 3,
+          "dive_animations": 3,
+          "idle:save-recovery": 20,
+          "clear_requests": 4,
+          "clear_possession_ended": 4,
+          "takeover_requests": 3,
+          "idle:prepare-goalie": 3,
+          "takeover_cancelled": 2,
+          "takeovers": 1,
+          "idle:release-goalie": 1,
+          "outlet_other_owner": 1
+        },
+        "one_timer_metrics": {
+          "shot-released": 3,
+          "timeout": 8,
+          "possession-changed": 16,
+          "play-stopped": 2
+        },
+        "runtime_warnings": {
+          "Manual goalie return not confirmed within 60 frames; releasing input and backing off.": 153
+        }
+      }
+    },
+    "campbell-ducks-manual": {
+      "0": {
+        "periods": 10,
+        "wins": 7,
+        "draws": 2,
+        "losses": 1,
+        "goals_for": 22,
+        "goals_against": 2,
+        "goal_difference": 20,
+        "shots_for": 76,
+        "shots_against": 30,
+        "one_timer_attempts": 24,
+        "one_timer_goals": 14,
+        "other_goals": 8,
+        "one_timer_setups": 36,
+        "native_inputs": 93412,
+        "controller_observations": 93412,
+        "goalie_handoff_timeouts": 0,
+        "periods_with_goalie_handoff_timeouts": 0,
+        "goalie_metrics": {
+          "takeover_requests": 59,
+          "idle:prepare-goalie": 113,
+          "idle:waiting-for-control": 881,
+          "takeovers": 41,
+          "idle:release-goalie": 82,
+          "idle:holding-position": 1611,
+          "controlled_catches": 22,
+          "idle:possession-outlet": 755,
+          "outlet_requests": 27,
+          "outlets_launched": 25,
+          "idle:outlet-flight": 397,
+          "outlet_receptions": 13,
+          "idle:neutral-handoff": 134,
+          "automatic_handoffs": 23,
+          "takeover_cancelled": 18,
+          "save_requests": 18,
+          "idle:save-commitment": 22,
+          "save_animations": 17,
+          "idle:save-recovery": 928,
+          "outlet_other_owner": 6,
+          "outlet_timeouts": 5,
+          "idle:positioning": 5,
+          "outlet_interrupted": 2,
+          "cpu_fallback_frames": 75,
+          "idle:cpu-fallback": 73,
+          "clear_requests": 3,
+          "clear_possession_ended": 3,
+          "return_requests": 2,
+          "idle:request-skater": 2,
+          "returns": 2,
+          "save_cancelled": 1,
+          "idle:stoppage": 961
+        },
+        "one_timer_metrics": {
+          "shot-released": 24,
+          "possession-changed": 7,
+          "timeout": 4,
+          "receiver-mismatch": 1
+        },
+        "runtime_warnings": {}
+      },
+      "4": {
+        "periods": 10,
+        "wins": 7,
+        "draws": 3,
+        "losses": 0,
+        "goals_for": 18,
+        "goals_against": 3,
+        "goal_difference": 15,
+        "shots_for": 74,
+        "shots_against": 32,
+        "one_timer_attempts": 26,
+        "one_timer_goals": 16,
+        "other_goals": 2,
+        "one_timer_setups": 37,
+        "native_inputs": 93112,
+        "controller_observations": 23282,
+        "goalie_handoff_timeouts": 0,
+        "periods_with_goalie_handoff_timeouts": 0,
+        "goalie_metrics": {
+          "takeover_requests": 62,
+          "idle:prepare-goalie": 62,
+          "idle:waiting-for-control": 278,
+          "takeovers": 50,
+          "idle:release-goalie": 50,
+          "idle:holding-position": 382,
+          "automatic_handoffs": 34,
+          "idle:neutral-handoff": 75,
+          "idle:save-recovery": 205,
+          "idle:possession-outlet": 264,
+          "outlet_requests": 27,
+          "outlets_launched": 27,
+          "idle:outlet-flight": 127,
+          "outlet_receptions": 18,
+          "controlled_catches": 19,
+          "save_requests": 19,
+          "idle:save-commitment": 19,
+          "save_animations": 19,
+          "takeover_cancelled": 12,
+          "outlet_timeouts": 4,
+          "idle:positioning": 4,
+          "outlet_other_owner": 5,
+          "clear_requests": 3,
+          "clear_possession_ended": 3,
+          "cpu_fallback_frames": 24,
+          "idle:cpu-fallback": 21,
+          "return_requests": 3,
+          "idle:request-skater": 3,
+          "returns": 3,
+          "idle:stoppage": 144
+        },
+        "one_timer_metrics": {
+          "possession-changed": 8,
+          "shot-released": 26,
+          "timeout": 3
+        },
+        "runtime_warnings": {}
+      },
+      "10": {
+        "periods": 10,
+        "wins": 7,
+        "draws": 2,
+        "losses": 1,
+        "goals_for": 21,
+        "goals_against": 11,
+        "goal_difference": 10,
+        "shots_for": 57,
+        "shots_against": 42,
+        "one_timer_attempts": 24,
+        "one_timer_goals": 12,
+        "other_goals": 9,
+        "one_timer_setups": 34,
+        "native_inputs": 100592,
+        "controller_observations": 10063,
+        "goalie_handoff_timeouts": 0,
+        "periods_with_goalie_handoff_timeouts": 0,
+        "goalie_metrics": {
+          "takeover_requests": 61,
+          "idle:prepare-goalie": 61,
+          "idle:waiting-for-control": 93,
+          "takeovers": 38,
+          "idle:release-goalie": 38,
+          "save_requests": 10,
+          "idle:save-commitment": 10,
+          "save_animations": 10,
+          "idle:save-recovery": 63,
+          "controlled_catches": 12,
+          "idle:possession-outlet": 88,
+          "outlet_requests": 27,
+          "outlets_launched": 27,
+          "idle:outlet-flight": 52,
+          "outlet_receptions": 16,
+          "idle:neutral-handoff": 68,
+          "idle:holding-position": 37,
+          "automatic_handoffs": 23,
+          "takeover_cancelled": 23,
+          "outlet_timeouts": 7,
+          "idle:positioning": 7,
+          "idle:stoppage": 361,
+          "outlet_other_owner": 5,
+          "cpu_fallback_frames": 5,
+          "idle:cpu-fallback": 4,
+          "return_requests": 1,
+          "idle:request-skater": 1,
+          "returns": 1,
+          "clear_requests": 1,
+          "dive_requests": 2,
+          "dive_animations": 2
+        },
+        "one_timer_metrics": {
+          "timeout": 5,
+          "shot-released": 22,
+          "possession-changed": 6,
+          "play-stopped": 1
+        },
+        "runtime_warnings": {}
+      },
+      "20": {
+        "periods": 10,
+        "wins": 1,
+        "draws": 3,
+        "losses": 6,
+        "goals_for": 6,
+        "goals_against": 17,
+        "goal_difference": -11,
+        "shots_for": 28,
+        "shots_against": 33,
+        "one_timer_attempts": 4,
+        "one_timer_goals": 1,
+        "other_goals": 5,
+        "one_timer_setups": 29,
+        "native_inputs": 92522,
+        "controller_observations": 4630,
+        "goalie_handoff_timeouts": 169,
+        "periods_with_goalie_handoff_timeouts": 10,
+        "goalie_metrics": {
+          "cpu_fallback_frames": 269,
+          "return_requests": 217,
+          "idle:waiting-for-control": 220,
+          "idle:request-skater": 380,
+          "handoff_timeouts": 169,
+          "idle:backoff": 169,
+          "idle:stoppage": 487,
+          "automatic_handoffs": 53,
+          "idle:neutral-handoff": 110,
+          "returns": 45,
+          "save_requests": 3,
+          "idle:save-commitment": 3,
+          "controlled_catches": 9,
+          "save_animations": 3,
+          "idle:save-recovery": 15,
+          "idle:possession-outlet": 31,
+          "outlet_requests": 9,
+          "outlets_launched": 9,
+          "idle:outlet-flight": 14,
+          "outlet_receptions": 4,
+          "idle:cpu-fallback": 55,
+          "idle:holding-position": 31,
+          "outlet_timeouts": 4,
+          "idle:positioning": 4,
+          "takeover_requests": 8,
+          "idle:prepare-goalie": 8,
+          "takeover_cancelled": 5,
+          "dive_requests": 3,
+          "dive_animations": 3,
+          "takeovers": 3,
+          "idle:release-goalie": 3,
+          "outlet_other_owner": 1,
+          "clear_requests": 2,
+          "clear_possession_ended": 2
+        },
+        "one_timer_metrics": {
+          "shot-released": 3,
+          "possession-changed": 15,
+          "period-ended": 1,
+          "play-stopped": 1,
+          "timeout": 9
+        },
+        "runtime_warnings": {
+          "Manual goalie return not confirmed within 60 frames; releasing input and backing off.": 169
+        }
+      }
+    }
+  },
+  "paired_comparisons_against_reactive": {
+    "4": {
+      "paired_deltas": [
+        {
+          "seed": 26501,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 0,
+            "goal_difference": 0,
+            "shots_for": 0,
+            "shots_against": -2,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26501,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -3,
+            "goals_against": 0,
+            "goal_difference": -3,
+            "shots_for": -1,
+            "shots_against": -1,
+            "one_timer_attempts": 0,
+            "one_timer_goals": -3,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26501,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 3,
+            "goals_against": 0,
+            "goal_difference": 3,
+            "shots_for": 1,
+            "shots_against": 2,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26501,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "goal_difference": 1,
+            "shots_for": 0,
+            "shots_against": 1,
+            "one_timer_attempts": 3,
+            "one_timer_goals": 2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": 4,
+            "shots_against": 1,
+            "one_timer_attempts": -1,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": -2,
+            "goal_difference": 1,
+            "shots_for": 0,
+            "shots_against": -1,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": -1,
+            "goal_difference": 1,
+            "shots_for": 0,
+            "shots_against": 1,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -3,
+            "goals_against": 0,
+            "goal_difference": -3,
+            "shots_for": -1,
+            "shots_against": 2,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 2,
+            "goals_against": 0,
+            "goal_difference": 2,
+            "shots_for": 5,
+            "shots_against": 0,
+            "one_timer_attempts": 2,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 3,
+            "goals_against": 0,
+            "goal_difference": 3,
+            "shots_for": 0,
+            "shots_against": 4,
+            "one_timer_attempts": 1,
+            "one_timer_goals": 3,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 0,
+            "goal_difference": 0,
+            "shots_for": -2,
+            "shots_against": 0,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -6,
+            "goals_against": 1,
+            "goal_difference": -7,
+            "shots_for": -6,
+            "shots_against": 2,
+            "one_timer_attempts": -1,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 0,
+            "goal_difference": 0,
+            "shots_for": 2,
+            "shots_against": -2,
+            "one_timer_attempts": 2,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 2,
+            "goals_against": 1,
+            "goal_difference": 1,
+            "shots_for": -2,
+            "shots_against": 0,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": -5,
+            "shots_against": 3,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 2,
+            "goals_against": 0,
+            "goal_difference": 2,
+            "shots_for": 2,
+            "shots_against": 0,
+            "one_timer_attempts": 3,
+            "one_timer_goals": 2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": 0,
+            "shots_against": 1,
+            "one_timer_attempts": 3,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 1,
+            "goal_difference": -1,
+            "shots_for": 0,
+            "shots_against": 0,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": -2,
+            "goal_difference": 2,
+            "shots_for": 3,
+            "shots_against": -1,
+            "one_timer_attempts": -1,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 0,
+            "goal_difference": -1,
+            "shots_for": -3,
+            "shots_against": 0,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": -1,
+            "goal_difference": -1,
+            "shots_for": -1,
+            "shots_against": 1,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 2,
+            "goal_difference": -1,
+            "shots_for": 6,
+            "shots_against": 3,
+            "one_timer_attempts": 3,
+            "one_timer_goals": 2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 0,
+            "goal_difference": -1,
+            "shots_for": -1,
+            "shots_against": 0,
+            "one_timer_attempts": 1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 4,
+            "goals_against": 0,
+            "goal_difference": 4,
+            "shots_for": 2,
+            "shots_against": 1,
+            "one_timer_attempts": 2,
+            "one_timer_goals": 4,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": 2,
+            "shots_against": 3,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 2,
+            "goals_against": 2,
+            "goal_difference": 0,
+            "shots_for": 5,
+            "shots_against": 5,
+            "one_timer_attempts": 2,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 1,
+            "goal_difference": 0,
+            "shots_for": 1,
+            "shots_against": 0,
+            "one_timer_attempts": 1,
+            "one_timer_goals": 2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 2,
+            "goals_against": 1,
+            "goal_difference": 1,
+            "shots_for": -2,
+            "shots_against": -2,
+            "one_timer_attempts": -2,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 1,
+            "goal_difference": 0,
+            "shots_for": -2,
+            "shots_against": 3,
+            "one_timer_attempts": -2,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 0,
+            "goal_difference": 0,
+            "shots_for": 2,
+            "shots_against": -2,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 2,
+            "goal_difference": -3,
+            "shots_for": 3,
+            "shots_against": 5,
+            "one_timer_attempts": 1,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "goal_difference": 1,
+            "shots_for": 3,
+            "shots_against": 3,
+            "one_timer_attempts": 3,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 2,
+            "goals_against": 0,
+            "goal_difference": 2,
+            "shots_for": 2,
+            "shots_against": -1,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 2,
+            "goals_against": 0,
+            "goal_difference": 2,
+            "shots_for": -2,
+            "shots_against": 0,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": -1,
+            "goal_difference": 0,
+            "shots_for": -1,
+            "shots_against": -3,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": -1,
+            "goal_difference": 2,
+            "shots_for": 7,
+            "shots_against": -7,
+            "one_timer_attempts": 1,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "goal_difference": 1,
+            "shots_for": -1,
+            "shots_against": 3,
+            "one_timer_attempts": 2,
+            "one_timer_goals": 4,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "goal_difference": 1,
+            "shots_for": -3,
+            "shots_against": -3,
+            "one_timer_attempts": -3,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 0,
+            "goal_difference": 0,
+            "shots_for": 3,
+            "shots_against": 0,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -5,
+            "goals_against": 0,
+            "goal_difference": -5,
+            "shots_for": -4,
+            "shots_against": 2,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -3,
+            "goalie_handoff_timeouts": 0
+          }
+        }
+      ],
+      "goal_difference_outcomes": {
+        "same": 9,
+        "worse": 14,
+        "better": 17
+      },
+      "metrics": {
+        "goals_for": {
+          "mean_delta_per_period": 0.1,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.35,
+            0.525
+          ]
+        },
+        "goals_against": {
+          "mean_delta_per_period": 0.2,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.1,
+            0.525
+          ]
+        },
+        "goal_difference": {
+          "mean_delta_per_period": -0.1,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.45,
+            0.35
+          ]
+        },
+        "shots_for": {
+          "mean_delta_per_period": 0.4,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.25,
+            1.05
+          ]
+        },
+        "shots_against": {
+          "mean_delta_per_period": 0.525,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.35,
+            1.225
+          ]
+        },
+        "one_timer_attempts": {
+          "mean_delta_per_period": -0.075,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.6,
+            0.4
+          ]
+        },
+        "one_timer_goals": {
+          "mean_delta_per_period": 0.275,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.05,
+            0.6
+          ]
+        },
+        "goalie_handoff_timeouts": {
+          "mean_delta_per_period": 0.0,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "10": {
+      "paired_deltas": [
+        {
+          "seed": 26501,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 2,
+            "goals_against": 0,
+            "goal_difference": 2,
+            "shots_for": 2,
+            "shots_against": -3,
+            "one_timer_attempts": 1,
+            "one_timer_goals": 3,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26501,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -3,
+            "goals_against": 0,
+            "goal_difference": -3,
+            "shots_for": -4,
+            "shots_against": -3,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -3,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26501,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 1,
+            "goal_difference": 0,
+            "shots_for": -1,
+            "shots_against": 0,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26501,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "goal_difference": 1,
+            "shots_for": -3,
+            "shots_against": -1,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 0,
+            "goal_difference": -1,
+            "shots_for": -2,
+            "shots_against": 0,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": -1,
+            "goal_difference": -1,
+            "shots_for": -5,
+            "shots_against": -2,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": -1,
+            "goal_difference": 2,
+            "shots_for": -3,
+            "shots_against": -2,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": 0,
+            "goal_difference": -2,
+            "shots_for": -3,
+            "shots_against": 0,
+            "one_timer_attempts": -1,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "goal_difference": 1,
+            "shots_for": 2,
+            "shots_against": 2,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 0,
+            "goal_difference": 0,
+            "shots_for": -1,
+            "shots_against": -2,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": 0,
+            "shots_against": 2,
+            "one_timer_attempts": -2,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -6,
+            "goals_against": 0,
+            "goal_difference": -6,
+            "shots_for": -8,
+            "shots_against": -1,
+            "one_timer_attempts": 0,
+            "one_timer_goals": -3,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 4,
+            "goals_against": 1,
+            "goal_difference": 3,
+            "shots_for": 2,
+            "shots_against": -1,
+            "one_timer_attempts": 3,
+            "one_timer_goals": 2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 2,
+            "goals_against": 0,
+            "goal_difference": 2,
+            "shots_for": -2,
+            "shots_against": -3,
+            "one_timer_attempts": 1,
+            "one_timer_goals": 2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 1,
+            "goal_difference": -1,
+            "shots_for": 0,
+            "shots_against": 1,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 2
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 0,
+            "goal_difference": 0,
+            "shots_for": 1,
+            "shots_against": 6,
+            "one_timer_attempts": 2,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 1,
+            "goal_difference": -1,
+            "shots_for": 1,
+            "shots_against": -1,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": 0,
+            "goal_difference": -2,
+            "shots_for": -2,
+            "shots_against": -1,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": -2,
+            "goal_difference": 1,
+            "shots_for": 0,
+            "shots_against": -1,
+            "one_timer_attempts": 0,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 1,
+            "goal_difference": -1,
+            "shots_for": -2,
+            "shots_against": 2,
+            "one_timer_attempts": -1,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": -1,
+            "goal_difference": -1,
+            "shots_for": 0,
+            "shots_against": -2,
+            "one_timer_attempts": -1,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 1
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 2,
+            "goal_difference": -3,
+            "shots_for": -2,
+            "shots_against": 5,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 2,
+            "goal_difference": -2,
+            "shots_for": 0,
+            "shots_against": 0,
+            "one_timer_attempts": 1,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 2,
+            "goals_against": 1,
+            "goal_difference": 1,
+            "shots_for": -1,
+            "shots_against": 4,
+            "one_timer_attempts": -3,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": 1,
+            "shots_against": 0,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 1,
+            "goal_difference": 0,
+            "shots_for": 3,
+            "shots_against": 6,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": -2,
+            "shots_against": -2,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 1,
+            "goal_difference": 0,
+            "shots_for": -3,
+            "shots_against": -3,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": -2,
+            "shots_against": -1,
+            "one_timer_attempts": -4,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 1,
+            "goal_difference": 0,
+            "shots_for": 1,
+            "shots_against": -4,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 1
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": 0,
+            "shots_against": 0,
+            "one_timer_attempts": -1,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 3,
+            "goals_against": 4,
+            "goal_difference": -1,
+            "shots_for": 2,
+            "shots_against": 6,
+            "one_timer_attempts": 3,
+            "one_timer_goals": 3,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": -6,
+            "shots_against": 3,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 0,
+            "goal_difference": -1,
+            "shots_for": -7,
+            "shots_against": -2,
+            "one_timer_attempts": -1,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": -2,
+            "shots_against": 1,
+            "one_timer_attempts": 0,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 3,
+            "goals_against": 1,
+            "goal_difference": 2,
+            "shots_for": 2,
+            "shots_against": -3,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -3,
+            "goals_against": 0,
+            "goal_difference": -3,
+            "shots_for": -9,
+            "shots_against": 2,
+            "one_timer_attempts": -2,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 1
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "goal_difference": 1,
+            "shots_for": -4,
+            "shots_against": -1,
+            "one_timer_attempts": -2,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": -1,
+            "goal_difference": -1,
+            "shots_for": -8,
+            "shots_against": -1,
+            "one_timer_attempts": -4,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 0
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -3,
+            "goals_against": 1,
+            "goal_difference": -4,
+            "shots_for": -4,
+            "shots_against": 2,
+            "one_timer_attempts": 0,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 0
+          }
+        }
+      ],
+      "goal_difference_outcomes": {
+        "better": 10,
+        "worse": 24,
+        "same": 6
+      },
+      "metrics": {
+        "goals_for": {
+          "mean_delta_per_period": -0.3,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.85,
+            0.275
+          ]
+        },
+        "goals_against": {
+          "mean_delta_per_period": 0.5,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            0.125,
+            0.9
+          ]
+        },
+        "goal_difference": {
+          "mean_delta_per_period": -0.8,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -1.25,
+            -0.275
+          ]
+        },
+        "shots_for": {
+          "mean_delta_per_period": -1.725,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -3.025,
+            -0.65
+          ]
+        },
+        "shots_against": {
+          "mean_delta_per_period": 0.05,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.525,
+            0.6
+          ]
+        },
+        "one_timer_attempts": {
+          "mean_delta_per_period": -0.7,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -1.15,
+            -0.175
+          ]
+        },
+        "one_timer_goals": {
+          "mean_delta_per_period": -0.175,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.45,
+            0.125
+          ]
+        },
+        "goalie_handoff_timeouts": {
+          "mean_delta_per_period": 0.125,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            0.025,
+            0.25
+          ]
+        }
+      }
+    },
+    "20": {
+      "paired_deltas": [
+        {
+          "seed": 26501,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 2,
+            "goal_difference": -3,
+            "shots_for": 0,
+            "shots_against": -3,
+            "one_timer_attempts": -2,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 13
+          }
+        },
+        {
+          "seed": 26501,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -3,
+            "goals_against": 2,
+            "goal_difference": -5,
+            "shots_for": -6,
+            "shots_against": 0,
+            "one_timer_attempts": -4,
+            "one_timer_goals": -3,
+            "goalie_handoff_timeouts": 25
+          }
+        },
+        {
+          "seed": 26501,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 6,
+            "goal_difference": -6,
+            "shots_for": -5,
+            "shots_against": 3,
+            "one_timer_attempts": -2,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 19
+          }
+        },
+        {
+          "seed": 26501,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": -5,
+            "shots_against": 2,
+            "one_timer_attempts": 0,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 16
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": 4,
+            "goal_difference": -6,
+            "shots_for": -5,
+            "shots_against": 3,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 19
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": 0,
+            "goal_difference": -2,
+            "shots_for": -6,
+            "shots_against": 0,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 15
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 1,
+            "goal_difference": -1,
+            "shots_for": -6,
+            "shots_against": -2,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 15
+          }
+        },
+        {
+          "seed": 26502,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -3,
+            "goals_against": 1,
+            "goal_difference": -4,
+            "shots_for": -3,
+            "shots_against": 1,
+            "one_timer_attempts": -4,
+            "one_timer_goals": -3,
+            "goalie_handoff_timeouts": 12
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 5,
+            "goal_difference": -6,
+            "shots_for": -3,
+            "shots_against": 7,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 15
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 1,
+            "goal_difference": -1,
+            "shots_for": -6,
+            "shots_against": -1,
+            "one_timer_attempts": -3,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 14
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 2,
+            "goal_difference": -3,
+            "shots_for": -2,
+            "shots_against": -1,
+            "one_timer_attempts": -2,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 10
+          }
+        },
+        {
+          "seed": 26503,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -6,
+            "goals_against": 3,
+            "goal_difference": -9,
+            "shots_for": -7,
+            "shots_against": 3,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -3,
+            "goalie_handoff_timeouts": 19
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 1,
+            "goal_difference": -1,
+            "shots_for": -2,
+            "shots_against": -2,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 16
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "goal_difference": 1,
+            "shots_for": -3,
+            "shots_against": -1,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 13
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 4,
+            "goal_difference": -5,
+            "shots_for": -5,
+            "shots_against": 1,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 18
+          }
+        },
+        {
+          "seed": 26504,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 4,
+            "goal_difference": -4,
+            "shots_for": -3,
+            "shots_against": 2,
+            "one_timer_attempts": 1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 20
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": -3,
+            "shots_against": -1,
+            "one_timer_attempts": -1,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 9
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 0,
+            "goal_difference": -1,
+            "shots_for": -3,
+            "shots_against": -5,
+            "one_timer_attempts": -2,
+            "one_timer_goals": 1,
+            "goalie_handoff_timeouts": 13
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": -2,
+            "goal_difference": 1,
+            "shots_for": -3,
+            "shots_against": -3,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 12
+          }
+        },
+        {
+          "seed": 26505,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": 1,
+            "goal_difference": -3,
+            "shots_for": -8,
+            "shots_against": -2,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 16
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 0,
+            "goal_difference": -1,
+            "shots_for": 1,
+            "shots_against": 1,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 6
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 0,
+            "goal_difference": -1,
+            "shots_for": -1,
+            "shots_against": -2,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 21
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 1,
+            "goal_difference": -2,
+            "shots_for": -4,
+            "shots_against": -2,
+            "one_timer_attempts": -3,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 19
+          }
+        },
+        {
+          "seed": 26506,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 2,
+            "goal_difference": -3,
+            "shots_for": -3,
+            "shots_against": 1,
+            "one_timer_attempts": -4,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 13
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": 1,
+            "goal_difference": -3,
+            "shots_for": -4,
+            "shots_against": 0,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 14
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 1,
+            "goal_difference": 0,
+            "shots_for": 1,
+            "shots_against": 1,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 14
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 0,
+            "goal_difference": -1,
+            "shots_for": -4,
+            "shots_against": -3,
+            "one_timer_attempts": -2,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 10
+          }
+        },
+        {
+          "seed": 26507,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 0,
+            "goal_difference": 1,
+            "shots_for": -6,
+            "shots_against": -4,
+            "one_timer_attempts": -3,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 18
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -2,
+            "goals_against": 2,
+            "goal_difference": -4,
+            "shots_for": -5,
+            "shots_against": 3,
+            "one_timer_attempts": -4,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 12
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 1,
+            "goal_difference": -1,
+            "shots_for": -4,
+            "shots_against": -4,
+            "one_timer_attempts": -2,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 19
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 4,
+            "goal_difference": -5,
+            "shots_for": -2,
+            "shots_against": 3,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 18
+          }
+        },
+        {
+          "seed": 26508,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 2,
+            "goal_difference": -2,
+            "shots_for": -2,
+            "shots_against": 5,
+            "one_timer_attempts": 0,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 16
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 0,
+            "goal_difference": 0,
+            "shots_for": -2,
+            "shots_against": -1,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 20
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 2,
+            "goal_difference": -2,
+            "shots_for": -1,
+            "shots_against": -1,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -1,
+            "goalie_handoff_timeouts": 16
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": 1,
+            "goals_against": 1,
+            "goal_difference": 0,
+            "shots_for": -1,
+            "shots_against": -1,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 16
+          }
+        },
+        {
+          "seed": 26509,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 0,
+            "goal_difference": 0,
+            "shots_for": -4,
+            "shots_against": -4,
+            "one_timer_attempts": -1,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 20
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "sabres-ducks-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 3,
+            "goal_difference": -4,
+            "shots_for": -7,
+            "shots_against": 2,
+            "one_timer_attempts": -3,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 16
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "ducks-sabres-manual",
+          "delta": {
+            "goals_for": 0,
+            "goals_against": 1,
+            "goal_difference": -1,
+            "shots_for": -7,
+            "shots_against": -1,
+            "one_timer_attempts": -3,
+            "one_timer_goals": 0,
+            "goalie_handoff_timeouts": 14
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "ducks-campbell-manual",
+          "delta": {
+            "goals_for": -1,
+            "goals_against": 3,
+            "goal_difference": -4,
+            "shots_for": -4,
+            "shots_against": 4,
+            "one_timer_attempts": -5,
+            "one_timer_goals": -2,
+            "goalie_handoff_timeouts": 16
+          }
+        },
+        {
+          "seed": 26510,
+          "matchup": "campbell-ducks-manual",
+          "delta": {
+            "goals_for": -4,
+            "goals_against": 1,
+            "goal_difference": -5,
+            "shots_for": -7,
+            "shots_against": -1,
+            "one_timer_attempts": -3,
+            "one_timer_goals": -3,
+            "goalie_handoff_timeouts": 19
+          }
+        }
+      ],
+      "goal_difference_outcomes": {
+        "worse": 33,
+        "better": 3,
+        "same": 4
+      },
+      "metrics": {
+        "goals_for": {
+          "mean_delta_per_period": -0.95,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -1.375,
+            -0.5
+          ]
+        },
+        "goals_against": {
+          "mean_delta_per_period": 1.55,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            0.975,
+            2.125
+          ]
+        },
+        "goal_difference": {
+          "mean_delta_per_period": -2.5,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -3.325,
+            -1.675
+          ]
+        },
+        "shots_for": {
+          "mean_delta_per_period": -3.75,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -4.55,
+            -2.975
+          ]
+        },
+        "shots_against": {
+          "mean_delta_per_period": -0.075,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -0.975,
+            0.8
+          ]
+        },
+        "one_timer_attempts": {
+          "mean_delta_per_period": -2.275,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -2.675,
+            -1.85
+          ]
+        },
+        "one_timer_goals": {
+          "mean_delta_per_period": -0.825,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            -1.05,
+            -0.6
+          ]
+        },
+        "goalie_handoff_timeouts": {
+          "mean_delta_per_period": 15.65,
+          "pointwise_seed_cluster_bootstrap_95_percent_interval": [
+            14.6,
+            16.7
+          ]
+        }
+      }
+    }
+  },
+  "uncertainty": {
+    "unit": "seed, keeping all four matchups and all control modes together",
+    "seed_clusters": 10,
+    "bootstrap_replicates": 20000,
+    "bootstrap_seed": 26520,
+    "intervals": "Pointwise exploratory 95% intervals; no multiple-comparison correction"
+  },
+  "verification": {
+    "completed_periods": 160,
+    "matched_fixture_groups": 40,
+    "paired_fixture_and_lineup_equal": true,
+    "strict_clock_and_rate_accounting_exact": true,
+    "balanced_one_timer_lifecycles": true,
+    "source_hashes_verified": true,
+    "historical_60_and_15_hz_trajectories_reproduced_exactly": 80
+  },
+  "evidence": {
+    "path": "docs/benchmarks/classic-v1-control-rate-sweep-evidence.json.gz",
+    "sha256": "6348e4a174acdf895ea1352ade6992494e2186695b68de5a8d098616f16a6ee0",
+    "contents": "All 160 period rows, frozen Python sources, collector and analysis; no ROM/save-state bytes"
+  },
+  "limitations": [
+    "Untuned control-rate comparison against the built-in CPU, not trained ML or human players.",
+    "Fixed first-period starts, two roster pairs, and ten seed clusters.",
+    "Same seeds as the earlier 60/15 Hz comparison, rerun in all four modes.",
+    "Selective manual goalie control; not an ablation isolating skating, goalie or finishing.",
+    "Precise RAM observations at allowed updates, no additional inference latency.",
+    "Optional offensive experiments disabled.",
+    "Native shot/goal/one-timer counters support outcomes; repeated diagnostic request counts are not independent actions."
+  ]
+}

@@ -1,0 +1,238 @@
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -24,7 +24,6 @@
+     HOCKEY_INTENT_PASS_START, HOCKEY_INTENT_POKE_CHECK,
+ )
+ from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
+-from nhl94_ai.env.target_control import route_waypoint
+ 
+ 
+ ONE_TIMER_TIMEOUT_FRAMES = 72
+@@ -74,6 +73,7 @@
+         self._one_timer_flight = None
+         self._decision_interval = 4
+         self.one_timer_metrics = {}
++        self.carry_metrics = {}
+         self._frame_remaining = 0
+         self._frame_action = np.zeros((1, self._size), dtype=np.int8)
+         self._defense_elapsed = 4
+@@ -340,6 +340,17 @@
+         # Left/right stay in world coordinates for either attacking direction.
+         action[Buttons.INPUT_RIGHT if self._shot_side > 0 else Buttons.INPUT_LEFT] = 1
+ 
++    def _carry(self, state, player, action, *, breakaway=False):
++        point, details = self.offense.fallback_carry(state, player)
++        self.offense_diagnostics.update(details)
++        self._last_decision = 'carry-breakaway' if breakaway and details['mode'] == 'carry' else details['mode']
++        outcome = ('missing-feedback' if details['carry_safe'] is None else 'least-risk'
++                   if not details['carry_safe'] else 'safe-default'
++                   if details['mode'] == 'carry' else 'safe-escape')
++        self.carry_metrics[outcome] = self.carry_metrics.get(outcome, 0) + 1
++        self._steer(action, player, *point, state if details['carry_safe'] is None else None)
++        return action, HOCKEY_INTENT_NOOP
++
+     @staticmethod
+     def _accuracy(player):
+         accuracy = getattr(player, 'shot_accuracy', None)
+@@ -522,11 +533,11 @@
+             plan = self.offense.choose(state, self.defense.frames)
+             self.offense_diagnostics = self.offense.diagnostics
+             escape = goalie_avoidance(state, player, self.offense.carry_target(state, player))
+-            shot_safe = goalie_contact_time(
+-                player, opponents.goalie, clearance=GOALIE_SHOT_CLEARANCE) > GOALIE_HORIZON
+             release_in_front = shot_release_in_front(
+                 state, player, self._decision_interval + SHOT_RELEASE_DELAY)
+-            normal_finish = progress > shot_y and abs(player.x) < 48 and shot_safe and release_in_front
++            shot_safe = release_in_front and goalie_contact_time(
++                player, opponents.goalie, clearance=GOALIE_SHOT_CLEARANCE) > GOALIE_HORIZON
++            normal_finish = progress > shot_y and abs(player.x) < 48 and shot_safe
+             target = self._one_timer_target(team, opponents, attack, state=state)
+             if self._choose_cross_crease(state, plan, target):
+                 return self._cross_crease_action(state)
+@@ -562,7 +573,7 @@
+             goalie_danger = progress > 175 and escape is not None
+             preparing_one_timer = plan is not None and plan[0] == 'one-timer-setup'
+             if normal_finish or (goalie_danger and abs(player.x) < 48 and shot_safe
+-                                 and release_in_front and not preparing_one_timer):
++                                 and not preparing_one_timer):
+                 self._last_decision = 'shoot'
+                 self._shot_side = -1 if opponents.goalie.x > 0 else 1
+                 self._last_target = self._shot_side * 13, opponents.net.y
+@@ -594,8 +605,8 @@
+                                if team.skater_scnum_base() + i != actual]
+                     return action, HOCKEY_INTENT_PASS_START + indices.index(option.index)
+                 # Live cuts already evaluated this exact goalie-safe route.
+-                if mode == 'carry-breakaway' and not release_in_front:
+-                    point = route_waypoint((player.x, player.y), point)
++                if mode == 'carry-breakaway':
++                    return self._carry(state, player, action, breakaway=True)
+                 self._steer(action, player, *point, None if mode in ('feint', 'one-timer-setup') else state)
+                 return action, HOCKEY_INTENT_NOOP
+ 
+@@ -615,18 +626,7 @@
+                     return action, HOCKEY_INTENT_NOOP
+                 self._setup_until = 0
+ 
+-            self._last_decision = 'carry'
+-            point = self.offense.carry_target(state, player)
+-            if not release_in_front:
+-                point = route_waypoint((player.x, player.y), point)
+-            self._steer(action, player, *point, state)
+-            if self._last_decision != 'goalie-avoid':
+-                self.offense_diagnostics['reason'] = (
+-                    'missing feedback; retain legacy carry/setup' if player.passing is None
+-                    else 'close to shot range; retain puck for finishing'
+-                    if self.offense_diagnostics.get('status') == 'close-to-finish'
+-                    else 'no safer valuable pass or cut; carry toward the slot')
+-            return action, HOCKEY_INTENT_NOOP
++            return self._carry(state, player, action)
+ 
+         self._last_decision = 'recover'
+         if player is None:
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -16,6 +16,7 @@
+ GOALIE_SHOT_CLEARANCE = 24
+ GOALIE_HORIZON = 32
+ SHOT_RELEASE_DELAY = 2
++CARRY_SAMPLES = (4, 8, 12, FEINT_FRAMES)
+ 
+ 
+ def shot_release_in_front(state, player, frames):
+@@ -81,20 +82,24 @@
+     return future
+ 
+ 
+-def carry_clear(state, player, target):
+-    for frames in (4, 8, 12, FEINT_FRAMES):
++def carry_clearance(state, player, target):
++    clearance = math.inf
++    for frames in CARRY_SAMPLES:
+         motion = _carry_motion(player, target, frames)
+         if motion is None:
+-            return False
++            return -math.inf
+         point, _ = motion
+         for team in (state.team1, state.team2):
+             for other in (*team.players, team.goalie):
+                 if other is player or other.role is not None and other.role < 0:
+                     continue
+                 position, uncertainty = bounded_projection(other, frames, boards=other is not team.goalie)
+-                if math.dist(point, position) <= 16 + uncertainty:
+-                    return False
+-    return True
++                clearance = min(clearance, math.dist(point, position) - 16 - uncertainty)
++    return clearance
++
++
++def carry_clear(state, player, target):
++    return carry_clearance(state, player, target) > 0
+ 
+ 
+ def goalie_contact_time(player, goalie, clearance=GOALIE_CLEARANCE):
+@@ -232,12 +237,73 @@
+         return x, sign * 235
+ 
+     @staticmethod
++    def _carry_option(state, player, target):
++        target = route_waypoint((player.x, player.y), project_target(target))
++        escape = goalie_avoidance(state, player, target)
++        details = {}
++        if escape is not None:
++            target, details = escape
++            target = route_waypoint((player.x, player.y), target)
++        clearance = carry_clearance(state, player, target)
++        motions = [_carry_motion(player, target, frames) for frames in CARRY_SAMPLES]
++        bounded = all(motion is not None for motion in motions)
++        margin = min(pressure_margin(state.team2, motion[0], frames)
++                     for motion, frames in zip(motions, CARRY_SAMPLES)) if bounded else -math.inf
++        safe = clearance > 0 and margin >= 3 and details.get('goalie_avoidance_safe', True)
++        return target, {
++            **details, 'carry_safe': safe, 'carry_bounded': bounded,
++            'carry_clearance': clearance, 'carry_pressure': margin,
++        }
++
++    def fallback_carry(self, state, player):
++        preferred = self.carry_target(state, player)
++        if (player.motion_x is None or player.motion_y is None
++                or not state.engine.puck_owner_known):
++            return route_waypoint((player.x, player.y), preferred), {
++                'mode': 'carry', 'carry_safe': None,
++                'reason': 'missing feedback; retain legacy carry/setup',
++            }
++        first = self._carry_option(state, player, preferred)
++        if first[1]['carry_safe']:
++            return first[0], {
++                **first[1], 'mode': 'goalie-avoid' if 'goalie_clearance' in first[1] else 'carry',
++                'reason': first[1].get('reason', 'verified carrying route with contact and interception clearance'),
++            }
++        sign = 1 if state.team2.net.y > state.team1.net.y else -1
++        fx, fy = facing(player)
++        brake = player.x - fx * 48, player.y - fy * 48
++        targets = [brake, (player.x, player.y)]
++        targets.extend((player.x + dx, player.y + sign * dy)
++                       for dx, dy in ((-48, 0), (48, 0), (0, -48), (-48, -24), (48, -24),
++                                      (-48, 24), (48, 24)))
++        options = [first, *(self._carry_option(state, player, target) for target in targets)]
++        bounded = [option for option in options if option[1]['carry_bounded']]
++        if not bounded:
++            return route_waypoint((player.x, player.y), project_target(brake)), {
++                'mode': 'carry-escape', 'carry_safe': False, 'carry_bounded': False,
++                'reason': 'no bounded carry; brake before unavoidable wall or net contact',
++            }
++        point, details = max(bounded, key=lambda option: (
++            option[1]['carry_safe'], min(option[1]['carry_pressure'], 12),
++            min(option[1]['carry_clearance'], 16), (option[0][1] - player.y) * sign,
++            -math.dist(option[0], preferred)))
++        mode = ('goalie-avoid' if 'goalie_clearance' in first[1] else
++                'carry' if point == first[0] else 'carry-escape')
++        return point, {
++            **details, 'mode': mode,
++            'reason': 'escape the unsafe default carry with interception and contact clearance'
++            if details['carry_safe'] else 'no safe carry; maximize contact and interception clearance',
++        }
++
++    @staticmethod
+     def breakaway(state, player):
+         sign = 1 if state.team2.net.y > state.team1.net.y else -1
+         if any(other.y * sign >= player.y * sign - 8 and abs(other.x - player.x) < 90
+                for other in state.team2.players if other.role is None or other.role > 0):
+             return False
+         target = OffenseController.carry_target(state, player)
++        if not carry_clear(state, player, target):
++            return False
+         for frames in (8, 16, 24):
+             motion = carry_projection(player, target, frames)
+             if motion is None:
+--- a/nhl94_ai/evaluation/cpu_benchmark.py
++++ b/nhl94_ai/evaluation/cpu_benchmark.py
+@@ -153,6 +153,7 @@
+             'one_timers': [info['bench_one_timers1'], info['bench_one_timers2']],
+             'one_timer_goals': [info['bench_one_timer_goals1'], info['bench_one_timer_goals2']],
+             'one_timer_metrics': dict(agent.one_timer_metrics),
++            'carry_metrics': dict(agent.carry_metrics),
+             'decisions': dict(decisions), 'frames': frames,
+             'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
+             'controlled_recoveries': controlled_recoveries,
+@@ -199,6 +200,10 @@
+         for row in rows:
+             one_timer_metrics.update(row.get('one_timer_metrics', {}))
+         summary[matchup]['one_timer_metrics'] = dict(one_timer_metrics)
++        carry_metrics = Counter()
++        for row in rows:
++            carry_metrics.update(row.get('carry_metrics', {}))
++        summary[matchup]['carry_metrics'] = dict(carry_metrics)
+         goalie_metrics = Counter()
+         for row in rows:
+             goalie_metrics.update(row.get('goalie_metrics', {}))
+--- a/nhl94_ai/game/ram.py
++++ b/nhl94_ai/game/ram.py
+@@ -121,7 +121,7 @@
+ 
+ 
+ def register_pass_state(env):
+-    """ROM symbols passplayer and lastplayer, verified against nhl94.xml/ROM."""
++    """Read-only pass identity and native one-timer release counters."""
+     for name, address in (('pass_target', 0xFFBEE0), ('last_puck_player', 0xFFBEDA)):
+         env.data.set_variable(name, {'address': address, 'type': '>i2'})
+     for side, address in enumerate((0xFFCA2A, 0xFFCD8E), start=1):

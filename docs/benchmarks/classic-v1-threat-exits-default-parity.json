@@ -1,0 +1,66 @@
+{
+  "protocol": "nhl94-cpu-first-period-v2",
+  "purpose": "Confirm the risk-cost/exit revision preserves default applied actions against the frozen certificate-only policy.",
+  "reference_report": "classic-v1-uncertain-carry-baseline.json",
+  "settings": {
+    "agent": "classic-v1",
+    "matchups": [
+      "sabres-ducks-manual",
+      "ducks-sabres-manual"
+    ],
+    "goalie_policy": "off",
+    "trials": 1,
+    "seed": 20262004,
+    "seconds": 60,
+    "frame_skip": 4,
+    "action_type": "FILTERED",
+    "workers": 1,
+    "cross_crease": false,
+    "deke": false,
+    "uncertain_carry": false
+  },
+  "reference_policy_sources": {
+    "nhl94_ai/agents/carry.py": "8eed197bcbe31ad9968263ab84a93802cd4e4dfc5ee1f6879faeba0d56ec1676",
+    "nhl94_ai/agents/offense.py": "64e960e34f0e5793e6bfb9954c89f77ed3a73d43ebe4683b5cffb46c2dd6e8b4",
+    "nhl94_ai/agents/classic_v1.py": "3e963635ee2e0be3b4718a0a98b82aaa8c5674c7c9724f6c5783d4b11f805793"
+  },
+  "current_policy_sources": {
+    "nhl94_ai/agents/carry.py": "425a03f07eb619ff5dcd3ebd9d23f2781617607f8d6bd5c63e2d5bb32d666855",
+    "nhl94_ai/agents/offense.py": "452a948edac9a6d049b287e68a0f1436dceb82789f8c9de7b72c792873fbef8f",
+    "nhl94_ai/agents/classic_v1.py": "9add26d7b5d970ac66a37086b5901bf81f18214ddde4ced2e14f02fa8d7536c4"
+  },
+  "matches": [
+    {
+      "matchup": "sabres-ducks-manual",
+      "side": 1,
+      "seed": 20262004,
+      "completed_before": true,
+      "completed_after": true,
+      "frames_before": 2705,
+      "frames_after": 2705,
+      "goals_before": [1, 0],
+      "goals_after": [1, 0],
+      "actions_sha256_before": "4f56fb5b33f233d3b6299947ed553e4413292919c6e81f75b6d2c4d813b7b4ae",
+      "actions_sha256_after": "4f56fb5b33f233d3b6299947ed553e4413292919c6e81f75b6d2c4d813b7b4ae",
+      "actions_identical": true
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "side": 2,
+      "seed": 20262004,
+      "completed_before": true,
+      "completed_after": true,
+      "frames_before": 1580,
+      "frames_after": 1580,
+      "goals_before": [0, 0],
+      "goals_after": [0, 0],
+      "actions_sha256_before": "2c5df976b826b3c31d2dc45c70b8cfa5a23bc5a078771beebbf881cdaf24702a",
+      "actions_sha256_after": "2c5df976b826b3c31d2dc45c70b8cfa5a23bc5a078771beebbf881cdaf24702a",
+      "actions_identical": true
+    }
+  ],
+  "limitations": [
+    "Two short default-policy parity periods, not a strength benchmark.",
+    "Does not assert that the revised opt-in policy reproduces the original experiment."
+  ]
+}

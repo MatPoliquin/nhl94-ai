@@ -1,0 +1,638 @@
+{
+  "protocol": "classic-possession-value-validation-v1",
+  "date": "2026-10-09",
+  "default_enabled": false,
+  "value_model": "possession-utility-v1-not-probability",
+  "conclusion": "Implemented as opt-in; observed offensive regression does not justify promotion.",
+  "settings": {
+    "baseline": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 24841,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 3,
+      "output": "/tmp/nhl94-possession-final-baseline.json",
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "candidate": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 24841,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 3,
+      "output": "/tmp/nhl94-possession-final-candidate.json",
+      "possession_value": true,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    }
+  },
+  "sources": {
+    "nhl94_ai/agents/classic_v1.py": "c45381af7d4011c45063972fb6be48d362711a5aae7a5c8fd4fdcf9c940142d2",
+    "nhl94_ai/env/target_control.py": "ff553f99a5348dec3fb2762be3ace81db99518bce2aabce0c389f00cdec9ddee",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146",
+    "nhl94_ai/agents/scheduling.py": "b7a37957c15920b2950144b654402d2c644acdcf4686929d661da6a462129912",
+    "nhl94_ai/evaluation/defense_metrics.py": "347344ebac5d11eb3563d3638db8566dd728e2bb0ca387a71f463f737c6a040e",
+    "nhl94_ai/agents/registry.py": "9f83f8c5e12c7d1be9a51e0afbdaede49cac3b568492585bbe4a96e0fea389b3",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/agents/base.py": "045e70ed1426f6883904520f4034d4cdf53ccc043c92a4b8cb3c2074c4137dbc",
+    "nhl94_ai/agents/possession_value.py": "a1bf1a9a068796fe22a65074a70688e5ca41b8aa5f95e468f24d77cb26517656",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/agents/motion.py": "1a56a75b4dc06194f56423ac94f3d637c0792ae04200ad4a8112c705ea93bf10",
+    "nhl94_ai/agents/cross_crease.py": "f5ce8e6852aeb6070cbca3e12d1d6c00262aafd1e03e3a18d3e0606b775220c8",
+    "nhl94_ai/agents/responses.py": "a69cba84b62045e8c0bd75a27721f254943a98dfe9fd7b400cddfcf58a6b121b",
+    "nhl94_ai/agents/receiving.py": "19407f6c41e45c059b35ca292c0b6d7944b59806d7b5ae758f117811b3fdbeed",
+    "nhl94_ai/agents/skating.py": "17748ec1e62eb00cdc90729ccdd4cc29beae87e52f033581e9f2e42bdf908bd1",
+    "nhl94_ai/agents/possession.py": "bcbaf2e9a9872e127f26fc494258319c12983996094fefdd2a1a5c5d492fd713",
+    "nhl94_ai/agents/carry.py": "1f7a8ae4926bc60dab40bf5caa460f119d2fa5ae0b75395ec197ae41d2f72174",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "624175b005c6e379183f0a41d452fcbf7d6d29da34d2414b561d82b3e7b7ac52",
+    "nhl94_ai/game/ram.py": "695c63d302435317e9b22a257efe3ab4129c1cf4fded2a7f86ab17a1d5fcc817",
+    "nhl94_ai/evaluation/offense_metrics.py": "8c082dc2bd8090dae94782e3bbaae7b07b7fa0f1558cfd039cc401ad9935f130",
+    "nhl94_ai/agents/lifecycle.py": "ebe4e3bb741d0c9a041305bbf67f3833509b5535ae1d61c580691a0ff4fe91c7",
+    "nhl94_ai/agents/passing.py": "edb16bd06fee13bd5f93bacc5c748ffb051b0c9e2e99926f8be5b822d3ecfb8d",
+    "nhl94_ai/agents/defense.py": "ca3937e827e9621bab6d16d07d9b11ef83897699051d556740d3642b9b9f4c0a",
+    "nhl94_ai/agents/deke.py": "00cefffb902112ce368eaa720d7cca9ef8a887c71951f21acccfcaca186ce5b2",
+    "nhl94_ai/agents/finishing.py": "9aa94a10441139e57dab4dfff52956ad2bf9d378fa341e7d1f3861891e90686e",
+    "nhl94_ai/game/state.py": "72545dc07f33383f3d6d3d3fbb389b0fe5c8a2460ff30fc001216ebfae54c062",
+    "nhl94_ai/evaluation/benchmark.py": "4491d4869e0e87e2c0bf7946096dbea2a2d19fd53fbc185161d3c9425b949803",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/agents/goalie.py": "a012efb60f8fa0a89dfa05aa08edadbc6fddd7c9f6a74094d459526f2537eec8",
+    "nhl94_ai/agents/offense.py": "3d65c62026fd604c24d94ae2e7f1a68b58fd3c1aa86e23d3a17e3c9c02e7aa58"
+  },
+  "totals": {
+    "baseline": {
+      "periods": 20,
+      "wins": 9,
+      "draws": 8,
+      "losses": 3,
+      "goals_for": 26,
+      "goals_against": 11,
+      "one_timers": 49,
+      "one_timer_goals": 18,
+      "shots_for": 143,
+      "shots_against": 66,
+      "frames": 182112,
+      "decisions": {
+        "deny-reception": 8442,
+        "protect-lane": 11558,
+        "carry": 6658,
+        "carry-escape": 3503,
+        "advance-pass": 286,
+        "pass-flight": 1629,
+        "carry-breakaway": 714,
+        "goalie-avoid": 3313,
+        "shoot": 119,
+        "shot-follow-through": 597,
+        "contain-boards": 1151,
+        "feint": 277,
+        "position-pass": 34,
+        "one-timer-pass": 64,
+        "one-timer-shoot": 66,
+        "one-timer-wait": 184,
+        "recover-safe": 409,
+        "deny-goalie-outlet": 1319,
+        "one-timer-setup": 11,
+        "switch": 2,
+        "intercept-pass": 128,
+        "recover": 3
+      },
+      "possession_value_metrics": {}
+    },
+    "candidate": {
+      "periods": 20,
+      "wins": 8,
+      "draws": 7,
+      "losses": 5,
+      "goals_for": 15,
+      "goals_against": 8,
+      "one_timers": 42,
+      "one_timer_goals": 12,
+      "shots_for": 84,
+      "shots_against": 61,
+      "frames": 170008,
+      "decisions": {
+        "deny-reception": 6896,
+        "protect-lane": 11436,
+        "carry-opportunity": 9603,
+        "goalie-avoid": 2136,
+        "position-pass": 618,
+        "pass-flight": 2210,
+        "carry-escape": 658,
+        "one-timer-pass": 60,
+        "one-timer-shoot": 66,
+        "one-timer-wait": 229,
+        "shoot": 65,
+        "shot-follow-through": 291,
+        "contain-boards": 1234,
+        "carry": 286,
+        "recover-safe": 337,
+        "deny-goalie-outlet": 1536,
+        "intercept-pass": 159,
+        "pass-release": 20,
+        "recover": 1,
+        "switch": 1
+      },
+      "possession_value_metrics": {
+        "selected:carry": 9603,
+        "carry:next:retain": 9311,
+        "carry:next:shoot": 142,
+        "no-executable-candidate": 706,
+        "selected:pass": 618,
+        "pass:next:one-timer": 49,
+        "carry:next:one-timer": 150,
+        "selected:one-timer": 59,
+        "one-timer:next:one-timer": 59,
+        "pass:next:retain": 562,
+        "selected:shoot": 59,
+        "shoot:next:shot": 59,
+        "pass:next:shoot": 7
+      }
+    }
+  },
+  "by_matchup": {
+    "baseline": {
+      "sabres-ducks-manual": {
+        "periods": 10,
+        "wins": 5,
+        "draws": 5,
+        "losses": 0,
+        "goals_for": 16,
+        "goals_against": 5,
+        "one_timers": 31,
+        "one_timer_goals": 12,
+        "possession_value_metrics": {}
+      },
+      "ducks-sabres-manual": {
+        "periods": 10,
+        "wins": 4,
+        "draws": 3,
+        "losses": 3,
+        "goals_for": 10,
+        "goals_against": 6,
+        "one_timers": 18,
+        "one_timer_goals": 6,
+        "possession_value_metrics": {}
+      }
+    },
+    "candidate": {
+      "sabres-ducks-manual": {
+        "periods": 10,
+        "wins": 7,
+        "draws": 2,
+        "losses": 1,
+        "goals_for": 13,
+        "goals_against": 3,
+        "one_timers": 32,
+        "one_timer_goals": 11,
+        "possession_value_metrics": {
+          "selected:carry": 4873,
+          "carry:next:retain": 4705,
+          "carry:next:shoot": 84,
+          "no-executable-candidate": 366,
+          "selected:pass": 334,
+          "pass:next:one-timer": 30,
+          "carry:next:one-timer": 84,
+          "selected:one-timer": 40,
+          "one-timer:next:one-timer": 40,
+          "pass:next:retain": 298,
+          "selected:shoot": 33,
+          "shoot:next:shot": 33,
+          "pass:next:shoot": 6
+        }
+      },
+      "ducks-sabres-manual": {
+        "periods": 10,
+        "wins": 1,
+        "draws": 5,
+        "losses": 4,
+        "goals_for": 2,
+        "goals_against": 5,
+        "one_timers": 10,
+        "one_timer_goals": 1,
+        "possession_value_metrics": {
+          "selected:carry": 4730,
+          "carry:next:retain": 4606,
+          "no-executable-candidate": 340,
+          "selected:pass": 284,
+          "pass:next:retain": 264,
+          "carry:next:shoot": 58,
+          "selected:shoot": 26,
+          "shoot:next:shot": 26,
+          "carry:next:one-timer": 66,
+          "selected:one-timer": 19,
+          "one-timer:next:one-timer": 19,
+          "pass:next:one-timer": 19,
+          "pass:next:shoot": 1
+        }
+      }
+    }
+  },
+  "paired_analysis": {
+    "measure": "candidate minus baseline goal differential per complete period",
+    "mean_delta": -0.4,
+    "descriptive_95_percent_interval": [
+      -1.15,
+      0.25
+    ],
+    "method": "paired bootstrap, resample seeds with both team assignments together",
+    "seed_clusters": 10,
+    "replicates": 20000,
+    "rng_seed": 9473
+  },
+  "pairs": [
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24841,
+      "side": 1,
+      "baseline_goals_for_against": [
+        2,
+        0
+      ],
+      "candidate_goals_for_against": [
+        1,
+        1
+      ],
+      "goal_differential_delta": -2,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "7984451614dbd2e6dfbb343b534b8d682f57756d111993fa31b25dade3d198b7",
+      "candidate_actions_sha256": "49a46b8b53a2d261a989d99e1017ced7a9466453d7ca5db867c78800bc80e7ce"
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24842,
+      "side": 1,
+      "baseline_goals_for_against": [
+        4,
+        0
+      ],
+      "candidate_goals_for_against": [
+        2,
+        0
+      ],
+      "goal_differential_delta": -2,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "167ef52d161ff58764f2e471ef818768591311e7d2aee9c699a865b1f766ab18",
+      "candidate_actions_sha256": "31cb9408431c73b47a62baadd64a10c52e3641e01bb5fc4de6e8b1e96004d838"
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24843,
+      "side": 1,
+      "baseline_goals_for_against": [
+        0,
+        0
+      ],
+      "candidate_goals_for_against": [
+        1,
+        0
+      ],
+      "goal_differential_delta": 1,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "ba508b7ce768bf4d29cfc2ba86d8e718f001b204daf9e1043b2a2457ceaaf8f2",
+      "candidate_actions_sha256": "760956b76818962ae92d63390beb6dc5fe08d142fd7e57e2dc50cc94d596e697"
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24844,
+      "side": 1,
+      "baseline_goals_for_against": [
+        1,
+        0
+      ],
+      "candidate_goals_for_against": [
+        2,
+        0
+      ],
+      "goal_differential_delta": 1,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "03e22b9801ab6eb6750f29d532a4199cc5752cbed8da0dd7fb48f84df2686a10",
+      "candidate_actions_sha256": "142f6e8c991127592472e409c255af954fc48d06f09cdedb8511581ddd289dac"
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24845,
+      "side": 1,
+      "baseline_goals_for_against": [
+        0,
+        0
+      ],
+      "candidate_goals_for_against": [
+        2,
+        0
+      ],
+      "goal_differential_delta": 2,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "a5c13f79b81ffd9de56e806edb0b9fb1ecfa5e6bb565111f3e3c03df9ba3f915",
+      "candidate_actions_sha256": "7915c82dfa8138fc85c5398bfadcfea7a385c32ab24244ba188b33cbaeec4560"
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24846,
+      "side": 1,
+      "baseline_goals_for_against": [
+        0,
+        0
+      ],
+      "candidate_goals_for_against": [
+        0,
+        0
+      ],
+      "goal_differential_delta": 0,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "c6cbf7838fba0c9ad72c79d8c9cdfd7c09af02c0a013ed6122322d0739274103",
+      "candidate_actions_sha256": "713148105eefffe65deefec1612cf54de23d5ad9d4e28aaf173d1aebc768fa5b"
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24847,
+      "side": 1,
+      "baseline_goals_for_against": [
+        1,
+        1
+      ],
+      "candidate_goals_for_against": [
+        1,
+        2
+      ],
+      "goal_differential_delta": -1,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "dc741efd7bb23a04210b9cc1bc57b34a9467588d5d961172502ef1579803b9e5",
+      "candidate_actions_sha256": "fc2ae47a8ff6777f9c9b26bdc97e766d57dbd1689ac815ebdd7bdc48dc181a2a"
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24848,
+      "side": 1,
+      "baseline_goals_for_against": [
+        2,
+        2
+      ],
+      "candidate_goals_for_against": [
+        1,
+        0
+      ],
+      "goal_differential_delta": 1,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "8b94173036664c42354050372f128121d5ddc10ce201a19ca441a112988f2c39",
+      "candidate_actions_sha256": "ccb2cbc8713d878e1cf2257ca1dbd08cba7e6249df0eb4b24999ba99f7d8b4da"
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24849,
+      "side": 1,
+      "baseline_goals_for_against": [
+        3,
+        1
+      ],
+      "candidate_goals_for_against": [
+        1,
+        0
+      ],
+      "goal_differential_delta": -1,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "624c4c3c338c218a84e643679404506b8e954349f8eba9178df2b1cd7351b183",
+      "candidate_actions_sha256": "2aaabf5e850f3902afcc3493a1ca0b906743f8a5103c0aba814e83bab037bf46"
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24850,
+      "side": 1,
+      "baseline_goals_for_against": [
+        3,
+        1
+      ],
+      "candidate_goals_for_against": [
+        2,
+        0
+      ],
+      "goal_differential_delta": 0,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "2ed743e637e12383cd0dc35e55f5f617b2c0ffc6f043d2724fdf547aa7afd8a2",
+      "candidate_actions_sha256": "370d36020966bfc3fbba72a13fd943a0faf68d179eff41f7316df37034593db5"
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24841,
+      "side": 2,
+      "baseline_goals_for_against": [
+        1,
+        0
+      ],
+      "candidate_goals_for_against": [
+        0,
+        0
+      ],
+      "goal_differential_delta": -1,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "1f16b182ac2853f61f7d64c3e999193938baaab2be10d403f86f2e64c8d24be3",
+      "candidate_actions_sha256": "f9ebf81f6e7d7f45be7b313bdaec8c03d5d78d10a376caa03f840ca619a4d74f"
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24842,
+      "side": 2,
+      "baseline_goals_for_against": [
+        4,
+        0
+      ],
+      "candidate_goals_for_against": [
+        0,
+        0
+      ],
+      "goal_differential_delta": -4,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "34679ba7e97bf89ec4f2b88d7d30092d060dcb7d9a21251ad29de079f3a60ffa",
+      "candidate_actions_sha256": "4634467995014163afc8ea63b6ab0926c9ca370667954ca8a381d6122e09927c"
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24843,
+      "side": 2,
+      "baseline_goals_for_against": [
+        3,
+        1
+      ],
+      "candidate_goals_for_against": [
+        0,
+        0
+      ],
+      "goal_differential_delta": -2,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "f03a9810e08b150416f9ae934df2b5224b45a989d35ed1680c12e2ee3a292d06",
+      "candidate_actions_sha256": "ba5ba543ca9619b4f962767ee86314a57ca74afa03da67f461dc04d6a571a15d"
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24844,
+      "side": 2,
+      "baseline_goals_for_against": [
+        0,
+        1
+      ],
+      "candidate_goals_for_against": [
+        1,
+        1
+      ],
+      "goal_differential_delta": 1,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "fbb3429c4d5788728be4c888d7273afc5356fb1ca06614fe1ff954dc1c74cc94",
+      "candidate_actions_sha256": "2f240ab93bc553c5ce1c988446f0cb570738b045a6a5ebbc79748fe35dd943e1"
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24845,
+      "side": 2,
+      "baseline_goals_for_against": [
+        0,
+        1
+      ],
+      "candidate_goals_for_against": [
+        0,
+        1
+      ],
+      "goal_differential_delta": 0,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "c87853570080b938076d51d5f04c25095bb5c086a869dee6f8609671998923db",
+      "candidate_actions_sha256": "c2371e5bc43eb5b8eca7f8cb0848b5ccfd09db3d06dbe70879dd1502e76dab58"
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24846,
+      "side": 2,
+      "baseline_goals_for_against": [
+        0,
+        0
+      ],
+      "candidate_goals_for_against": [
+        0,
+        1
+      ],
+      "goal_differential_delta": -1,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "ce36921f5450cb87fa6b4ab7e2fc4516a06a689bbeb65bed070c55226b0b7844",
+      "candidate_actions_sha256": "fcc34d6019677e00938e187a0468578dbde43494934029d230f32aa5e56c8d94"
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24847,
+      "side": 2,
+      "baseline_goals_for_against": [
+        0,
+        2
+      ],
+      "candidate_goals_for_against": [
+        0,
+        0
+      ],
+      "goal_differential_delta": 2,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "c24d4470030531bbd5ee7f3814a28af64bb624f3128550e0b56342f2ac784b44",
+      "candidate_actions_sha256": "651b3e99409b707805e0739a0423b329252d0ef4a6531cee363e6fe90dca49dc"
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24848,
+      "side": 2,
+      "baseline_goals_for_against": [
+        1,
+        1
+      ],
+      "candidate_goals_for_against": [
+        0,
+        1
+      ],
+      "goal_differential_delta": -1,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "400c49265451e6d7c9b5923d4e225c146fdf3bf44b96a5ce23f5241371ed9bdd",
+      "candidate_actions_sha256": "8d156b9689ae06471bf5cd3039698982d6d7adee50ec3bf1ccf61e5baf25cbb9"
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24849,
+      "side": 2,
+      "baseline_goals_for_against": [
+        1,
+        0
+      ],
+      "candidate_goals_for_against": [
+        1,
+        0
+      ],
+      "goal_differential_delta": 0,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "b8390114308ec7cf0833ce61fc6e9c763663b69e7773719c1dfc970198c390c5",
+      "candidate_actions_sha256": "fb7fb940f62f003d2be19deedf889b69627481f6e25bb1c69fc001e142e612f6"
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24850,
+      "side": 2,
+      "baseline_goals_for_against": [
+        0,
+        0
+      ],
+      "candidate_goals_for_against": [
+        0,
+        1
+      ],
+      "goal_differential_delta": -1,
+      "initial_state_sha256": "1b5650069a8558ef369aed8342a09d8d756f9be45517a30a454644ce1115672f",
+      "baseline_actions_sha256": "2c18e3c1291331b643e42007b7da94addda6b65c4be269736b8873fda63f816a",
+      "candidate_actions_sha256": "fbb76f970ed696849c9253a2ae652cd8d009f28d7a391b0fd4ecbffa3357fc34"
+    }
+  ],
+  "checks": {
+    "unit_tests": 831,
+    "existing_expected_failures": 1,
+    "native_scenarios": 14,
+    "pylint": "10.00/10",
+    "matched_initial_states_teams_lineups_and_seeds": true,
+    "current_source_hashes_verified": true,
+    "final_revision_replay": {
+      "baseline": {
+        "identical_periods": 20,
+        "identical_actions_and_recorded_outcomes": true
+      },
+      "candidate": {
+        "identical_periods": 20,
+        "identical_actions_and_recorded_outcomes": true
+      }
+    }
+  },
+  "limitations": [
+    "First periods, two team assignments, ten paired seed clusters.",
+    "Heuristic utilities and scenario fractions are not probabilities.",
+    "Continuation selection counts do not establish executed two-pass sequences.",
+    "No weights were fitted to the validation outcomes.",
+    "Finisher flags and classic refinements disabled in paired trials."
+  ],
+  "evidence": {
+    "path": "classic-v1-possession-value-evidence.json.gz",
+    "sha256": "519ed5272ce0e17f78d08fc5cd08963b5353a5ce8d1b4b9bbfa6021e5469542b"
+  }
+}

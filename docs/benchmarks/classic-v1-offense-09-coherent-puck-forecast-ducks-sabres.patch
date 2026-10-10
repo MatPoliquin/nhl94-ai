@@ -1,0 +1,12 @@
+--- a/nhl94_ai/agents/offense.py
++++ b/nhl94_ai/agents/offense.py
+@@ -78,7 +78,8 @@
+     player = future.team1.get_player_by_scnum(state.engine.puck_owner)
+     (player.x, player.y), (player.motion_x, player.motion_y) = motion
+     future.puck = copy(state.puck)
+-    future.puck.x, future.puck.y = player.x, player.y
++    future.puck.x = state.puck.x + player.x - original.x
++    future.puck.y = state.puck.y + player.y - original.y
+     return future
+ 
+ 

@@ -1,0 +1,871 @@
+{
+  "current": [
+    [
+      -71.0,
+      -112.0
+    ],
+    {
+      "carry_bounded": true,
+      "carry_safe": false,
+      "carry_clearance": 41.49023445221248,
+      "carry_pressure": -13.0,
+      "carry_progress": -2,
+      "carry_shot_value": 0.0,
+      "carry_pressure_model": "native-reach-envelope",
+      "carry_viable": false,
+      "carry_status": "uncertified",
+      "carry_risk": 1.0,
+      "carry_forecast_frames": 18,
+      "carry_position_value": 0.0,
+      "carry_release_frames": 0,
+      "carry_value_frames": 18,
+      "carry_risk_cost": 6.3,
+      "mode": "carry-escape",
+      "reason": "no viable carry; prioritize body and goalie separation"
+    }
+  ],
+  "baseline_carry": [
+    [
+      -35.0,
+      -235.0
+    ],
+    {
+      "carry_safe": true,
+      "carry_bounded": true,
+      "carry_clearance": 45.751257426910534,
+      "carry_pressure": 13.677560037548918,
+      "carry_progress": 5.92330971843046,
+      "carry_shot_value": 0.0,
+      "mode": "carry",
+      "reason": "verified carrying route with contact and interception clearance"
+    }
+  ],
+  "puck": {
+    "x": -114,
+    "y": -150,
+    "vx": 0,
+    "vy": 0,
+    "orientation": 0,
+    "shot_accuracy": null,
+    "shot_power": null,
+    "handedness": null,
+    "passing": null,
+    "stick_x": null,
+    "stick_y": null,
+    "shot_durations": null,
+    "shot_offsets_y": null,
+    "shot_offsets_x": null,
+    "shot_projection_offsets_x": null,
+    "shot_projection_offsets_y": null,
+    "shot_projection_durations": null,
+    "precise_x": null,
+    "precise_y": null,
+    "facing_phase": null,
+    "sprite_flipped_x": null,
+    "motion_x": 0.0,
+    "motion_y": 0.0,
+    "projection_uncertainty": 0.0,
+    "speed": null,
+    "agility": null,
+    "weight": null,
+    "energy": null,
+    "stick": null,
+    "role": null,
+    "facing": null,
+    "selection_flags": null,
+    "unavailable": 0,
+    "movement_bonus": 0,
+    "burst_full_energy": null,
+    "height": 0.0,
+    "friction": 0.998046875
+  },
+  "engine": {
+    "puck_owner": 6,
+    "puck_owner_known": true,
+    "offsides_enabled": false
+  },
+  "team1": {
+    "controller": 2,
+    "control": 1,
+    "defense_control": 6,
+    "net": {
+      "depth": 10,
+      "left": -19,
+      "right": 19,
+      "y": 264,
+      "rel_controlled_left": 100,
+      "rel_controlled_right": 138,
+      "rel_controlled_y": 400
+    },
+    "goalie": {
+      "x": -4,
+      "y": 245,
+      "vx": 0,
+      "vy": 0,
+      "orientation": 0,
+      "shot_accuracy": null,
+      "shot_power": null,
+      "handedness": null,
+      "passing": 10,
+      "stick_x": null,
+      "stick_y": null,
+      "shot_durations": null,
+      "shot_offsets_y": null,
+      "shot_offsets_x": null,
+      "shot_projection_offsets_x": null,
+      "shot_projection_offsets_y": null,
+      "shot_projection_durations": null,
+      "precise_x": -3.6650543212890625,
+      "precise_y": 245.67774963378906,
+      "facing_phase": null,
+      "sprite_flipped_x": null,
+      "motion_x": 0.0,
+      "motion_y": 0.0,
+      "projection_uncertainty": 0.0,
+      "speed": 15,
+      "agility": 10,
+      "weight": 48,
+      "energy": 4096,
+      "stick": 0,
+      "role": 0,
+      "facing": 4,
+      "selection_flags": 64,
+      "unavailable": 0,
+      "movement_bonus": 2,
+      "burst_full_energy": null
+    },
+    "players": [
+      {
+        "x": -119,
+        "y": -136,
+        "vx": 0,
+        "vy": 0,
+        "orientation": 3,
+        "shot_accuracy": 12,
+        "shot_power": 15,
+        "handedness": 1,
+        "passing": 12,
+        "stick_x": 14,
+        "stick_y": -6,
+        "shot_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "shot_offsets_y": [
+          -7,
+          -6
+        ],
+        "shot_offsets_x": [
+          14,
+          15
+        ],
+        "shot_projection_offsets_x": [
+          -19,
+          19
+        ],
+        "shot_projection_offsets_y": [
+          -20,
+          20
+        ],
+        "shot_projection_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "precise_x": -118.32429504394531,
+        "precise_y": -135.22593688964844,
+        "facing_phase": 3.250732421875,
+        "sprite_flipped_x": false,
+        "motion_x": 0.0,
+        "motion_y": 0.0,
+        "projection_uncertainty": 0.0,
+        "speed": 15,
+        "agility": 15,
+        "weight": 56,
+        "energy": 4096,
+        "stick": 12,
+        "role": 5,
+        "facing": 3,
+        "selection_flags": 72,
+        "unavailable": 0,
+        "movement_bonus": 2,
+        "burst_full_energy": false
+      },
+      {
+        "x": -33,
+        "y": -144,
+        "vx": 5,
+        "vy": -20,
+        "orientation": 3,
+        "shot_accuracy": 3,
+        "shot_power": 11,
+        "handedness": 1,
+        "passing": 3,
+        "stick_x": 18,
+        "stick_y": -6,
+        "shot_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "shot_offsets_y": [
+          -7,
+          -6
+        ],
+        "shot_offsets_x": [
+          14,
+          18
+        ],
+        "shot_projection_offsets_x": [
+          -19,
+          19
+        ],
+        "shot_projection_offsets_y": [
+          -20,
+          20
+        ],
+        "shot_projection_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "precise_x": -32.039520263671875,
+        "precise_y": -143.40716552734375,
+        "facing_phase": 3.165771484375,
+        "sprite_flipped_x": false,
+        "motion_x": 0.35797119140625,
+        "motion_y": -1.31671142578125,
+        "projection_uncertainty": 0.0,
+        "speed": 16,
+        "agility": 11,
+        "weight": 80,
+        "energy": 4096,
+        "stick": 8,
+        "role": 3,
+        "facing": 3,
+        "selection_flags": 64,
+        "unavailable": 2,
+        "movement_bonus": 2,
+        "burst_full_energy": false
+      },
+      {
+        "x": -88,
+        "y": -1,
+        "vx": 7,
+        "vy": -22,
+        "orientation": 3,
+        "shot_accuracy": 16,
+        "shot_power": 14,
+        "handedness": 0,
+        "passing": 11,
+        "stick_x": 10,
+        "stick_y": -9,
+        "shot_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "shot_offsets_y": [
+          -12,
+          -6
+        ],
+        "shot_offsets_x": [
+          8,
+          13
+        ],
+        "shot_projection_offsets_x": [
+          -19,
+          19
+        ],
+        "shot_projection_offsets_y": [
+          -20,
+          20
+        ],
+        "shot_projection_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "precise_x": -87.05860900878906,
+        "precise_y": -0.9776763916015625,
+        "facing_phase": 3.892578125,
+        "sprite_flipped_x": true,
+        "motion_x": 0.50946044921875,
+        "motion_y": -1.4111328125,
+        "projection_uncertainty": 0.0,
+        "speed": 14,
+        "agility": 14,
+        "weight": 48,
+        "energy": 4096,
+        "stick": 11,
+        "role": 4,
+        "facing": 3,
+        "selection_flags": 64,
+        "unavailable": 0,
+        "movement_bonus": 2,
+        "burst_full_energy": false
+      },
+      {
+        "x": -75,
+        "y": 141,
+        "vx": 2,
+        "vy": -27,
+        "orientation": 4,
+        "shot_accuracy": 2,
+        "shot_power": 5,
+        "handedness": 1,
+        "passing": 2,
+        "stick_x": 1,
+        "stick_y": -15,
+        "shot_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "shot_offsets_y": [
+          -16,
+          -11
+        ],
+        "shot_offsets_x": [
+          0,
+          8
+        ],
+        "shot_projection_offsets_x": [
+          -19,
+          19
+        ],
+        "shot_projection_offsets_y": [
+          -20,
+          20
+        ],
+        "shot_projection_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "precise_x": -74.68145751953125,
+        "precise_y": 141.8406524658203,
+        "facing_phase": 4.842529296875,
+        "sprite_flipped_x": false,
+        "motion_x": 0.1597900390625,
+        "motion_y": -1.781036376953125,
+        "projection_uncertainty": 0.0,
+        "speed": 15,
+        "agility": 15,
+        "weight": 88,
+        "energy": 4096,
+        "stick": 7,
+        "role": 2,
+        "facing": 4,
+        "selection_flags": 64,
+        "unavailable": 0,
+        "movement_bonus": 2,
+        "burst_full_energy": false
+      },
+      {
+        "x": -16,
+        "y": 133,
+        "vx": 5,
+        "vy": -29,
+        "orientation": 4,
+        "shot_accuracy": 0,
+        "shot_power": 18,
+        "handedness": 1,
+        "passing": 15,
+        "stick_x": 1,
+        "stick_y": -15,
+        "shot_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "shot_offsets_y": [
+          -16,
+          -11
+        ],
+        "shot_offsets_x": [
+          0,
+          8
+        ],
+        "shot_projection_offsets_x": [
+          -19,
+          19
+        ],
+        "shot_projection_offsets_y": [
+          -20,
+          20
+        ],
+        "shot_projection_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "precise_x": -15.346481323242188,
+        "precise_y": 133.45066833496094,
+        "facing_phase": 4.02880859375,
+        "sprite_flipped_x": false,
+        "motion_x": 0.3468170166015625,
+        "motion_y": -1.898284912109375,
+        "projection_uncertainty": 0.0,
+        "speed": 13,
+        "agility": 18,
+        "weight": 88,
+        "energy": 4096,
+        "stick": 15,
+        "role": 1,
+        "facing": 4,
+        "selection_flags": 64,
+        "unavailable": 0,
+        "movement_bonus": 2,
+        "burst_full_energy": false
+      }
+    ]
+  },
+  "team2": {
+    "controller": 1,
+    "control": 1,
+    "defense_control": null,
+    "net": {
+      "depth": 10,
+      "left": -19,
+      "right": 19,
+      "y": -264,
+      "rel_controlled_left": -105,
+      "rel_controlled_right": -67,
+      "rel_controlled_y": -137
+    },
+    "goalie": {
+      "x": -16,
+      "y": -246,
+      "vx": 0,
+      "vy": 0,
+      "orientation": 0,
+      "shot_accuracy": null,
+      "shot_power": null,
+      "handedness": null,
+      "passing": 22,
+      "stick_x": null,
+      "stick_y": null,
+      "shot_durations": null,
+      "shot_offsets_y": null,
+      "shot_offsets_x": null,
+      "shot_projection_offsets_x": null,
+      "shot_projection_offsets_y": null,
+      "shot_projection_durations": null,
+      "precise_x": -15.883438110351562,
+      "precise_y": -245.23190307617188,
+      "facing_phase": null,
+      "sprite_flipped_x": null,
+      "motion_x": 0.0,
+      "motion_y": 0.0,
+      "projection_uncertainty": 0.0,
+      "speed": 17,
+      "agility": 22,
+      "weight": 56,
+      "energy": 4096,
+      "stick": 0,
+      "role": 0,
+      "facing": 7,
+      "selection_flags": 128,
+      "unavailable": 0,
+      "movement_bonus": 2,
+      "burst_full_energy": null
+    },
+    "players": [
+      {
+        "x": 86,
+        "y": -127,
+        "vx": 6,
+        "vy": -37,
+        "orientation": 3,
+        "shot_accuracy": 26,
+        "shot_power": 19,
+        "handedness": 1,
+        "passing": 26,
+        "stick_x": 18,
+        "stick_y": -6,
+        "shot_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "shot_offsets_y": [
+          -7,
+          -6
+        ],
+        "shot_offsets_x": [
+          14,
+          18
+        ],
+        "shot_projection_offsets_x": [
+          -19,
+          19
+        ],
+        "shot_projection_offsets_y": [
+          -20,
+          20
+        ],
+        "shot_projection_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "precise_x": 86.50242614746094,
+        "precise_y": -126.54750061035156,
+        "facing_phase": 3.9072265625,
+        "sprite_flipped_x": false,
+        "motion_x": 0.4474639892578125,
+        "motion_y": -2.4515838623046875,
+        "projection_uncertainty": 0.0,
+        "speed": 29,
+        "agility": 29,
+        "weight": 56,
+        "energy": 4096,
+        "stick": 26,
+        "role": 5,
+        "facing": 3,
+        "selection_flags": 128,
+        "unavailable": 2,
+        "movement_bonus": 2,
+        "burst_full_energy": false
+      },
+      {
+        "x": -38,
+        "y": -162,
+        "vx": -21,
+        "vy": -20,
+        "orientation": 6,
+        "shot_accuracy": 5,
+        "shot_power": 13,
+        "handedness": 1,
+        "passing": 25,
+        "stick_x": -14,
+        "stick_y": -2,
+        "shot_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "shot_offsets_y": [
+          -7,
+          1
+        ],
+        "shot_offsets_x": [
+          -17,
+          -13
+        ],
+        "shot_projection_offsets_x": [
+          -19,
+          19
+        ],
+        "shot_projection_offsets_y": [
+          -20,
+          20
+        ],
+        "shot_projection_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "precise_x": -37.950408935546875,
+        "precise_y": -161.7310791015625,
+        "facing_phase": 6.089599609375,
+        "sprite_flipped_x": false,
+        "motion_x": -1.337982177734375,
+        "motion_y": -1.3263092041015625,
+        "projection_uncertainty": 0.0,
+        "speed": 18,
+        "agility": 23,
+        "weight": 48,
+        "energy": 4096,
+        "stick": 25,
+        "role": 3,
+        "facing": 6,
+        "selection_flags": 128,
+        "unavailable": 0,
+        "movement_bonus": 2,
+        "burst_full_energy": false
+      },
+      {
+        "x": -73,
+        "y": -175,
+        "vx": -17,
+        "vy": -28,
+        "orientation": 3,
+        "shot_accuracy": 22,
+        "shot_power": 15,
+        "handedness": 0,
+        "passing": 27,
+        "stick_x": 22,
+        "stick_y": -6,
+        "shot_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "shot_offsets_y": [
+          -12,
+          -6
+        ],
+        "shot_offsets_x": [
+          8,
+          13
+        ],
+        "shot_projection_offsets_x": [
+          -19,
+          19
+        ],
+        "shot_projection_offsets_y": [
+          -20,
+          20
+        ],
+        "shot_projection_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "precise_x": -72.49276733398438,
+        "precise_y": -174.8174285888672,
+        "facing_phase": 3.971435546875,
+        "sprite_flipped_x": true,
+        "motion_x": -1.1143798828125,
+        "motion_y": -1.8489990234375,
+        "projection_uncertainty": 0.0,
+        "speed": 20,
+        "agility": 25,
+        "weight": 40,
+        "energy": 4096,
+        "stick": 27,
+        "role": 4,
+        "facing": 3,
+        "selection_flags": 128,
+        "unavailable": 0,
+        "movement_bonus": 2,
+        "burst_full_energy": false
+      },
+      {
+        "x": -11,
+        "y": -210,
+        "vx": -25,
+        "vy": -8,
+        "orientation": 4,
+        "shot_accuracy": 3,
+        "shot_power": 16,
+        "handedness": 1,
+        "passing": 18,
+        "stick_x": -16,
+        "stick_y": -11,
+        "shot_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "shot_offsets_y": [
+          -16,
+          -6
+        ],
+        "shot_offsets_x": [
+          2,
+          9
+        ],
+        "shot_projection_offsets_x": [
+          -19,
+          19
+        ],
+        "shot_projection_offsets_y": [
+          -20,
+          20
+        ],
+        "shot_projection_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "precise_x": -10.67437744140625,
+        "precise_y": -209.640380859375,
+        "facing_phase": 4.932373046875,
+        "sprite_flipped_x": false,
+        "motion_x": -1.633697509765625,
+        "motion_y": -0.5092010498046875,
+        "projection_uncertainty": 0.0,
+        "speed": 21,
+        "agility": 21,
+        "weight": 40,
+        "energy": 4096,
+        "stick": 23,
+        "role": 2,
+        "facing": 4,
+        "selection_flags": 128,
+        "unavailable": 2,
+        "movement_bonus": 2,
+        "burst_full_energy": false
+      },
+      {
+        "x": -124,
+        "y": -42,
+        "vx": 3,
+        "vy": -29,
+        "orientation": 4,
+        "shot_accuracy": 8,
+        "shot_power": 11,
+        "handedness": 1,
+        "passing": 18,
+        "stick_x": 1,
+        "stick_y": -12,
+        "shot_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "shot_offsets_y": [
+          -16,
+          -11
+        ],
+        "shot_offsets_x": [
+          0,
+          8
+        ],
+        "shot_projection_offsets_x": [
+          -19,
+          19
+        ],
+        "shot_projection_offsets_y": [
+          -20,
+          20
+        ],
+        "shot_projection_durations": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "precise_x": -123.8787841796875,
+        "precise_y": -41.9453125,
+        "facing_phase": 4.976318359375,
+        "sprite_flipped_x": false,
+        "motion_x": 0.21270751953125,
+        "motion_y": -1.9120330810546875,
+        "projection_uncertainty": 0.0,
+        "speed": 16,
+        "agility": 11,
+        "weight": 80,
+        "energy": 4096,
+        "stick": 13,
+        "role": 1,
+        "facing": 4,
+        "selection_flags": 128,
+        "unavailable": 0,
+        "movement_bonus": 2,
+        "burst_full_energy": false
+      }
+    ]
+  },
+  "provenance": {
+    "revision": "117efb1",
+    "matchup": "ducks-sabres-manual",
+    "seed": 20264001,
+    "frame_skip": 4,
+    "goalie_policy": "off",
+    "selection": "First attacking-zone fallback with negative current progress and estimated-clear forward baseline progress above four units."
+  }
+}

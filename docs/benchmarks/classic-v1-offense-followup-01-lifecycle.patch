@@ -1,0 +1,109 @@
+--- a/nhl94_ai/agents/classic_v1.py
++++ b/nhl94_ai/agents/classic_v1.py
+@@ -67,12 +67,14 @@
+         self._last_pass_request = None
+         self._one_timer_passes_before = None
+         self._one_timer_actual = None
++        self._one_timer_launched = False
+         self._one_timer_attempts_before = None
+         self._one_timer_shots_before = 0
+         self._one_timer_started = 0
+         self._one_timer_flight = None
+         self._decision_interval = 4
+         self.one_timer_metrics = {}
++        self.one_timer_starts = 0
+         self.carry_metrics = {}
+         self._frame_remaining = 0
+         self._frame_action = np.zeros((1, self._size), dtype=np.int8)
+@@ -123,7 +125,7 @@
+             return None
+         self.defense.idle(1)
+         self.defense_diagnostics = self.offense_diagnostics = {}
+-        self._one_timer = None
++        self._end_one_timer('goalie-control')
+         self._shot_until = self._setup_until = 0
+         self._setup_slot = None
+         self.offense.cancel()
+@@ -255,7 +257,7 @@
+         self.offense.cancel()
+         self.offense_diagnostics = {}
+         if state.engine.puck_owner >= 0:
+-            self._one_timer = None
++            self._end_one_timer('possession-changed', interrupt=False)
+             self._shot_until = self._setup_until = 0
+         self.defense.b_down, self.defense.c_down = self._b_down, self._c_down
+         action = self.defense.step(state, self._defense_elapsed)
+@@ -396,10 +398,14 @@
+                 return index, slot
+         return None
+ 
+-    def _end_one_timer(self, reason):
++    def _end_one_timer(self, reason, *, interrupt=True):
++        if self._one_timer is None:
++            return
+         self.one_timer_metrics[reason] = self.one_timer_metrics.get(reason, 0) + 1
+         self._one_timer = None
+-        self._frame_remaining = 0
++        self._one_timer_launched = False
++        if interrupt:
++            self._frame_remaining = 0
+         self._last_decision = 'one-timer-ended'
+         self.offense_diagnostics = {'reason': reason}
+ 
+@@ -423,8 +429,15 @@
+         recorded = state.team1.stats.shots > self._one_timer_shots_before
+         if state.engine.shot_player == slot and (released or recorded):
+             self._end_one_timer('shot-released')
++        elif state.engine.puck_owner == self._one_timer[0] and self._one_timer_launched:
++            self._end_one_timer('recovered-by-passer')
++        elif (owns_puck(state.team1, state.engine.puck_owner)
++              and state.engine.puck_owner != self._one_timer[0]):
++            self._end_one_timer('possession-changed')
+         elif frame >= self._one_timer[2]:
+             self._end_one_timer('timeout')
++        elif state.engine.puck_owner < 0:
++            self._one_timer_launched = True
+         return False
+ 
+     def _continue_one_timer(self, state, action):
+@@ -550,6 +563,8 @@
+                             if self._one_timer_flight is not None else ONE_TIMER_TIMEOUT_FRAMES)
+                 self._one_timer_started = self.defense.frames
+                 self._one_timer = (owner, slot, self.defense.frames + duration)
++                self._one_timer_launched = False
++                self.one_timer_starts += 1
+                 self._one_timer_passes_before = team.pass_attempts
+                 self._one_timer_actual = None
+                 self._one_timer_attempts_before = team.one_timer_attempts
+--- a/nhl94_ai/evaluation/cpu_benchmark.py
++++ b/nhl94_ai/evaluation/cpu_benchmark.py
+@@ -146,6 +146,10 @@
+             frames += 1
+             passes.observe(frames, info)
+         passes.finish(frames, info, 'period_ended' if info['bench_clock'] == 0 else 'trial_incomplete')
++        agent._end_one_timer('period-ended' if info['bench_clock'] == 0 else 'trial-incomplete')
++        ended = sum(agent.one_timer_metrics.values())
++        if ended != agent.one_timer_starts:
++            raise RuntimeError(f'Unbalanced one-timer lifecycle: {agent.one_timer_starts} starts, {ended} endings.')
+         return {
+             'agent': agent_name, 'matchup': matchup, 'side': side, 'seed': seed,
+             'goals': [info['p1_score'], info['p2_score']],
+@@ -153,6 +157,7 @@
+             'one_timers': [info['bench_one_timers1'], info['bench_one_timers2']],
+             'one_timer_goals': [info['bench_one_timer_goals1'], info['bench_one_timer_goals2']],
+             'one_timer_metrics': dict(agent.one_timer_metrics),
++            'one_timer_accounting': {'started': agent.one_timer_starts, 'ended': ended},
+             'carry_metrics': dict(agent.carry_metrics),
+             'decisions': dict(decisions), 'frames': frames,
+             'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
+@@ -200,6 +205,10 @@
+         for row in rows:
+             one_timer_metrics.update(row.get('one_timer_metrics', {}))
+         summary[matchup]['one_timer_metrics'] = dict(one_timer_metrics)
++        summary[matchup]['one_timer_accounting'] = {
++            key: sum(row.get('one_timer_accounting', {}).get(key, 0) for row in rows)
++            for key in ('started', 'ended')
++        }
+         carry_metrics = Counter()
+         for row in rows:
+             carry_metrics.update(row.get('carry_metrics', {}))
