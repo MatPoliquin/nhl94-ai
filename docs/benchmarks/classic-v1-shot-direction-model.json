@@ -1,0 +1,51 @@
+{
+  "version": "native-shot-direction-v1",
+  "kind": "fixed-height",
+  "height": 0,
+  "selected_name": "legacy",
+  "training": {
+    "file": "/tmp/nhl94-direction-training.json.gz",
+    "sha256": "84a274eacf6220c8a77014fdd2be6ee6ebf6b4478b08754f97e1459cec64836c",
+    "cases": 238,
+    "seeds": [
+      26101,
+      26102,
+      26103,
+      26104,
+      26105,
+      26106,
+      26107,
+      26108,
+      26109,
+      26110,
+      26111,
+      26112,
+      26113,
+      26114,
+      26115,
+      26116,
+      26117,
+      26118,
+      26119,
+      26120
+    ]
+  },
+  "validation": {
+    "file": "/tmp/nhl94-direction-validation.json.gz",
+    "sha256": "d57f0863270f64d42e2e7d64065736993c03e0a4cb2e1b823b58970c014c9943",
+    "cases": 102,
+    "seeds": [
+      26201,
+      26202,
+      26203,
+      26204,
+      26205,
+      26206,
+      26207,
+      26208,
+      26209,
+      26210
+    ]
+  },
+  "target": "Goal during bounded attack, including friendly rebounds; not calibrated game-wide xG."
+}

@@ -1,0 +1,515 @@
+{
+  "version": "native-chance-rule-v1",
+  "rule": {
+    "baseline": "shoot",
+    "action": "carry",
+    "feature": "vy",
+    "threshold": 1.0657424926757812,
+    "less_equal": true
+  },
+  "settings": {
+    "data": "/tmp/nhl94-chance-discovery.json.gz",
+    "validation_seed": 25915,
+    "min_cases": 20,
+    "output": "docs/benchmarks/classic-v1-chance-rule.json"
+  },
+  "features_searched": [
+    "animation_locked",
+    "b_down",
+    "c_down",
+    "depth",
+    "vy",
+    "defender_distance",
+    "goalie_distance",
+    "shot_geometry_quality",
+    "timer_clearance"
+  ],
+  "training": {
+    "totals": {
+      "cases": 218,
+      "overrides": 58,
+      "legacy_attack_goals": 37,
+      "selected_attack_goals": 42,
+      "legacy_goals": 42,
+      "selected_goals": 48,
+      "legacy_against": 0,
+      "selected_against": 0,
+      "legacy_shots": 199,
+      "selected_shots": 207,
+      "paired_reward_gain": 5
+    },
+    "seed_reward_gains": {
+      "25901": 0,
+      "25902": 1,
+      "25903": 0,
+      "25904": 0,
+      "25905": 0,
+      "25906": 0,
+      "25907": 1,
+      "25908": 0,
+      "25909": 0,
+      "25910": -1,
+      "25911": 1,
+      "25912": 0,
+      "25913": 1,
+      "25914": 2
+    }
+  },
+  "validation": {
+    "totals": {
+      "cases": 80,
+      "overrides": 18,
+      "legacy_attack_goals": 17,
+      "selected_attack_goals": 15,
+      "legacy_goals": 19,
+      "selected_goals": 18,
+      "legacy_against": 0,
+      "selected_against": 0,
+      "legacy_shots": 70,
+      "selected_shots": 70,
+      "paired_reward_gain": -2
+    },
+    "seed_reward_gains": {
+      "25915": 0,
+      "25916": 0,
+      "25917": -1,
+      "25918": 0,
+      "25919": 0,
+      "25920": -1
+    }
+  },
+  "top_training_rules": [
+    {
+      "rule": {
+        "baseline": "shoot",
+        "action": "carry",
+        "feature": "vy",
+        "threshold": 1.0657424926757812,
+        "less_equal": true
+      },
+      "result": {
+        "totals": {
+          "cases": 218,
+          "overrides": 58,
+          "legacy_attack_goals": 37,
+          "selected_attack_goals": 42,
+          "legacy_goals": 42,
+          "selected_goals": 48,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_shots": 199,
+          "selected_shots": 207,
+          "paired_reward_gain": 5
+        },
+        "seed_reward_gains": {
+          "25901": 0,
+          "25902": 1,
+          "25903": 0,
+          "25904": 0,
+          "25905": 0,
+          "25906": 0,
+          "25907": 1,
+          "25908": 0,
+          "25909": 0,
+          "25910": -1,
+          "25911": 1,
+          "25912": 0,
+          "25913": 1,
+          "25914": 2
+        }
+      }
+    },
+    {
+      "rule": {
+        "baseline": "one-timer",
+        "action": "carry",
+        "feature": "vy",
+        "threshold": 1.1606826782226562,
+        "less_equal": false
+      },
+      "result": {
+        "totals": {
+          "cases": 218,
+          "overrides": 26,
+          "legacy_attack_goals": 37,
+          "selected_attack_goals": 41,
+          "legacy_goals": 42,
+          "selected_goals": 46,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_shots": 199,
+          "selected_shots": 199,
+          "paired_reward_gain": 4
+        },
+        "seed_reward_gains": {
+          "25901": 0,
+          "25902": 0,
+          "25903": 1,
+          "25904": 0,
+          "25905": 0,
+          "25906": 0,
+          "25907": 0,
+          "25908": 1,
+          "25909": 0,
+          "25910": 1,
+          "25911": 0,
+          "25912": 1,
+          "25913": 0,
+          "25914": 0
+        }
+      }
+    },
+    {
+      "rule": {
+        "baseline": "shoot",
+        "action": "carry",
+        "feature": "depth",
+        "threshold": 176.0,
+        "less_equal": false
+      },
+      "result": {
+        "totals": {
+          "cases": 218,
+          "overrides": 103,
+          "legacy_attack_goals": 37,
+          "selected_attack_goals": 41,
+          "legacy_goals": 42,
+          "selected_goals": 47,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_shots": 199,
+          "selected_shots": 208,
+          "paired_reward_gain": 4
+        },
+        "seed_reward_gains": {
+          "25901": 0,
+          "25902": 2,
+          "25903": -1,
+          "25904": 0,
+          "25905": 1,
+          "25906": -2,
+          "25907": 1,
+          "25908": 0,
+          "25909": 0,
+          "25910": -1,
+          "25911": 1,
+          "25912": 0,
+          "25913": 1,
+          "25914": 2
+        }
+      }
+    },
+    {
+      "rule": {
+        "baseline": "one-timer",
+        "action": "carry",
+        "feature": "shot_geometry_quality",
+        "threshold": 0.0,
+        "less_equal": true
+      },
+      "result": {
+        "totals": {
+          "cases": 218,
+          "overrides": 20,
+          "legacy_attack_goals": 37,
+          "selected_attack_goals": 40,
+          "legacy_goals": 42,
+          "selected_goals": 45,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_shots": 199,
+          "selected_shots": 199,
+          "paired_reward_gain": 3
+        },
+        "seed_reward_gains": {
+          "25901": 0,
+          "25902": 0,
+          "25903": 1,
+          "25904": -1,
+          "25905": 0,
+          "25906": 0,
+          "25907": 0,
+          "25908": 0,
+          "25909": 0,
+          "25910": 0,
+          "25911": 1,
+          "25912": 1,
+          "25913": 0,
+          "25914": 1
+        }
+      }
+    },
+    {
+      "rule": {
+        "baseline": "shoot",
+        "action": "carry",
+        "feature": "vy",
+        "threshold": 0.6278114318847656,
+        "less_equal": true
+      },
+      "result": {
+        "totals": {
+          "cases": 218,
+          "overrides": 29,
+          "legacy_attack_goals": 37,
+          "selected_attack_goals": 40,
+          "legacy_goals": 42,
+          "selected_goals": 46,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_shots": 199,
+          "selected_shots": 204,
+          "paired_reward_gain": 3
+        },
+        "seed_reward_gains": {
+          "25901": 0,
+          "25902": 0,
+          "25903": 0,
+          "25904": 0,
+          "25905": 0,
+          "25906": 0,
+          "25907": 0,
+          "25908": 0,
+          "25909": 0,
+          "25910": -1,
+          "25911": 1,
+          "25912": 0,
+          "25913": 1,
+          "25914": 2
+        }
+      }
+    },
+    {
+      "rule": {
+        "baseline": "shoot",
+        "action": "carry",
+        "feature": "depth",
+        "threshold": 180.0,
+        "less_equal": false
+      },
+      "result": {
+        "totals": {
+          "cases": 218,
+          "overrides": 57,
+          "legacy_attack_goals": 37,
+          "selected_attack_goals": 40,
+          "legacy_goals": 42,
+          "selected_goals": 45,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_shots": 199,
+          "selected_shots": 202,
+          "paired_reward_gain": 3
+        },
+        "seed_reward_gains": {
+          "25901": 0,
+          "25902": 0,
+          "25903": 0,
+          "25904": 0,
+          "25905": 0,
+          "25906": -1,
+          "25907": 1,
+          "25908": 0,
+          "25909": 0,
+          "25910": -1,
+          "25911": 1,
+          "25912": 0,
+          "25913": 1,
+          "25914": 2
+        }
+      }
+    },
+    {
+      "rule": {
+        "baseline": "shoot",
+        "action": "carry",
+        "feature": "goalie_distance",
+        "threshold": 66.8539794373067,
+        "less_equal": true
+      },
+      "result": {
+        "totals": {
+          "cases": 218,
+          "overrides": 58,
+          "legacy_attack_goals": 37,
+          "selected_attack_goals": 40,
+          "legacy_goals": 42,
+          "selected_goals": 45,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_shots": 199,
+          "selected_shots": 204,
+          "paired_reward_gain": 3
+        },
+        "seed_reward_gains": {
+          "25901": 0,
+          "25902": 0,
+          "25903": 0,
+          "25904": 0,
+          "25905": 0,
+          "25906": 0,
+          "25907": 0,
+          "25908": 0,
+          "25909": 0,
+          "25910": -1,
+          "25911": 1,
+          "25912": 0,
+          "25913": 1,
+          "25914": 2
+        }
+      }
+    },
+    {
+      "rule": {
+        "baseline": "one-timer",
+        "action": "carry",
+        "feature": "shot_geometry_quality",
+        "threshold": 0.18483029671091222,
+        "less_equal": true
+      },
+      "result": {
+        "totals": {
+          "cases": 218,
+          "overrides": 71,
+          "legacy_attack_goals": 37,
+          "selected_attack_goals": 40,
+          "legacy_goals": 42,
+          "selected_goals": 44,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_shots": 199,
+          "selected_shots": 192,
+          "paired_reward_gain": 3
+        },
+        "seed_reward_gains": {
+          "25901": 0,
+          "25902": -1,
+          "25903": 0,
+          "25904": -1,
+          "25905": 0,
+          "25906": 0,
+          "25907": 0,
+          "25908": 2,
+          "25909": 0,
+          "25910": 0,
+          "25911": 1,
+          "25912": 1,
+          "25913": 0,
+          "25914": 1
+        }
+      }
+    },
+    {
+      "rule": {
+        "baseline": "shoot",
+        "action": "carry",
+        "feature": "depth",
+        "threshold": 178.0,
+        "less_equal": false
+      },
+      "result": {
+        "totals": {
+          "cases": 218,
+          "overrides": 79,
+          "legacy_attack_goals": 37,
+          "selected_attack_goals": 40,
+          "legacy_goals": 42,
+          "selected_goals": 45,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_shots": 199,
+          "selected_shots": 199,
+          "paired_reward_gain": 3
+        },
+        "seed_reward_gains": {
+          "25901": 0,
+          "25902": 0,
+          "25903": 0,
+          "25904": 0,
+          "25905": 1,
+          "25906": -2,
+          "25907": 1,
+          "25908": 0,
+          "25909": 0,
+          "25910": -1,
+          "25911": 1,
+          "25912": 0,
+          "25913": 1,
+          "25914": 2
+        }
+      }
+    },
+    {
+      "rule": {
+        "baseline": "shoot",
+        "action": "carry",
+        "feature": "defender_distance",
+        "threshold": 20.921729063243554,
+        "less_equal": false
+      },
+      "result": {
+        "totals": {
+          "cases": 218,
+          "overrides": 87,
+          "legacy_attack_goals": 37,
+          "selected_attack_goals": 40,
+          "legacy_goals": 42,
+          "selected_goals": 47,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_shots": 199,
+          "selected_shots": 206,
+          "paired_reward_gain": 3
+        },
+        "seed_reward_gains": {
+          "25901": -1,
+          "25902": 2,
+          "25903": -1,
+          "25904": 0,
+          "25905": 1,
+          "25906": -1,
+          "25907": 1,
+          "25908": 0,
+          "25909": 0,
+          "25910": -1,
+          "25911": 1,
+          "25912": 0,
+          "25913": 1,
+          "25914": 1
+        }
+      }
+    }
+  ],
+  "split": {
+    "training_seeds": [
+      25901,
+      25902,
+      25903,
+      25904,
+      25905,
+      25906,
+      25907,
+      25908,
+      25909,
+      25910,
+      25911,
+      25912,
+      25913,
+      25914
+    ],
+    "validation_seeds": [
+      25915,
+      25916,
+      25917,
+      25918,
+      25919,
+      25920
+    ]
+  },
+  "limitations": [
+    "One threshold, trained on attack goals minus bounded goals conceded.",
+    "Rule selected only on training; validation is reported without refitting.",
+    "Cases within a seed and nearby branches are correlated.",
+    "A positive local effect does not establish full-period benefit."
+  ]
+}

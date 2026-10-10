@@ -1,0 +1,5508 @@
+{
+  "protocol": "classic-possession-ablation-comparison-v1",
+  "date": "2026-10-09",
+  "default_changed": false,
+  "weights_fitted": false,
+  "conclusion": "No experimental arm improved observed goal differential over legacy on this batch.",
+  "settings": {
+    "legacy": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 24961,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-ablation-legacy.json",
+      "possession_ablation": "legacy",
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "rank": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 24961,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-ablation-rank.json",
+      "possession_ablation": "rank",
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "continuations": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 24961,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-ablation-continuations.json",
+      "possession_ablation": "continuations",
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "risk": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 24961,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-ablation-risk.json",
+      "possession_ablation": "risk",
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "continuations-risk": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 24961,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-ablation-continuations-risk.json",
+      "possession_ablation": "continuations-risk",
+      "possession_value": false,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    },
+    "expanded": {
+      "agent": "classic-v1",
+      "matchups": [
+        "sabres-ducks-manual",
+        "ducks-sabres-manual"
+      ],
+      "goalie_policy": "selective",
+      "trials": 10,
+      "seed": 24961,
+      "seconds": 300,
+      "frame_skip": 4,
+      "action_type": "FILTERED",
+      "workers": 2,
+      "output": "/tmp/nhl94-ablation-expanded.json",
+      "possession_ablation": null,
+      "possession_value": true,
+      "classic_refinements": [],
+      "offense_lookahead": false,
+      "cross_crease": false,
+      "deke": false,
+      "uncertain_carry": false,
+      "chance_creation": false,
+      "config": null
+    }
+  },
+  "totals": {
+    "legacy": {
+      "periods": 20,
+      "wins": 16,
+      "draws": 4,
+      "losses": 0,
+      "goals_for": 33,
+      "goals_against": 2,
+      "one_timers": 55,
+      "one_timer_goals": 22,
+      "wrong_recipient": 9,
+      "goal_differential": 31,
+      "shots_for": 129,
+      "shots_against": 60,
+      "native_frames": 179063,
+      "decisions": {
+        "deny-reception": 7846,
+        "carry-escape": 3412,
+        "carry": 6404,
+        "advance-pass": 280,
+        "pass-flight": 1638,
+        "feint": 285,
+        "goalie-avoid": 4505,
+        "one-timer-pass": 74,
+        "one-timer-shoot": 88,
+        "one-timer-wait": 269,
+        "protect-lane": 11139,
+        "intercept-pass": 141,
+        "recover-safe": 500,
+        "carry-breakaway": 648,
+        "position-pass": 30,
+        "deny-goalie-outlet": 1140,
+        "shoot": 93,
+        "shot-follow-through": 472,
+        "contain-boards": 1132,
+        "one-timer-setup": 45,
+        "switch": 2
+      },
+      "possession_ablation_metrics": {
+        "decisions": 12789,
+        "selected:carry": 12320,
+        "unscorable-fallback": 701,
+        "fallback->fallback": 11232,
+        "next:retain": 11940,
+        "selected:pass": 310,
+        "plan->plan": 1398,
+        "selected:one-timer": 70,
+        "one-timer->one-timer": 70,
+        "next:one-timer": 70,
+        "next:unscorable": 690,
+        "selected:shoot": 89,
+        "shoot->shoot": 89,
+        "next:shot": 89
+      },
+      "possession_value_metrics": {},
+      "offense_metrics": {
+        "entries": 154,
+        "controlled_entries": 154,
+        "entry_frames_total": 27959,
+        "entry_threats_total": 4,
+        "turnovers": 145,
+        "zone_turnovers": 86,
+        "possession_losses": 218,
+        "zone_possession_losses": 159,
+        "goalie_contact_impulses": 46
+      },
+      "pass_outcomes": {
+        "received_without_shot": 270,
+        "one_timer_shot": 54,
+        "intercepted": 38,
+        "returned_to_passer": 6,
+        "flight_timeout": 13,
+        "lost_before_release": 1,
+        "period_ended": 1,
+        "superseded": 1
+      }
+    },
+    "rank": {
+      "periods": 20,
+      "wins": 11,
+      "draws": 6,
+      "losses": 3,
+      "goals_for": 27,
+      "goals_against": 11,
+      "one_timers": 53,
+      "one_timer_goals": 19,
+      "wrong_recipient": 11,
+      "goal_differential": 16,
+      "shots_for": 119,
+      "shots_against": 83,
+      "native_frames": 179623,
+      "decisions": {
+        "deny-reception": 8221,
+        "carry-escape": 3069,
+        "carry": 6713,
+        "feint": 100,
+        "carry-breakaway": 552,
+        "goalie-avoid": 3621,
+        "one-timer-pass": 70,
+        "recover": 2,
+        "protect-lane": 12478,
+        "recover-safe": 358,
+        "contain-boards": 1273,
+        "advance-pass": 222,
+        "intercept-pass": 231,
+        "pass-flight": 1113,
+        "shoot": 94,
+        "shot-follow-through": 460,
+        "deny-goalie-outlet": 1243,
+        "position-pass": 18,
+        "one-timer-shoot": 76,
+        "one-timer-wait": 232,
+        "one-timer-setup": 20,
+        "switch": 2
+      },
+      "possession_ablation_metrics": {
+        "decisions": 11883,
+        "selected:carry": 11494,
+        "overrides": 872,
+        "unscorable-fallback": 532,
+        "fallback->fallback": 9814,
+        "next:retain": 11208,
+        "plan->fallback": 685,
+        "plan->plan": 1050,
+        "selected:one-timer": 65,
+        "one-timer->one-timer": 64,
+        "next:one-timer": 65,
+        "selected:pass": 240,
+        "selected:shoot": 84,
+        "shoot->shoot": 83,
+        "next:shot": 84,
+        "shoot->fallback": 162,
+        "one-timer->fallback": 15,
+        "one-timer->plan": 7,
+        "next:unscorable": 526,
+        "one-timer->shoot": 1,
+        "shoot->plan": 1,
+        "shoot->one-timer": 1
+      },
+      "possession_value_metrics": {},
+      "offense_metrics": {
+        "entries": 161,
+        "controlled_entries": 160,
+        "entry_frames_total": 30454,
+        "entry_threats_total": 5,
+        "turnovers": 143,
+        "zone_turnovers": 91,
+        "possession_losses": 218,
+        "zone_possession_losses": 166,
+        "goalie_contact_impulses": 60
+      },
+      "pass_outcomes": {
+        "flight_timeout": 7,
+        "received_without_shot": 214,
+        "intercepted": 30,
+        "one_timer_shot": 53,
+        "period_ended": 4,
+        "lost_before_release": 1,
+        "returned_to_passer": 1
+      }
+    },
+    "continuations": {
+      "periods": 20,
+      "wins": 9,
+      "draws": 8,
+      "losses": 3,
+      "goals_for": 34,
+      "goals_against": 14,
+      "one_timers": 57,
+      "one_timer_goals": 26,
+      "wrong_recipient": 8,
+      "goal_differential": 20,
+      "shots_for": 112,
+      "shots_against": 75,
+      "native_frames": 187779,
+      "decisions": {
+        "deny-reception": 8980,
+        "carry-escape": 3407,
+        "carry": 6977,
+        "feint": 119,
+        "carry-breakaway": 590,
+        "goalie-avoid": 4116,
+        "one-timer-pass": 83,
+        "recover": 2,
+        "protect-lane": 13076,
+        "recover-safe": 431,
+        "contain-boards": 1134,
+        "advance-pass": 203,
+        "intercept-pass": 229,
+        "pass-flight": 1050,
+        "shoot": 83,
+        "shot-follow-through": 421,
+        "deny-goalie-outlet": 1269,
+        "position-pass": 18,
+        "one-timer-shoot": 85,
+        "one-timer-wait": 252,
+        "one-timer-setup": 35,
+        "switch": 3
+      },
+      "possession_ablation_metrics": {
+        "decisions": 12790,
+        "selected:carry": 12417,
+        "overrides": 911,
+        "unscorable-fallback": 690,
+        "fallback->fallback": 10600,
+        "next:retain": 11659,
+        "plan->fallback": 602,
+        "plan->plan": 1132,
+        "selected:one-timer": 80,
+        "one-timer->one-timer": 77,
+        "next:one-timer": 280,
+        "selected:pass": 221,
+        "selected:shoot": 72,
+        "shoot->shoot": 70,
+        "next:shot": 72,
+        "shoot->fallback": 244,
+        "next:shoot": 102,
+        "one-timer->fallback": 47,
+        "one-timer->plan": 11,
+        "next:unscorable": 677,
+        "shoot->one-timer": 3,
+        "one-timer->shoot": 2,
+        "shoot->plan": 2
+      },
+      "possession_value_metrics": {},
+      "offense_metrics": {
+        "entries": 165,
+        "controlled_entries": 164,
+        "entry_frames_total": 29718,
+        "entry_threats_total": 7,
+        "turnovers": 147,
+        "zone_turnovers": 98,
+        "possession_losses": 218,
+        "zone_possession_losses": 169,
+        "goalie_contact_impulses": 53
+      },
+      "pass_outcomes": {
+        "flight_timeout": 9,
+        "received_without_shot": 197,
+        "intercepted": 39,
+        "one_timer_shot": 57,
+        "period_ended": 2
+      }
+    },
+    "risk": {
+      "periods": 20,
+      "wins": 12,
+      "draws": 5,
+      "losses": 3,
+      "goals_for": 41,
+      "goals_against": 15,
+      "one_timers": 67,
+      "one_timer_goals": 36,
+      "wrong_recipient": 12,
+      "goal_differential": 26,
+      "shots_for": 114,
+      "shots_against": 88,
+      "native_frames": 190367,
+      "decisions": {
+        "deny-reception": 8743,
+        "carry-escape": 3394,
+        "carry": 7022,
+        "feint": 124,
+        "carry-breakaway": 562,
+        "goalie-avoid": 4095,
+        "one-timer-pass": 91,
+        "recover": 3,
+        "protect-lane": 13464,
+        "recover-safe": 397,
+        "contain-boards": 1174,
+        "advance-pass": 240,
+        "intercept-pass": 108,
+        "pass-flight": 1224,
+        "shoot": 65,
+        "shot-follow-through": 312,
+        "one-timer-shoot": 97,
+        "one-timer-wait": 333,
+        "position-pass": 20,
+        "one-timer-setup": 38,
+        "deny-goalie-outlet": 1242,
+        "switch": 2,
+        "pass-button-release": 1
+      },
+      "possession_ablation_metrics": {
+        "decisions": 12694,
+        "selected:carry": 12285,
+        "overrides": 1380,
+        "unscorable-fallback": 598,
+        "fallback->fallback": 10032,
+        "next:retain": 11975,
+        "plan->fallback": 1164,
+        "plan->plan": 1136,
+        "selected:one-timer": 89,
+        "one-timer->one-timer": 88,
+        "next:one-timer": 89,
+        "selected:pass": 261,
+        "selected:shoot": 59,
+        "shoot->shoot": 58,
+        "next:shot": 59,
+        "shoot->fallback": 173,
+        "shoot->one-timer": 1,
+        "next:unscorable": 571,
+        "one-timer->fallback": 25,
+        "one-timer->plan": 9,
+        "one-timer->shoot": 1,
+        "shoot->plan": 7
+      },
+      "possession_value_metrics": {},
+      "offense_metrics": {
+        "entries": 168,
+        "controlled_entries": 167,
+        "entry_frames_total": 31613,
+        "entry_threats_total": 7,
+        "turnovers": 146,
+        "zone_turnovers": 103,
+        "possession_losses": 214,
+        "zone_possession_losses": 171,
+        "goalie_contact_impulses": 76
+      },
+      "pass_outcomes": {
+        "flight_timeout": 6,
+        "received_without_shot": 237,
+        "intercepted": 42,
+        "one_timer_shot": 64,
+        "returned_to_passer": 2
+      }
+    },
+    "continuations-risk": {
+      "periods": 20,
+      "wins": 13,
+      "draws": 4,
+      "losses": 3,
+      "goals_for": 36,
+      "goals_against": 13,
+      "one_timers": 62,
+      "one_timer_goals": 28,
+      "wrong_recipient": 15,
+      "goal_differential": 23,
+      "shots_for": 115,
+      "shots_against": 93,
+      "native_frames": 184429,
+      "decisions": {
+        "deny-reception": 8046,
+        "carry-escape": 3362,
+        "carry": 7089,
+        "feint": 159,
+        "carry-breakaway": 655,
+        "goalie-avoid": 4092,
+        "one-timer-pass": 90,
+        "recover": 3,
+        "protect-lane": 12571,
+        "recover-safe": 418,
+        "contain-boards": 1077,
+        "advance-pass": 237,
+        "intercept-pass": 134,
+        "pass-flight": 1302,
+        "shoot": 72,
+        "shot-follow-through": 343,
+        "one-timer-shoot": 94,
+        "one-timer-wait": 351,
+        "position-pass": 33,
+        "one-timer-setup": 24,
+        "deny-goalie-outlet": 1214,
+        "switch": 3,
+        "pass-button-release": 1
+      },
+      "possession_ablation_metrics": {
+        "decisions": 13096,
+        "selected:carry": 12671,
+        "overrides": 1501,
+        "unscorable-fallback": 584,
+        "fallback->fallback": 10154,
+        "next:retain": 12098,
+        "plan->fallback": 1122,
+        "plan->plan": 1289,
+        "selected:one-timer": 88,
+        "one-timer->one-timer": 86,
+        "next:one-timer": 275,
+        "selected:pass": 271,
+        "selected:shoot": 66,
+        "shoot->shoot": 66,
+        "next:shot": 66,
+        "shoot->fallback": 299,
+        "next:shoot": 97,
+        "shoot->one-timer": 2,
+        "next:unscorable": 560,
+        "one-timer->fallback": 53,
+        "one-timer->plan": 16,
+        "shoot->plan": 9
+      },
+      "possession_value_metrics": {},
+      "offense_metrics": {
+        "entries": 174,
+        "controlled_entries": 173,
+        "entry_frames_total": 31247,
+        "entry_threats_total": 7,
+        "turnovers": 143,
+        "zone_turnovers": 91,
+        "possession_losses": 215,
+        "zone_possession_losses": 163,
+        "goalie_contact_impulses": 55
+      },
+      "pass_outcomes": {
+        "flight_timeout": 11,
+        "received_without_shot": 240,
+        "intercepted": 47,
+        "one_timer_shot": 60,
+        "returned_to_passer": 2
+      }
+    },
+    "expanded": {
+      "periods": 20,
+      "wins": 13,
+      "draws": 5,
+      "losses": 2,
+      "goals_for": 20,
+      "goals_against": 4,
+      "one_timers": 44,
+      "one_timer_goals": 18,
+      "wrong_recipient": 27,
+      "goal_differential": 16,
+      "shots_for": 97,
+      "shots_against": 68,
+      "native_frames": 170876,
+      "decisions": {
+        "deny-reception": 6754,
+        "position-pass": 662,
+        "pass-flight": 2357,
+        "protect-lane": 11003,
+        "carry-escape": 691,
+        "carry-opportunity": 10330,
+        "one-timer-pass": 58,
+        "one-timer-shoot": 59,
+        "one-timer-wait": 221,
+        "carry": 314,
+        "goalie-avoid": 2083,
+        "contain-boards": 860,
+        "shoot": 74,
+        "shot-follow-through": 357,
+        "deny-goalie-outlet": 1271,
+        "switch": 3,
+        "intercept-pass": 97,
+        "recover-safe": 366,
+        "pass-release": 16,
+        "recover": 1
+      },
+      "possession_ablation_metrics": {},
+      "possession_value_metrics": {
+        "selected:pass": 662,
+        "pass:next:retain": 592,
+        "no-executable-candidate": 647,
+        "selected:carry": 10330,
+        "carry:next:retain": 9993,
+        "carry:next:one-timer": 172,
+        "selected:one-timer": 57,
+        "one-timer:next:one-timer": 57,
+        "pass:next:one-timer": 64,
+        "carry:next:shoot": 165,
+        "selected:shoot": 69,
+        "shoot:next:shot": 69,
+        "pass:next:shoot": 6
+      },
+      "offense_metrics": {
+        "entries": 172,
+        "controlled_entries": 172,
+        "entry_frames_total": 34303,
+        "entry_threats_total": 5,
+        "turnovers": 158,
+        "zone_turnovers": 104,
+        "possession_losses": 224,
+        "zone_possession_losses": 166,
+        "goalie_contact_impulses": 74
+      },
+      "pass_outcomes": {
+        "received_without_shot": 572,
+        "intercepted": 68,
+        "returned_to_passer": 10,
+        "flight_timeout": 22,
+        "one_timer_shot": 43,
+        "lost_before_release": 1,
+        "period_ended": 3,
+        "superseded": 1
+      }
+    }
+  },
+  "by_matchup": {
+    "legacy": {
+      "sabres-ducks-manual": {
+        "goals_for": 23,
+        "goals_against": 2,
+        "one_timers": 30,
+        "periods": 10
+      },
+      "ducks-sabres-manual": {
+        "goals_for": 10,
+        "goals_against": 0,
+        "one_timers": 25,
+        "periods": 10
+      }
+    },
+    "rank": {
+      "sabres-ducks-manual": {
+        "goals_for": 17,
+        "goals_against": 8,
+        "one_timers": 32,
+        "periods": 10
+      },
+      "ducks-sabres-manual": {
+        "goals_for": 10,
+        "goals_against": 3,
+        "one_timers": 21,
+        "periods": 10
+      }
+    },
+    "continuations": {
+      "sabres-ducks-manual": {
+        "goals_for": 21,
+        "goals_against": 8,
+        "one_timers": 30,
+        "periods": 10
+      },
+      "ducks-sabres-manual": {
+        "goals_for": 13,
+        "goals_against": 6,
+        "one_timers": 27,
+        "periods": 10
+      }
+    },
+    "risk": {
+      "sabres-ducks-manual": {
+        "goals_for": 27,
+        "goals_against": 6,
+        "one_timers": 37,
+        "periods": 10
+      },
+      "ducks-sabres-manual": {
+        "goals_for": 14,
+        "goals_against": 9,
+        "one_timers": 30,
+        "periods": 10
+      }
+    },
+    "continuations-risk": {
+      "sabres-ducks-manual": {
+        "goals_for": 22,
+        "goals_against": 5,
+        "one_timers": 35,
+        "periods": 10
+      },
+      "ducks-sabres-manual": {
+        "goals_for": 14,
+        "goals_against": 8,
+        "one_timers": 27,
+        "periods": 10
+      }
+    },
+    "expanded": {
+      "sabres-ducks-manual": {
+        "goals_for": 13,
+        "goals_against": 1,
+        "one_timers": 24,
+        "periods": 10
+      },
+      "ducks-sabres-manual": {
+        "goals_for": 7,
+        "goals_against": 3,
+        "one_timers": 20,
+        "periods": 10
+      }
+    }
+  },
+  "paired_comparisons": {
+    "rank_minus_legacy": {
+      "mean_goal_differential_delta_per_period": -0.75,
+      "descriptive_95_percent_interval": [
+        -1.4,
+        -0.15
+      ],
+      "paired_seed_means": {
+        "24961": -2.5,
+        "24962": -2.0,
+        "24963": 1.0,
+        "24964": -1.5,
+        "24965": 0.0,
+        "24966": 0.0,
+        "24967": 0.0,
+        "24968": -0.5,
+        "24969": -1.0,
+        "24970": -1.0
+      }
+    },
+    "continuations_minus_rank": {
+      "mean_goal_differential_delta_per_period": 0.2,
+      "descriptive_95_percent_interval": [
+        -0.2,
+        0.6
+      ],
+      "paired_seed_means": {
+        "24961": 0.0,
+        "24962": 0.0,
+        "24963": 0.5,
+        "24964": 1.0,
+        "24965": 0.0,
+        "24966": 0.5,
+        "24967": 1.5,
+        "24968": -0.5,
+        "24969": -0.5,
+        "24970": -0.5
+      }
+    },
+    "risk_minus_rank": {
+      "mean_goal_differential_delta_per_period": 0.5,
+      "descriptive_95_percent_interval": [
+        -0.55,
+        1.65
+      ],
+      "paired_seed_means": {
+        "24961": 4.0,
+        "24962": -1.5,
+        "24963": 0.0,
+        "24964": -0.5,
+        "24965": 2.5,
+        "24966": 0.5,
+        "24967": -2.0,
+        "24968": 2.0,
+        "24969": 0.5,
+        "24970": -0.5
+      }
+    },
+    "continuations-risk_minus_risk": {
+      "mean_goal_differential_delta_per_period": -0.15,
+      "descriptive_95_percent_interval": [
+        -0.7,
+        0.4
+      ],
+      "paired_seed_means": {
+        "24961": -1.0,
+        "24962": 0.0,
+        "24963": -0.5,
+        "24964": 0.0,
+        "24965": -0.5,
+        "24966": 1.0,
+        "24967": 1.0,
+        "24968": -1.5,
+        "24969": -1.0,
+        "24970": 1.0
+      }
+    },
+    "continuations-risk_minus_continuations": {
+      "mean_goal_differential_delta_per_period": 0.15,
+      "descriptive_95_percent_interval": [
+        -0.85,
+        1.15
+      ],
+      "paired_seed_means": {
+        "24961": 3.0,
+        "24962": -1.5,
+        "24963": -1.0,
+        "24964": -1.5,
+        "24965": 2.0,
+        "24966": 1.0,
+        "24967": -2.5,
+        "24968": 1.0,
+        "24969": 0.0,
+        "24970": 1.0
+      }
+    },
+    "continuations-risk_minus_legacy": {
+      "mean_goal_differential_delta_per_period": -0.4,
+      "descriptive_95_percent_interval": [
+        -1.4,
+        0.55
+      ],
+      "paired_seed_means": {
+        "24961": 0.5,
+        "24962": -3.5,
+        "24963": 0.5,
+        "24964": -2.0,
+        "24965": 2.0,
+        "24966": 1.5,
+        "24967": -1.0,
+        "24968": 0.0,
+        "24969": -1.5,
+        "24970": -0.5
+      }
+    },
+    "expanded_minus_continuations-risk": {
+      "mean_goal_differential_delta_per_period": -0.35,
+      "descriptive_95_percent_interval": [
+        -1.15,
+        0.45
+      ],
+      "paired_seed_means": {
+        "24961": -2.5,
+        "24962": 2.0,
+        "24963": 0.0,
+        "24964": 1.0,
+        "24965": -1.0,
+        "24966": -2.0,
+        "24967": -0.5,
+        "24968": -1.0,
+        "24969": 0.5,
+        "24970": 0.0
+      }
+    },
+    "expanded_minus_legacy": {
+      "mean_goal_differential_delta_per_period": -0.75,
+      "descriptive_95_percent_interval": [
+        -1.25,
+        -0.2
+      ],
+      "paired_seed_means": {
+        "24961": -2.0,
+        "24962": -1.5,
+        "24963": 0.5,
+        "24964": -1.0,
+        "24965": 1.0,
+        "24966": -0.5,
+        "24967": -1.5,
+        "24968": -1.0,
+        "24969": -1.0,
+        "24970": -0.5
+      }
+    }
+  },
+  "uncertainty_method": {
+    "method": "resample paired seeds, both team assignments kept together",
+    "seed_clusters": 10,
+    "replicates": 20000,
+    "rng_seed": 24973
+  },
+  "replay_summary": {
+    "legacy": {
+      "cases": 46,
+      "goals_for": 6,
+      "goals_against": 0,
+      "shots": 23,
+      "one_timers": 12,
+      "ordinary_turnovers": 4
+    },
+    "rank": {
+      "cases": 46,
+      "goals_for": 3,
+      "goals_against": 0,
+      "shots": 19,
+      "one_timers": 5,
+      "ordinary_turnovers": 5
+    },
+    "continuations": {
+      "cases": 46,
+      "goals_for": 3,
+      "goals_against": 0,
+      "shots": 20,
+      "one_timers": 5,
+      "ordinary_turnovers": 5
+    },
+    "risk": {
+      "cases": 46,
+      "goals_for": 2,
+      "goals_against": 0,
+      "shots": 17,
+      "one_timers": 4,
+      "ordinary_turnovers": 8
+    },
+    "continuations-risk": {
+      "cases": 46,
+      "goals_for": 2,
+      "goals_against": 0,
+      "shots": 18,
+      "one_timers": 4,
+      "ordinary_turnovers": 8
+    }
+  },
+  "replay_transitions": {
+    "rank": {
+      "advance-pass -> carry": 17,
+      "feint -> carry": 7,
+      "position-pass -> carry": 2,
+      "shoot -> goalie-avoid": 6,
+      "one-timer-setup -> carry-escape": 1,
+      "one-timer-pass -> position-pass": 1,
+      "one-timer-pass -> shoot": 1,
+      "advance-pass -> carry-escape": 2,
+      "feint -> carry-escape": 1
+    },
+    "continuations": {
+      "advance-pass -> carry": 17,
+      "feint -> carry": 7,
+      "position-pass -> carry": 2,
+      "shoot -> goalie-avoid": 6,
+      "one-timer-setup -> carry-escape": 1,
+      "position-pass -> goalie-avoid": 1,
+      "one-timer-pass -> position-pass": 1,
+      "one-timer-pass -> shoot": 1,
+      "advance-pass -> carry-escape": 2,
+      "feint -> carry-escape": 1
+    },
+    "risk": {
+      "advance-pass -> carry": 17,
+      "feint -> carry": 8,
+      "position-pass -> carry": 2,
+      "carry-escape -> position-pass": 1,
+      "carry -> advance-pass": 1,
+      "shoot -> goalie-avoid": 6,
+      "one-timer-setup -> carry-escape": 1,
+      "one-timer-pass -> position-pass": 1,
+      "carry-escape -> advance-pass": 3,
+      "one-timer-pass -> shoot": 1,
+      "advance-pass -> carry-escape": 2,
+      "feint -> carry-escape": 1,
+      "one-timer-setup -> carry": 1
+    },
+    "continuations-risk": {
+      "advance-pass -> carry": 17,
+      "feint -> carry": 8,
+      "position-pass -> carry": 2,
+      "carry-escape -> position-pass": 1,
+      "carry -> advance-pass": 1,
+      "shoot -> goalie-avoid": 6,
+      "one-timer-setup -> carry-escape": 1,
+      "position-pass -> goalie-avoid": 1,
+      "one-timer-pass -> position-pass": 1,
+      "carry-escape -> advance-pass": 3,
+      "one-timer-pass -> shoot": 1,
+      "advance-pass -> carry-escape": 2,
+      "feint -> carry-escape": 1,
+      "one-timer-setup -> carry": 1
+    }
+  },
+  "continuation_changes_in_sample": 1,
+  "missed_goal_examples": [
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24961,
+      "frame": 245,
+      "legacy_decision": "advance-pass",
+      "rank_decision": "carry",
+      "prediction": {
+        "possession_ablation": "rank",
+        "value_model": "possession-utility-v1-not-probability",
+        "evaluation_frame": 245,
+        "evaluation_carrier": 1,
+        "possession_candidates": [
+          {
+            "proposal": "fallback",
+            "kind": "carry",
+            "target": [
+              35.0,
+              235.0
+            ],
+            "slot": 1,
+            "status": "eligible",
+            "terminal": 18.209999999999997,
+            "time_cost": 2.16,
+            "pressure_cost": 0.0,
+            "turnover_cost": 0.0,
+            "uncertainty_cost": 1.08,
+            "continuation": "retain",
+            "continuation_slot": null,
+            "elapsed_frames": 18,
+            "value": 14.969999999999997,
+            "value_model": "possession-utility-v1-not-probability"
+          },
+          {
+            "proposal": "plan",
+            "kind": "pass",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ],
+            "slot": 0,
+            "status": "eligible",
+            "terminal": 15.5974951171875,
+            "time_cost": 3.84,
+            "pressure_cost": 0.7929346630043455,
+            "turnover_cost": 1.0379569640998216,
+            "uncertainty_cost": 1.92,
+            "continuation": "retain",
+            "continuation_slot": null,
+            "elapsed_frames": 32,
+            "value": 8.006603490083332,
+            "value_model": "possession-utility-v1-not-probability"
+          }
+        ],
+        "baseline_proposal": "plan",
+        "selected_proposal": "fallback",
+        "possession_score": {
+          "proposal": "fallback",
+          "kind": "carry",
+          "target": [
+            35.0,
+            235.0
+          ],
+          "slot": 1,
+          "status": "eligible",
+          "terminal": 18.209999999999997,
+          "time_cost": 2.16,
+          "pressure_cost": 0.0,
+          "turnover_cost": 0.0,
+          "uncertainty_cost": 1.08,
+          "continuation": "retain",
+          "continuation_slot": null,
+          "elapsed_frames": 18,
+          "value": 14.969999999999997,
+          "value_model": "possession-utility-v1-not-probability"
+        },
+        "status": "ranked"
+      },
+      "legacy_outcome": {
+        "frames": 178,
+        "goals_for": 1,
+        "goals_against": 0,
+        "shots": 1,
+        "opponent_shots": 0,
+        "one_timers": 1,
+        "recovery_frame": 1,
+        "loss_frame": null,
+        "first_recorded_shot": {
+          "frame": 177,
+          "puck": [
+            -17,
+            262
+          ],
+          "velocity": [
+            2.608001708984375,
+            3.9804840087890625
+          ],
+          "goalie": [
+            20,
+            258
+          ],
+          "shooter": 2
+        },
+        "first_release": {
+          "frame": 163,
+          "puck": [
+            -54,
+            206
+          ],
+          "velocity": [
+            2.6129302978515625,
+            3.9882659912109375
+          ],
+          "height": 0.098052978515625,
+          "goalie": [
+            23,
+            259
+          ],
+          "shooter": 2
+        },
+        "possession": {
+          "elapsed_frames": 178,
+          "end_reason": "goal",
+          "possession_frames": {
+            "controlled-skater": 108,
+            "loose": 70
+          },
+          "possession_fractions": {
+            "controlled-skater": 0.6067415730337079,
+            "loose": 0.39325842696629215
+          },
+          "ordinary_turnovers": 0,
+          "first_opponent_possession_frame": null,
+          "shots": 1,
+          "one_timer_attempts": 1,
+          "frames_with_one_timer_option": 0,
+          "one_timer_option_windows": 0,
+          "best_one_timer_value": 0.0,
+          "controlled_offensive_zone_frames": 90,
+          "team_offensive_zone_frames": 90,
+          "maximum_controlled_attack_depth": 230,
+          "maximum_team_attack_depth": 230,
+          "observed_shot_releases": 1,
+          "shot_events": [
+            {
+              "observed_frame": 163,
+              "release_frame": 163,
+              "shooter": 2,
+              "evidence": "native-one-timer-counter-and-shooter",
+              "recorded_shot": true,
+              "outcome": "goal",
+              "resolution_frame": 178
+            }
+          ]
+        },
+        "final_owner": -256,
+        "trace": [
+          {
+            "frame": 1,
+            "owner": 1,
+            "puck": [
+              1,
+              18
+            ],
+            "decision": "advance-pass",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 2,
+            "owner": -255,
+            "puck": [
+              -3,
+              18
+            ],
+            "decision": "advance-pass",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 3,
+            "owner": -255,
+            "puck": [
+              1,
+              21
+            ],
+            "decision": "advance-pass",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 4,
+            "owner": -255,
+            "puck": [
+              8,
+              26
+            ],
+            "decision": "advance-pass",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 5,
+            "owner": -255,
+            "puck": [
+              11,
+              28
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 6,
+            "owner": -255,
+            "puck": [
+              11,
+              28
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 7,
+            "owner": -255,
+            "puck": [
+              14,
+              31
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 8,
+            "owner": -255,
+            "puck": [
+              18,
+              33
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 9,
+            "owner": -255,
+            "puck": [
+              21,
+              36
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 10,
+            "owner": -255,
+            "puck": [
+              24,
+              38
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 11,
+            "owner": -255,
+            "puck": [
+              28,
+              41
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 12,
+            "owner": -255,
+            "puck": [
+              31,
+              43
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 13,
+            "owner": -255,
+            "puck": [
+              34,
+              46
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 14,
+            "owner": -255,
+            "puck": [
+              41,
+              51
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 15,
+            "owner": -255,
+            "puck": [
+              41,
+              51
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 16,
+            "owner": -255,
+            "puck": [
+              44,
+              54
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 17,
+            "owner": -255,
+            "puck": [
+              48,
+              56
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 18,
+            "owner": -255,
+            "puck": [
+              51,
+              59
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 19,
+            "owner": -255,
+            "puck": [
+              54,
+              61
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 20,
+            "owner": -255,
+            "puck": [
+              57,
+              64
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 25,
+            "owner": -255,
+            "puck": [
+              74,
+              76
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 27,
+            "owner": 0,
+            "puck": [
+              80,
+              81
+            ],
+            "decision": "pass-flight",
+            "target": [
+              96.03099048234678,
+              96.50024339183426
+            ]
+          },
+          {
+            "frame": 37,
+            "owner": 0,
+            "puck": [
+              95,
+              82
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 49,
+            "owner": 0,
+            "puck": [
+              87,
+              99
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 61,
+            "owner": 0,
+            "puck": [
+              83,
+              123
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 73,
+            "owner": 0,
+            "puck": [
+              77,
+              149
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 85,
+            "owner": 0,
+            "puck": [
+              66,
+              176
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              120.0,
+              146.0
+            ]
+          },
+          {
+            "frame": 97,
+            "owner": 0,
+            "puck": [
+              60,
+              200
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              107.94112549695429,
+              159.05887450304573
+            ]
+          },
+          {
+            "frame": 109,
+            "owner": 0,
+            "puck": [
+              57,
+              215
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 121,
+            "owner": 0,
+            "puck": [
+              55,
+              226
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 133,
+            "owner": 0,
+            "puck": [
+              52,
+              237
+            ],
+            "decision": "one-timer-pass",
+            "target": [
+              10,
+              156
+            ]
+          },
+          {
+            "frame": 134,
+            "owner": -256,
+            "puck": [
+              52,
+              237
+            ],
+            "decision": "one-timer-pass",
+            "target": [
+              10,
+              156
+            ]
+          },
+          {
+            "frame": 145,
+            "owner": -256,
+            "puck": [
+              11,
+              225
+            ],
+            "decision": "one-timer-wait",
+            "target": [
+              10,
+              156
+            ]
+          },
+          {
+            "frame": 157,
+            "owner": -256,
+            "puck": [
+              -32,
+              213
+            ],
+            "decision": "one-timer-wait",
+            "target": [
+              10,
+              156
+            ]
+          },
+          {
+            "frame": 169,
+            "owner": -256,
+            "puck": [
+              -36,
+              234
+            ],
+            "decision": "protect-lane",
+            "target": [
+              -72.72268219724334,
+              177.77658052622843
+            ]
+          }
+        ]
+      },
+      "rank_outcome": {
+        "frames": 180,
+        "goals_for": 0,
+        "goals_against": 0,
+        "shots": 0,
+        "opponent_shots": 0,
+        "one_timers": 0,
+        "recovery_frame": 1,
+        "loss_frame": null,
+        "first_recorded_shot": null,
+        "first_release": null,
+        "possession": {
+          "elapsed_frames": 180,
+          "end_reason": "timeout",
+          "possession_frames": {
+            "controlled-skater": 50,
+            "loose": 130
+          },
+          "possession_fractions": {
+            "controlled-skater": 0.2777777777777778,
+            "loose": 0.7222222222222222
+          },
+          "ordinary_turnovers": 0,
+          "first_opponent_possession_frame": null,
+          "shots": 0,
+          "one_timer_attempts": 0,
+          "frames_with_one_timer_option": 0,
+          "one_timer_option_windows": 0,
+          "best_one_timer_value": 0.0,
+          "controlled_offensive_zone_frames": 41,
+          "team_offensive_zone_frames": 41,
+          "maximum_controlled_attack_depth": 293,
+          "maximum_team_attack_depth": 293,
+          "observed_shot_releases": 0,
+          "shot_events": []
+        },
+        "final_owner": -256,
+        "trace": [
+          {
+            "frame": 1,
+            "owner": 1,
+            "puck": [
+              1,
+              18
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 2,
+            "owner": 1,
+            "puck": [
+              -3,
+              18
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 3,
+            "owner": 1,
+            "puck": [
+              -5,
+              19
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 4,
+            "owner": 1,
+            "puck": [
+              -7,
+              20
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 5,
+            "owner": 1,
+            "puck": [
+              -8,
+              21
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 6,
+            "owner": 1,
+            "puck": [
+              -8,
+              21
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 7,
+            "owner": 1,
+            "puck": [
+              -3,
+              22
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 8,
+            "owner": 1,
+            "puck": [
+              0,
+              23
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 9,
+            "owner": 1,
+            "puck": [
+              3,
+              24
+            ],
+            "decision": "advance-pass",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 10,
+            "owner": -255,
+            "puck": [
+              5,
+              25
+            ],
+            "decision": "advance-pass",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 11,
+            "owner": -255,
+            "puck": [
+              9,
+              28
+            ],
+            "decision": "advance-pass",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 12,
+            "owner": -255,
+            "puck": [
+              13,
+              30
+            ],
+            "decision": "advance-pass",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 13,
+            "owner": -255,
+            "puck": [
+              17,
+              33
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 14,
+            "owner": -255,
+            "puck": [
+              21,
+              36
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 15,
+            "owner": -255,
+            "puck": [
+              28,
+              41
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 16,
+            "owner": -255,
+            "puck": [
+              28,
+              41
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 17,
+            "owner": -255,
+            "puck": [
+              32,
+              44
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 18,
+            "owner": -255,
+            "puck": [
+              36,
+              46
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 19,
+            "owner": -255,
+            "puck": [
+              40,
+              49
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 20,
+            "owner": -255,
+            "puck": [
+              44,
+              51
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 25,
+            "owner": -255,
+            "puck": [
+              63,
+              65
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 37,
+            "owner": -255,
+            "puck": [
+              111,
+              98
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 49,
+            "owner": -255,
+            "puck": [
+              129,
+              126
+            ],
+            "decision": "pass-flight",
+            "target": [
+              88.54883572997987,
+              84.03255715331991
+            ]
+          },
+          {
+            "frame": 61,
+            "owner": -255,
+            "puck": [
+              118,
+              155
+            ],
+            "decision": "protect-lane",
+            "target": [
+              42.83607044481731,
+              158.64009603101636
+            ]
+          },
+          {
+            "frame": 73,
+            "owner": -255,
+            "puck": [
+              107,
+              184
+            ],
+            "decision": "protect-lane",
+            "target": [
+              51.44244910752507,
+              163.36525389819025
+            ]
+          },
+          {
+            "frame": 85,
+            "owner": -255,
+            "puck": [
+              97,
+              212
+            ],
+            "decision": "protect-lane",
+            "target": [
+              66.60965905140137,
+              167.12341527922086
+            ]
+          },
+          {
+            "frame": 97,
+            "owner": -255,
+            "puck": [
+              86,
+              242
+            ],
+            "decision": "protect-lane",
+            "target": [
+              66.25798465762597,
+              86.02781850342052
+            ]
+          },
+          {
+            "frame": 109,
+            "owner": -255,
+            "puck": [
+              77,
+              266
+            ],
+            "decision": "protect-lane",
+            "target": [
+              89.80324510256621,
+              175.08846461488525
+            ]
+          },
+          {
+            "frame": 121,
+            "owner": -255,
+            "puck": [
+              68,
+              292
+            ],
+            "decision": "protect-lane",
+            "target": [
+              52.19304600818812,
+              127.92168557123365
+            ]
+          },
+          {
+            "frame": 133,
+            "owner": -255,
+            "puck": [
+              59,
+              289
+            ],
+            "decision": "protect-lane",
+            "target": [
+              46.73429259185689,
+              151.08249315175405
+            ]
+          },
+          {
+            "frame": 136,
+            "owner": 0,
+            "puck": [
+              57,
+              287
+            ],
+            "decision": "protect-lane",
+            "target": [
+              45.67254455437341,
+              158.95969306854724
+            ]
+          },
+          {
+            "frame": 145,
+            "owner": 0,
+            "puck": [
+              54,
+              296
+            ],
+            "decision": "carry-escape",
+            "target": [
+              78.92673086744297,
+              269.49758309103754
+            ]
+          },
+          {
+            "frame": 157,
+            "owner": 0,
+            "puck": [
+              31,
+              286
+            ],
+            "decision": "carry-escape",
+            "target": [
+              53.0,
+              270.0
+            ]
+          },
+          {
+            "frame": 169,
+            "owner": 0,
+            "puck": [
+              30,
+              279
+            ],
+            "decision": "carry-escape",
+            "target": [
+              36.0,
+              270.0
+            ]
+          },
+          {
+            "frame": 177,
+            "owner": -256,
+            "puck": [
+              40,
+              273
+            ],
+            "decision": "carry-escape",
+            "target": [
+              39.0,
+              270.0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24961,
+      "frame": 2317,
+      "legacy_decision": "advance-pass",
+      "rank_decision": "carry",
+      "prediction": {
+        "possession_ablation": "rank",
+        "value_model": "possession-utility-v1-not-probability",
+        "evaluation_frame": 2317,
+        "evaluation_carrier": 1,
+        "possession_candidates": [
+          {
+            "proposal": "fallback",
+            "kind": "carry",
+            "target": [
+              -35.0,
+              235.0
+            ],
+            "slot": 1,
+            "status": "eligible",
+            "terminal": 16.785,
+            "time_cost": 2.16,
+            "pressure_cost": 0.0,
+            "turnover_cost": 0.0,
+            "uncertainty_cost": 1.08,
+            "continuation": "retain",
+            "continuation_slot": null,
+            "elapsed_frames": 18,
+            "value": 13.545,
+            "value_model": "possession-utility-v1-not-probability"
+          },
+          {
+            "proposal": "plan",
+            "kind": "pass",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ],
+            "slot": 0,
+            "status": "eligible",
+            "terminal": 16.7323388671875,
+            "time_cost": 5.76,
+            "pressure_cost": 0.0,
+            "turnover_cost": 0.0,
+            "uncertainty_cost": 2.88,
+            "continuation": "retain",
+            "continuation_slot": null,
+            "elapsed_frames": 48,
+            "value": 8.0923388671875,
+            "value_model": "possession-utility-v1-not-probability"
+          }
+        ],
+        "baseline_proposal": "plan",
+        "selected_proposal": "fallback",
+        "possession_score": {
+          "proposal": "fallback",
+          "kind": "carry",
+          "target": [
+            -35.0,
+            235.0
+          ],
+          "slot": 1,
+          "status": "eligible",
+          "terminal": 16.785,
+          "time_cost": 2.16,
+          "pressure_cost": 0.0,
+          "turnover_cost": 0.0,
+          "uncertainty_cost": 1.08,
+          "continuation": "retain",
+          "continuation_slot": null,
+          "elapsed_frames": 18,
+          "value": 13.545,
+          "value_model": "possession-utility-v1-not-probability"
+        },
+        "status": "ranked"
+      },
+      "legacy_outcome": {
+        "frames": 166,
+        "goals_for": 1,
+        "goals_against": 0,
+        "shots": 2,
+        "opponent_shots": 0,
+        "one_timers": 1,
+        "recovery_frame": 1,
+        "loss_frame": null,
+        "first_recorded_shot": {
+          "frame": 128,
+          "puck": [
+            -4,
+            232
+          ],
+          "velocity": [
+            -0.41192626953125,
+            -0.502716064453125
+          ],
+          "goalie": [
+            3,
+            240
+          ],
+          "shooter": 0
+        },
+        "first_release": {
+          "frame": 114,
+          "puck": [
+            11,
+            190
+          ],
+          "velocity": [
+            -1.080657958984375,
+            2.961822509765625
+          ],
+          "height": 0.0,
+          "goalie": [
+            10,
+            245
+          ],
+          "shooter": 0
+        },
+        "possession": {
+          "elapsed_frames": 166,
+          "end_reason": "goal",
+          "possession_frames": {
+            "controlled-skater": 79,
+            "loose": 87
+          },
+          "possession_fractions": {
+            "controlled-skater": 0.4759036144578313,
+            "loose": 0.5240963855421686
+          },
+          "ordinary_turnovers": 0,
+          "first_opponent_possession_frame": null,
+          "shots": 2,
+          "one_timer_attempts": 1,
+          "frames_with_one_timer_option": 0,
+          "one_timer_option_windows": 0,
+          "best_one_timer_value": 0.0,
+          "controlled_offensive_zone_frames": 78,
+          "team_offensive_zone_frames": 78,
+          "maximum_controlled_attack_depth": 208,
+          "maximum_team_attack_depth": 208,
+          "observed_shot_releases": 2,
+          "shot_events": [
+            {
+              "observed_frame": 114,
+              "release_frame": 114,
+              "shooter": 0,
+              "evidence": "native-shot-animation-release-and-puck-impulse",
+              "recorded_shot": true,
+              "outcome": "save-rebound-recovered",
+              "resolution_frame": 144,
+              "goalie_touch_frame": 128,
+              "recovery_owner": 0
+            },
+            {
+              "observed_frame": 151,
+              "release_frame": 151,
+              "shooter": 1,
+              "evidence": "native-one-timer-counter-and-shooter",
+              "recorded_shot": true,
+              "outcome": "goal",
+              "resolution_frame": 166
+            }
+          ]
+        },
+        "final_owner": -256,
+        "trace": [
+          {
+            "frame": 1,
+            "owner": 1,
+            "puck": [
+              -12,
+              -36
+            ],
+            "decision": "advance-pass",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 2,
+            "owner": -255,
+            "puck": [
+              -12,
+              -34
+            ],
+            "decision": "advance-pass",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 3,
+            "owner": -255,
+            "puck": [
+              -9,
+              -31
+            ],
+            "decision": "advance-pass",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 4,
+            "owner": -255,
+            "puck": [
+              -6,
+              -27
+            ],
+            "decision": "advance-pass",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 5,
+            "owner": -255,
+            "puck": [
+              -4,
+              -24
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 6,
+            "owner": -255,
+            "puck": [
+              -1,
+              -20
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 7,
+            "owner": -255,
+            "puck": [
+              1,
+              -17
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 8,
+            "owner": -255,
+            "puck": [
+              4,
+              -13
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 9,
+            "owner": -255,
+            "puck": [
+              6,
+              -9
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 10,
+            "owner": -255,
+            "puck": [
+              9,
+              -6
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 11,
+            "owner": -255,
+            "puck": [
+              12,
+              -2
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 12,
+            "owner": -255,
+            "puck": [
+              14,
+              1
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 13,
+            "owner": -255,
+            "puck": [
+              17,
+              5
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 14,
+            "owner": -255,
+            "puck": [
+              19,
+              8
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 15,
+            "owner": -255,
+            "puck": [
+              22,
+              12
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 16,
+            "owner": -255,
+            "puck": [
+              24,
+              16
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 17,
+            "owner": -255,
+            "puck": [
+              27,
+              19
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 18,
+            "owner": -255,
+            "puck": [
+              29,
+              23
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 19,
+            "owner": -255,
+            "puck": [
+              32,
+              26
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 20,
+            "owner": -255,
+            "puck": [
+              35,
+              30
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 25,
+            "owner": -255,
+            "puck": [
+              47,
+              48
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 37,
+            "owner": -255,
+            "puck": [
+              78,
+              90
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 42,
+            "owner": 0,
+            "puck": [
+              90,
+              108
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.93225935623205,
+              122.78236773758132
+            ]
+          },
+          {
+            "frame": 49,
+            "owner": 0,
+            "puck": [
+              82,
+              110
+            ],
+            "decision": "carry-breakaway",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 61,
+            "owner": 0,
+            "puck": [
+              75,
+              115
+            ],
+            "decision": "carry-breakaway",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 73,
+            "owner": 0,
+            "puck": [
+              66,
+              128
+            ],
+            "decision": "carry-breakaway",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 85,
+            "owner": 0,
+            "puck": [
+              52,
+              145
+            ],
+            "decision": "carry-breakaway",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 97,
+            "owner": 0,
+            "puck": [
+              35,
+              165
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 109,
+            "owner": 0,
+            "puck": [
+              17,
+              184
+            ],
+            "decision": "shoot",
+            "target": [
+              -13,
+              264
+            ]
+          },
+          {
+            "frame": 114,
+            "owner": -256,
+            "puck": [
+              11,
+              190
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              264
+            ]
+          },
+          {
+            "frame": 121,
+            "owner": -256,
+            "puck": [
+              3,
+              211
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              264
+            ]
+          },
+          {
+            "frame": 133,
+            "owner": -256,
+            "puck": [
+              -7,
+              229
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              45.941125496954285,
+              168.05887450304573
+            ]
+          },
+          {
+            "frame": 141,
+            "owner": 0,
+            "puck": [
+              -10,
+              225
+            ],
+            "decision": "recover-safe",
+            "target": [
+              -25.427253837531655,
+              205.95212976250863
+            ]
+          },
+          {
+            "frame": 145,
+            "owner": 0,
+            "puck": [
+              -12,
+              218
+            ],
+            "decision": "one-timer-pass",
+            "target": [
+              -16,
+              180
+            ]
+          },
+          {
+            "frame": 147,
+            "owner": -256,
+            "puck": [
+              -21,
+              213
+            ],
+            "decision": "one-timer-pass",
+            "target": [
+              -16,
+              180
+            ]
+          },
+          {
+            "frame": 157,
+            "owner": -256,
+            "puck": [
+              -28,
+              230
+            ],
+            "decision": "protect-lane",
+            "target": [
+              2.831049569861921,
+              196.18843568369007
+            ]
+          }
+        ]
+      },
+      "rank_outcome": {
+        "frames": 180,
+        "goals_for": 0,
+        "goals_against": 0,
+        "shots": 1,
+        "opponent_shots": 0,
+        "one_timers": 0,
+        "recovery_frame": 1,
+        "loss_frame": 143,
+        "first_recorded_shot": {
+          "frame": 143,
+          "puck": [
+            18,
+            231
+          ],
+          "velocity": [
+            -2.5288848876953125,
+            1.8658599853515625
+          ],
+          "goalie": [
+            3,
+            246
+          ],
+          "shooter": 0
+        },
+        "first_release": {
+          "frame": 134,
+          "puck": [
+            40,
+            214
+          ],
+          "velocity": [
+            -2.5392608642578125,
+            1.8731231689453125
+          ],
+          "height": 0.0,
+          "goalie": [
+            5,
+            246
+          ],
+          "shooter": 0
+        },
+        "possession": {
+          "elapsed_frames": 180,
+          "end_reason": "opponent-goalie-possession-without-confirmed-shot",
+          "possession_frames": {
+            "controlled-skater": 93,
+            "loose": 49,
+            "opponent-goalie": 38
+          },
+          "possession_fractions": {
+            "controlled-skater": 0.5166666666666667,
+            "loose": 0.2722222222222222,
+            "opponent-goalie": 0.2111111111111111
+          },
+          "ordinary_turnovers": 0,
+          "first_opponent_possession_frame": 143,
+          "shots": 1,
+          "one_timer_attempts": 0,
+          "frames_with_one_timer_option": 0,
+          "one_timer_option_windows": 0,
+          "best_one_timer_value": 0.0,
+          "controlled_offensive_zone_frames": 88,
+          "team_offensive_zone_frames": 88,
+          "maximum_controlled_attack_depth": 205,
+          "maximum_team_attack_depth": 205,
+          "observed_shot_releases": 1,
+          "shot_events": [
+            {
+              "observed_frame": 134,
+              "release_frame": 134,
+              "shooter": 0,
+              "evidence": "native-shot-animation-release-and-puck-impulse",
+              "recorded_shot": true,
+              "outcome": "save-held",
+              "resolution_frame": 146,
+              "goalie_touch_frame": 143,
+              "recovery_owner": 11
+            }
+          ]
+        },
+        "final_owner": 11,
+        "trace": [
+          {
+            "frame": 1,
+            "owner": 1,
+            "puck": [
+              -12,
+              -36
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 2,
+            "owner": 1,
+            "puck": [
+              -12,
+              -34
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 3,
+            "owner": 1,
+            "puck": [
+              -11,
+              -33
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 4,
+            "owner": 1,
+            "puck": [
+              -11,
+              -31
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 5,
+            "owner": 1,
+            "puck": [
+              -10,
+              -30
+            ],
+            "decision": "advance-pass",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 6,
+            "owner": -255,
+            "puck": [
+              -9,
+              -28
+            ],
+            "decision": "advance-pass",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 7,
+            "owner": -255,
+            "puck": [
+              -6,
+              -25
+            ],
+            "decision": "advance-pass",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 8,
+            "owner": -255,
+            "puck": [
+              -4,
+              -22
+            ],
+            "decision": "advance-pass",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 9,
+            "owner": -255,
+            "puck": [
+              -1,
+              -18
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 10,
+            "owner": -255,
+            "puck": [
+              1,
+              -15
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 11,
+            "owner": -255,
+            "puck": [
+              4,
+              -12
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 12,
+            "owner": -255,
+            "puck": [
+              6,
+              -9
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 13,
+            "owner": -255,
+            "puck": [
+              9,
+              -6
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 14,
+            "owner": -255,
+            "puck": [
+              11,
+              -2
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 15,
+            "owner": -255,
+            "puck": [
+              14,
+              1
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 16,
+            "owner": -255,
+            "puck": [
+              16,
+              4
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 17,
+            "owner": -255,
+            "puck": [
+              19,
+              7
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 18,
+            "owner": -255,
+            "puck": [
+              21,
+              11
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 19,
+            "owner": -255,
+            "puck": [
+              24,
+              14
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 20,
+            "owner": -255,
+            "puck": [
+              26,
+              17
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 25,
+            "owner": -255,
+            "puck": [
+              38,
+              33
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 37,
+            "owner": -255,
+            "puck": [
+              71,
+              75
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 46,
+            "owner": 0,
+            "puck": [
+              93,
+              104
+            ],
+            "decision": "pass-flight",
+            "target": [
+              98.91440992596024,
+              114.53247571377605
+            ]
+          },
+          {
+            "frame": 49,
+            "owner": 0,
+            "puck": [
+              94,
+              107
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 61,
+            "owner": 0,
+            "puck": [
+              80,
+              104
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 73,
+            "owner": 0,
+            "puck": [
+              71,
+              114
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 85,
+            "owner": 0,
+            "puck": [
+              63,
+              136
+            ],
+            "decision": "carry-breakaway",
+            "target": [
+              35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 97,
+            "owner": 0,
+            "puck": [
+              54,
+              158
+            ],
+            "decision": "carry-breakaway",
+            "target": [
+              -35.0,
+              235.0
+            ]
+          },
+          {
+            "frame": 109,
+            "owner": 0,
+            "puck": [
+              43,
+              181
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              90.94112549695429,
+              140.05887450304573
+            ]
+          },
+          {
+            "frame": 121,
+            "owner": 0,
+            "puck": [
+              36,
+              198
+            ],
+            "decision": "one-timer-setup",
+            "target": [
+              76.0,
+              199.0
+            ]
+          },
+          {
+            "frame": 133,
+            "owner": 0,
+            "puck": [
+              40,
+              214
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              264
+            ]
+          },
+          {
+            "frame": 134,
+            "owner": -256,
+            "puck": [
+              40,
+              214
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              264
+            ]
+          },
+          {
+            "frame": 143,
+            "owner": 11,
+            "puck": [
+              18,
+              231
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              264
+            ]
+          },
+          {
+            "frame": 145,
+            "owner": 11,
+            "puck": [
+              14,
+              242
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -41.0,
+              190.0
+            ]
+          },
+          {
+            "frame": 157,
+            "owner": 11,
+            "puck": [
+              12,
+              251
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -57.0,
+              211.0
+            ]
+          },
+          {
+            "frame": 169,
+            "owner": 11,
+            "puck": [
+              11,
+              251
+            ],
+            "decision": "deny-goalie-outlet",
+            "target": [
+              11.180531622231637,
+              179.0098768525644
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "matchup": "sabres-ducks-manual",
+      "seed": 24962,
+      "frame": 2606,
+      "legacy_decision": "shoot",
+      "rank_decision": "goalie-avoid",
+      "prediction": {
+        "possession_ablation": "rank",
+        "value_model": "possession-utility-v1-not-probability",
+        "evaluation_frame": 2606,
+        "evaluation_carrier": 1,
+        "possession_candidates": [
+          {
+            "proposal": "fallback",
+            "kind": "carry",
+            "target": [
+              -3.0,
+              129.0
+            ],
+            "slot": 1,
+            "status": "eligible",
+            "terminal": 26.16,
+            "time_cost": 2.16,
+            "pressure_cost": 0.0,
+            "turnover_cost": 0.0,
+            "uncertainty_cost": 1.08,
+            "continuation": "retain",
+            "continuation_slot": null,
+            "elapsed_frames": 18,
+            "value": 22.92,
+            "value_model": "possession-utility-v1-not-probability"
+          },
+          {
+            "proposal": "plan",
+            "kind": "carry",
+            "target": [
+              -3.0,
+              129.0
+            ],
+            "slot": 1,
+            "status": "eligible",
+            "terminal": 26.16,
+            "time_cost": 2.16,
+            "pressure_cost": 0.0,
+            "turnover_cost": 0.0,
+            "uncertainty_cost": 1.08,
+            "continuation": "retain",
+            "continuation_slot": null,
+            "elapsed_frames": 18,
+            "value": 22.92,
+            "value_model": "possession-utility-v1-not-probability"
+          },
+          {
+            "proposal": "shoot",
+            "kind": "shoot",
+            "target": [
+              13,
+              264
+            ],
+            "slot": 1,
+            "status": "eligible",
+            "terminal": 21.66892726084788,
+            "time_cost": 0.72,
+            "pressure_cost": 0.0,
+            "turnover_cost": 0.0,
+            "uncertainty_cost": 0.36,
+            "continuation": "shot",
+            "continuation_slot": null,
+            "elapsed_frames": 6,
+            "value": 20.588927260847882,
+            "value_model": "possession-utility-v1-not-probability"
+          }
+        ],
+        "baseline_proposal": "shoot",
+        "selected_proposal": "fallback",
+        "possession_score": {
+          "proposal": "fallback",
+          "kind": "carry",
+          "target": [
+            -3.0,
+            129.0
+          ],
+          "slot": 1,
+          "status": "eligible",
+          "terminal": 26.16,
+          "time_cost": 2.16,
+          "pressure_cost": 0.0,
+          "turnover_cost": 0.0,
+          "uncertainty_cost": 1.08,
+          "continuation": "retain",
+          "continuation_slot": null,
+          "elapsed_frames": 18,
+          "value": 22.92,
+          "value_model": "possession-utility-v1-not-probability"
+        },
+        "status": "ranked"
+      },
+      "legacy_outcome": {
+        "frames": 79,
+        "goals_for": 1,
+        "goals_against": 0,
+        "shots": 2,
+        "opponent_shots": 0,
+        "one_timers": 0,
+        "recovery_frame": 1,
+        "loss_frame": null,
+        "first_recorded_shot": {
+          "frame": 19,
+          "puck": [
+            5,
+            232
+          ],
+          "velocity": [
+            0.1538238525390625,
+            -0.6295623779296875
+          ],
+          "goalie": [
+            3,
+            242
+          ],
+          "shooter": 1
+        },
+        "first_release": {
+          "frame": 6,
+          "puck": [
+            -9,
+            195
+          ],
+          "velocity": [
+            0.9543304443359375,
+            2.6342010498046875
+          ],
+          "height": 0.0,
+          "goalie": [
+            -1,
+            244
+          ],
+          "shooter": 1
+        },
+        "possession": {
+          "elapsed_frames": 79,
+          "end_reason": "goal",
+          "possession_frames": {
+            "controlled-skater": 35,
+            "loose": 44
+          },
+          "possession_fractions": {
+            "controlled-skater": 0.4430379746835443,
+            "loose": 0.5569620253164557
+          },
+          "ordinary_turnovers": 0,
+          "first_opponent_possession_frame": null,
+          "shots": 2,
+          "one_timer_attempts": 0,
+          "frames_with_one_timer_option": 0,
+          "one_timer_option_windows": 0,
+          "best_one_timer_value": 0.0,
+          "controlled_offensive_zone_frames": 35,
+          "team_offensive_zone_frames": 35,
+          "maximum_controlled_attack_depth": 232,
+          "maximum_team_attack_depth": 232,
+          "observed_shot_releases": 1,
+          "shot_events": [
+            {
+              "observed_frame": 6,
+              "release_frame": 6,
+              "shooter": 1,
+              "evidence": "native-shot-animation-release-and-puck-impulse",
+              "recorded_shot": true,
+              "outcome": "save-rebound-recovered",
+              "resolution_frame": 41,
+              "goalie_touch_frame": 19,
+              "recovery_owner": 1
+            },
+            {
+              "observed_frame": 79,
+              "release_frame": null,
+              "shooter": 1,
+              "evidence": "recorded-shot-counter; release-time-unknown",
+              "recorded_shot": true,
+              "outcome": "goal",
+              "resolution_frame": 79
+            }
+          ]
+        },
+        "final_owner": -255,
+        "trace": [
+          {
+            "frame": 1,
+            "owner": 1,
+            "puck": [
+              -7,
+              196
+            ],
+            "decision": "shoot",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 2,
+            "owner": 1,
+            "puck": [
+              -7,
+              197
+            ],
+            "decision": "shoot",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 3,
+            "owner": 1,
+            "puck": [
+              -8,
+              195
+            ],
+            "decision": "shoot",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 4,
+            "owner": 1,
+            "puck": [
+              -9,
+              195
+            ],
+            "decision": "shoot",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 5,
+            "owner": 1,
+            "puck": [
+              -9,
+              195
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 6,
+            "owner": -255,
+            "puck": [
+              -9,
+              195
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 7,
+            "owner": -255,
+            "puck": [
+              -8,
+              198
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 8,
+            "owner": -255,
+            "puck": [
+              -7,
+              200
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 9,
+            "owner": -255,
+            "puck": [
+              -6,
+              203
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 10,
+            "owner": -255,
+            "puck": [
+              -4,
+              208
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 11,
+            "owner": -255,
+            "puck": [
+              -3,
+              211
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 12,
+            "owner": -255,
+            "puck": [
+              -3,
+              211
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 13,
+            "owner": -255,
+            "puck": [
+              -2,
+              213
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 14,
+            "owner": -255,
+            "puck": [
+              -1,
+              216
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 15,
+            "owner": -255,
+            "puck": [
+              0,
+              219
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 16,
+            "owner": -255,
+            "puck": [
+              1,
+              221
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 17,
+            "owner": -255,
+            "puck": [
+              2,
+              224
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 18,
+            "owner": -255,
+            "puck": [
+              3,
+              226
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 19,
+            "owner": -255,
+            "puck": [
+              5,
+              232
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 20,
+            "owner": -255,
+            "puck": [
+              5,
+              232
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 25,
+            "owner": -255,
+            "puck": [
+              5,
+              229
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -3.0,
+              151.0
+            ]
+          },
+          {
+            "frame": 37,
+            "owner": -255,
+            "puck": [
+              7,
+              221
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -3.0,
+              159.0
+            ]
+          },
+          {
+            "frame": 38,
+            "owner": 1,
+            "puck": [
+              7,
+              220
+            ],
+            "decision": "deny-reception",
+            "target": [
+              12.265994595019054,
+              161.94238377671337
+            ]
+          },
+          {
+            "frame": 49,
+            "owner": 1,
+            "puck": [
+              -7,
+              240
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              1.0,
+              170.0
+            ]
+          },
+          {
+            "frame": 61,
+            "owner": 1,
+            "puck": [
+              -6,
+              253
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              4.0,
+              181.0
+            ]
+          },
+          {
+            "frame": 68,
+            "owner": -255,
+            "puck": [
+              -5,
+              256
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              5.0,
+              183.0
+            ]
+          },
+          {
+            "frame": 73,
+            "owner": -255,
+            "puck": [
+              -5,
+              259
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              44.0,
+              176.0
+            ]
+          }
+        ]
+      },
+      "rank_outcome": {
+        "frames": 180,
+        "goals_for": 0,
+        "goals_against": 0,
+        "shots": 1,
+        "opponent_shots": 0,
+        "one_timers": 0,
+        "recovery_frame": 1,
+        "loss_frame": 47,
+        "first_recorded_shot": {
+          "frame": 21,
+          "puck": [
+            7,
+            234
+          ],
+          "velocity": [
+            0.284820556640625,
+            -0.6204833984375
+          ],
+          "goalie": [
+            3,
+            244
+          ],
+          "shooter": 1
+        },
+        "first_release": null,
+        "possession": {
+          "elapsed_frames": 180,
+          "end_reason": "ordinary-turnover",
+          "possession_frames": {
+            "controlled-skater": 9,
+            "loose": 37,
+            "opponent-skater": 134
+          },
+          "possession_fractions": {
+            "controlled-skater": 0.05,
+            "loose": 0.20555555555555555,
+            "opponent-skater": 0.7444444444444445
+          },
+          "ordinary_turnovers": 0,
+          "first_opponent_possession_frame": 47,
+          "shots": 1,
+          "one_timer_attempts": 0,
+          "frames_with_one_timer_option": 0,
+          "one_timer_option_windows": 0,
+          "best_one_timer_value": 0.0,
+          "controlled_offensive_zone_frames": 9,
+          "team_offensive_zone_frames": 9,
+          "maximum_controlled_attack_depth": 186,
+          "maximum_team_attack_depth": 186,
+          "observed_shot_releases": 0,
+          "shot_events": [
+            {
+              "observed_frame": 21,
+              "release_frame": null,
+              "shooter": 1,
+              "evidence": "recorded-shot-counter; release-time-unknown",
+              "recorded_shot": true,
+              "outcome": "save-rebound-recovered",
+              "resolution_frame": 50,
+              "goalie_touch_frame": 21,
+              "skater_touch_frame": 48,
+              "touch_slot": 9,
+              "recovery_owner": 9
+            }
+          ]
+        },
+        "final_owner": 9,
+        "trace": [
+          {
+            "frame": 1,
+            "owner": 1,
+            "puck": [
+              -7,
+              196
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -3.0,
+              129.0
+            ]
+          },
+          {
+            "frame": 2,
+            "owner": 1,
+            "puck": [
+              -7,
+              197
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -3.0,
+              129.0
+            ]
+          },
+          {
+            "frame": 3,
+            "owner": 1,
+            "puck": [
+              -7,
+              197
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -3.0,
+              129.0
+            ]
+          },
+          {
+            "frame": 4,
+            "owner": 1,
+            "puck": [
+              -7,
+              198
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -3.0,
+              129.0
+            ]
+          },
+          {
+            "frame": 5,
+            "owner": 1,
+            "puck": [
+              -7,
+              199
+            ],
+            "decision": "shoot",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 6,
+            "owner": 1,
+            "puck": [
+              -7,
+              200
+            ],
+            "decision": "shoot",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 7,
+            "owner": 1,
+            "puck": [
+              -7,
+              200
+            ],
+            "decision": "shoot",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 8,
+            "owner": 1,
+            "puck": [
+              -8,
+              200
+            ],
+            "decision": "shoot",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 9,
+            "owner": 1,
+            "puck": [
+              -9,
+              200
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 10,
+            "owner": -255,
+            "puck": [
+              -9,
+              200
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 11,
+            "owner": -255,
+            "puck": [
+              -7,
+              203
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 12,
+            "owner": -255,
+            "puck": [
+              -5,
+              208
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 13,
+            "owner": -255,
+            "puck": [
+              -3,
+              211
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 14,
+            "owner": -255,
+            "puck": [
+              -3,
+              211
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 15,
+            "owner": -255,
+            "puck": [
+              -2,
+              214
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 16,
+            "owner": -255,
+            "puck": [
+              -1,
+              217
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 17,
+            "owner": -255,
+            "puck": [
+              1,
+              220
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 18,
+            "owner": -255,
+            "puck": [
+              2,
+              223
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 19,
+            "owner": -255,
+            "puck": [
+              3,
+              226
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 20,
+            "owner": -255,
+            "puck": [
+              5,
+              229
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              13,
+              264
+            ]
+          },
+          {
+            "frame": 25,
+            "owner": -255,
+            "puck": [
+              8,
+              233
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              37,
+              196
+            ]
+          },
+          {
+            "frame": 37,
+            "owner": -255,
+            "puck": [
+              12,
+              225
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -2.0,
+              157.0
+            ]
+          },
+          {
+            "frame": 47,
+            "owner": 9,
+            "puck": [
+              14,
+              219
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -57.94112549695428,
+              130.05887450304573
+            ]
+          },
+          {
+            "frame": 49,
+            "owner": 9,
+            "puck": [
+              11,
+              215
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -56.94112549695428,
+              131.05887450304573
+            ]
+          },
+          {
+            "frame": 61,
+            "owner": 9,
+            "puck": [
+              9,
+              227
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -47.94112549695428,
+              150.05887450304573
+            ]
+          },
+          {
+            "frame": 73,
+            "owner": 9,
+            "puck": [
+              -3,
+              233
+            ],
+            "decision": "protect-lane",
+            "target": [
+              -10.88007497564293,
+              203.55158549408245
+            ]
+          },
+          {
+            "frame": 85,
+            "owner": 9,
+            "puck": [
+              -14,
+              255
+            ],
+            "decision": "protect-lane",
+            "target": [
+              -15.514676804044875,
+              207.91074955424264
+            ]
+          },
+          {
+            "frame": 97,
+            "owner": 9,
+            "puck": [
+              -19,
+              257
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -9.0,
+              161.0
+            ]
+          },
+          {
+            "frame": 109,
+            "owner": 9,
+            "puck": [
+              -21,
+              257
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              24.941125496954285,
+              179.05887450304573
+            ]
+          },
+          {
+            "frame": 121,
+            "owner": 9,
+            "puck": [
+              -22,
+              257
+            ],
+            "decision": "protect-lane",
+            "target": [
+              -18.478754742369336,
+              206.35619137162317
+            ]
+          },
+          {
+            "frame": 133,
+            "owner": 9,
+            "puck": [
+              -3,
+              243
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              3.0,
+              183.0
+            ]
+          },
+          {
+            "frame": 145,
+            "owner": 9,
+            "puck": [
+              -14,
+              230
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              3.0,
+              176.0
+            ]
+          },
+          {
+            "frame": 157,
+            "owner": 9,
+            "puck": [
+              -45,
+              231
+            ],
+            "decision": "protect-lane",
+            "target": [
+              -21.867298833357744,
+              205.71362555413054
+            ]
+          },
+          {
+            "frame": 169,
+            "owner": 9,
+            "puck": [
+              -34,
+              231
+            ],
+            "decision": "protect-lane",
+            "target": [
+              -25.22954098080518,
+              204.93241972683887
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "matchup": "ducks-sabres-manual",
+      "seed": 24961,
+      "frame": 6719,
+      "legacy_decision": "shoot",
+      "rank_decision": "goalie-avoid",
+      "prediction": {
+        "possession_ablation": "rank",
+        "value_model": "possession-utility-v1-not-probability",
+        "evaluation_frame": 6719,
+        "evaluation_carrier": 7,
+        "possession_candidates": [
+          {
+            "proposal": "fallback",
+            "kind": "carry",
+            "target": [
+              35.0,
+              -132.0
+            ],
+            "slot": 7,
+            "status": "eligible",
+            "terminal": 24.39,
+            "time_cost": 2.16,
+            "pressure_cost": 0.0,
+            "turnover_cost": 0.0,
+            "uncertainty_cost": 1.08,
+            "continuation": "retain",
+            "continuation_slot": null,
+            "elapsed_frames": 18,
+            "value": 21.15,
+            "value_model": "possession-utility-v1-not-probability"
+          },
+          {
+            "proposal": "shoot",
+            "kind": "shoot",
+            "target": [
+              -13,
+              -264
+            ],
+            "slot": 7,
+            "status": "eligible",
+            "terminal": 21.446904556401574,
+            "time_cost": 0.72,
+            "pressure_cost": 0.0,
+            "turnover_cost": 0.0,
+            "uncertainty_cost": 0.36,
+            "continuation": "shot",
+            "continuation_slot": null,
+            "elapsed_frames": 6,
+            "value": 20.366904556401575,
+            "value_model": "possession-utility-v1-not-probability"
+          }
+        ],
+        "baseline_proposal": "shoot",
+        "selected_proposal": "fallback",
+        "possession_score": {
+          "proposal": "fallback",
+          "kind": "carry",
+          "target": [
+            35.0,
+            -132.0
+          ],
+          "slot": 7,
+          "status": "eligible",
+          "terminal": 24.39,
+          "time_cost": 2.16,
+          "pressure_cost": 0.0,
+          "turnover_cost": 0.0,
+          "uncertainty_cost": 1.08,
+          "continuation": "retain",
+          "continuation_slot": null,
+          "elapsed_frames": 18,
+          "value": 21.15,
+          "value_model": "possession-utility-v1-not-probability"
+        },
+        "status": "ranked"
+      },
+      "legacy_outcome": {
+        "frames": 65,
+        "goals_for": 1,
+        "goals_against": 0,
+        "shots": 2,
+        "opponent_shots": 0,
+        "one_timers": 1,
+        "recovery_frame": 1,
+        "loss_frame": null,
+        "first_recorded_shot": {
+          "frame": 19,
+          "puck": [
+            8,
+            -233
+          ],
+          "velocity": [
+            -0.280670166015625,
+            0.8479766845703125
+          ],
+          "goalie": [
+            13,
+            -245
+          ],
+          "shooter": 7
+        },
+        "first_release": {
+          "frame": 6,
+          "puck": [
+            30,
+            -196
+          ],
+          "velocity": [
+            -1.548614501953125,
+            -2.6155242919921875
+          ],
+          "height": 0.0,
+          "goalie": [
+            11,
+            -247
+          ],
+          "shooter": 7
+        },
+        "possession": {
+          "elapsed_frames": 65,
+          "end_reason": "goal",
+          "possession_frames": {
+            "controlled-skater": 8,
+            "loose": 57
+          },
+          "possession_fractions": {
+            "controlled-skater": 0.12307692307692308,
+            "loose": 0.8769230769230769
+          },
+          "ordinary_turnovers": 0,
+          "first_opponent_possession_frame": null,
+          "shots": 2,
+          "one_timer_attempts": 1,
+          "frames_with_one_timer_option": 0,
+          "one_timer_option_windows": 0,
+          "best_one_timer_value": 0.0,
+          "controlled_offensive_zone_frames": 8,
+          "team_offensive_zone_frames": 8,
+          "maximum_controlled_attack_depth": 211,
+          "maximum_team_attack_depth": 211,
+          "observed_shot_releases": 2,
+          "shot_events": [
+            {
+              "observed_frame": 6,
+              "release_frame": 6,
+              "shooter": 7,
+              "evidence": "native-shot-animation-release-and-puck-impulse",
+              "recorded_shot": true,
+              "outcome": "unresolved-before-next-shot",
+              "resolution_frame": 51,
+              "goalie_touch_frame": 19
+            },
+            {
+              "observed_frame": 51,
+              "release_frame": 51,
+              "shooter": 6,
+              "evidence": "native-one-timer-counter-and-shooter",
+              "recorded_shot": true,
+              "outcome": "goal",
+              "resolution_frame": 65
+            }
+          ]
+        },
+        "final_owner": -249,
+        "trace": [
+          {
+            "frame": 1,
+            "owner": 7,
+            "puck": [
+              29,
+              -190
+            ],
+            "decision": "shoot",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 2,
+            "owner": 7,
+            "puck": [
+              28,
+              -191
+            ],
+            "decision": "shoot",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 3,
+            "owner": 7,
+            "puck": [
+              28,
+              -192
+            ],
+            "decision": "shoot",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 4,
+            "owner": 7,
+            "puck": [
+              28,
+              -194
+            ],
+            "decision": "shoot",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 5,
+            "owner": 7,
+            "puck": [
+              30,
+              -196
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 6,
+            "owner": -249,
+            "puck": [
+              30,
+              -196
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 7,
+            "owner": -249,
+            "puck": [
+              28,
+              -199
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 8,
+            "owner": -249,
+            "puck": [
+              25,
+              -204
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 9,
+            "owner": -249,
+            "puck": [
+              23,
+              -207
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 10,
+            "owner": -249,
+            "puck": [
+              22,
+              -209
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 11,
+            "owner": -249,
+            "puck": [
+              20,
+              -212
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 12,
+            "owner": -249,
+            "puck": [
+              20,
+              -212
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 13,
+            "owner": -249,
+            "puck": [
+              17,
+              -217
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 14,
+            "owner": -249,
+            "puck": [
+              16,
+              -220
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 15,
+            "owner": -249,
+            "puck": [
+              14,
+              -222
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 16,
+            "owner": -249,
+            "puck": [
+              13,
+              -225
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 17,
+            "owner": -249,
+            "puck": [
+              11,
+              -228
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 18,
+            "owner": -249,
+            "puck": [
+              9,
+              -230
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 19,
+            "owner": -249,
+            "puck": [
+              8,
+              -233
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 20,
+            "owner": -249,
+            "puck": [
+              8,
+              -233
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 25,
+            "owner": -249,
+            "puck": [
+              7,
+              -228
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -10,
+              -201
+            ]
+          },
+          {
+            "frame": 36,
+            "owner": 7,
+            "puck": [
+              3,
+              -219
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              61.94112549695428,
+              -175.05887450304573
+            ]
+          },
+          {
+            "frame": 37,
+            "owner": 7,
+            "puck": [
+              3,
+              -218
+            ],
+            "decision": "one-timer-pass",
+            "target": [
+              -94,
+              -214
+            ]
+          },
+          {
+            "frame": 39,
+            "owner": -249,
+            "puck": [
+              -1,
+              -219
+            ],
+            "decision": "one-timer-pass",
+            "target": [
+              -94,
+              -214
+            ]
+          },
+          {
+            "frame": 49,
+            "owner": -249,
+            "puck": [
+              -47,
+              -216
+            ],
+            "decision": "one-timer-wait",
+            "target": [
+              -94,
+              -214
+            ]
+          },
+          {
+            "frame": 61,
+            "owner": -249,
+            "puck": [
+              -26,
+              -252
+            ],
+            "decision": "protect-lane",
+            "target": [
+              -38.11747631467841,
+              -168.5724000432105
+            ]
+          }
+        ]
+      },
+      "rank_outcome": {
+        "frames": 180,
+        "goals_for": 0,
+        "goals_against": 0,
+        "shots": 1,
+        "opponent_shots": 0,
+        "one_timers": 1,
+        "recovery_frame": 1,
+        "loss_frame": null,
+        "first_recorded_shot": {
+          "frame": 26,
+          "puck": [
+            14,
+            -229
+          ],
+          "velocity": [
+            0.047210693359375,
+            0.934356689453125
+          ],
+          "goalie": [
+            14,
+            -243
+          ],
+          "shooter": 7
+        },
+        "first_release": {
+          "frame": 14,
+          "puck": [
+            35,
+            -204
+          ],
+          "velocity": [
+            -1.753021240234375,
+            -2.062225341796875
+          ],
+          "height": 0.0,
+          "goalie": [
+            12,
+            -247
+          ],
+          "shooter": 7
+        },
+        "possession": {
+          "elapsed_frames": 180,
+          "end_reason": "shot-resolved",
+          "possession_frames": {
+            "controlled-skater": 69,
+            "loose": 111
+          },
+          "possession_fractions": {
+            "controlled-skater": 0.38333333333333336,
+            "loose": 0.6166666666666667
+          },
+          "ordinary_turnovers": 0,
+          "first_opponent_possession_frame": null,
+          "shots": 1,
+          "one_timer_attempts": 1,
+          "frames_with_one_timer_option": 0,
+          "one_timer_option_windows": 0,
+          "best_one_timer_value": 0.0,
+          "controlled_offensive_zone_frames": 69,
+          "team_offensive_zone_frames": 69,
+          "maximum_controlled_attack_depth": 270,
+          "maximum_team_attack_depth": 270,
+          "observed_shot_releases": 2,
+          "shot_events": [
+            {
+              "observed_frame": 14,
+              "release_frame": 14,
+              "shooter": 7,
+              "evidence": "native-shot-animation-release-and-puck-impulse",
+              "recorded_shot": true,
+              "outcome": "save-rebound-recovered",
+              "resolution_frame": 41,
+              "goalie_touch_frame": 26,
+              "recovery_owner": 7
+            },
+            {
+              "observed_frame": 61,
+              "release_frame": 61,
+              "shooter": 6,
+              "evidence": "native-one-timer-counter-and-shooter",
+              "recorded_shot": false,
+              "outcome": "passed-net-plane-without-goal",
+              "resolution_frame": 99,
+              "passed_net_plane_frame": 75
+            }
+          ]
+        },
+        "final_owner": 6,
+        "trace": [
+          {
+            "frame": 1,
+            "owner": 7,
+            "puck": [
+              29,
+              -190
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              35.0,
+              -132.0
+            ]
+          },
+          {
+            "frame": 2,
+            "owner": 7,
+            "puck": [
+              28,
+              -191
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              35.0,
+              -132.0
+            ]
+          },
+          {
+            "frame": 3,
+            "owner": 7,
+            "puck": [
+              28,
+              -192
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              35.0,
+              -132.0
+            ]
+          },
+          {
+            "frame": 4,
+            "owner": 7,
+            "puck": [
+              28,
+              -193
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              35.0,
+              -132.0
+            ]
+          },
+          {
+            "frame": 5,
+            "owner": 7,
+            "puck": [
+              28,
+              -194
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              -235.0
+            ]
+          },
+          {
+            "frame": 6,
+            "owner": 7,
+            "puck": [
+              29,
+              -195
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              -235.0
+            ]
+          },
+          {
+            "frame": 7,
+            "owner": 7,
+            "puck": [
+              29,
+              -197
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              -235.0
+            ]
+          },
+          {
+            "frame": 8,
+            "owner": 7,
+            "puck": [
+              29,
+              -197
+            ],
+            "decision": "carry",
+            "target": [
+              -35.0,
+              -235.0
+            ]
+          },
+          {
+            "frame": 9,
+            "owner": 7,
+            "puck": [
+              29,
+              -198
+            ],
+            "decision": "shoot",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 10,
+            "owner": 7,
+            "puck": [
+              31,
+              -200
+            ],
+            "decision": "shoot",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 11,
+            "owner": 7,
+            "puck": [
+              31,
+              -200
+            ],
+            "decision": "shoot",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 12,
+            "owner": 7,
+            "puck": [
+              33,
+              -202
+            ],
+            "decision": "shoot",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 13,
+            "owner": 7,
+            "puck": [
+              34,
+              -203
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 14,
+            "owner": -249,
+            "puck": [
+              35,
+              -204
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 15,
+            "owner": -249,
+            "puck": [
+              33,
+              -206
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 16,
+            "owner": -249,
+            "puck": [
+              31,
+              -208
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 17,
+            "owner": -249,
+            "puck": [
+              29,
+              -210
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 18,
+            "owner": -249,
+            "puck": [
+              28,
+              -213
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 19,
+            "owner": -249,
+            "puck": [
+              26,
+              -215
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 20,
+            "owner": -249,
+            "puck": [
+              24,
+              -217
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 25,
+            "owner": -249,
+            "puck": [
+              15,
+              -227
+            ],
+            "decision": "shot-follow-through",
+            "target": [
+              -13,
+              -264
+            ]
+          },
+          {
+            "frame": 37,
+            "owner": -249,
+            "puck": [
+              14,
+              -219
+            ],
+            "decision": "deny-reception",
+            "target": [
+              13.85192282727666,
+              -167.3504578069631
+            ]
+          },
+          {
+            "frame": 38,
+            "owner": 7,
+            "puck": [
+              14,
+              -218
+            ],
+            "decision": "deny-reception",
+            "target": [
+              14.508661448293774,
+              -151.46954276237332
+            ]
+          },
+          {
+            "frame": 42,
+            "owner": -249,
+            "puck": [
+              7,
+              -219
+            ],
+            "decision": "one-timer-pass",
+            "target": [
+              -98,
+              -214
+            ]
+          },
+          {
+            "frame": 49,
+            "owner": -249,
+            "puck": [
+              -19,
+              -218
+            ],
+            "decision": "one-timer-wait",
+            "target": [
+              -98,
+              -214
+            ]
+          },
+          {
+            "frame": 61,
+            "owner": -249,
+            "puck": [
+              -65,
+              -216
+            ],
+            "decision": "one-timer-wait",
+            "target": [
+              -98,
+              -214
+            ]
+          },
+          {
+            "frame": 73,
+            "owner": -249,
+            "puck": [
+              -30,
+              -259
+            ],
+            "decision": "protect-lane",
+            "target": [
+              -28.6959007967858,
+              -170.4951742432358
+            ]
+          },
+          {
+            "frame": 85,
+            "owner": -249,
+            "puck": [
+              -28,
+              -294
+            ],
+            "decision": "protect-lane",
+            "target": [
+              -53.36355293274761,
+              -154.1560927506432
+            ]
+          },
+          {
+            "frame": 97,
+            "owner": -249,
+            "puck": [
+              -36,
+              -283
+            ],
+            "decision": "protect-lane",
+            "target": [
+              26.218504531054567,
+              -235.69514202085503
+            ]
+          },
+          {
+            "frame": 109,
+            "owner": -249,
+            "puck": [
+              -44,
+              -273
+            ],
+            "decision": "protect-lane",
+            "target": [
+              -1.7271356066847243,
+              -158.2324621759713
+            ]
+          },
+          {
+            "frame": 121,
+            "owner": -249,
+            "puck": [
+              -53,
+              -262
+            ],
+            "decision": "recover-safe",
+            "target": [
+              -69.44330117494978,
+              -241.48927590997968
+            ]
+          },
+          {
+            "frame": 129,
+            "owner": 6,
+            "puck": [
+              -58,
+              -256
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -109.94112549695429,
+              -206.05887450304573
+            ]
+          },
+          {
+            "frame": 133,
+            "owner": 6,
+            "puck": [
+              -60,
+              -254
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              -235.0
+            ]
+          },
+          {
+            "frame": 145,
+            "owner": 6,
+            "puck": [
+              -62,
+              -268
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -106.94112549695429,
+              -221.05887450304573
+            ]
+          },
+          {
+            "frame": 157,
+            "owner": 6,
+            "puck": [
+              -62,
+              -274
+            ],
+            "decision": "carry",
+            "target": [
+              35.0,
+              -235.0
+            ]
+          },
+          {
+            "frame": 169,
+            "owner": 6,
+            "puck": [
+              -55,
+              -268
+            ],
+            "decision": "goalie-avoid",
+            "target": [
+              -23.0,
+              -244.0
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "checks": {
+    "unit_tests": 843,
+    "expected_failures": 1,
+    "pylint": "10.00/10, clean",
+    "original_feature_native_regressions": 14,
+    "complete_periods_per_policy": 20,
+    "policies": 6,
+    "exact_historical_control_periods": 2,
+    "exact_historical_control_frames": 17539,
+    "exact_restored_prefix_periods": 4,
+    "exact_restored_prefix_frames": 38600,
+    "matched_cases": 46,
+    "forks_per_case": 5,
+    "repeat_control_forks": 4,
+    "candidate_set_invariance_asserted": true,
+    "current_runtime_source_hashes_match": true,
+    "identical_initial_states_lineups_teams_seeds": true
+  },
+  "sources": {
+    "nhl94_ai/agents/classic_v1.py": "f8d858e63a89e7d5caa2cf169d5cba66dcf1ffbd66eced409b2e518e352c8150",
+    "nhl94_ai/agents/scheduling.py": "b7a37957c15920b2950144b654402d2c644acdcf4686929d661da6a462129912",
+    "nhl94_ai/agents/possession_ablation.py": "8dedd66099c743d8d048aa3383b6d25e0ab8a63ba8cad6d820bbb76754321fc6",
+    "nhl94_ai/evaluation/cpu_benchmark.py": "3b05e3afba2954f9c197ff696b873f1f09de678cc24ca74a3802b98689f63958",
+    "nhl94_ai/game/state.py": "72545dc07f33383f3d6d3d3fbb389b0fe5c8a2460ff30fc001216ebfae54c062",
+    "nhl94_ai/agents/receiving.py": "19407f6c41e45c059b35ca292c0b6d7944b59806d7b5ae758f117811b3fdbeed",
+    "nhl94_ai/agents/finishing.py": "9aa94a10441139e57dab4dfff52956ad2bf9d378fa341e7d1f3861891e90686e",
+    "nhl94_ai/agents/possession_value.py": "a1bf1a9a068796fe22a65074a70688e5ca41b8aa5f95e468f24d77cb26517656",
+    "nhl94_ai/agents/base.py": "045e70ed1426f6883904520f4034d4cdf53ccc043c92a4b8cb3c2074c4137dbc",
+    "nhl94_ai/agents/skating.py": "17748ec1e62eb00cdc90729ccdd4cc29beae87e52f033581e9f2e42bdf908bd1",
+    "nhl94_ai/evaluation/offense_metrics.py": "8c082dc2bd8090dae94782e3bbaae7b07b7fa0f1558cfd039cc401ad9935f130",
+    "nhl94_ai/agents/deke.py": "00cefffb902112ce368eaa720d7cca9ef8a887c71951f21acccfcaca186ce5b2",
+    "nhl94_ai/env/actions.py": "a2fb28dafddf5b128759bf90bf72c7175ed3700c7ab1491025ba390ec85af146",
+    "nhl94_ai/agents/possession.py": "bcbaf2e9a9872e127f26fc494258319c12983996094fefdd2a1a5c5d492fd713",
+    "nhl94_ai/agents/offense.py": "3e959c1bb4c0af7094df751889c6bbebebeefc9016daba631364477c2eb529d4",
+    "nhl94_ai/agents/goalie.py": "a012efb60f8fa0a89dfa05aa08edadbc6fddd7c9f6a74094d459526f2537eec8",
+    "nhl94_ai/game/ram.py": "695c63d302435317e9b22a257efe3ab4129c1cf4fded2a7f86ab17a1d5fcc817",
+    "nhl94_ai/env/factory.py": "ee8d7c40246635ee679fa8243c4b012cc22fbc1488f793326739f72b9f207bcd",
+    "nhl94_ai/agents/responses.py": "a69cba84b62045e8c0bd75a27721f254943a98dfe9fd7b400cddfcf58a6b121b",
+    "nhl94_ai/env/target_control.py": "ff553f99a5348dec3fb2762be3ace81db99518bce2aabce0c389f00cdec9ddee",
+    "nhl94_ai/agents/motion.py": "1a56a75b4dc06194f56423ac94f3d637c0792ae04200ad4a8112c705ea93bf10",
+    "nhl94_ai/agents/carry.py": "1f7a8ae4926bc60dab40bf5caa460f119d2fa5ae0b75395ec197ae41d2f72174",
+    "nhl94_ai/agents/cross_crease.py": "f5ce8e6852aeb6070cbca3e12d1d6c00262aafd1e03e3a18d3e0606b775220c8",
+    "nhl94_ai/evaluation/defense_metrics.py": "347344ebac5d11eb3563d3638db8566dd728e2bb0ca387a71f463f737c6a040e",
+    "nhl94_ai/agents/defense.py": "ca3937e827e9621bab6d16d07d9b11ef83897699051d556740d3642b9b9f4c0a",
+    "nhl94_ai/agents/lifecycle.py": "ebe4e3bb741d0c9a041305bbf67f3833509b5535ae1d61c580691a0ff4fe91c7",
+    "nhl94_ai/evaluation/pass_outcomes.py": "49688e9bdde4ce68089c35272626e528101c6f8c535e3fe234e61dae99e3c5cb",
+    "nhl94_ai/game/geometry.py": "142af9ed94af9fd35432f6c87ef4868507070b2cf50bcf97de2b9b97244bafab",
+    "nhl94_ai/agents/registry.py": "2e3b2da31355da270078647f76ac83573b548c2bcbe5b6fe7dd4fcacf5787a67",
+    "nhl94_ai/evaluation/benchmark.py": "4491d4869e0e87e2c0bf7946096dbea2a2d19fd53fbc185161d3c9425b949803",
+    "nhl94_ai/agents/passing.py": "edb16bd06fee13bd5f93bacc5c748ffb051b0c9e2e99926f8be5b822d3ecfb8d",
+    "nhl94_ai/agents/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/agents/decisions.py": "0dcc31478715f880940c8aad0c7044b73fed42b47dede909cc255945f89dc86e",
+    "nhl94_ai/agents/multi_model.py": "a8b3fc36471695de40fd1078e6148e94b6ef214007c921ff80e86d1982b10bcb",
+    "nhl94_ai/env/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/env/compact_input.py": "cc7b5ab9aa8e9097cd37896b063428e5c04a3fd2f0d89a9545f4f3a1e82be8be",
+    "nhl94_ai/env/components.py": "5474be30f64dd01f6749b1f0ee56ca4bbd50a4b1d4f67434db22305720655f49",
+    "nhl94_ai/env/encoding.py": "a206a811bb0e9ec710055bd3570b0bbd3a79177d5fc7a69b0e2b340458314756",
+    "nhl94_ai/env/intents.py": "1f0af9a0a1655197238760d56cf92f459b151eb0bb5f0c678a67ded4d64bf267",
+    "nhl94_ai/env/observation.py": "39d642e31679952944df8c0cffcb3ace27f1c452fd7446cfd14d661a9e66cfdc",
+    "nhl94_ai/env/perspective.py": "d29e08c89359c07c15afbb453c1b8efbca01a75ed8cc1a16225989037505e7fc",
+    "nhl94_ai/env/wrappers.py": "161bc09e5d542b7d28c365ccbc5137eb52ae00dc6c4313b9975db04bfb4d29e8",
+    "nhl94_ai/evaluation/carry_outcomes.py": "3c5983790d360bdefacd6e32954faa04f2bb5b4bc90d498f060a8f95520fefb6",
+    "nhl94_ai/evaluation/carry_replay.py": "e10576373dfe929069f6b98e167b1702dcb6d82ad356c203a9c31cc20ce3c6af",
+    "nhl94_ai/evaluation/possession_ablation_replay.py": "04af40d453988cb93bc3395805f059ff73b393b05042b1786ddad70c4f80f81e",
+    "nhl94_ai/evaluation/refinement_replay.py": "801d6c125a231eb40f915d872d7d9370948e5633cf75dd0aeabd0fe95232d9d9",
+    "nhl94_ai/game/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/game/constants.py": "444b21c449452eb9550666b225da0fe321fb53852a87c0646123e51a5f057601",
+    "nhl94_ai/game/features.py": "95445aeac91efa9049cedb5b6e8a1da006744c03337d49e892011b8573750c3a",
+    "nhl94_ai/game/specs.py": "4ed866fb7a0477ee4743263ce61599735bad64bcbee13080d22b813e3cb1ce05",
+    "nhl94_ai/tasks/__init__.py": "c1dfd875d05663d639545df12a9965d1d5cbf76e58d545bfb9276c52e3f5e3c6",
+    "nhl94_ai/tasks/az_lostpuck.py": "8b3e568ec7e4c3a0f908f3d23b30f194ba93c33a5b92fe6961fef49c799922da",
+    "nhl94_ai/tasks/breakaway.py": "5dad3bca24112cd34fca824441fed7cc4024d5bde3677eec3b678f8dcd38eb9b",
+    "nhl94_ai/tasks/createopp.py": "fef7c1f6cc3b52bc178bcefafce9ef5f7f701494c7f55e568efb12d8727afc88",
+    "nhl94_ai/tasks/createopportunity.py": "78f788e5ee03c03cbdc7a46e7312fbb16c93436f2652e36226891be3c1cf9ca5",
+    "nhl94_ai/tasks/cross_crease_setup.py": "b48a88583de919227c6f1d530b06b283c1a535f75c89f31002330a1092ca6b3c",
+    "nhl94_ai/tasks/defense_setup.py": "873c845ea2c61325cc65be23dacd623f8ad76cb8939a420fa5d2dfbe656b939e",
+    "nhl94_ai/tasks/defensezone.py": "ec8feb6f56cc0d3ff15fd0c89f27c569048dbc89b5776e7e4810cd4c81eee692",
+    "nhl94_ai/tasks/general.py": "e01fa10b50d973ced6e463afb6f19b4de1426eef148bf594b2891a433eea70c2",
+    "nhl94_ai/tasks/getpuck.py": "19402585f3483ac32f161a0f46b92a912b1bc9ca009d98c83ce085f79cc1ada6",
+    "nhl94_ai/tasks/keeppuck.py": "521404c3d00c4f585a6d7c7435fc880669a7b9b7a3def04eab5455de28acb2f7",
+    "nhl94_ai/tasks/legacy.py": "3f29d8cec03e36b64d137650e24c099de9043624c03e4e0de301a7fddf22a88c",
+    "nhl94_ai/tasks/passing.py": "a6e4860a889114020b96395f388f2a26de7b9061e33113b83e8c8d2c9f94796d",
+    "nhl94_ai/tasks/postplay.py": "95c5ba59d483eb570d68df580dfc9776cc8ec774dafcf7e9d040f049f7d5ab6a",
+    "nhl94_ai/tasks/pvg.py": "fd1b5284ed9d218e182d3072a7043e737ff44ce596001150a400c15180bcbd4a",
+    "nhl94_ai/tasks/pvg_setup.py": "1bab9e66686f503cffd85856a5cc5bd978d1dde729b60641db5a0a40a24aa138",
+    "nhl94_ai/tasks/registry.py": "df48d7dccebdbe590875b5394fbfad929203b9a6eceb69c4b47d9e4dc77ad35b",
+    "nhl94_ai/tasks/scoregoal.py": "7670f91f1f153fd85629eb46a47a424efef421b06eae5852ebceb3a2352cf587",
+    "nhl94_ai/tasks/selfplay.py": "f7ee4b0ad4f279ab42487472b908291fabd90036587cdfbfccf2cd097344f3ef",
+    "nhl94_ai/tasks/setup.py": "83403504762d9c160b3407f5a4653fdd489cb2a711531235b16a73557c509fa6"
+  },
+  "limitations": [
+    "First periods and two team assignments; not full-game win rates.",
+    "Outer arbitration over legacy per-category winners, not every discarded candidate.",
+    "Replay samples first spaced disagreements on baseline trajectories.",
+    "Local branches share legacy follow-up after the first decision and have a 180-frame horizon.",
+    "Correlated local cases are not unbiased state-value training data."
+  ],
+  "evidence": {
+    "path": "classic-v1-possession-ablations-evidence.json.gz",
+    "sha256": "ef97047c233d58851c24409a7612508784635432cbb4c5b6f68576a6c1d86aeb"
+  }
+}

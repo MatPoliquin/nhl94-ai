@@ -87,7 +87,60 @@ checkpoints use `--model_input pvg-v3`. Start a fresh model for the 52-input
 schema rather than reinterpreting those weights.
 
 The sole scripted controller is [Classic V1](docs/CLASSIC_V1.md), formerly V4.
-Its default offense restores the established carry/pass priorities and reception
+Its reaction rate is configurable with `--classic-control-interval N`: `0`
+keeps the default reactive mode; a positive integer holds every raw button and
+samples the game once per N native frames (`4` ≈ 15 Hz, `10` ≈ 6 Hz, `20` ≈ 3 Hz).
+This works in `play`, `evaluate`, and `benchmark-cpu` with `FILTERED` controls.
+For example:
+
+```bash
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --classic-control-interval 10
+```
+
+See [control cadence](docs/CLASSIC_V1.md#choosing-classics-control-cadence) for
+benchmark sweeps and the distinction from tactical frame skipping.
+
+Use `--possession-value` to try a common offensive utility for carries, shots,
+passes, and one-timers, including passes that set up another one-timer pass.
+It accounts for motion and execution timing and exposes its costs in the inspector.
+This is an opt-in heuristic, not a trained goal probability; see the
+[implementation and paired measurements](docs/CLASSIC_V1.md#shared-possession-value-2026-10-09).
+Controlled follow-up experiments use `--possession-ablation rank`, with separate
+`continuations`, `risk`, and `continuations-risk` profiles over legacy proposals.
+The [ablation results](docs/CLASSIC_V1.md#controlled-possession-value-ablations-2026-10-09)
+include matched native replays; none of these profiles replaces the default.
+Receiver-only experiments use `--receiver-selection value` (original admitted
+receivers) or `--receiver-selection all-safe` (also consider lateral/backward
+ordinary passes that pass the existing reception checks). They preserve when
+Classic decides to pass; see [receiver measurements](docs/CLASSIC_V1.md#receiver-selection-experiments-2026-10-09).
+Shot execution can use `--shot-placement models/classic-shot-placement-v1.json`;
+ordinary receiving can use `--reception-control`. These are separate experiments.
+The [execution measurements](docs/CLASSIC_V1.md#shot-placement-and-reception-execution-2026-10-10)
+include a trained model, held-out native outcomes, and full-period comparisons.
+Neither variant improved overall scoring in the measured periods.
+Both remain disabled by default.
+The [chance-quality investigation](docs/CLASSIC_V1.md#chance-quality-and-execution-readiness-2026-10-10)
+compares finishing now with carrying briefly, including native animation readiness
+and velocity. Its replay, learning and benchmark tools remain evaluation-only.
+The [shot-direction experiment](docs/CLASSIC_V1.md#nine-direction-normal-shot-aim-2026-10-10)
+tests high, middle and low aim across all nine directional inputs, including
+rebound outcomes. Neither fixed height nor learned aiming improved validation;
+the tools remain evaluation-only.
+The [rejected-one-timer audit](docs/CLASSIC_V1.md#rejected-one-timer-opportunities-2026-10-10)
+tests passes excluded by the shooting region or same-side value rule. Many
+execute, but forcing them reduces attack goals; both filters remain in place.
+
+One-timer execution experiments use `--one-timer-execution early-cue` or
+`--one-timer-execution release-retry` with `FILTERED` controls. The
+[failed-attempt review](docs/CLASSIC_V1.md#failed-one-timer-execution-review-2026-10-10)
+identifies animation-locked passes and late activation; matched replays rescue
+some attempts, but fresh-period scoring does not improve. Both remain opt-in.
+`--rebound-recovery` ends a normal-shot commitment after the original shooter
+recovers the puck and the native animation unlocks. The
+[rebound comparison](docs/CLASSIC_V1.md#same-shooter-rebound-recovery-2026-10-10)
+found identical inputs and results over 40 fresh periods; this remains an
+opt-in experiment, with no demonstrated scoring improvement.
+Classic's default offense restores the established carry/pass priorities and reception
 cadence after the native-lookahead policy regressed. Use `--offense-lookahead`
 to opt into that experimental policy; `--uncertain-carry` and `--chance-creation`
 also use its native forecasting. See the [restoration evidence](docs/CLASSIC_V1.md#default-offense-restoration-2026-10-08).

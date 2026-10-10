@@ -109,6 +109,10 @@ class NHL94Player:
             get_game(args.env)
         if getattr(args, 'cross_crease', False) or getattr(args, 'deke', False):
             EnvironmentConfig.from_args(args)
+        if getattr(args, 'classic_control_interval', 0):
+            EnvironmentConfig.from_args(args)
+            if args.mode not in ('model_vs_game', 'player_vs_model') or args.model_2:
+                raise ValueError('--classic-control-interval supports one Classic agent versus CPU or human playback')
         if getattr(args, 'goalie_policy', 'off') != 'off':
             EnvironmentConfig.from_args(args)
             if args.mode not in ('model_vs_game', 'player_vs_model') or args.model_2:

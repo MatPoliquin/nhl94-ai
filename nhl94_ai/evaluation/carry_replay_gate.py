@@ -59,6 +59,16 @@ def validate_benchmark(report, root):
         raise ValueError('Benchmark requires chance_creation=False.')
     if settings.get('offense_lookahead', False):
         raise ValueError('Benchmark requires offense_lookahead=False.')
+    if settings.get('possession_value', False):
+        raise ValueError('Default replay gate requires possession_value=False.')
+    if settings.get('possession_ablation'):
+        raise ValueError('Default replay gate requires possession_ablation to be disabled.')
+    if settings.get('receiver_selection'):
+        raise ValueError('Default replay gate requires receiver_selection to be disabled.')
+    if settings.get('shot_placement'):
+        raise ValueError('Default replay gate requires shot_placement to be disabled.')
+    if settings.get('reception_control'):
+        raise ValueError('Default replay gate requires reception_control to be disabled.')
     if settings.get('classic_refinements'):
         raise ValueError('Default replay gate requires classic_refinements to be disabled.')
     if (not isinstance(settings.get('matchups'), list)

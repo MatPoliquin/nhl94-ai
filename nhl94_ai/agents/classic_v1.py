@@ -12,6 +12,7 @@ from nhl94_ai.agents.scheduling import ActionScheduler, ButtonState
 from nhl94_ai.agents.lifecycle import (
     ActionEnd, OneTimerLifecycle, ShotLifecycle, SetupState,
     ONE_TIMER_TIMEOUT_FRAMES, ONE_TIMER_CONTACT_GRACE,
+    validate_one_timer_execution, validate_rebound_recovery,
 )
 from nhl94_ai.agents.defense import DefenseController, eligible, on_ice, owns_puck
 from nhl94_ai.agents.defense import controlled_slot
@@ -25,6 +26,11 @@ from nhl94_ai.agents.offense import (
 )
 from nhl94_ai.agents.passing import pass_release_frames, shot_value
 from nhl94_ai.agents.possession import PossessionOffenseController
+from nhl94_ai.agents.possession_value import PossessionValuePlanner
+from nhl94_ai.agents.possession_ablation import LegacyValueRanker
+from nhl94_ai.agents.receiver_selection import ReceiverSelector, INCOMPATIBLE as RECEIVER_INCOMPATIBLE
+from nhl94_ai.agents.shot_placement import ShotPlacement, extend_hold, INCOMPATIBLE as SHOT_INCOMPATIBLE
+from nhl94_ai.agents.receiving import INCOMPATIBLE as RECEPTION_INCOMPATIBLE
 from nhl94_ai.agents.finishing import normal_finish as evaluate_finish, one_timer_finish
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
@@ -46,8 +52,8 @@ class ClassicAIV1Model:
         self.scheduler = ActionScheduler()
         self.buttons = ButtonState()
         self.recovery_switch_at_decision = 0
-        self.shot = ShotLifecycle()
-        self.one_timer = OneTimerLifecycle()
+        self.shot = ShotLifecycle(rebound_recovery=validate_rebound_recovery(args))
+        self.one_timer = OneTimerLifecycle(execution=validate_one_timer_execution(args))
         self.setup = SetupState()
         self._one_timers = getattr(args, 'one_timers', True)
         self.input_owner = 'idle'
@@ -64,6 +70,47 @@ class ClassicAIV1Model:
                                     chance_creation=getattr(args, 'chance_creation', False))
         self.offense.pass_timing = 'pass-timing' in self.refinements
         self.offense.carry_motion = 'carry-motion' in self.refinements
+        possession_value = getattr(args, 'possession_value', False)
+        if possession_value and (
+                getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
+                or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
+            raise ValueError('Possession-value AI requires full-team FILTERED or HOCKEY_INTENT_DPAD controls')
+        if possession_value and any(getattr(args, name, False) for name in (
+                'offense_lookahead', 'uncertain_carry', 'chance_creation')):
+            raise ValueError('Possession-value replaces offense-lookahead, uncertain-carry and chance-creation selection')
+        self.possession_value = PossessionValuePlanner() if possession_value else None
+        ablation = getattr(args, 'possession_ablation', None)
+        if ablation and (getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'
+                         or getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')):
+            raise ValueError('Possession ablations require full-team Classic buttons/intents')
+        if ablation and any(getattr(args, name, False) for name in (
+                'possession_value', 'offense_lookahead', 'uncertain_carry', 'chance_creation',
+                'cross_crease', 'deke', 'classic_refinements')):
+            raise ValueError('Possession ablations isolate legacy proposals; disable other offensive experiments/refinements')
+        self.possession_ablation = LegacyValueRanker(ablation) if ablation else None
+        self.offense.rank_pass_risk = bool(self.possession_ablation and self.possession_ablation.relaxed_risk)
+        receiver_selection = getattr(args, 'receiver_selection', None)
+        if receiver_selection and (
+                getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'
+                or getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')):
+            raise ValueError('Receiver selection requires full-team Classic buttons/intents')
+        if receiver_selection and any(getattr(args, name, False) for name in RECEIVER_INCOMPATIBLE):
+            raise ValueError('Receiver selection isolates legacy passes; disable other experiments/refinements')
+        self.receiver_selector = ReceiverSelector(receiver_selection) if receiver_selection else None
+        shot_placement = getattr(args, 'shot_placement', None)
+        if shot_placement and (
+                getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'
+                or getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
+                or any(getattr(args, name, False) for name in SHOT_INCOMPATIBLE)):
+            raise ValueError('Shot placement requires full-team Classic buttons/intents with other offensive experiments disabled')
+        self.shot_placement = ShotPlacement(shot_placement) if shot_placement else None
+        reception_control = getattr(args, 'reception_control', False)
+        if reception_control and (
+                getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'
+                or getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
+                or any(getattr(args, name, False) for name in RECEPTION_INCOMPATIBLE)):
+            raise ValueError('Reception control requires full-team Classic buttons/intents with other offensive experiments disabled')
+        self.offense.pass_action.stick_control = reception_control
         if getattr(args, 'chance_creation', False) and (
                 getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
                 or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
@@ -343,6 +390,17 @@ class ClassicAIV1Model:
         }
         return action, HOCKEY_INTENT_NORMAL_SHOOT if action[Buttons.INPUT_C] else HOCKEY_INTENT_NOOP
 
+    def advance_held_frame(self):
+        """Advance time without observing state, changing inputs or commitments.
+
+        _idle clears defensive requests and button state, so it cannot be used
+        while a strict-rate adapter is holding the previous input.
+        """
+        self.defense.frames = self.scheduler.advance(1)
+        self.scheduler.remaining = max(0, self.scheduler.remaining - 1)
+        if self.goalie is not None:
+            self.goalie.frames += 1
+
     def _idle(self, elapsed):
         """Advance the shared clock while releasing defensive action state."""
         self.defense.idle(frame=self.scheduler.advance(elapsed))
@@ -417,6 +475,10 @@ class ClassicAIV1Model:
 
     def _scheduled_frame(self, state, deterministic):
         defending = self._defending(state)
+        if not defending and self.one_timer.needs_frame(state, self.scheduler.frames + 1):
+            self._prepare_exclusive_frame()
+            step = self._continue_one_timer(state)
+            return self._encode(*step) if step is not None else self._neutral('one-timer-ended')
         if self.scheduler.remaining == 0:
             self.scheduler.cache(self._predict_decision(state, deterministic))
             defending = bool(self.defense_diagnostics)
@@ -433,13 +495,14 @@ class ClassicAIV1Model:
         self.scheduler.was_defending = defending
         self.scheduler.remaining -= 1
         self.scheduler.elapsed = self.scheduler.interval
-        if self._last_decision == 'shoot' and self.scheduler.frames >= self.shot.hold_until_frame:
+        if (self._last_decision == 'shoot' or self.shot.extended_hold) and self.scheduler.frames >= self.shot.hold_until_frame:
             self.scheduler.action = self.scheduler.action.copy()
             if self._intents:
                 self.scheduler.action[0, 0] = HOCKEY_INTENT_NOOP
             else:
                 self.scheduler.action[0, Buttons.INPUT_C] = 0
             self.buttons.c_down = False
+            self.shot.extended_hold = False
         return self.scheduler.action.copy()
 
     def _goalie_escape(self, state, player, target):
@@ -680,7 +743,17 @@ class ClassicAIV1Model:
             self.shot.aim(action)
         else:
             self._steer(action, player, player.x + self.shot.side * 40, player.y, state)
+        if self.shot.extended_hold and self.scheduler.frames < self.shot.hold_until_frame:
+            action[Buttons.INPUT_C] = 1
+            return action, HOCKEY_INTENT_NORMAL_SHOOT
         return action, HOCKEY_INTENT_NOOP
+
+    def _select_receiver(self, state, option, purpose):
+        if self.receiver_selector is not None and option is not None:
+            option = self.receiver_selector.choose_receiver(self, state, option, purpose)
+            self.offense_diagnostics['receiver_selection'] = self.receiver_selector.diagnostics
+            self.offense_diagnostics.update(target=option.point, desired_slot=option.slot)
+        return option
 
     def _attack(self, state, action, player, actual, attack):
         self.input_owner = 'offense'
@@ -688,14 +761,15 @@ class ClassicAIV1Model:
         owner = state.engine.puck_owner
         progress = player.y * attack
         self.offense.one_timer_at = self.one_timer.retry_at_frame
-        plan = self.offense.choose(state, self.scheduler.frames)
+        valued = self.possession_value is not None and self.possession_value.available(state)
+        plan = None if valued else self.offense.choose(state, self.scheduler.frames)
         self.offense_diagnostics = self.offense.diagnostics
         escape = self._goalie_escape(state, player, self.offense.carry_target(state, player))
         self.offense_diagnostics['shot_release_model'] = (
             'native-animation-envelope' if player.shot_offsets_y is not None else 'conservative-animation-envelope')
         normal_finish, early_finish = ordinary_shot_conditions(
             state, player, self.scheduler.interval, escape)
-        target = self._one_timer_target(team, opponents, attack, state=state)
+        target = None if valued else self._one_timer_target(team, opponents, attack, state=state)
         finish = evaluate_finish(state, player, self.scheduler.interval) if (
             'finishing' in self.refinements and (normal_finish or early_finish)) else None
         one_timer_finish_option = (one_timer_finish(state, self.one_timer.option)
@@ -709,7 +783,49 @@ class ClassicAIV1Model:
         prefer_one_timer = target is not None and (not normal_finish or (
             finish is not None and one_timer_finish_option is not None
             and one_timer_finish_option.value > finish.value + 4))
-        finisher = self._choose_finisher(state, plan, target)
+        if (self.possession_ablation is not None and self.possession_ablation.available(state)
+                and player.passing is not None):
+            shot_allowed = normal_finish or (early_finish and not (plan and plan[0] == 'one-timer-setup'))
+            selected = self.possession_ablation.choose_legacy(
+                self, state, plan, shot_allowed, prefer_one_timer, target, finish)
+            self.offense_diagnostics.update(self.possession_ablation.diagnostics)
+            prefer_one_timer = selected == 'one-timer'
+            normal_finish, early_finish = selected == 'shoot', False
+            if selected != 'plan':
+                plan = None
+        if valued:
+            choice = self.possession_value.choose(
+                state, self.offense, self.scheduler.frames, one_timer_at=self.one_timer.retry_at_frame,
+                refine_finishing='finishing' in self.refinements,
+                finishers=(('cross_crease', self.cross_crease, evaluate_cross_crease),
+                           ('deke', self.deke, evaluate_deke)))
+            self.offense_diagnostics = self.possession_value.diagnostics
+            self.offense.diagnostics = self.offense_diagnostics
+            self.offense_diagnostics['shot_release_model'] = (
+                'native-animation-envelope' if player.shot_offsets_y is not None else 'conservative-animation-envelope')
+            normal_finish = early_finish = prefer_one_timer = False
+            finish, finisher = None, None
+            if choice is not None:
+                if choice.kind == 'shoot':
+                    normal_finish, finish = True, choice.finish
+                    if finish is not None:
+                        self.offense_diagnostics['normal_finish'] = asdict(finish)
+                elif choice.kind == 'one-timer':
+                    option = choice.option
+                    self.one_timer.option = option
+                    self.one_timer.flight_frames = option.flight_frames + pass_release_frames(team.players[option.index])
+                    indices = [i for i in range(len(team.players)) if team.players[i] is not player]
+                    target, prefer_one_timer = (indices.index(option.index), option.slot), True
+                elif choice.kind in ('cross_crease', 'deke'):
+                    finisher = choice.kind
+                    controller = self.cross_crease if finisher == 'cross_crease' else self.deke
+                    self.offense.cancel()
+                    controller.start(choice.maneuver, state, self.scheduler.frames)
+                else:
+                    mode = 'position-pass' if choice.kind == 'pass' else 'carry-opportunity'
+                    plan = mode, choice.target, choice.option
+        else:
+            finisher = self._choose_finisher(state, plan, target)
         if finisher == 'cross_crease':
             return self._cross_crease_action(state)
         if finisher == 'deke':
@@ -720,6 +836,12 @@ class ClassicAIV1Model:
                 self._last_decision = 'pass-button-release'
                 return action, HOCKEY_INTENT_NOOP
             index, slot = target
+            if self.receiver_selector is not None and self.one_timer.option is not None:
+                option = self._select_receiver(state, self.one_timer.option, 'one-timer')
+                self.one_timer.option = option
+                self.one_timer.flight_frames = option.flight_frames + pass_release_frames(team.players[option.index])
+                indices = [i for i in range(len(team.players)) if team.players[i] is not player]
+                index, slot = indices.index(option.index), option.slot
             receiver = team.get_player_by_scnum(slot)
             duration = (math.ceil(self.one_timer.flight_frames) + ONE_TIMER_CONTACT_GRACE
                         if self.one_timer.flight_frames is not None else ONE_TIMER_TIMEOUT_FRAMES)
@@ -729,7 +851,8 @@ class ClassicAIV1Model:
             self._last_target = (receiver.x, receiver.y)
             self.offense_diagnostics.update(
                 desired_slot=slot, receiver=None,
-                reason='moving one-timer pass with reception margin' if player.passing is not None
+                reason='highest shared possession utility' if valued else
+                'moving one-timer pass with reception margin' if player.passing is not None
                 else 'legacy one-timer geometry; motion safety unverified')
             self._last_pass_request = {
                 'frame': self.scheduler.frames, 'passer': owner, 'receiver': slot, 'purpose': 'one-timer',
@@ -746,13 +869,23 @@ class ClassicAIV1Model:
             self.shot.side = finish.side if finish is not None else (-1 if opponents.goalie.x > 0 else 1)
             self._last_target = self.shot.side * 13, opponents.net.y
             self.offense_diagnostics.update(desired_slot=actual, receiver=None,
-                                            reason='finish before projected goalie contact' if goalie_danger
+                                            reason='highest shared possession utility' if valued else
+                                            'finish before projected goalie contact' if goalie_danger
                                             else 'close-range finishing opportunity')
             self.shot.aim(action)
             if self.buttons.c_down:  # A shot needs a new press, even after a checking burst.
                 return action, HOCKEY_INTENT_NOOP
+            hold = finish.hold_frames if finish is not None else self.scheduler.interval
+            if self.shot_placement is not None:
+                self.shot.side, hold = self.shot_placement.choose(state, self.scheduler.interval)
+                self._last_target = self.shot.side * 13, opponents.net.y
+                self.offense_diagnostics['shot_placement'] = self.shot_placement.diagnostics
+                action[4:9] = 0
+                self.shot.aim(action)
             self.shot.start(state, self.scheduler.decisions, self.scheduler.frames,
-                            finish.hold_frames if finish is not None else self.scheduler.interval)
+                            hold)
+            if self.shot_placement is not None:
+                extend_hold(self, hold)
             action[Buttons.INPUT_C] = 1
             return action, HOCKEY_INTENT_NORMAL_SHOOT
 
@@ -764,6 +897,8 @@ class ClassicAIV1Model:
                 if self.buttons.b_down:
                     self._last_decision = 'pass-button-release'
                     return action, HOCKEY_INTENT_NOOP
+                option = self._select_receiver(state, option, 'advance' if mode == 'advance-pass' else 'position')
+                self._last_target = option.point
                 self.offense.start_pass(state, option, self.scheduler.frames, mode)
                 self._last_pass_request = dict(self.offense.pass_action.last_request)
                 receiver = team.get_player_by_scnum(option.slot)

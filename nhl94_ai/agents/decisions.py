@@ -143,7 +143,7 @@ def _scores(details, fields):
 def _pass_candidate(player, slot, details, *, one_timer, owner, controlled, frame):
     kind = 'one-timer' if one_timer else 'pass'
     status = details.get('status', 'not-evaluated')
-    eligible = status == 'safe'
+    eligible = status in ('safe', 'eligible')
     reason = '' if eligible else status
     candidate_status = 'eligible' if eligible else 'not-evaluated' if status == 'not-evaluated' else 'rejected'
     if eligible and details.get('worthwhile') is False:
@@ -155,6 +155,11 @@ def _pass_candidate(player, slot, details, *, one_timer, owner, controlled, fram
     fields = (('one-timer', 'shot_value'),) if one_timer else (
         ('pass', 'value'), ('position', 'shot_value'), ('carry', 'continuation_position_value'),
         ('finish', 'continuation_finish_value'))
+    if details.get('value_model'):
+        fields = (('possession', 'value'), ('terminal', 'terminal'), ('time cost', 'time_cost'),
+                  ('pressure cost', 'pressure_cost'), ('turnover cost', 'turnover_cost'),
+                  ('uncertainty cost', 'uncertainty_cost'))
+        reason = 'next: ' + details.get('continuation', 'retain') if eligible else reason
     return ActionCandidate(
         f'{kind}:{slot}', _pass_label(player, slot, one_timer),
         'One-timers' if one_timer else 'Passing', slot, _scores(details, fields),
@@ -246,6 +251,13 @@ def classic_decision_snapshot(controller, state, action):
     evaluated = offense.get('evaluation_frame')
     controlled = state.team1.controlled_scnum() if state.team1.defense_control is None else state.team1.defense_control
     source_rows = {row['slot']: row for row in offense.get('teammate_scores', ())}
+    receiver_selection = offense.get('receiver_selection', {})
+    receiver_rows = {row['slot']: row for row in receiver_selection.get('candidates', ())}
+    value_rows = {}
+    for row in offense.get('possession_candidates', ()):
+        action_id = {'carry': 'carry-opportunity', 'cross_crease': 'cross-crease'}.get(row['kind'], row['kind'])
+        if action_id not in value_rows or row.get('value', -math.inf) > value_rows[action_id].get('value', -math.inf):
+            value_rows[action_id] = row
     candidates = []
     for action_id, label, group in CATALOGUE:
         status, reason = 'not-evaluated', ''
@@ -270,6 +282,13 @@ def classic_decision_snapshot(controller, state, action):
         if action_id == 'create-chance':
             scores = _scores(offense, (('window', 'chance_value'),))
             measured = evaluated if scores else None
+        if action_id in value_rows:
+            row = value_rows[action_id]
+            status = 'eligible' if row['status'] == 'eligible' else 'rejected'
+            scores = _scores(row, (('possession', 'value'), ('terminal', 'terminal'),
+                                  ('time cost', 'time_cost'), ('pressure cost', 'pressure_cost'),
+                                  ('turnover cost', 'turnover_cost'), ('uncertainty cost', 'uncertainty_cost')))
+            measured, reason = evaluated, 'next: ' + row.get('continuation', row['status'])
         candidates.append(ActionCandidate(action_id, label, group, scores=scores, source='Classic rules',
                                           status=status, reason=reason, evaluated_frame=measured))
     for one_timer in (False, True):
@@ -277,8 +296,16 @@ def classic_decision_snapshot(controller, state, action):
             slot = state.team1.skater_scnum_base() + index
             row = source_rows.get(slot, {})
             details = (row.get('one_timer') if one_timer else row.get('pass')) or {}
+            ranked = (slot in receiver_rows and one_timer == (receiver_selection.get('purpose') == 'one-timer'))
+            if ranked:
+                details = {**details, **receiver_rows[slot], 'status': 'eligible', 'worthwhile': True}
             candidate = _pass_candidate(player, slot, details, one_timer=one_timer,
                                         owner=state.engine.puck_owner, controlled=controlled, frame=evaluated)
+            if ranked:
+                note = ('legacy receiver' if slot == receiver_selection['baseline_slot'] else 'alternative receiver')
+                if receiver_selection['status'] != 'ranked':
+                    note += '; incomplete forecasts: keep legacy'
+                candidate = replace(candidate, reason='; '.join(filter(None, (note, candidate.reason))))
             if one_timer and not controller._one_timers:
                 candidate = ActionCandidate(candidate.action_id, candidate.label, candidate.group, slot,
                                             source='Classic rules', status='disabled', reason='feature off')

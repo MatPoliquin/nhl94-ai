@@ -42,7 +42,9 @@ class CarryReplayGateTests(unittest.TestCase):
 
     def test_wrong_protocol_cadence_and_experimental_flags_are_rejected(self):
         for name, value in (('frame_skip', 1), ('seconds', 60), ('uncertain_carry', True),
-                            ('chance_creation', True), ('offense_lookahead', True),
+                            ('chance_creation', True), ('offense_lookahead', True), ('possession_value', True),
+                            ('possession_ablation', 'rank'), ('receiver_selection', 'value'),
+                            ('shot_placement', 'model.json'), ('reception_control', True),
                             ('classic_refinements', ['finishing']),
                             ('deke', True), ('cross_crease', True), ('goalie_policy', 'selective'),
                             ('action_type', 'HOCKEY_INTENT_DPAD')):

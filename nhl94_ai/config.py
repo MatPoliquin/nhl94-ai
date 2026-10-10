@@ -53,6 +53,10 @@ class EnvironmentConfig:
         from nhl94_ai.agents.registry import CONTROLLERS, ALIASES
         if config.nn not in MODEL_BUILDERS and config.nn not in CONTROLLERS:
             raise ValueError(f'Unknown policy or agent: {config.nn}')
+        from nhl94_ai.agents.control_rate import control_interval
+        if control_interval(args) and (getattr(args, 'model', '') or (
+                config.nn not in CONTROLLERS and getattr(args, 'agent', None) not in (*CONTROLLERS, *ALIASES))):
+            raise ValueError('--classic-control-interval requires a Classic agent')
         if getattr(args, 'rf', '') == 'PvG':
             supported = (
                 config.env == 'NHL94-Genesis-v0', config.num_players == 1, not config.selfplay,
@@ -69,7 +73,30 @@ class EnvironmentConfig:
                             and getattr(args, 'rf', 'PostPlay') == 'PostPlay')
         if goalie_policy != 'off' and not goalie_supported:
             raise ValueError('Manual goalie AI requires full-team Classic FILTERED PostPlay without self-play')
-        for flag, label in (('cross_crease', 'Cross-crease'), ('deke', 'Deke'),
+        if getattr(args, 'possession_value', False) and any(getattr(args, name, False) for name in (
+                'offense_lookahead', 'uncertain_carry', 'chance_creation')):
+            raise ValueError('Possession-value replaces offense-lookahead, uncertain-carry and chance-creation selection')
+        if getattr(args, 'possession_ablation', None) and any(getattr(args, name, False) for name in (
+                'possession_value', 'offense_lookahead', 'uncertain_carry', 'chance_creation',
+                'cross_crease', 'deke', 'classic_refinements')):
+            raise ValueError('Possession ablations isolate legacy proposals; disable other offensive experiments/refinements')
+        from nhl94_ai.agents.receiver_selection import INCOMPATIBLE as RECEIVER_INCOMPATIBLE
+        from nhl94_ai.agents.shot_placement import INCOMPATIBLE as SHOT_INCOMPATIBLE
+        from nhl94_ai.agents.receiving import INCOMPATIBLE as RECEPTION_INCOMPATIBLE
+        from nhl94_ai.agents.lifecycle import validate_one_timer_execution, validate_rebound_recovery
+        validate_one_timer_execution(args)
+        validate_rebound_recovery(args)
+        if getattr(args, 'reception_control', False) and any(getattr(args, name, False) for name in RECEPTION_INCOMPATIBLE):
+            raise ValueError('Reception control isolates ordinary-pass execution; disable other offensive experiments')
+        if getattr(args, 'shot_placement', None) and any(getattr(args, name, False) for name in SHOT_INCOMPATIBLE):
+            raise ValueError('Shot placement isolates normal-shot execution; disable other offensive experiments')
+        if getattr(args, 'receiver_selection', None) and any(getattr(args, name, False) for name in RECEIVER_INCOMPATIBLE):
+            raise ValueError('Receiver selection isolates legacy passes; disable other experiments/refinements')
+        for flag, label in (('rebound_recovery', 'Rebound recovery'),
+                            ('one_timer_execution', 'One-timer execution'), ('reception_control', 'Reception control'),
+                            ('shot_placement', 'Shot placement'), ('receiver_selection', 'Receiver selection'),
+                            ('possession_ablation', 'Possession ablation'),
+                            ('possession_value', 'Possession-value'), ('cross_crease', 'Cross-crease'), ('deke', 'Deke'),
                             ('uncertain_carry', 'Uncertain-carry'), ('chance_creation', 'Chance-creation'),
                             ('offense_lookahead', 'Offense-lookahead'), ('classic_refinements', 'Classic refinements')):
             if not getattr(args, flag, False):

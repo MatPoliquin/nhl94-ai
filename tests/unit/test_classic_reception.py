@@ -9,7 +9,7 @@ from unittest.mock import patch
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.lifecycle import PassState, OneTimerState
 from nhl94_ai.agents.motion import puck_path
-from nhl94_ai.agents.receiving import passive_reception
+from nhl94_ai.agents.receiving import INCOMPATIBLE, passive_reception, reception_target
 from nhl94_ai.env.intents import HOCKEY_INTENT_CHANGE_PLAYER, HOCKEY_INTENT_NOOP
 from nhl94_ai.game.constants import GameConsts as Buttons
 from tests.unit.test_classic_offense import offense_state
@@ -38,6 +38,46 @@ def waiting_model(schema='FILTERED'):
 
 
 class ReceptionTests(unittest.TestCase):
+    def test_stick_control_rejects_body_only_contact_and_requests_early_rescue(self):
+        state = reception_state()
+        receiver = state.team1.players[0]
+        receiver.x, receiver.y = 60, -70
+        receiver.precise_x = receiver.precise_y = None
+        receiver.motion_x = receiver.motion_y = 0
+        receiver.stick_x, receiver.stick_y = -16, 8
+        receiver.selection_flags, receiver.assignment, receiver.decision_timer = 1, 19, 30
+        state.puck.x, state.puck.y, state.puck.height = 10, -124, .17
+        state.puck.motion_x, state.puck.motion_y, state.puck.motion_z = 3.0163, 3.1105, 0
+        self.assertLess(passive_reception(state, receiver)['gap'], -2)
+        self.assertGreater(passive_reception(state, receiver, stick_only=True)['gap'], -2)
+        self.assertIsNone(waiting_model()._receive_pass(state))
+        model = waiting_model()
+        model.offense.pass_action.stick_control = True
+        with patch('nhl94_ai.agents.classic_v1.DefenseController._likely_switch', return_value=0):
+            action, _ = model._receive_pass(state)
+        self.assertTrue(action[Buttons.INPUT_B])
+        self.assertFalse(action[Buttons.INPUT_C])
+        self.assertEqual(model.offense.pass_action.reception_metrics['switches'], 1)
+
+    def test_stick_target_uses_current_pose_and_replans_with_velocity(self):
+        state = reception_state()
+        receiver = state.team1.players[0]
+        old = reception_target(state, receiver, stick_only=True)
+        receiver.motion_x += 2
+        receiver.stick_x *= -1
+        new = reception_target(state, receiver, stick_only=True)
+        self.assertNotEqual(old, new)
+        receiver.stick_x = None
+        self.assertIsNone(reception_target(state, receiver, stick_only=True))
+
+    def test_stick_control_is_opt_in_and_experiments_are_isolated(self):
+        self.assertFalse(ClassicAIV1Model().offense.pass_action.stick_control)
+        self.assertTrue(ClassicAIV1Model(SimpleNamespace(reception_control=True)).offense.pass_action.stick_control)
+        for flag in INCOMPATIBLE:
+            with self.subTest(flag=flag), self.assertRaises(ValueError):
+                ClassicAIV1Model(SimpleNamespace(reception_control=True,
+                                                **{flag: ['finishing'] if flag == 'classic_refinements' else True}))
+
     def test_live_native_feedback_exposes_marginal_contact_after_receive_assignment(self):
         state = reception_state()
         before = deepcopy(vars(state.team1.players[0]))

@@ -29,6 +29,7 @@ from nhl94_ai.agents.skating import grounded_step
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.evaluation.carry_replay import source_hashes
 from nhl94_ai.evaluation.carry_outcomes import CarryOutcomes
+from nhl94_ai.evaluation.pass_outcomes import PassOutcomes
 from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, MATCHUPS, cpu_view, select_side
 from nhl94_ai.game.ram import pass_geometry_info, restore_away_control
 from nhl94_ai.game.state import NHL94GameState
@@ -110,19 +111,26 @@ def interception_probe(state, before, baseline):
                       for index, future in enumerate(trace)]}
 
 
-def fork(env, snapshot, digest, state, side, policy, action, horizon):
+def fork(env, snapshot, digest, state, side, policy, action, horizon, *, observe_passes=False):
     restore(env, snapshot, digest)
     model, decoded = deepcopy(policy), deepcopy(state)
     view, start = read_view(env, decoded, side)
     first_recovery, loss, first_shot, first_release = None, None, None, None
     outcomes = CarryOutcomes(view, start[f'p{side}_score'], crossing_touch_player(env))
+    passes = PassOutcomes(side) if observe_passes else None
     trace = []
     for elapsed in range(horizon):
         if elapsed:
             action = model.predict_frame(view, frame_skip=4)[0]
+        request = model._last_pass_request
+        if passes is not None and request and request['frame'] == model.scheduler.frames:
+            passes.start(elapsed, start if elapsed == 0 else info,
+                         request['passer'], request['receiver'], request['purpose'])
         before = view.engine.puck_owner
         advance(env, action, side)
         view, info = read_view(env, decoded, side)
+        if passes is not None:
+            passes.observe(elapsed + 1, info)
         outcomes.observe(elapsed + 1, view, info[f'p{side}_score'], crossing_touch_player(env))
         if first_release is None and any(e['release_frame'] == elapsed + 1 for e in outcomes.shot_events):
             first_release = {'frame': elapsed + 1, 'puck': (view.puck.x, view.puck.y),
@@ -145,7 +153,9 @@ def fork(env, snapshot, digest, state, side, policy, action, horizon):
                           'decision': model._last_decision, 'target': model._last_target})
         if info['bench_clock'] == 0 or any(info[f'p{s}_score'] != start[f'p{s}_score'] for s in (1, 2)):
             break
-    return {'frames': elapsed + 1,
+    if passes is not None:
+        passes.finish(elapsed + 1, info, 'horizon-ended')
+    return {**({'pass_events': passes.events} if passes is not None else {}), 'frames': elapsed + 1,
             'goals_for': info[f'p{side}_score'] - start[f'p{side}_score'],
             'goals_against': info[f'p{3-side}_score'] - start[f'p{3-side}_score'],
             'shots': info[f'bench_shots{side}'] - start[f'bench_shots{side}'],

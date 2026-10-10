@@ -1,0 +1,724 @@
+{
+  "protocol": "classic-one-timer-admission-comparison-v1",
+  "date": "2026-10-10",
+  "decision": "Keep both admission filters and default gameplay. Forcing newly admitted passes reduces attack goals; no rule meets the predeclared training gain/support requirements. No candidate advanced to full-period or additional-roster testing.",
+  "settings": {
+    "matchups": [
+      "sabres-ducks-manual",
+      "ducks-sabres-manual"
+    ],
+    "seconds": 300,
+    "frame_skip": 4,
+    "action_type": "FILTERED",
+    "goalie_policy": "selective",
+    "horizon_frames": 360,
+    "sampling_spacing": 60,
+    "per_gate_period_case_cap": 12
+  },
+  "training": {
+    "periods": 40,
+    "cases": 319,
+    "native_alternatives": 336,
+    "seeds": [
+      26101,
+      26102,
+      26103,
+      26104,
+      26105,
+      26106,
+      26107,
+      26108,
+      26109,
+      26110,
+      26111,
+      26112,
+      26113,
+      26114,
+      26115,
+      26116,
+      26117,
+      26118,
+      26119,
+      26120
+    ],
+    "legacy": {
+      "cases": 319,
+      "overrides": 0,
+      "legacy_attack_goals": 62,
+      "selected_attack_goals": 62,
+      "legacy_against": 0,
+      "selected_against": 0,
+      "legacy_continuation_goals": 65,
+      "selected_continuation_goals": 65,
+      "paired_reward_gain": 0,
+      "selected_intended_one_timers": 4,
+      "selected_intended_one_timer_goals": 2
+    },
+    "counts": {
+      "attack-decisions": 25687,
+      "audit:outer-ineligible": 14900,
+      "audit:audited": 10779,
+      "original:outside-one-timer-window": 16214,
+      "original:different-rom-recipient": 17403,
+      "after-window:weaker-one-timer-position": 2555,
+      "original:unreachable-reception": 5192,
+      "after-window:too-short-for-one-timer-cue": 94,
+      "after-window:safe": 1129,
+      "single-gate:window": 1129,
+      "decisions-with-alternative": 1149,
+      "baseline:position-pass": 46,
+      "original:missing-feedback": 1501,
+      "baseline:carry": 429,
+      "baseline:goalie-avoid": 213,
+      "baseline:shoot": 45,
+      "after-window:moving-stick-interception": 5537,
+      "after-window:moving-interception": 5109,
+      "original:moving-interception": 1252,
+      "after-window:contested-reception-or-lane": 954,
+      "original:safe": 152,
+      "baseline:one-timer-pass": 18,
+      "original:moving-stick-interception": 639,
+      "baseline:carry-escape": 202,
+      "baseline:carry-breakaway": 99,
+      "original:airborne-or-unsafe-route": 455,
+      "after-window:friendly-stick-obstruction": 567,
+      "original:contested-reception-or-lane": 99,
+      "original:weaker-one-timer-position": 110,
+      "single-gate:position": 110,
+      "original:too-short-for-one-timer-cue": 59,
+      "original:friendly-stick-obstruction": 51,
+      "baseline:one-timer-setup": 15,
+      "after-window:friendly-obstruction": 200,
+      "original:friendly-obstruction": 21,
+      "after-window:unreachable-reception": 69,
+      "baseline:feint": 71,
+      "audit:button-held": 8,
+      "baseline:advance-pass": 11
+    },
+    "gates": {
+      "window": {
+        "states": 273,
+        "native_alternatives": 286,
+        "intended_one_timers": 196,
+        "intended_one_timer_goals": 8,
+        "initial_pass_outcomes": {
+          "one_timer_shot": 197,
+          "intercepted": 34,
+          "flight_timeout": 24,
+          "received_without_shot": 30,
+          "not_released": 1
+        },
+        "wrong_actual_recipient": 11,
+        "legacy_ranking_control": {
+          "cases": 319,
+          "overrides": 273,
+          "legacy_attack_goals": 62,
+          "selected_attack_goals": 28,
+          "legacy_against": 0,
+          "selected_against": 1,
+          "legacy_continuation_goals": 65,
+          "selected_continuation_goals": 32,
+          "paired_reward_gain": -35,
+          "selected_intended_one_timers": 189,
+          "selected_intended_one_timer_goals": 7
+        },
+        "affected_state_rewards": {
+          "tie": 218,
+          "loss": 45,
+          "gain": 10
+        },
+        "affected_original_attack_goals": 50,
+        "affected_alternative_attack_goals": 16,
+        "contact_depth_below_175": 240,
+        "by_original_decision": {
+          "advance-pass": {
+            "cases": 4,
+            "legacy_attack_goals": 1,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": -1
+          },
+          "carry": {
+            "cases": 101,
+            "legacy_attack_goals": 23,
+            "alternative_attack_goals": 8,
+            "paired_reward_gain": -15
+          },
+          "carry-breakaway": {
+            "cases": 24,
+            "legacy_attack_goals": 3,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": -3
+          },
+          "carry-escape": {
+            "cases": 56,
+            "legacy_attack_goals": 8,
+            "alternative_attack_goals": 2,
+            "paired_reward_gain": -6
+          },
+          "feint": {
+            "cases": 22,
+            "legacy_attack_goals": 4,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": -5
+          },
+          "goalie-avoid": {
+            "cases": 31,
+            "legacy_attack_goals": 5,
+            "alternative_attack_goals": 4,
+            "paired_reward_gain": -1
+          },
+          "one-timer-pass": {
+            "cases": 7,
+            "legacy_attack_goals": 2,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": -2
+          },
+          "one-timer-setup": {
+            "cases": 1,
+            "legacy_attack_goals": 1,
+            "alternative_attack_goals": 1,
+            "paired_reward_gain": 0
+          },
+          "position-pass": {
+            "cases": 19,
+            "legacy_attack_goals": 2,
+            "alternative_attack_goals": 1,
+            "paired_reward_gain": -1
+          },
+          "shoot": {
+            "cases": 8,
+            "legacy_attack_goals": 1,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": -1
+          }
+        }
+      },
+      "position": {
+        "states": 50,
+        "native_alternatives": 50,
+        "intended_one_timers": 32,
+        "intended_one_timer_goals": 7,
+        "initial_pass_outcomes": {
+          "one_timer_shot": 32,
+          "received_without_shot": 6,
+          "intercepted": 8,
+          "flight_timeout": 2,
+          "unresolved-at-horizon": 1,
+          "not_released": 1
+        },
+        "wrong_actual_recipient": 3,
+        "legacy_ranking_control": {
+          "cases": 319,
+          "overrides": 50,
+          "legacy_attack_goals": 62,
+          "selected_attack_goals": 58,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_continuation_goals": 65,
+          "selected_continuation_goals": 61,
+          "paired_reward_gain": -4,
+          "selected_intended_one_timers": 35,
+          "selected_intended_one_timer_goals": 9
+        },
+        "affected_state_rewards": {
+          "tie": 34,
+          "loss": 10,
+          "gain": 6
+        },
+        "affected_original_attack_goals": 14,
+        "affected_alternative_attack_goals": 10,
+        "contact_depth_below_175": 0,
+        "by_original_decision": {
+          "advance-pass": {
+            "cases": 1,
+            "legacy_attack_goals": 0,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": 0
+          },
+          "carry": {
+            "cases": 16,
+            "legacy_attack_goals": 3,
+            "alternative_attack_goals": 2,
+            "paired_reward_gain": -1
+          },
+          "carry-breakaway": {
+            "cases": 1,
+            "legacy_attack_goals": 0,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": 0
+          },
+          "carry-escape": {
+            "cases": 6,
+            "legacy_attack_goals": 3,
+            "alternative_attack_goals": 2,
+            "paired_reward_gain": -1
+          },
+          "feint": {
+            "cases": 3,
+            "legacy_attack_goals": 1,
+            "alternative_attack_goals": 1,
+            "paired_reward_gain": 0
+          },
+          "goalie-avoid": {
+            "cases": 18,
+            "legacy_attack_goals": 5,
+            "alternative_attack_goals": 3,
+            "paired_reward_gain": -2
+          },
+          "one-timer-pass": {
+            "cases": 1,
+            "legacy_attack_goals": 0,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": 0
+          },
+          "one-timer-setup": {
+            "cases": 1,
+            "legacy_attack_goals": 1,
+            "alternative_attack_goals": 1,
+            "paired_reward_gain": 0
+          },
+          "shoot": {
+            "cases": 3,
+            "legacy_attack_goals": 1,
+            "alternative_attack_goals": 1,
+            "paired_reward_gain": 0
+          }
+        }
+      }
+    },
+    "baseline_decisions": {
+      "position-pass": 19,
+      "carry": 115,
+      "one-timer-pass": 8,
+      "carry-escape": 61,
+      "carry-breakaway": 25,
+      "one-timer-setup": 2,
+      "goalie-avoid": 49,
+      "shoot": 11,
+      "feint": 25,
+      "advance-pass": 4
+    },
+    "hindsight_attack_goals": 79
+  },
+  "validation": {
+    "periods": 20,
+    "cases": 170,
+    "native_alternatives": 179,
+    "seeds": [
+      26401,
+      26402,
+      26403,
+      26404,
+      26405,
+      26406,
+      26407,
+      26408,
+      26409,
+      26410
+    ],
+    "legacy": {
+      "cases": 170,
+      "overrides": 0,
+      "legacy_attack_goals": 44,
+      "selected_attack_goals": 44,
+      "legacy_against": 1,
+      "selected_against": 1,
+      "legacy_continuation_goals": 46,
+      "selected_continuation_goals": 46,
+      "paired_reward_gain": 0,
+      "selected_intended_one_timers": 4,
+      "selected_intended_one_timer_goals": 3
+    },
+    "counts": {
+      "attack-decisions": 11868,
+      "audit:outer-ineligible": 7026,
+      "audit:audited": 4836,
+      "original:different-rom-recipient": 7790,
+      "original:outside-one-timer-window": 7066,
+      "original:unreachable-reception": 2535,
+      "after-window:safe": 648,
+      "single-gate:window": 648,
+      "decisions-with-alternative": 668,
+      "baseline:carry": 247,
+      "after-window:moving-stick-interception": 1792,
+      "original:moving-stick-interception": 308,
+      "original:moving-interception": 548,
+      "after-window:weaker-one-timer-position": 1386,
+      "after-window:moving-interception": 2385,
+      "after-window:contested-reception-or-lane": 397,
+      "baseline:goalie-avoid": 105,
+      "original:safe": 73,
+      "after-window:friendly-stick-obstruction": 254,
+      "original:friendly-stick-obstruction": 40,
+      "original:too-short-for-one-timer-cue": 38,
+      "original:weaker-one-timer-position": 57,
+      "single-gate:position": 57,
+      "baseline:carry-escape": 131,
+      "baseline:feint": 55,
+      "baseline:position-pass": 36,
+      "original:missing-feedback": 668,
+      "original:airborne-or-unsafe-route": 192,
+      "after-window:friendly-obstruction": 132,
+      "original:friendly-obstruction": 16,
+      "baseline:advance-pass": 11,
+      "original:contested-reception-or-lane": 37,
+      "after-window:too-short-for-one-timer-cue": 48,
+      "baseline:shoot": 23,
+      "after-window:unreachable-reception": 24,
+      "baseline:one-timer-pass": 10,
+      "baseline:carry-breakaway": 50,
+      "audit:button-held": 6
+    },
+    "gates": {
+      "window": {
+        "states": 153,
+        "native_alternatives": 158,
+        "intended_one_timers": 110,
+        "intended_one_timer_goals": 9,
+        "initial_pass_outcomes": {
+          "one_timer_shot": 110,
+          "received_without_shot": 16,
+          "intercepted": 21,
+          "flight_timeout": 9,
+          "unresolved-at-horizon": 2
+        },
+        "wrong_actual_recipient": 6,
+        "legacy_ranking_control": {
+          "cases": 170,
+          "overrides": 153,
+          "legacy_attack_goals": 44,
+          "selected_attack_goals": 21,
+          "legacy_against": 1,
+          "selected_against": 0,
+          "legacy_continuation_goals": 46,
+          "selected_continuation_goals": 24,
+          "paired_reward_gain": -22,
+          "selected_intended_one_timers": 108,
+          "selected_intended_one_timer_goals": 9
+        },
+        "affected_state_rewards": {
+          "loss": 31,
+          "gain": 9,
+          "tie": 113
+        },
+        "affected_original_attack_goals": 36,
+        "affected_alternative_attack_goals": 13,
+        "contact_depth_below_175": 135,
+        "by_original_decision": {
+          "advance-pass": {
+            "cases": 3,
+            "legacy_attack_goals": 0,
+            "alternative_attack_goals": 1,
+            "paired_reward_gain": 1
+          },
+          "carry": {
+            "cases": 65,
+            "legacy_attack_goals": 17,
+            "alternative_attack_goals": 5,
+            "paired_reward_gain": -11
+          },
+          "carry-breakaway": {
+            "cases": 8,
+            "legacy_attack_goals": 3,
+            "alternative_attack_goals": 1,
+            "paired_reward_gain": -2
+          },
+          "carry-escape": {
+            "cases": 30,
+            "legacy_attack_goals": 7,
+            "alternative_attack_goals": 3,
+            "paired_reward_gain": -4
+          },
+          "feint": {
+            "cases": 9,
+            "legacy_attack_goals": 1,
+            "alternative_attack_goals": 1,
+            "paired_reward_gain": 0
+          },
+          "goalie-avoid": {
+            "cases": 16,
+            "legacy_attack_goals": 4,
+            "alternative_attack_goals": 2,
+            "paired_reward_gain": -2
+          },
+          "one-timer-pass": {
+            "cases": 5,
+            "legacy_attack_goals": 3,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": -3
+          },
+          "position-pass": {
+            "cases": 14,
+            "legacy_attack_goals": 1,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": -1
+          },
+          "shoot": {
+            "cases": 3,
+            "legacy_attack_goals": 0,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": 0
+          }
+        }
+      },
+      "position": {
+        "states": 20,
+        "native_alternatives": 21,
+        "intended_one_timers": 10,
+        "intended_one_timer_goals": 4,
+        "initial_pass_outcomes": {
+          "one_timer_shot": 10,
+          "received_without_shot": 6,
+          "intercepted": 3,
+          "flight_timeout": 2
+        },
+        "wrong_actual_recipient": 1,
+        "legacy_ranking_control": {
+          "cases": 170,
+          "overrides": 20,
+          "legacy_attack_goals": 44,
+          "selected_attack_goals": 41,
+          "legacy_against": 1,
+          "selected_against": 1,
+          "legacy_continuation_goals": 46,
+          "selected_continuation_goals": 43,
+          "paired_reward_gain": -3,
+          "selected_intended_one_timers": 14,
+          "selected_intended_one_timer_goals": 7
+        },
+        "affected_state_rewards": {
+          "gain": 4,
+          "loss": 7,
+          "tie": 9
+        },
+        "affected_original_attack_goals": 9,
+        "affected_alternative_attack_goals": 6,
+        "contact_depth_below_175": 0,
+        "by_original_decision": {
+          "carry": {
+            "cases": 9,
+            "legacy_attack_goals": 4,
+            "alternative_attack_goals": 3,
+            "paired_reward_gain": -1
+          },
+          "carry-escape": {
+            "cases": 3,
+            "legacy_attack_goals": 2,
+            "alternative_attack_goals": 1,
+            "paired_reward_gain": -1
+          },
+          "goalie-avoid": {
+            "cases": 7,
+            "legacy_attack_goals": 3,
+            "alternative_attack_goals": 2,
+            "paired_reward_gain": -1
+          },
+          "shoot": {
+            "cases": 1,
+            "legacy_attack_goals": 0,
+            "alternative_attack_goals": 0,
+            "paired_reward_gain": 0
+          }
+        }
+      }
+    },
+    "baseline_decisions": {
+      "carry": 71,
+      "goalie-avoid": 23,
+      "carry-escape": 33,
+      "feint": 9,
+      "position-pass": 14,
+      "advance-pass": 3,
+      "one-timer-pass": 5,
+      "carry-breakaway": 8,
+      "shoot": 4
+    },
+    "hindsight_attack_goals": 56
+  },
+  "learning": {
+    "selection": {
+      "features": [
+        "contact_depth",
+        "contact_x",
+        "flight",
+        "margin",
+        "shot_value_gain",
+        "lateral_pass",
+        "receiver_vx",
+        "receiver_vy",
+        "goalie_vx",
+        "goalie_lateral_distance",
+        "carrier_animation_locked",
+        "receiver_animation_locked",
+        "baseline_shoot",
+        "baseline_pass"
+      ],
+      "quantiles": [
+        0.25,
+        0.5,
+        0.75
+      ],
+      "min_cases": 20,
+      "min_seeds": 5,
+      "min_training_reward_gain": 3,
+      "target": "Attack goal minus opponent continuation goal within the bounded replay.",
+      "receiver_choice": "Original shot-value, margin, slot ranking within the single relaxed gate."
+    },
+    "rule": null,
+    "supported_rule_count": 108,
+    "best_supported_training_rules": [
+      {
+        "rule": {
+          "gate": "position",
+          "feature": "goalie_vx",
+          "threshold": -0.05252838134765625,
+          "less_equal": true
+        },
+        "totals": {
+          "cases": 319,
+          "overrides": 20,
+          "legacy_attack_goals": 62,
+          "selected_attack_goals": 64,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_continuation_goals": 65,
+          "selected_continuation_goals": 66,
+          "paired_reward_gain": 2,
+          "selected_intended_one_timers": 16,
+          "selected_intended_one_timer_goals": 6
+        }
+      },
+      {
+        "rule": {
+          "gate": "position",
+          "feature": "lateral_pass",
+          "threshold": 18.231564778194027,
+          "less_equal": false
+        },
+        "totals": {
+          "cases": 319,
+          "overrides": 25,
+          "legacy_attack_goals": 62,
+          "selected_attack_goals": 63,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_continuation_goals": 65,
+          "selected_continuation_goals": 65,
+          "paired_reward_gain": 1,
+          "selected_intended_one_timers": 21,
+          "selected_intended_one_timer_goals": 7
+        }
+      },
+      {
+        "rule": {
+          "gate": "position",
+          "feature": "goalie_lateral_distance",
+          "threshold": 32.61847121725559,
+          "less_equal": true
+        },
+        "totals": {
+          "cases": 319,
+          "overrides": 37,
+          "legacy_attack_goals": 62,
+          "selected_attack_goals": 63,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_continuation_goals": 65,
+          "selected_continuation_goals": 65,
+          "paired_reward_gain": 1,
+          "selected_intended_one_timers": 26,
+          "selected_intended_one_timer_goals": 8
+        }
+      },
+      {
+        "rule": {
+          "gate": "position",
+          "feature": "margin",
+          "threshold": 20.88197857895493,
+          "less_equal": true
+        },
+        "totals": {
+          "cases": 319,
+          "overrides": 25,
+          "legacy_attack_goals": 62,
+          "selected_attack_goals": 62,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_continuation_goals": 65,
+          "selected_continuation_goals": 65,
+          "paired_reward_gain": 0,
+          "selected_intended_one_timers": 17,
+          "selected_intended_one_timer_goals": 6
+        }
+      },
+      {
+        "rule": {
+          "gate": "position",
+          "feature": "receiver_vx",
+          "threshold": 0.0988311767578125,
+          "less_equal": true
+        },
+        "totals": {
+          "cases": 319,
+          "overrides": 27,
+          "legacy_attack_goals": 62,
+          "selected_attack_goals": 62,
+          "legacy_against": 0,
+          "selected_against": 0,
+          "legacy_continuation_goals": 65,
+          "selected_continuation_goals": 65,
+          "paired_reward_gain": 0,
+          "selected_intended_one_timers": 23,
+          "selected_intended_one_timer_goals": 8
+        }
+      }
+    ],
+    "rule_artifact": "classic-v1-one-timer-admission-rule.json",
+    "rule_sha256": "4514b24dade29f74454b9a9c933a1040e5ea80dc097e1ee16cc07cbdbe692de0"
+  },
+  "audit": {
+    "unit_tests": 930,
+    "expected_failures": 1,
+    "new_focused_tests": 12,
+    "pylint": "clean",
+    "case_baseline_forks_verified": 489,
+    "repeated_original_controls": 60,
+    "native_rejected_pass_alternatives": 515,
+    "native_original_receiver_one_timers": 348,
+    "native_original_receiver_one_timer_goals": 28,
+    "exact_prior_default_periods": 40,
+    "exact_prior_default_frames": 360256,
+    "prior_evidence": "classic-v1-shot-direction-evidence.json.gz",
+    "prior_evidence_sha256": "cc1423a93d7442684308e7d2984362d351a7689af52346d8da4f4ed852d6f7e9",
+    "source_hashes_verified": 74,
+    "nonfunctional_source_annotations": [
+      {
+        "path": "nhl94_ai/evaluation/one_timer_admission.py",
+        "current_sha256": "bad9181482dddad3d587272ab0defb68b455833381661b45f2ea4a8bb0e6b4c2",
+        "reason": "Local pylint suppression for a dynamically assigned candidate; identical Python AST."
+      }
+    ]
+  },
+  "evidence": "classic-v1-one-timer-admission-evidence.json.gz",
+  "limitations": [
+    "Union of first spaced eligible states per gate, capped per period, on legacy trajectories.",
+    "Each alternative passes every original gate except exactly one positional heuristic.",
+    "Counterfactual forces that pass for one decision, including over original shot priority.",
+    "Fresh B edge, original cue/recipient executor; subsequent decisions use Classic.",
+    "Attack credit stops at four consecutive opponent or stopped-clock frames; continuation runs to horizon, period end or first goal.",
+    "Counterattack goals conceded count even after losing the initial attack.",
+    "Cases can overlap and are correlated; split complete seeds and both assignments together.",
+    "The shooting-window and comparative-position filters are tested separately. A pass failing both is not admitted.",
+    "Existing geometric/risk checks are forecasts, not guarantees of native reception or correct recipient selection.",
+    "The two fixed controls choose the highest original shot-value/margin candidate within a gate, then force it once; unaffected states retain Classic.",
+    "Forcing a diagnostic pass can also change the original normal-shot priority; these results are not a pure remove-a-gate gameplay toggle.",
+    "Native original-receiver one-timer attribution requires the initial commitment and intended shooter. Another recipient firing is not success for that intended opportunity.",
+    "Training used 26101\u201326120; validation 26401\u201326410. Both team assignments and every alternative from a seed stay together.",
+    "Thresholds use training unique-feature quartiles, with 0.5 for binary features. The threshold search can overfit correlated cases.",
+    "At least 20 affected cases, five seeds and three net attack-return gains were required before validation. The best supported training rule gained only two.",
+    "Validation did not choose a replacement rule, and thresholds were not relaxed after results were known.",
+    "Hindsight best-alternative attack goals are outcome-selected ceilings, not an executable or learned policy.",
+    "No candidate qualified for additional-roster or fresh full-period strength testing; results remain limited to the two sampled rosters.",
+    "No new gameplay flag or default behavior change."
+  ]
+}

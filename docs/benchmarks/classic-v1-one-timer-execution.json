@@ -1,0 +1,291 @@
+{
+  "protocol": "classic-one-timer-execution-comparison-v1",
+  "date": "2026-10-10",
+  "decision": "Keep both execution variants opt-in; neither improves fresh-period scoring.",
+  "replay_totals": {
+    "legacy": {
+      "cases": 131,
+      "primary_end": {
+        "timeout": 16,
+        "possession-changed": 25,
+        "shot-released": 89,
+        "receiver-mismatch": 1
+      },
+      "activated": 123,
+      "goals_for": 47,
+      "goals_against": 0
+    },
+    "frame-cue": {
+      "cases": 131,
+      "primary_end": {
+        "timeout": 16,
+        "possession-changed": 25,
+        "shot-released": 89,
+        "receiver-mismatch": 1
+      },
+      "activated": 123,
+      "goals_for": 45,
+      "goals_against": 0
+    },
+    "early-cue": {
+      "cases": 131,
+      "primary_end": {
+        "timeout": 15,
+        "possession-changed": 22,
+        "shot-released": 93,
+        "receiver-mismatch": 1
+      },
+      "activated": 123,
+      "goals_for": 45,
+      "goals_against": 1
+    },
+    "release-retry": {
+      "cases": 131,
+      "primary_end": {
+        "timeout": 13,
+        "possession-changed": 27,
+        "shot-released": 90,
+        "receiver-mismatch": 1
+      },
+      "activated": 128,
+      "goals_for": 46,
+      "goals_against": 0
+    }
+  },
+  "legacy_failure_categories": {
+    "loose-timeout": 10,
+    "opponent-possession": 18,
+    "not-launched": 6,
+    "caught-by-receiver": 4,
+    "receiver-mismatch": 1,
+    "other-friendly-possession": 3
+  },
+  "outcome_transitions": {
+    "frame-cue": [
+      {
+        "legacy": "possession-changed",
+        "variant": "possession-changed",
+        "count": 25
+      },
+      {
+        "legacy": "receiver-mismatch",
+        "variant": "receiver-mismatch",
+        "count": 1
+      },
+      {
+        "legacy": "shot-released",
+        "variant": "shot-released",
+        "count": 89
+      },
+      {
+        "legacy": "timeout",
+        "variant": "timeout",
+        "count": 16
+      }
+    ],
+    "early-cue": [
+      {
+        "legacy": "possession-changed",
+        "variant": "possession-changed",
+        "count": 21
+      },
+      {
+        "legacy": "possession-changed",
+        "variant": "shot-released",
+        "count": 3
+      },
+      {
+        "legacy": "possession-changed",
+        "variant": "timeout",
+        "count": 1
+      },
+      {
+        "legacy": "receiver-mismatch",
+        "variant": "receiver-mismatch",
+        "count": 1
+      },
+      {
+        "legacy": "shot-released",
+        "variant": "possession-changed",
+        "count": 1
+      },
+      {
+        "legacy": "shot-released",
+        "variant": "shot-released",
+        "count": 88
+      },
+      {
+        "legacy": "timeout",
+        "variant": "shot-released",
+        "count": 2
+      },
+      {
+        "legacy": "timeout",
+        "variant": "timeout",
+        "count": 14
+      }
+    ],
+    "release-retry": [
+      {
+        "legacy": "possession-changed",
+        "variant": "possession-changed",
+        "count": 25
+      },
+      {
+        "legacy": "receiver-mismatch",
+        "variant": "receiver-mismatch",
+        "count": 1
+      },
+      {
+        "legacy": "shot-released",
+        "variant": "shot-released",
+        "count": 89
+      },
+      {
+        "legacy": "timeout",
+        "variant": "possession-changed",
+        "count": 2
+      },
+      {
+        "legacy": "timeout",
+        "variant": "shot-released",
+        "count": 1
+      },
+      {
+        "legacy": "timeout",
+        "variant": "timeout",
+        "count": 13
+      }
+    ]
+  },
+  "fresh_complete_periods": {
+    "legacy": {
+      "total": {
+        "periods": 40,
+        "goals_for": 65,
+        "goals_against": 13,
+        "shots": 264,
+        "one_timers": 94,
+        "one_timer_goals": 47
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "goals_for": 45,
+          "goals_against": 3,
+          "shots": 150,
+          "one_timers": 56,
+          "one_timer_goals": 31
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "goals_for": 20,
+          "goals_against": 10,
+          "shots": 114,
+          "one_timers": 38,
+          "one_timer_goals": 16
+        }
+      }
+    },
+    "release-retry": {
+      "total": {
+        "periods": 40,
+        "goals_for": 62,
+        "goals_against": 12,
+        "shots": 260,
+        "one_timers": 99,
+        "one_timer_goals": 47
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "goals_for": 42,
+          "goals_against": 2,
+          "shots": 147,
+          "one_timers": 57,
+          "one_timer_goals": 32
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "goals_for": 20,
+          "goals_against": 10,
+          "shots": 113,
+          "one_timers": 42,
+          "one_timer_goals": 15
+        }
+      }
+    },
+    "early-cue": {
+      "total": {
+        "periods": 40,
+        "goals_for": 63,
+        "goals_against": 14,
+        "shots": 298,
+        "one_timers": 103,
+        "one_timer_goals": 39
+      },
+      "by_matchup": {
+        "sabres-ducks-manual": {
+          "periods": 20,
+          "goals_for": 46,
+          "goals_against": 1,
+          "shots": 175,
+          "one_timers": 60,
+          "one_timer_goals": 28
+        },
+        "ducks-sabres-manual": {
+          "periods": 20,
+          "goals_for": 17,
+          "goals_against": 13,
+          "shots": 123,
+          "one_timers": 43,
+          "one_timer_goals": 11
+        }
+      }
+    }
+  },
+  "paired_goal_difference": {
+    "early-cue": {
+      "goal_difference_delta_per_period": -0.075,
+      "descriptive_95_percent_seed_cluster_interval": [
+        -0.475,
+        0.325
+      ],
+      "seed_cluster_count": 20,
+      "resamples": 20000,
+      "rng_seed": 25751
+    },
+    "release-retry": {
+      "goal_difference_delta_per_period": -0.05,
+      "descriptive_95_percent_seed_cluster_interval": [
+        -0.225,
+        0.1
+      ],
+      "seed_cluster_count": 20,
+      "resamples": 20000,
+      "rng_seed": 25751
+    }
+  },
+  "audit": {
+    "prior_baseline_matching_periods": 40,
+    "prior_baseline_matching_frames": 364057,
+    "prototype_and_integrated_matches_equal": true,
+    "matched_native_branches": 524,
+    "matched_native_branch_frames": 123736,
+    "unit_tests": {
+      "count": 882,
+      "expected_failures": 1
+    },
+    "pylint": "clean"
+  },
+  "evidence": "classic-v1-one-timer-execution-evidence.json.gz",
+  "limitations": [
+    "Discovery uses every committed one-timer from seeds 25441\u201325460 on the legacy trajectory, including successful controls.",
+    "Primary activation/attempt labels stop when the original sequence ends; the shooter must match the intended receiver.",
+    "Replay goals and native attempt totals span 240 continuation frames and can include later attacks; overlapping cases are correlated.",
+    "The first_possession field is the first reacquisition within the continuation horizon; failure classification additionally requires its frame to precede primary_end.",
+    "Fresh periods use seeds 25701\u201325720, both Sabres/Ducks assignments, selective goalies and decision interval four; 40 periods per arm.",
+    "Two fixed rosters and first periods only; descriptive intervals do not establish generalization.",
+    "Exploratory v1 pilot used unbounded primary activation/attempt labels and was discarded; only corrected v2 evidence is retained."
+  ]
+}

@@ -10,6 +10,1320 @@ Historical results below and the archived benchmark files keep their original
 V4/V2/V3 labels, sources, and hashes. They are not new V1 benchmark runs, and
 comparisons against the removed controllers cannot be rerun from this tree.
 
+## Choosing Classic's control cadence
+
+`--classic-control-interval N` selects either the existing reactive controller
+or a strict observation/raw-input cadence. Both use the same AI logic.
+
+| N | Behavior | Maximum observation/input update rate |
+|---:|---|---:|
+| 0 (default) | Existing native-frame reactions | About 60 Hz |
+| 1 | Strict updates every frame | About 60 Hz |
+| 4 | Hold each input for four frames | About 15 Hz |
+| 10 | Hold each input for ten frames | About 6 Hz |
+| 20 | Hold each input for twenty frames | About 3 Hz |
+
+Any positive integer is accepted, including values that do not divide four.
+N counts the whole input interval, including the frame when the input is
+chosen. Negative values and fractions are invalid. Strict mode requires
+`FILTERED` raw buttons so action macros cannot change inputs between updates.
+It applies to all Classic control, including goalies and enabled finishers.
+Cooldowns and timeouts continue advancing on every native frame. Episode resets
+clear the held input and immediately allow a fresh observation. Large intervals
+can deliberately miss reaction windows; the controller is not retuned for them.
+Playback supports one Classic agent versus the CPU or a human; the legacy
+two-model switching path is excluded because it can generate its own inputs.
+
+```bash
+# Existing reactive behavior; omitting the option has the same effect.
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --classic-control-interval 0
+
+# Strict 6 Hz input/observation updates.
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --classic-control-interval 10
+
+# Custom interval in the normal CPU benchmark; settings are saved in the report.
+nhl94 benchmark-cpu --classic-control-interval 20 \
+  --matchups sabres-ducks-manual ducks-sabres-manual --goalie-policy selective \
+  --seed 26501 --trials 10 --workers 4 --output /tmp/classic-interval-20.json
+
+# Paired sweep across several rates using the same runtime implementation.
+python -m nhl94_ai.evaluation.control_rate_benchmark --repeats 1 4 10 20 \
+  --seed 26501 --trials 10 --workers 4 --output /tmp/classic-rates.json.gz
+```
+
+This option is separate from the CPU benchmark's existing `--frame-skip`, which
+schedules offensive tactical decisions and defaults to four. The new cap
+controls when **any** part of the agent can observe or change buttons. Watched
+play retains its four-frame tactical interval. The sweep's `--repeats` takes
+positive intervals; `1` reproduces the normal reactive baseline under that
+four-frame tactical schedule. Rendering continues at native frame frequency.
+
+The implementation is shared in `agents/control_rate.py` and `ScriptedAgent`,
+with elapsed clock advancement owned by the Classic controller. The comparison
+runner uses the normal CPU benchmark instead of a separate experiment adapter.
+Validation includes arbitrary intervals and wrapper boundaries, clean resets,
+and the complete unit suite (939 tests, one expected failure). Six native
+300-second trajectories at intervals 0, 1 and 4 reproduce the archived actions,
+scores, shots and one-timers exactly on both Sabres/Ducks assignments at seed
+26501. Four additional full periods at intervals 10 and 20 complete with exact
+clock and observation accounting.
+
+## Four control rates: reactive, 15 Hz, 6 Hz and 3 Hz (2026-10-10)
+
+The public `--classic-control-interval` settings **0, 4, 10 and 20** were run on
+identical seed/roster assignments. Each setting receives 40 full 300-second first
+periods: seeds 26501–26510, both sides of Sabres/Ducks and Ducks/All-Star Campbell.
+The 160 periods use selective goalies, FILTERED raw buttons, tactical interval
+four, and the current default offense. No controller was retuned for its rate.
+The 0 and 4 arms rerun the earlier comparison; all 80 previous action hashes,
+frame counts, scores, shots and one-timer counters reproduce exactly.
+
+| Control interval | Nominal update rate | Goals for–against | Goal difference | Period wins / draws / losses |
+|---|---:|---:|---:|---:|
+| 0: original reactive | Up to 60 Hz | 60–13 | +47 | 27 / 10 / 3 |
+| 4: strict | 15 Hz | 64–21 | +43 | 25 / 13 / 2 |
+| 10: strict | 6 Hz | 48–33 | +15 | 17 / 12 / 11 |
+| 20: strict | 3 Hz | 22–75 | −53 | 4 / 11 / 25 |
+
+| Native outcome / controller event | Reactive | 15 Hz | 6 Hz | 3 Hz |
+|---|---:|---:|---:|---:|
+| Shots for | 258 | 274 | 189 | 108 |
+| Shots against | 142 | 163 | 144 | 139 |
+| One-timer setups started | 159 | 143 | 129 | 115 |
+| Native one-timer attempts | 106 | 103 | 78 | 15 |
+| Native one-timer goals | 39 | 50 | 32 | 6 |
+| Goalie handoff timeouts | 0 | 0 | 5 | 626 |
+| Periods with a goalie handoff timeout | 0 | 0 | 4 | 40 |
+
+**15 Hz preserves most observed strength; 6 Hz loses substantial strength; 3 Hz
+severely disrupts execution.** At 3 Hz the controller still starts 115 one-timer
+setups, but the game records only 15 one-timer attempts. This aggregate comparison
+is diagnostic, not a per-pass conversion probability. Goalie timeouts are all
+unconfirmed returns to skater control within 60 native frames. The return routine
+normally releases its B press after two frames; the strict 20-frame hold cannot
+preserve that pulse length or its feedback cadence. These observations identify
+execution timing as a major weakness at long intervals. They do not isolate how
+much of the score loss comes from goalie control versus skating or finishing.
+
+Slower control is weaker in every roster assignment at 6 Hz and 3 Hz when measured
+by aggregate goal difference:
+
+| Controlled team / CPU opponent | Reactive goals | 15 Hz goals | 6 Hz goals | 3 Hz goals |
+|---|---:|---:|---:|---:|
+| Sabres / Ducks | 17–1 | 18–4 | 15–5 | 6–20 |
+| Ducks / Sabres | 10–3 | 17–7 | 6–6 | 5–11 |
+| Ducks / All-Star Campbell | 11–7 | 11–7 | 6–11 | 5–27 |
+| All-Star Campbell / Ducks | 22–2 | 18–3 | 21–11 | 6–17 |
+
+Paired changes in goal difference per period, relative to reactive control:
+
+| Interval | Mean change | Pointwise 95% seed-cluster bootstrap interval |
+|---|---:|---:|
+| 4 | −0.10 | [−0.45, +0.35] |
+| 10 | −0.80 | [−1.25, −0.275] |
+| 20 | −2.50 | [−3.325, −1.675] |
+
+The bootstrap uses 20,000 replicates and RNG seed 26520, retaining all four
+matchups and all four modes from each of the ten seeds together. These are
+exploratory pointwise intervals without multiple-comparison correction. First
+periods, fixed starting rosters and the reused seeds limit generalization. The
+results concern this untuned raw-button controller; they do not establish a
+minimum viable inference rate for a learned model or a controller with native
+action helpers.
+
+All 160 periods end at zero clock, paired fixtures/lineups match, one-timer
+lifecycles balance, and the strict arms have exact elapsed-clock and observation
+counts. Frozen sources remain unchanged throughout measurement. The new
+[summary](benchmarks/classic-v1-control-rate-sweep.json) and
+[evidence](benchmarks/classic-v1-control-rate-sweep-evidence.json.gz) preserve all
+periods, source hashes/text, the collector and the analysis script, without
+ROM/save-state bytes. Gameplay defaults remain unchanged.
+
+## Strict 15 Hz control comparison (2026-10-10)
+
+Classic remains competitive when **all controller observations and raw input
+changes are restricted to once every four native frames**. In this sample,
+reducing its reaction rate did not produce a large loss of playing strength.
+This is an untuned rate ablation against the built-in CPU, not an ML comparison.
+
+The normal agent already schedules most offensive decisions every four frames,
+but `configure_scripted_frames` installs native-frame callbacks. Defense,
+goalie control, reception, one-timer execution and shot release can therefore
+react between tactical decisions. Setting `frame_skip=4` alone does not remove
+those callbacks.
+
+The rate limiter used by `evaluation/control_rate_benchmark.py` blocks all
+controller calls on the intervening three frames and holds every raw button,
+including B/C and directions. It advances elapsed clocks and the tactical
+countdown without clearing defensive commitments or making hidden decisions.
+Both arms keep tactical interval four and selective goalie control; optional
+offensive experiments are disabled. Read-only telemetry still runs each frame.
+The existing RAM decoder supplies observations only at allowed controller calls.
+There is no extra inference delay, observation noise or tuning for the slower
+rate. Four nominal 60 Hz frames correspond to about 66.7 ms between updates.
+
+Seeds 26501–26510 cover both team assignments in Sabres/Ducks and Ducks/All-Star
+Campbell: **40 matched first periods per arm, 80 periods total**, each with a
+300-second game clock.
+
+| Native metric | Normal control, up to 60 Hz | Strict 15 Hz |
+|---|---:|---:|
+| Goals for | 60 | 64 |
+| Goals against | 13 | 21 |
+| Goal difference | +47 | +43 |
+| Period wins / draws / losses | 27 / 10 / 3 | 25 / 13 / 2 |
+| Shots for / against | 258 / 142 | 274 / 163 |
+| One-timer attempts | 106 | 103 |
+| One-timer goals | 39 | 50 |
+
+| Controlled team / CPU opponent | Normal goals for–against | Strict 15 Hz goals for–against |
+|---|---:|---:|
+| Sabres / Ducks | 17–1 | 18–4 |
+| Ducks / Sabres | 10–3 | 17–7 |
+| Ducks / All-Star Campbell | 11–7 | 11–7 |
+| All-Star Campbell / Ducks | 22–2 | 18–3 |
+
+The paired change in goal difference is **−0.10 goals per period**, with a
+95% seed-cluster bootstrap interval **[−0.45, +0.35]** (20,000 replicates, RNG
+26500, retaining all four matchups and both arms from each seed together).
+Seventeen pairs improve at 15 Hz, fourteen worsen and nine tie in goal
+difference. This does not establish equivalence, an advantage from slower
+control, or a reliable performance loss. Increased concessions are consistent
+with defense/goalie sensitivity, but isolating either component would require
+another ablation. Native one-timer attempts and goals show that its passing and
+finishing remain effective under the cap.
+
+All periods complete, paired fixtures/lineups match, and one-timer lifecycle
+counts balance. The capped arm dispatches 363,985 inputs with 91,011 controller
+observations; its native clock advances for every held input. Short native
+checks on both Sabres/Ducks assignments at seed 26500 reproduce unwrapped
+Classic's actions, frames, scores, shots and one-timers exactly with repeat one.
+The 29 focused rate/CPU benchmark tests pass, and the new files pass pylint.
+
+For comparisons with learned agents, match **observation cadence, raw input
+cadence, observation features and execution helpers**. A model running at 15 Hz
+with `HOCKEY_INTENT_DPAD` or `TARGET_POSITION` can still use native-frame action
+helpers; that differs from holding raw buttons. The tested cap also retains
+Classic's precise RAM observations and imposes no extra latency, so it is not
+a test of human reaction limits. Gameplay defaults remain unchanged.
+
+Results: [summary](benchmarks/classic-v1-control-rate.json) and
+[evidence](benchmarks/classic-v1-control-rate-evidence.json.gz), including all
+period rows and frozen Python sources without ROM/save-state bytes.
+
+```bash
+python -m nhl94_ai.evaluation.control_rate_benchmark \
+  --seed 26501 --trials 10 --workers 8 \
+  --output /tmp/control-rate-evidence.json.gz
+```
+
+## Shared possession value (2026-10-09)
+
+`--possession-value` enables `agents/possession_value.py` for full-team Classic
+with `FILTERED` or `HOCKEY_INTENT_DPAD` controls. It ranks skater carries, ordinary
+shots, passes, direct one-timers, and enabled cross-crease/deke opportunities
+using the same possession utility. It replaces the old category priorities and
+incomparable pass/carry/shot scores at tactical selection. Existing per-frame
+action lifecycles, native recipient rules, contact checks, and shot release
+guards still execute the selected first action. Defense and goalie outlets
+retain their existing policies.
+
+```bash
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --possession-value
+nhl94 benchmark-cpu --possession-value --trials 10 --seed 24841 \
+  --matchups sabres-ducks-manual ducks-sabres-manual --goalie-policy selective \
+  --seconds 300 --workers 3 --output /tmp/possession-value.json
+```
+
+The feature is opt-in. It cannot be combined with `--offense-lookahead`,
+`--uncertain-carry`, or `--chance-creation`, which are alternative selectors.
+It can combine with `--cross-crease`, `--deke`, and individual
+`--classic-refinements`. Those options still control their own admission and
+execution models; a feasible finisher gets a shared score before selection.
+Missing carrier motion/control feedback falls back to the established policy.
+If every evaluated candidate is infeasible, the existing escape behavior remains
+available; the diagnostics report `no-executable-candidate` rather than inventing
+a scored safe route.
+
+### What a pass is worth
+
+The search advances all actors to predicted reception, updates puck ownership
+and control, and allows at least four frames to settle before evaluating the
+next opportunity. A pass can receive credit for retaining possession in useful
+space, taking an executable ordinary shot, or passing again for a one-timer.
+For example, A → B → C's one-timer counts when B has a legal, timely pass to C
+in the predicted reception state. B may instead return the puck to A.
+The first pass may go backward or laterally. A receiver's current proximity to
+goal alone does not create a forecast shot: the continuation must satisfy the
+same shooting or one-timer admission rules used for live selection.
+
+Only A's action is committed. B's continuation is re-evaluated against the live
+state after reception; forecasts do not force a second pass or C press. The
+one-timer toggle, cooldown, recipient selection, earliest contact, and cue cadence
+apply to projected continuations. The search stops after that additional pass.
+
+Velocity affects the forecast throughout: native acceleration/friction/turning
+for the controlled carrier, receiver drift and pass interception, moving body
+and stick obstacles, and goalie movement during shot release and flight. Pass
+speed, puck friction, catch-speed limits, player ratings, and release timing
+come from the existing models. With the `pass-timing` refinement, recipient
+selection also uses the launch-time view. Uncontrolled actors still use short
+motion forecasts, not simulated future CPU decisions. New carry candidates use
+native motion even without the older `carry-motion` refinement.
+
+### Common units and diagnostics
+
+The model is explicitly `possession-utility-v1-not-probability`. It is a
+transparent heuristic, not learned expected goals or a calibrated goal rate:
+
+```text
+value = terminal utility - time cost - pressure cost
+                         - turnover cost - forecast uncertainty cost
+```
+
+Retained possession gets a modest territory/central-space value. Shot terminal
+utility uses distance, accuracy, speed, aim and swept clearance against both
+teams' bodies/sticks and the goalie. It is a two-dimensional approximation;
+puck height, detailed goalie saves, rebounds and scoring outcomes are not fully
+simulated. A continuation's terminal value includes that continuation's own
+costs. Carry rollouts last 18 frames, extended to cover a longer committed input
+interval when necessary. Every additional frame costs 0.12 utility
+points plus 0.06 for growing forecast uncertainty; pressure costs up to 8 points,
+and turnover exposure costs more near the defensive slot. These initial weights
+are engineering choices, not fitted probabilities.
+
+Pass race margins and the eight deterministic perturbation samples become soft
+costs rather than the old fixed acceptance thresholds. A physically blocked
+lane, incorrect native recipient, offside violation, uncontrollable catch, or
+too-short one-timer cue still rejects the candidate. Sample success fractions
+are never labeled pass-completion probabilities. The first committed carry
+interval must clear bodies; later contact risk is penalized, and goalie route
+guards remain enforced. Exact score ties prefer the shorter commitment.
+
+The inspector shows `possession`, terminal utility and all four cost components
+for eligible actions and pass targets, plus the projected next action. Detailed
+diagnostics retain per-route candidates and continuation slots. CPU reports
+record the flag, source hashes and `possession_value_metrics`: selection counts
+and continuation types, including `pass:next:one-timer`. These are planner
+selections, not proof that the projected continuation happened or scored.
+
+The value/scoring boundary can later accept a learned state value, shot outcome
+model and calibrated transition model while keeping the existing feasibility
+checks and executors. This change does not train a network or claim calibrated
+expected possession value.
+
+### Validation
+
+Focused tests cover a backward pass to B that opens C's one-timer, cooldowns,
+velocity-sensitive reception and shot values, friendly shot blockers, soft race
+costs versus hard obstructions, deterministic state-preserving forecasts,
+optional finishers, the inspector and both action encodings. Native checks run
+with `python -m tests.integration.possession_value` and exercise actual shot
+release and ordinary-pass reception at decision intervals 1, 4 and 8, plus the
+optional finishing refinement. Match measurements below use complete first
+periods; they are not full games or evidence across all rosters.
+Final validation passes 831 discovered tests (one existing expected failure),
+all 14 native scenarios, and pylint at 10.00/10.
+
+The four-period pilot at seeds 24731–24732 scored/conceded 4–2 with the new
+policy versus 1–1 for the baseline. The larger paired comparison used ten fresh
+seeds, 24841–24850, with both Sabres/Ducks assignments: 20 periods per policy,
+300 game-clock seconds, four-frame offensive cadence, `FILTERED` controls and
+selective manual goalies. Cross-crease, deke and refinements were disabled.
+Both policies used identical initial-state hashes, lineups, teams and ROM seeds.
+
+| Controlled team | Periods per policy | Baseline GF–GA | Possession value GF–GA |
+| --- | ---: | ---: | ---: |
+| Sabres vs Ducks | 10 | 16–5 | 13–3 |
+| Ducks vs Sabres | 10 | 10–6 | 2–5 |
+| Total | 20 | **26–11** | **15–8** |
+
+Recorded shots fell from 143 to 84; native one-timers fell from 49 to 42 and
+one-timer goals from 18 to 12. The scorer selected 49 ordinary passes with a
+forecast subsequent one-timer, but these counts do not establish successful
+two-pass sequences. It chose 618 ordinary passes overall versus 320 for the
+baseline and issued fewer normal-shot decisions (65 versus 119). Those outcomes
+support further calibration of possession retention versus immediate finishing;
+they do not isolate a single cause of the regression.
+
+The paired goal-differential change is −0.40 per period. A descriptive 95%
+bootstrap interval, resampling the ten seed clusters with both assignments
+together (20,000 replicates; RNG seed 9473), is [−1.15, +0.25]. This small,
+roster-specific sample does **not** justify promoting the feature. The default
+selector remains unchanged. No weights were fitted to these validation outcomes.
+
+The [measurement summary](benchmarks/classic-v1-possession-value.json) records
+paired outcomes, source hashes, settings, completion and validation checks. The
+[compressed evidence](benchmarks/classic-v1-possession-value-evidence.json.gz)
+contains both complete reports, pilot reports and validation logs, without ROM
+or save-state bytes. The final longer-cadence guard extends carry forecasts
+beyond 18 frames when necessary; repeated four-frame validation checks identical
+action hashes and outcomes against the original batch.
+
+## Controlled possession-value ablations (2026-10-09)
+
+The follow-up separates outer ranking, forecast continuation credit, and pass
+risk admission. `agents/possession_ablation.py` ranks proposals produced by the
+existing Classic policy: its best ordinary pass or cut/breakaway plan, its
+fallback carry route, its admitted ordinary shot and its best admitted one-timer.
+Internal per-category ranking and the existing cut generator remain unchanged.
+This is an experiment on outer arbitration; it does not rescore every discarded
+teammate or introduce new routes. Original cooldowns, shot eligibility, pass
+direction/progress requirements, goalie routing and action lifecycles remain in
+place. If any admitted proposal cannot be forecast, the original choice wins.
+
+| `--possession-ablation` profile | Outer selection | Endpoint continuation credit | Estimated pass-risk gates |
+| --- | --- | --- | --- |
+| `legacy` | Original priorities, instrumented | Off | Original thresholds |
+| `rank` | Shared heuristic value | Off | Original thresholds |
+| `continuations` | Shared heuristic value | On | Original thresholds |
+| `risk` | Shared heuristic value | Off | Soft costs |
+| `continuations-risk` | Shared heuristic value | On | Soft costs |
+
+With endpoint credit off, the new scorer values carried/received possession by
+territory and central space; immediately available shots and direct one-timers
+still receive shot utility. With credit on, the projected endpoint can receive
+value for an admissible shot or another one-timer pass. This switch does not
+disable lookahead already present inside the original cut generator.
+
+The risk switch only removes the pass evaluator's margin/scenario thresholds.
+It keeps physical obstruction, recipient, offside, catch-speed, cue timing,
+legacy immediate-gain and worthwhile-one-timer filters. Its effects can also
+change the legacy cut generator's pass opportunities. Both risk arms use the
+same heuristic costs as their strict counterparts. No weights were tuned in
+this follow-up. Other offensive experiments and refinements cannot be combined
+with these profiles, so they cannot silently contaminate the comparison.
+
+```bash
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --possession-ablation rank
+nhl94 benchmark-cpu --possession-ablation rank \
+  --matchups sabres-ducks-manual ducks-sabres-manual --goalie-policy selective \
+  --trials 10 --seed 24961 --seconds 300 --frame-skip 4 --workers 2 \
+  --output /tmp/ablation-rank.json
+python -m nhl94_ai.evaluation.possession_ablation_replay \
+  --seed 24961 --trials 2 --limit 12 --spacing 120 --horizon 180 \
+  --goalie-policy selective --workers 2 --output /tmp/ablation-replay.json
+```
+
+The instrumented `legacy` control reproduces the archived seed-24841 baseline
+exactly in both assignments: native action hashes, recorded decision counts,
+final counters and 17,539 native frames. Unit fixtures also verify unchanged
+targets and pending lifecycles. Replay restores additionally
+match four complete fresh baseline trajectories, totaling 38,600 frames; forks
+do not change their subsequent baseline action hashes or outcomes.
+
+### Complete-period results
+
+All six versions used the same fresh seeds 24961–24970 in both assignments,
+identical starting teams, lineups and state hashes, `FILTERED` controls,
+four-frame offense and selective manual goalies. Each version completed 20
+first periods of 300 game-clock seconds. The expanded scorer is the original
+`--possession-value` implementation, rerun on these same seeds as a reference.
+
+| Version | Goals for | Goals against | Goal differential | Recorded shots |
+| --- | ---: | ---: | ---: | ---: |
+| Legacy control | 33 | 2 | **+31** | 129 |
+| Ranking only | 27 | 11 | +16 | 119 |
+| Ranking + continuation credit | 34 | 14 | +20 | 112 |
+| Ranking + soft pass-risk gates | 41 | 15 | +26 | 114 |
+| Ranking + both additions | 36 | 13 | +23 | 115 |
+| Original expanded scorer | 20 | 4 | +16 | 97 |
+
+No experimental version beats the legacy goal differential on this batch.
+Softening risk gates increases scoring relative to ranking alone, but also
+increases concessions. The expanded scorer still loses shot volume and goals.
+Concessions can change after offensive decisions even though the defensive
+controller itself is unchanged. These 20-period totals are not full-game win
+rates or proof of universal ordering; the archived summary includes paired
+seed-cluster uncertainty for the component comparisons.
+
+### Matched-state outcomes and diagnosis
+
+The replay samples the first spaced disagreements on four full legacy periods,
+before observing fork outcomes. It finds 46 cases and executes five branches
+from each exact emulator/RNG state, decoded observation and controller history.
+After the first decision, every branch uses the same legacy tactical policy;
+pending pass/shot lifecycles finish normally. Each fork lasts up to 180 native
+frames, ending earlier at a goal or period end. The first control fork in every
+period is repeated to verify deterministic restoration.
+
+| First-decision policy | Cases | Goals for | Shots | One-timers | Ordinary turnovers |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Legacy | 46 | 6 | 23 | 12 | 4 |
+| Ranking only | 46 | 3 | 19 | 5 | 5 |
+| Ranking + continuation credit | 46 | 3 | 20 | 5 | 5 |
+| Ranking + soft pass-risk gates | 46 | 2 | 17 | 4 | 8 |
+| Ranking + both additions | 46 | 2 | 18 | 4 | 8 |
+
+These are correlated, disagreement-selected local cases, not independent games
+or unbiased samples of all hockey states. The proposal sets are asserted equal
+for legacy/rank/continuations and for risk/continuations-risk on each evaluated
+state. Continuation credit changes only one of these 46 sampled choices relative
+to ranking alone; that branch adds a shot, without a goal. The fixture that
+defers a present one-timer demonstrates a possible failure mode, but the sampled
+native cases do not identify it as the dominant problem.
+
+Two concrete misses isolate the value calibration problem:
+
+- Sabres, seed 24962, frame 2606: the ranker values carrying at **22.92** and an
+  immediately available shot at **20.59**. Both have zero pressure/turnover
+  penalties. The legacy shot branch scores; the higher-valued carry branch does
+  not score within the horizon.
+- Sabres, seed 24961, frame 2317: carrying gets **13.55**, while the original
+  forward pass gets **8.09**. Their terminal position values are almost identical
+  (16.79 versus 16.73), but the longer pass pays 8.64 total time/uncertainty points
+  against 3.24 for the carry. Following the pass produces a goal; following the
+  carry does not score within the horizon.
+
+The evidence supports calibrating retained-possession value, shot quality and
+time costs against observed outcomes before promoting shared ranking. Relaxed
+pass admission and added endpoint credit alone do not repair the ordering in
+these cases. A learned estimator would need broader state coverage and separate
+held-out seeds; this small diagnostic sample is not a trained value model.
+
+The [summary](benchmarks/classic-v1-possession-ablations.json) records paired
+comparisons, verification and case-level examples. The
+[evidence archive](benchmarks/classic-v1-possession-ablations-evidence.json.gz)
+contains all six complete-period reports, matched-state observations, predictions,
+native outcomes, source hashes and validation logs. It contains no ROM or emulator
+snapshot bytes. The default policy remains unchanged.
+Validation passes 843 discovered tests (one existing expected failure), clean
+pylint, and 14 native regression scenarios for the original opt-in scorer,
+in addition to the complete-period and restored-state checks above.
+
+## Receiver selection experiments (2026-10-09)
+
+`--receiver-selection` changes the recipient **after** the original controller
+has decided to execute a pass. It preserves the outer shot/carry/pass choice,
+button-release handling, one-timer cue timing, cooldowns and action executors.
+Changing a receiver changes the subsequent game trajectory, so later tactical
+decisions and period totals can still differ.
+
+| Profile | Receiver pool | Ranking |
+| --- | --- | --- |
+| `legacy` | Original admitted receivers | Original choice; record alternative values |
+| `value` | Original admitted receivers | Shared possession utility |
+| `all-safe` | For ordinary passes, every receiver passing the existing reception checks | Shared possession utility |
+
+The expanded profile removes immediate-progress/shot-improvement requirements
+from **alternative ordinary receivers**, allowing lateral or backward setup
+passes. It preserves native recipient selection, contact/catch-speed, offside,
+interception-margin and scenario gates. Its one-timer pool is unchanged.
+“All-safe” names the legacy evaluator's admission result; it does **not** guarantee
+native reception. A documented synthetic pass to `(60, -70)` passes those checks,
+launches toward the correct recipient, misses, and is recovered by the opponent.
+
+The scorer reuses the uncalibrated possession utility above. It projects receiver,
+defender and goalie motion through reception, accounts for pressure and elapsed
+time, and evaluates retaining possession, shooting, or a further one-timer pass
+to a third teammate. The third-player continuation and goalie-velocity response
+have unit coverage. Projected continuations are rechecked live. If any admitted
+receiver cannot be scored, the original recipient is retained. No model weights
+have been fitted, and no profile becomes the default.
+
+The decision inspector displays the receiver values used, their terminal/time/
+risk components, and which recipient was the original choice. Full-period
+reports include `receiver_selection_metrics`. Other offensive experiments and
+refinements cannot be combined with this flag during these controlled tests.
+
+```bash
+python -m nhl94_ai benchmark-cpu --receiver-selection value \
+  --matchups sabres-ducks-manual ducks-sabres-manual --goalie-policy selective \
+  --trials 10 --seed 25061 --seconds 300 --workers 2 --output receiver-value.json
+
+python -m nhl94_ai.evaluation.receiver_replay --trials 20 --seed 25101 \
+  --horizon 900 --workers 4 --output receiver-alternatives.json
+
+python -m nhl94_ai.evaluation.receiver_replay --all-safe --trials 2 --seed 25241 \
+  --horizon 900 --workers 2 --output receiver-expanded-alternatives.json
+```
+
+The replay tool samples multi-receiver passes before observing their outcomes,
+restores identical emulator/RNG state and controller history, and tries every
+admitted recipient. Each branch executes the same pass type at the same frame;
+subsequent decisions use the original policy. It records pass launch target,
+actual possession outcome, follow-up passes, native shots, one-timers, goals,
+motion/rating observations and every candidate's predicted value. No emulator
+snapshots or ROM bytes are saved. Initial restored control forks repeat exactly.
+
+The first validation uses fresh seeds 25061–25070 in both manual assignments,
+20 complete periods per profile, selective goalies and four-frame offense:
+
+| Profile | Goals for | Goals against | Recorded shots | Native one-timers |
+| --- | ---: | ---: | ---: | ---: |
+| Legacy | 30 | 6 | 138 | 44 |
+| Original-pool value ranking | 25 | 6 | 131 | 39 |
+
+Only five receiver changes occurred across the experimental periods. Paired
+goal differential changes by **−0.25 per period**, with a descriptive seed-cluster
+bootstrap 95% interval **[−0.85, +0.20]** (10 seed clusters, both assignments kept
+together, 20,000 resamples, RNG seed 25243). This batch does not support promotion.
+
+The original-pool replays use separate seeds 25041–25042 and 25101–25120: only
+**25 of 900 evaluated skater pass decisions** across 44 complete periods have multiple admitted receivers
+(22 advance, two position, one direct one-timer). These yield 50 alternative
+branches, each measured at 240 frames and then extended to 900 frames. The
+baseline trajectories and sampled cases match between horizons. No ordinary
+candidate in these cases was scored as a follow-up one-timer: this sample does
+not test whether the third-player forecast improves scoring in actual play.
+
+| Common replay states | Legacy goals/shots | Value goals/shots |
+| --- | ---: | ---: |
+| 25 states, 240-frame horizon | 0 / 4 | 0 / 5 |
+| Same 25 states, 900-frame horizon | 4 / 18 | 5 / 23 |
+
+These local returns differ from the full-period result. Nine of ten changed
+ordinary receivers have shorter forecast pass times, and eight sacrifice forward
+gain. This identifies a tendency in the scorer, not proof that every shorter
+pass is wrong. The observed labels need to evaluate both completion and what
+happens after reception; completion alone is not possession value.
+
+A second independent batch, seeds 25261–25270 with the same 20-period protocol,
+compares all three profiles after freezing the expanded implementation:
+
+| Profile | Goals for | Goals against | Shots | One-timers | One-timer goals | Receiver changes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Legacy | 29 | 11 | 141 | 47 | 19 | 0 |
+| Original-pool value ranking | 30 | 10 | 143 | 48 | 20 | 1 |
+| Expanded ordinary receivers | 25 | 7 | 133 | 51 | 18 | 41 |
+
+The expanded profile creates more one-timers but fewer goals, with the same
+**+18** goal differential as legacy. Its paired difference is **0.00 per period**,
+95% seed-cluster interval **[−0.65, +0.60]**. The strict profile's second-batch gain
+comes from just one changed period. Across both batches, strict ranking scores
+55–16 versus legacy's 59–17: **−0.075 goal differential per period** over 40
+periods per profile. Neither result establishes a reliable overall improvement.
+
+Expanded-pool replays on separate seeds 25241–25242 increase multi-receiver
+coverage to **31 of 92 evaluated skater pass decisions**. Spacing admits 29 cases and 63 native alternatives
+at a 900-frame horizon. Both selected policies score 5–1; legacy records 21 shots
+and eight one-timers versus 20 shots and six one-timers for the new ranking.
+This sample contains one position-pass state with two predicted subsequent
+one-timers. Neither branch executes the forecast chain: the preferred recipient
+receives and makes an ordinary pass, while the alternative first pass is
+intercepted. Its later one-timer follows a recovery and is **not** evidence that
+the predicted chain worked. Forecast opportunity and executed opportunity remain
+separate measurements.
+
+The saved [comparison](benchmarks/classic-v1-receiver-selection.json) and
+[evidence archive](benchmarks/classic-v1-receiver-selection-evidence.json.gz)
+include all five full-period arms (100 periods), replay reports, per-version
+frozen sources, uncertainty calculations and validation logs. Six complete-period
+comparisons reproduce baseline actions, frames and goals over 56,651 frames.
+Validation passes 856 discovered unit tests (one existing expected failure),
+clean pylint, 12 confirmed native receptions across both encodings/cadences, and
+the explicit admitted-miss characterization. The final inspector-only correction
+is recorded separately from measured policy sources.
+
+The [counterfactual dataset](benchmarks/classic-v1-receiver-alternatives.jsonl.gz)
+contains 113 alternatives from 54 distinct states, using only the 900-frame
+outcomes to avoid duplicating short/long-horizon examples. It records intended
+reception separately from another teammate collecting the pass. A useful learned
+replacement would predict reception/control, then conditional shot or goal value
+after reception, rather than reward a forecast one-timer simply for existing.
+Training needs more attacking-zone setups, moving receivers and varied rosters;
+this dataset is development evidence, not a calibrated scoring model. Split by
+seed and keep both team assignments and every alternative from a state together
+to avoid leaking near-identical examples into validation.
+
+## Shot placement and reception execution (2026-10-10)
+
+Two isolated execution experiments are now available. **Neither changes the
+default policy.** Each preserves the existing tactical decision about when to
+shoot or pass; it changes how that selected action executes. Other offensive
+experiments/refinements cannot be combined with these flags in the measured setup.
+
+`--shot-placement models/classic-shot-placement-v1.json` loads a small, regularized
+logistic model from portable JSON. At an existing normal-shot decision it compares
+left, neutral (no horizontal input), and right aim with 1, 4, 8, or 12 frames of C.
+The current decision interval is retained as a baseline candidate. Alternative
+holds must pass the release-in-front-of-net check. One-timer timing and shot/pass/
+carry arbitration are unchanged. Longer holds now survive tactical decision
+boundaries and release on the exact native frame; cancellation clears that state.
+Vertical shot placement is not learned by this model.
+
+The 38 features include shooter velocity, facing, ratings and energy; goalie
+position, velocity and animation; predicted release point/time; pressure and lane
+geometry; and interactions between those quantities and aim/hold. The model is
+ridge logistic regression (fixed penalty 10), weighted so each sampled state has
+equal total weight across its alternatives. Validation chooses only the minimum
+estimated improvement required to override the baseline: **0** (strictly higher estimate). Missing motion
+or rating feedback falls back to the original shot. Estimates target the bounded
+primary-shot outcome below, not calibrated game-wide expected goals.
+
+Native data collection saves the original controller history and emulator/RNG
+state at the first 12 forecastable normal-shot starts in each baseline period.
+All aim/hold alternatives begin from that identical state. Additional B inputs
+are suppressed; C is suppressed after the requested hold. A branch ends on a
+tracked shot resolution, new possession, period end, or 120 frames. A goal before
+that endpoint is 1; otherwise it is 0, including timeout. Rebound recoveries and
+later attacks are excluded. This conservative labeling answers whether the
+original attempt scores within the bound, not whether the possession eventually
+produces a goal. Repeated baseline forks match exactly and baseline trajectories
+are restored after every fork.
+
+The retained dataset uses protocol **v3**. An earlier collector accidentally
+cleared C while replacing aim directions, so its labels and fitted model were
+discarded. V3 asserts the executed hold length in every branch; training rejects
+older protocols and mismatched holds. Native regression checks exercise restored
+replay inputs as well as live gameplay inputs. The corrected model uses fresh
+held-out seeds 25601–25610.
+
+| Split | ROM seeds, both team assignments | Complete periods | Shot states | Alternatives |
+| --- | --- | ---: | ---: | ---: |
+| Training | 25301–25340 | 80 | 421 | 5,034 |
+| Validation | 25341–25350 | 20 | 102 | 1,212 |
+| Held out | 25601–25610 | 20 | 112 | 1,341 |
+
+Splits keep both assignments and every alternative from a seed together. Of
+675 observed normal-shot starts, 39 lack forecast feedback and one exceeds the
+per-period limit. The model and threshold were fixed before inspecting the fresh
+held-out outcomes. On the 112 held-out states, the original execution scores **6**
+primary goals and the learned choice scores **13**. Choosing a successful
+alternative after seeing its outcome could score 23. A fixed 12-frame hold with
+original aim scores **11** on those same states. Validation is less encouraging:
+the learned policy and fixed 12-frame rule both score 15 versus the original 14.
+These small samples do not establish a reliable benefit from learning.
+
+`--shot-placement models/classic-shot-hold-12.json` provides that unlearned control.
+It keeps the original aim and uses 12 frames whenever the release guard admits
+it. Unlike the learned model, it does not require all feature forecasts to be
+available. This is a test of broadly extending normal shots, not a default change.
+
+`--reception-control` changes only ordinary-pass receiving. The old passive
+forecast can count body proximity as a secure catch. Native `checkpuckcoll` uses
+the stick hotspot for capture, with a 14-unit radius and a five-unit height
+limit; `puckbody` does not secure possession. The experiment forecasts stick
+contact, can request a switch earlier, and subtracts the current live stick
+offset from the incoming puck target. It replans each native frame using the
+existing velocity/turning-aware arrival estimate and braking-aware steering.
+Directional input requires confirmed receiver control; B switches keep a fresh
+edge, and receiving never presses C. This remains an approximate contact model:
+future animation hotspots, collision cooldowns and native catch eligibility are
+not fully simulated.
+
+The documented pass to `(60, -70)` is now caught in **22 frames** in both control
+formats at intervals 1, 4 and 8. Previously successful native reception fixtures
+also pass. However, 296 matched ordinary-pass requests on separate seeds
+25501–25510 produce **252 → 251** intended receptions and **269 → 268** team
+receptions. Interceptions stay at 11. The lost reception, Ducks seed 25506/frame
+1661, is recorded in the replay evidence. Fixing the synthetic miss has not
+improved the broader sample.
+
+All four policies then run 40 complete 300-second periods each, using fresh seeds
+25441–25460 in both Sabres/Ducks assignments, selective goalies and interval four:
+
+| Policy | Goals for | Goals against | Recorded shots | Native one-timers | One-timer goals |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Original Classic | 57 | 16 | 249 | 90 | 41 |
+| Learned shot placement | 52 | 14 | 234 | 97 | 33 |
+| Fixed 12-frame shot hold | 49 | 13 | 224 | 89 | 31 |
+| Stick-based reception control | 55 | 21 | 248 | 101 | 43 |
+
+The learned model overrides 185 of 199 normal-shot starts (11 use missing-feedback
+fallback), changing aim on 92. The fixed rule changes 196 of 197 starts. The
+paired goal-differential differences per period relative to Classic are
+**−0.075** for learned placement, **−0.125** for fixed hold, and **−0.175** for
+receiving. Descriptive 95% seed-cluster bootstrap intervals are respectively
+**[−0.675, +0.575]**, **[−0.60, +0.35]**, and **[−0.625, +0.275]** (20 clusters,
+both assignments retained together, 20,000 resamples, RNG seed 25551).
+
+The learned model improves the sampled isolated-shot outcome but does not improve
+overall scoring. Non-one-timer goals rise from 16 to 19 while one-timer goals fall
+from 41 to 33. Those totals show the tradeoff after game trajectories change;
+they do not establish a specific causal failure in one-timer execution. The
+fixed-hold and reception variants also do not support promotion. These
+tests cover two fixed rosters and first periods, not whole-game win rates or
+generalization to other opponents. Further learning should retain separate
+seed/roster evaluation and measure subsequent possession outcomes before being
+used as the shared tactical value function.
+
+The [comparison](benchmarks/classic-v1-execution.json) links the
+[evidence archive](benchmarks/classic-v1-execution-evidence.json.gz), including
+full-period reports, reception replays, model fitting/evaluation reports,
+source snapshots, action-hash audits and verification logs. Shot data are saved
+separately as [training](benchmarks/classic-v1-shot-training.json.gz),
+[validation](benchmarks/classic-v1-shot-validation.json.gz), and
+[held-out](benchmarks/classic-v1-shot-heldout.json.gz) native alternatives.
+No ROM or emulator snapshot bytes are included.
+
+Verification passes 873 unit tests (one existing expected failure), clean pylint,
+40 native shot-input scenarios, and 18 receiving scenarios plus the prior seeded
+reception regression. Ten complete-period action-hash/frame/score comparisons
+match over 88,228 frames, checking default preservation, collection restoration,
+and the final runtime against measured source versions.
+
+```bash
+python -m nhl94_ai benchmark-cpu \
+  --shot-placement models/classic-shot-placement-v1.json \
+  --matchups sabres-ducks-manual ducks-sabres-manual --goalie-policy selective \
+  --seed 25441 --trials 20 --workers 4 --output learned-shots.json
+
+python -m nhl94_ai.training.shot_placement fit \
+  --train docs/benchmarks/classic-v1-shot-training.json.gz \
+  --validation docs/benchmarks/classic-v1-shot-validation.json.gz \
+  --output /tmp/refit-shot-model.json --report /tmp/refit-shot-report.json
+
+python -m nhl94_ai.training.shot_placement evaluate \
+  --model /tmp/refit-shot-model.json \
+  --data docs/benchmarks/classic-v1-shot-heldout.json.gz \
+  --report /tmp/heldout-shot-report.json
+
+python -m nhl94_ai.evaluation.reception_replay --seed 25501 --trials 10 \
+  --workers 4 --output reception-replays.json.gz
+```
+
+## Rejected one-timer opportunities (2026-10-10)
+
+This audit tests whether Classic discards valuable one-timer passes before
+ranking them. Two heuristics are examined independently:
+
+- **Shooting region:** projected contact must be within 70 units of the rink
+  center, at attacking depth at least `175 + max(0, 15 - accuracy)` and below 245.
+- **Comparative position:** a pass that does not cross the center with more than
+  30 units of lateral separation must improve estimated shot value by more than
+  12 points over the carrier's current shot.
+
+The audit reruns all later checks after skipping the shooting region. A pass
+must satisfy every other existing requirement, including recipient selection,
+contact prediction, one-timer cue timing, offside rules, obstructions and
+interception margins. Passes requiring both positional heuristics to be removed
+are excluded. A fresh B edge is required; animation-locked attempts remain in the
+data. Passing and cue executors, goalie policy and later tactical decisions stay
+with Classic. These forecast checks do not guarantee a native reception.
+
+Each diagnostic branch **forces one rejected pass for one decision**. It can
+replace a carry, ordinary pass, existing one-timer or preferred normal shot.
+Consequently, the experiment measures the rejected action's opportunity cost;
+it is not a pure gameplay toggle that only removes a gate while preserving
+normal-shot priority. The original controller is the comparison in every state.
+
+Training uses seeds 26101–26120, both Sabres/Ducks assignments and 40 complete
+300-second first periods. Validation uses separate seeds 26401–26410 and 20
+periods. FILTERED controls, decision interval four and selective goalies are
+fixed. Sampling takes the union of the first qualifying states for each gate,
+spaced by 60 native frames, with a cap of 12 per gate per period. Sampling occurs
+before outcomes; all otherwise admissible alternatives in a sampled state are
+replayed from identical emulator/RNG state and controller history.
+
+The resulting **489 situations contain 515 rejected-pass alternatives**:
+319 training situations with 336 alternatives, and 170 validation situations
+with 179 alternatives. Every baseline fork matches an unmodified controller's
+complete action hash and outcome; the first control per period is repeated.
+All 40 training collection trajectories also reproduce the earlier baseline
+action hashes, scores, shots and frames over 360,256 frames.
+
+Rollouts last up to 360 native frames, ending at the first goal or period end.
+**Attack goals** stop receiving credit after four consecutive opponent-possession
+or stopped-clock frames. The rollout continues after a turnover to count goals
+conceded on a counterattack. Ordinary subsequent finishes and rebounds within
+the initial attack count; original intended-receiver one-timer execution and
+goals are measured separately. Another recipient firing does not count as the
+intended one-timer succeeding.
+
+| Forced-pass control | Training attack goals, 319 states | Validation attack goals, 170 states |
+| --- | ---: | ---: |
+| Original Classic | **62** | **44** |
+| Best pass rejected only by shooting region | 28 | 21 |
+| Best pass rejected only by comparative position | 58 | 41 |
+
+The fixed controls use Classic's shot-value, margin and slot ordering to choose
+among rejected receivers within the specified gate. States without such a pass
+retain the original action. The window control changes 273 training and 153
+validation decisions; the comparative-position control changes 50 and 20.
+Training goals conceded are 0 for Classic, 1 for window and 0 for position;
+validation goals conceded are 1, 0 and 1 respectively. These are correlated
+local comparisons, not independent trials or full-period scoring rates.
+
+**Executability is not the main issue in this sample.** Of the 515 alternatives,
+348 produce an attributed one-timer by the intended receiver, with 28 goals from
+those original shots. However, Classic often creates a better finish later in
+the same attack. Of the 153 validation states affected by the shooting-region
+control, 135 project reception before depth 175. Within the affected validation
+states, the window control improves bounded attack return in nine cases and
+worsens it in 31; the position control improves four and worsens seven. Individual
+missed opportunities exist, but taking these passes broadly is detrimental.
+
+A small learned-rule search uses **training only**. It considers one gate and
+one threshold over 14 predeclared geometry, velocity, readiness and original-action
+features. Thresholds come from training unique-value quartiles (0.5 for binary
+features). A candidate must affect at least 20 states across five seeds and gain
+at least three net attack returns, where return is attack goal minus opponent
+continuation goal. Receiver ranking stays fixed, and missing features retain
+Classic. Validation cannot change the chosen gate, feature, threshold or inequality.
+
+Of 108 rules meeting the state/seed support requirement, the best gains only
+**two training goals**, using a goalie lateral-velocity threshold for same-side
+passes. It fails the predeclared minimum gain. No rule qualifies, so selection
+retains Classic; validation is not used to rescue or retune a rejected rule.
+This does not establish that a more expressive model could never help. The
+hindsight best of the baseline and rejected alternatives scores in 79 training
+and 56 validation attacks, versus Classic's 62 and 44, but those outcome-selected
+ceilings are not a deployable policy.
+
+**Decision:** keep both filters and default gameplay. No candidate advanced to
+fresh full-period or additional-roster testing. The work adds evaluation/training
+tools, a shared predicate for the existing position rule, and a default-on
+shooting-window check with an explicit evaluation bypass. There is no new
+gameplay flag. Results remain limited to these two rosters and sampled states.
+
+Verification passes 930 unit tests (one existing expected failure), including
+12 new audit/learning tests, and clean pylint. The final audit source differs
+from the measured snapshot only by one pylint annotation; its Python AST is
+identical. The [comparison](benchmarks/classic-v1-one-timer-admission.json),
+[rule-search report](benchmarks/classic-v1-one-timer-admission-rule.json), and
+[evidence archive](benchmarks/classic-v1-one-timer-admission-evidence.json.gz)
+save every alternative, native trace, rejection count, source version and
+verification log. No ROM or emulator snapshots are included.
+
+```bash
+python -m nhl94_ai.evaluation.one_timer_admission_replay \
+  --seed 26101 --trials 20 --workers 8 --output /tmp/admission-training.json.gz
+python -m nhl94_ai.evaluation.one_timer_admission_replay \
+  --seed 26401 --trials 10 --workers 4 --output /tmp/admission-validation.json.gz
+python -m nhl94_ai.training.one_timer_admission \
+  --training /tmp/admission-training.json.gz --validation /tmp/admission-validation.json.gz \
+  --output /tmp/admission-rule.json
+```
+
+## Nine-direction normal-shot aim (2026-10-10)
+
+This experiment varies normal-shot aim while preserving Classic's choice of when
+to shoot, its four-frame C hold, and its original horizontal follow-through side.
+It tests all nine raw directional inputs: left/center/right crossed with
+high/middle/low. Native checks confirm that **screen UP selects high aim and
+screen DOWN selects low aim at either attacking end**. Vertical aim is not
+flipped with the team's attacking direction.
+
+The collector samples actual normal-shot starts before their outcomes, including
+animation-locked attempts and cases with missing features. It captures the first
+12 starts per period, restores emulator/RNG state and full controller history for
+each alternative, and resumes the original trajectory after replay. Every case
+checks its baseline branch against the unmodified controller, including the
+complete applied-action hash. The first control per period is repeated.
+
+The **primary-shot goal** label belongs only to the original attributed shot.
+The separate **attack goal** label includes friendly rebounds and subsequent
+Classic finishes, ending at a goal, four consecutive opponent-possession or
+stopped-clock frames, period end, or 240 native frames. Later goals cannot turn
+an ignored or superseded original shot into a primary-shot success. Subsequent
+shots and passes use Classic's original executors. Directional input can also
+affect motion during native execution and briefly through cached input after
+release; these comparisons measure the complete input intervention.
+
+Collection uses 300-second first periods, both Sabres/Ducks assignments, selective
+goalies, FILTERED buttons and decision interval four. Training seeds 26101–26120
+produce 238 cases from 40 periods; validation seeds 26201–26210 produce 102 cases
+from 20 periods. Both assignments and every case from a seed stay in one split.
+The resulting **340 situations have 3,060 directional alternatives**. Fourteen
+training and nine validation cases lack complete features; learned policies
+retain the original aim for them, and they remain in the evaluation totals.
+
+| Aim policy | Training attack goals | Training primary goals | Validation attack goals | Validation primary goals |
+| --- | ---: | ---: | ---: | ---: |
+| Classic middle height, original side | 39 | 19 | 19 | 8 |
+| Always high, original side | 35 | 14 | 14 | 8 |
+| Always low, original side | 16 | 10 | 10 | 6 |
+| Learned nine directions, gain threshold 0.10 | 42 | 22 | 18 | 8 |
+
+The learner is ridge logistic regression with fixed regularization and equal
+total weight per case. Its target is the bounded attack goal, including rebounds.
+Inputs include carrier and goalie velocity, shot geometry, power/accuracy,
+handedness, facing, animation readiness, goalie state, puck height and interactions
+with requested height. Validation selects between the fixed controls and learned
+height-only/nine-direction policies at six override thresholds. Ties favor fewer
+overrides, with Classic first. These estimates are not calibrated game-wide xG.
+
+**No candidate beats Classic on validation, so selection retains the original
+aim.** The table's learned example has the best training attack count but loses
+one goal on validation. Other active learned policies also lose goals or tie;
+the full candidate table is saved in the report. High aim preserves eight primary
+goals on validation, while goals from later finishes drop from 11 to six. Counting
+only the first shot would miss this difference.
+
+The hindsight best direction scores in 78 training and 41 validation attacks,
+compared with Classic's 39 and 19. For the original shot alone the corresponding
+ceilings are 29 and 13, compared with 19 and eight. These are outcome-selected
+ceilings, not a usable policy or evidence that the tested features can predict
+those gains. Nearby cases can overlap, so their totals are descriptive counts,
+not independent trials or complete-period scoring rates.
+
+**Decision:** preserve default gameplay. No changed policy advanced to a fresh
+complete-period strength comparison. A two-pair native check on seed 26301
+verifies that the selected legacy policy reproduces the original controller's
+complete periods exactly; it is a runtime parity check, not a performance result.
+All new tools remain under `evaluation` and `training`, with no new gameplay flag.
+
+Verification passes 918 unit tests (one existing expected failure), clean pylint,
+and 36 native input checks spanning both net ends and both handedness values.
+All 2,783 attributed original shots use the requested native direction; 2,720
+have an observed release frame and 63 rely on the recorded-shot counter. The
+remaining 277 branches have no attributed original shot. All 40 training
+collection trajectories match earlier baseline action hashes, frames, scores
+and shots across 360,256 frames.
+
+The [comparison](benchmarks/classic-v1-shot-direction.json),
+[selected policy](benchmarks/classic-v1-shot-direction-model.json), and
+[evidence archive](benchmarks/classic-v1-shot-direction-evidence.json.gz) preserve
+all alternatives, fitted candidates, outcome traces, source versions, audits and
+verification logs. The archive contains no ROM or emulator snapshots.
+
+```bash
+python -m tests.integration.shot_direction
+
+python -m nhl94_ai.evaluation.shot_direction_replay \
+  --seed 26101 --trials 20 --workers 8 --output /tmp/direction-training.json.gz
+python -m nhl94_ai.evaluation.shot_direction_replay \
+  --seed 26201 --trials 10 --workers 4 --output /tmp/direction-validation.json.gz
+python -m nhl94_ai.training.shot_direction \
+  --training /tmp/direction-training.json.gz --validation /tmp/direction-validation.json.gz \
+  --output /tmp/direction-model.json --report /tmp/direction-fit.json
+```
+
+## Chance quality and execution readiness (2026-10-10)
+
+This investigation separates the value of a chance from the ability to execute
+it. The new tools remain under `evaluation` and `training`; they add no gameplay
+flag and do not change Classic's default decisions.
+
+The existing normal-shot geometry score has useful ranking information. Across
+635 previously recorded baseline normal shots, its score quartiles contained
+2, 2, 7 and 26 primary-shot goals respectively (37 total; descriptive AUC 0.820).
+Those scores are not calibrated probabilities. A poor shot can still be the
+best available action if waiting loses possession or closes the opening.
+
+The native chance collector compares Classic's selected finish with a single
+carry decision and, when admitted by the existing gates, the other finish type.
+It keeps the original shot/pass executors, goalie policy and subsequent tactical
+policy. Each fork restores emulator/RNG state, decoded history and the complete
+controller. Every case verifies that its baseline branch reproduces the original
+controller's complete action hash and outcome; the first control in each period
+is replayed again. No ROM or emulator snapshots are stored in the evidence.
+
+Discovery used seeds 25901–25920, both Sabres/Ducks assignments, 300-second first
+periods, selective goalies, FILTERED buttons and decision interval four. Sampling
+takes the first eligible finish decision at least 60 native frames after the
+previous sample, before knowing its result. All 40 collection trajectories match
+the earlier unmodified full-period results exactly.
+
+The 298 captured decisions included 157 normal shots and 141 one-timers. Only
+two offered both finish types; both originally selected a one-timer and neither
+alternative scored in the bounded replay. This sample provides little support
+for changing the priority between simultaneously available finishes.
+
+| Initial choice/readiness | Cases | Classic attack goals | Carry-first attack goals |
+| --- | ---: | ---: | ---: |
+| Normal shot, unlocked | 148 | 12 | 11 |
+| Normal shot, locked | 9 | 1 | 3 |
+| One-timer, unlocked | 137 | 41 | 36 |
+| One-timer, locked | 4 | 0 | 0 |
+
+An **attack goal** is a goal within the 240-frame rollout before the opponent
+first gains possession. It can include a rebound or a later finish within that
+attack; it is not a primary-shot conversion label. Separate continuation-goal
+and shot counters include subsequent attacks. Cases can overlap, so their totals
+are descriptive and are not independent samples or full-period scoring rates.
+
+A small machine-learning probe fits one carry/finish threshold using nine
+predeclared readiness, velocity and geometry features. It searches training
+quantiles, requires at least 20 affected cases from five seeds, and maximizes
+paired attack goals minus bounded goals conceded. Both team assignments and
+every case from a seed remain together: 25901–25914 train, 25915–25920 validate.
+The selected rule briefly deferred normal shots when forward velocity was at
+most 1.066 rink units per native frame. Its training attack goals rose from 37
+to 42, but untouched validation fell from 17 to 15. The rule was rejected without
+retuning or taking it into full-period testing.
+
+The smaller mechanistic candidate defers a normal shot for one carry decision
+when native `selection_flags & 0x20` reports an animation lock. The next attack
+decision uses Classic before the rule can defer again. This candidate was
+selected after examining all discovery results, including the nine locked normal
+shots, so its local improvement is exploratory. Fresh complete periods provide
+its first independent comparison.
+
+The two exploratory gains are not evidence that four frames reliably clears
+the lock: the first recorded shots came 98 and 127 frames later. Eight of the
+nine original locked-shot states were still locked after four frames. The
+candidate changes the ensuing trajectory, so any claim of benefit must come
+from complete periods, independently of the proposed explanation.
+
+The first 40 fresh periods per policy (seeds 26001–26020) produced 66–10 for
+Classic and 70–11 for the readiness candidate. Fourteen deferrals changed ten
+period trajectories; the other 30 were identical. The paired goal-difference
+change was +0.075 per period, with a descriptive 95% seed-cluster bootstrap
+interval of [−0.050, +0.225]. This prompted a second comparison of the same
+frozen rule on seeds 26101–26120, without retuning.
+
+The confirmation reversed the initial gain: Classic scored 63–7 and the
+candidate 59–8 over another 40 periods each. Combined results are:
+
+| Policy | Periods | Goals for–against | Recorded shots | Native one-timers | One-timer goals |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Classic | 80 | 129–17 | 563 | 198 | 93 |
+| Brief carry before a locked normal shot | 80 | 129–19 | 580 | 201 | 89 |
+
+The candidate made 25 deferrals across 19 changed periods; 61 paired trajectories
+remained identical. Combined paired goal difference changed by −0.025 per period,
+with descriptive 95% seed-cluster interval [−0.125, +0.075] (40 seed clusters,
+both assignments kept together, 20,000 bootstrap resamples). The initial and
+confirmation stages are also reported separately. These are two fixed rosters
+and first periods, not general full-match strength measurements.
+
+**Decision:** preserve default gameplay. The learned velocity threshold failed
+local validation, and the separate readiness heuristic failed to sustain its
+initial full-period gain. More shots and a slightly higher one-timer count did
+not increase scoring. The data supports continued work on the opportunity cost
+of waiting and on creating earlier passing/finishing alternatives; it does not
+justify installing either tested rule.
+
+Validation passed 906 unit tests with one existing expected failure and clean
+Pylint for the added modules. Native checks verified all 298 baseline forks,
+40 repeated controls, 40 historical baseline periods and all 160 fresh comparison
+periods. An early benchmark attachment to the wrapper instead of its controller
+was detected through zero decision counters, stopped and excluded; the attachment
+now has a regression test, and both valid stages use the corrected frozen source.
+
+The [summary](benchmarks/classic-v1-chance-selection.json) and
+[portable evidence](benchmarks/classic-v1-chance-selection-evidence.json.gz)
+contain the replay outcomes, feature values, fitted rules, per-period metrics,
+action hashes, source versions and verification logs. The evidence contains no
+ROM or emulator snapshot bytes.
+
+The learned rule and the separate readiness rule are stored as inspectable JSON
+under `docs/benchmarks`, rather than being installed as production policies.
+To reproduce the research:
+
+```bash
+python -m nhl94_ai.evaluation.chance_selection_replay \
+  --seed 25901 --trials 20 --workers 4 --output /tmp/chances.json.gz
+python -m nhl94_ai.training.chance_selection \
+  --data /tmp/chances.json.gz --validation-seed 25915 \
+  --output /tmp/chance-rule.json
+python -m nhl94_ai.evaluation.chance_selection_benchmark \
+  --rule docs/benchmarks/classic-v1-chance-ready-rule.json \
+  --seed 26001 --trials 20 --workers 8 --output /tmp/chance-periods.json.gz
+# Repeat the frozen rule on independent confirmation seeds.
+python -m nhl94_ai.evaluation.chance_selection_benchmark \
+  --rule docs/benchmarks/classic-v1-chance-ready-rule.json \
+  --seed 26101 --trials 20 --workers 8 --output /tmp/chance-confirmation.json.gz
+```
+
+## Same-shooter rebound recovery (2026-10-10)
+
+`--rebound-recovery` enables a narrow normal-shot lifecycle experiment. It ends
+the old commitment when its shooter recovers a previously released shot and can
+accept a new native input. **It remains off by default: the final version produces
+identical complete-period action hashes and outcomes to Classic in the fresh
+40-period comparison below.** The earlier immediate-replan prototype does not
+improve scoring either.
+
+The original hypothesis was that follow-through unnecessarily prevents a shooter
+from acting after recovering their own rebound. Existing Classic already cancels
+when a different teammate gains possession, but retains the original shooter's
+commitment. The experiment remembers an observed loose puck with an increased
+shot count and matching shooter (or the existing unknown-shooter fallback). It
+can then interrupt the tactical input cache on recovery and reconsider shooting,
+passing or carrying in that same native frame. Starting another shot or cancelling
+the commitment clears release evidence. A stopped clock also clears that evidence.
+Retained possession during windup, an unconfirmed loose puck, and expired
+commitments do not trigger the change. Existing fresh-C handling still releases
+an old held C before allowing another shot press.
+
+The first implementation replanned immediately after recovery. Forty discovery
+periods, seeds 25701–25720 with both Sabres/Ducks assignments, contain **12**
+qualifying recoveries. Classic's remaining delay is **0–6 frames**, mean 3.67;
+the seven-decision shot window does not mean a full seven decisions remain after
+the rebound. In **10 of 12** cases, the shooter is still animation-locked.
+The ROM's `doinput` ignores carrier B/C while `selection_flags & 0x20` is set.
+Issuing a new C press during that lock can consume the edge before shooting is
+possible.
+
+For example, Anaheim seed 25707/frame 3547 normally waits three frames, then
+shoots and scores. Immediate replanning presses C while locked and loses that
+goal in the replay. Another recovery, Anaheim seed 25708/frame 3898, gains a
+later goal. Across 240-frame continuations from all 12 identical states, both
+policies score **two goals**; recorded shots change **8 → 7**. These goals can
+include later attacks, and nearby recoveries overlap. They are not independent
+primary-shot conversion measurements.
+
+The final implementation waits for known, clear animation-lock feedback before
+interrupting. Unknown flags retain the original behavior. If the old commitment
+expires first, normal Classic decisions resume; no deadline is extended and no
+future shot inherits a pending recovery. It clears seven commitments in the
+matched replays, but all 12 sampled action traces and outcomes match Classic.
+In every captured case, native unlock occurs at or after Classic's first replan.
+The result weakens the original hypothesis: at the default cadence, the apparent
+hesitation often coincides with the time when a new shot cannot execute.
+
+Fresh comparisons use separate seed sets for the original and revised variants.
+Every arm runs 40 complete 300-second first periods, both Sabres/Ducks assignments,
+selective goalies, `FILTERED` input, and decision interval four:
+
+| Experiment / seeds | Policy | Goals for | Goals against | Shots | Native one-timers |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Immediate / 25801–25820 | Original Classic | 47 | 15 | 259 | 94 |
+| Immediate / 25801–25820 | Immediate replan | 47 | 16 | 259 | 95 |
+| Animation-aware / 25901–25920 | Original Classic | 52 | 15 | 242 | 112 |
+| Animation-aware / 25901–25920 | Wait for native unlock | 52 | 15 | 242 | 112 |
+
+Immediate replanning triggers ten times and changes eight period trajectories.
+The paired goal-difference change is **−0.025 per period**, with a descriptive
+95% seed-cluster bootstrap interval **[−0.225, +0.150]** (20 clusters retaining
+both assignments, 20,000 resamples, RNG seed 25951). The revised version clears
+13 commitments but matches **all 40** original action hashes, frame counts,
+scores, shots and one-timer totals. Its counter measures lifecycle transitions,
+not necessarily earlier decisions or changed inputs. Scores from the two seed
+sets must not be compared as if they were paired treatments. These results do
+not establish behavior across other rosters, cadences or full matches.
+
+The current public flag uses the version that checks for animation unlock. The
+immediate prototype remains only as a replay comparison and archived measured
+source. The public option supports full-team Classic buttons/intents, rejects
+self-play and other offensive experiments, and leaves the default unchanged.
+This also differs from the historical rebound experiment below, which changed
+behavior when the puck left the shooter, before any confirmed recovery.
+
+The [comparison](benchmarks/classic-v1-rebound-recovery.json) and
+[evidence archive](benchmarks/classic-v1-rebound-recovery-evidence.json.gz)
+include every recovery trace, both fresh comparisons, measured sources and
+verification logs. Forty restored discovery trajectories match the prior
+archive's action hashes, scores, shots and **359,730 frames**. The revised
+collector reproduces the original collector's 24 baseline/immediate branches.
+All 160 comparison periods finish at zero clock with balanced one-timer
+accounting and no inactive-skater frames. No ROM or emulator snapshots are saved.
+
+Verification passes **895 unit tests** (one existing expected failure), clean
+pylint, and six native handoff checks: buttons and intents at intervals 1, 4 and 8.
+The native test captures Buffalo seed 25702's actual recovery and waits for input
+readiness at frame 2732; both formats emit identical buttons and subsequent RAM.
+
+```bash
+python -m nhl94_ai.evaluation.rebound_replay --seed 25701 --trials 20 \
+  --workers 4 --output rebound-replays.json.gz
+
+python -m nhl94_ai benchmark-cpu --rebound-recovery \
+  --matchups sabres-ducks-manual ducks-sabres-manual --goalie-policy selective \
+  --seed 25901 --trials 20 --workers 4 --output rebound-periods.json
+
+python -m tests.integration.rebound_recovery
+```
+
+## Failed one-timer execution review (2026-10-10)
+
+Two execution experiments are available with `--one-timer-execution early-cue`
+or `--one-timer-execution release-retry`. **Neither improves overall scoring in
+the fresh-period comparison below; both remain off by default.** They require
+full-team `FILTERED` controls and reject other offensive experiments and
+self-play. They preserve the tactical choice of passer/receiver, deadline,
+cooldown, and normal shots. The intent macro is excluded because it owns the
+initial B hold and cannot reproduce an early C handoff unchanged.
+
+The native replay collector captures **all 131 committed one-timer starts** from
+40 original Classic periods, seeds 25441–25460 with both Sabres/Ducks assignments.
+It includes all 89 successful releases as controls. Each alternative restores
+the same emulator/RNG state and complete controller history, including the exact
+original B input. Only the initial pending sequence changes; later play uses
+Classic. Repeated branches match exactly. Restoring the original trajectory
+reproduces the previously archived baseline's action hashes, frame counts and
+scores across all 40 periods and **364,057 frames**.
+
+The 42 failed sequences break down as follows. These are observed outcomes,
+not guesses about every underlying collision:
+
+| Outcome before the original sequence ends | Cases |
+| --- | ---: |
+| Opponent gains possession | 18 |
+| Launched pass remains loose at timeout | 10 |
+| B input never launches a pass | 6 |
+| Intended receiver catches instead of one-timing | 4 |
+| Another teammate gains possession | 3 |
+| Native pass targets a different receiver | 1 |
+
+All six unlaunched passes start with the passer's animation-lock bit set
+(`selection_flags & 0x20`). The ROM's `doinput` checks that flag before reaching
+the carrier's pass handler, so B can be ignored. Original Classic releases B
+after the initial hold and waits until the request times out. In Buffalo seed
+25441/frame 5596, the lock persists until roughly frame 18 of the request, well
+after the B press. In Anaheim seed 25442/frame 5937, the retry experiment launches
+the previously ignored pass and produces a native one-timer at frame 34.
+
+`release-retry` preserves the initial pass and observes retained possession each
+frame after its four-frame hold. Starting eight frames into an unlaunched request,
+it alternates four frames of B with four released frames, providing fresh native
+presses after an animation unlock. It stops retrying once flight is observed or
+the request ends. It does not extend the deadline or continue chasing a changed
+owner. This repairs one of the 42 failed attempts in the matched sample, while
+preserving all 89 original successful releases. A late launch can still exhaust
+the original deadline, and a recovered pass can still be intercepted.
+
+`early-cue` observes confirmed loose-puck flight each frame and can release B and
+cue C before the normal four-frame tactical boundary. Subsequent cues require
+fresh C edges and stop while the receiver is in the native one-timer animation.
+In Buffalo seed 25442/frame 481, Classic activates at frame 6, when the receiver
+already catches the puck. Earlier C activates at frame 4 and produces a native
+shot at frame 7. However, earlier activation is not universally beneficial:
+Anaheim seed 25444/frame 393 loses an original frame-34 one-timer and instead
+catches the puck at frame 28. Across all starts, early cues rescue five failures
+and lose one successful release: **89 → 93** releases.
+
+A separate negative control preserves the original four-frame B hold and merely
+refreshes subsequent C cues each frame. It rescues **zero** failures and leaves
+all primary ending categories unchanged. Faster cue repetition alone does not
+explain the observed misses.
+
+Replay activation and first-attempt labels stop when the original pending
+sequence ends; attempt attribution also requires the intended shooter. An early
+pilot incorrectly allowed later one-timers to populate those fields and was
+discarded. Retained evidence uses `native-one-timer-execution-v2` and includes a
+regression test for that error. Replay goals and total native attempts cover a
+240-frame continuation, including possible later attacks; they are not primary
+shot conversion labels. Continuation goals are 47 for Classic, 45 for per-frame
+C, 45 for early C, and 46 for B retry. Overlapping continuations are correlated.
+
+The integrated implementations then run **40 complete fresh periods each**,
+seeds 25701–25720, both team assignments, 300-second first periods, selective
+goalies, and decision interval four:
+
+| Policy | Goals for | Goals against | Recorded shots | Native one-timers | One-timer goals |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Original Classic | 65 | 13 | 264 | 94 | 47 |
+| Retry unlaunched passes | 62 | 12 | 260 | 99 | 47 |
+| Earlier C cues | 63 | 14 | 298 | 103 | 39 |
+
+By team, Classic scores 45–3 as Buffalo and 20–10 as Anaheim. Retry scores 42–2
+and 20–10; early C scores 46–1 and 17–13. The paired goal-difference changes per
+period are **−0.050** for retry and **−0.075** for early C, with descriptive 95%
+seed-cluster bootstrap intervals **[−0.225, +0.100]** and **[−0.475, +0.325]**
+(20 seed clusters retaining both assignments, 20,000 resamples, RNG seed 25751).
+These small differences do not establish a general regression or improvement.
+In particular, more native one-timers do not establish better scoring chances.
+
+The strongest remaining areas to investigate are interception/contact prediction
+and deciding when a quick reception shot is preferable to forcing the one-timer.
+A learned model should separate pass release, intended contact, native shot
+completion and scoring outcomes. These 131 correlated starts are diagnostic data,
+not enough to establish a learned policy across rosters. No new model is trained
+or enabled by this experiment.
+
+The [comparison](benchmarks/classic-v1-one-timer-execution.json) and
+[evidence archive](benchmarks/classic-v1-one-timer-execution-evidence.json.gz)
+contain the native traces, failure index, complete-period reports, measured
+source snapshots and validation logs. Exploratory probes and the integrated
+implementations match all **524 branches and 123,736 branch frames**, including
+the recorded buttons and outcomes. All periods finish at zero clock with balanced
+one-timer accounting and no inactive-skater frames. Verification passes **882
+unit tests** (one existing expected failure) and clean pylint. No ROM or emulator
+snapshot bytes are archived.
+
+```bash
+python -m nhl94_ai.evaluation.one_timer_replay --seed 25441 --trials 20 \
+  --workers 4 --output one-timer-replays.json.gz
+
+python -m nhl94_ai benchmark-cpu --one-timer-execution release-retry \
+  --matchups sabres-ducks-manual ducks-sabres-manual --goalie-policy selective \
+  --seed 25701 --trials 20 --workers 4 --output one-timer-retry-periods.json
+```
+
 ## Action lifecycle refactor (2026-10-09)
 
 Classic's action timing and feedback handling now have explicit owners. Tactical
@@ -48,10 +1362,10 @@ for its removed private fields. The exporter preserves the target policy's
 implementation while transferring clocks, pending actions, and outcome history.
 Source-fingerprint gates include both new runtime modules.
 
-The refactor intentionally retains two known transition behaviors: recovery by
+The default retains two characterized transition behaviors: recovery by
 the original normal-shot shooter does not end follow-through early, and an
 ordinary-pass deadline takes precedence over reception observed at that same
-frame. Characterization tests keep those separate from future behavior fixes.
+frame. The opt-in rebound experiment above separately measures the first behavior.
 
 `evaluation/lifecycle_replay.py` measures isolated source trees against a fixed
 17-period matrix: both standard assignments, two default seeds, both action

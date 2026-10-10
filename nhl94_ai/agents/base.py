@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 import numpy as np
 from nhl94_ai.agents.decisions import DecisionSnapshot, classic_decision_snapshot
+from nhl94_ai.agents.control_rate import ControlRateLimit, control_interval
 
 
 @dataclass(frozen=True)
@@ -33,14 +34,26 @@ class ScriptedAgent:
         self.controller_class = controller_class
         self.args, self.env = args, env
         self.action_schema = getattr(args, 'action_type', 'FILTERED')
+        self.control_interval = control_interval(args)
         self.frame_skip = None
         self.reset()
 
     def reset(self):
         self.controller = self.controller_class(args=self.args, env=self.env)
+        self.control_rate = (ControlRateLimit(self.controller, self.control_interval)
+                             if self.control_interval else None)
+        self.last_output = None
 
     def act(self, inputs, deterministic=True):
-        if self.frame_skip is None:
+        if self.control_rate is not None:
+            action = self.control_rate.predict_frame(
+                inputs.game_state, self.frame_skip if self.frame_skip is not None else 4, deterministic)[0]
+            if not self.control_rate.observed:
+                # Keep the last decision snapshot: held frames do not inspect
+                # fresh state, even for decision/overlay diagnostics.
+                self.last_output = AgentOutput(action, dict(self.last_output.diagnostics), self.last_output.decision)
+                return self.last_output
+        elif self.frame_skip is None:
             action = self.controller.predict_game_state(inputs.game_state, deterministic)[0]
         else:
             action = self.controller.predict_frame(inputs.game_state, self.frame_skip, deterministic)[0]

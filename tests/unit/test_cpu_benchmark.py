@@ -10,7 +10,132 @@ from nhl94_ai.game.ram import register_goalie_motion, register_pass_state, regis
 from nhl94_ai.game.state import NHL94GameState
 
 
+class ExecutionBenchmarkContracts(unittest.TestCase):
+    def test_rebound_flag_reaches_each_trial_and_reports_actual_replans(self):
+        args = build_parser().parse_args(['--rebound-recovery', '--trials', '1'])
+        fixtures = []
+        def match(fixture):
+            fixtures.append(fixture)
+            return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                        goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
+                        rebound_recoveries=2)
+        with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+            report = run(args)
+        self.assertTrue(all(fixture[7:] == (False, False, False, False, False, (), False,
+                                          None, None, None, False, None, True) for fixture in fixtures))
+        self.assertTrue(all(row['rebound_recoveries'] == 2 for row in report['summary'].values()))
+        args.one_timer_execution = 'early-cue'
+        with self.assertRaises(ValueError):
+            run(args)
+
+    def test_execution_experiments_reach_trials_and_model_hash_is_recorded(self):
+        with tempfile.TemporaryDirectory() as directory:
+            model = Path(directory)/'model.json'
+            model.write_text('{"version": "native-shot-fixed-hold-v1", "hold": 12}', encoding='utf-8')
+            for flags in (['--reception-control'], ['--shot-placement', str(model)]):
+                args = build_parser().parse_args([*flags, '--trials', '1'])
+                fixtures = []
+                def match(fixture, collect=fixtures.append):
+                    collect(fixture)
+                    return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                                goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
+                                reception_metrics={'corrections': 2}, shot_placement_metrics={'overrides': 3})
+                with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+                    report = run(args)
+                tail = (None, True) if args.reception_control else (str(model),)
+                self.assertTrue(all(fixture[7:] == (False, False, False, False, False, (), False, None, None, *tail)
+                                    for fixture in fixtures))
+                self.assertEqual(bool(report['shot_placement_sha256']), not args.reception_control)
+                self.assertTrue(all(row['reception_metrics']['corrections'] == 2
+                                    and row['shot_placement_metrics']['overrides'] == 3
+                                    for row in report['summary'].values()))
+
+    def test_one_timer_execution_mode_reaches_every_trial_with_other_experiments_disabled(self):
+        for mode in ('early-cue', 'release-retry'):
+            args = build_parser().parse_args(['--one-timer-execution', mode, '--trials', '1'])
+            fixtures = []
+            def match(fixture, collect=fixtures.append):
+                collect(fixture)
+                return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                            goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
+            with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+                report = run(args)
+            self.assertEqual(report['settings']['one_timer_execution'], mode)
+            self.assertTrue(all(fixture[7:] == (False, False, False, False, False, (), False,
+                                              None, None, None, False, mode) for fixture in fixtures))
+            args.reception_control = True
+            with self.assertRaises(ValueError):
+                run(args)
+
+    def test_public_execution_flags_and_environment_scope(self):
+        from nhl94_ai.cli import main
+        from nhl94_ai.config import EnvironmentConfig
+        for flags in (['--reception-control'], ['--shot-placement', 'model.json'], ['--rebound-recovery'],
+                      ['--one-timer-execution', 'early-cue'], ['--one-timer-execution', 'release-retry']):
+            with patch('nhl94_ai.evaluation.play.run') as play:
+                main(['play', '--agent', 'classic-v1', '--env', 'NHL94-Genesis-v0', *flags])
+            args = play.call_args.args[0]
+            self.assertEqual(EnvironmentConfig.from_args(args).nn, 'ClassicAIV1')
+            args.selfplay = True
+            with self.assertRaises(ValueError):
+                EnvironmentConfig.from_args(args)
+
+
 class CpuBenchmarkContracts(unittest.TestCase):
+    def test_receiver_profile_reaches_trials_without_changing_other_options(self):
+        args = build_parser().parse_args(['--receiver-selection', 'value', '--trials', '1'])
+        fixtures = []
+        def match(fixture):
+            fixtures.append(fixture)
+            return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                        goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
+                        receiver_selection_metrics={'overrides': 2})
+        with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+            report = run(args)
+        self.assertTrue(all(fixture[7:] == (False, False, False, False, False, (), False, None, 'value')
+                            for fixture in fixtures))
+        self.assertTrue(all(row['receiver_selection_metrics']['overrides'] == 2
+                            for row in report['summary'].values()))
+        self.assertIn('nhl94_ai/agents/receiver_selection.py', report['sources'])
+        self.assertIsNone(build_parser().parse_args([]).receiver_selection)
+
+    def test_ablation_profile_reaches_trials_with_all_other_experiments_disabled(self):
+        for profile in ('legacy', 'rank', 'continuations', 'risk', 'continuations-risk'):
+            args = build_parser().parse_args(['--possession-ablation', profile, '--trials', '1'])
+            fixtures = []
+            def match(fixture, collect=fixtures.append):
+                collect(fixture)
+                return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                            goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
+                            possession_ablation_metrics={'overrides': 2})
+            with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+                report = run(args)
+            self.assertTrue(all(fixture[7:] == (False, False, False, False, False, (), False, profile)
+                                for fixture in fixtures))
+            self.assertIn('nhl94_ai/agents/possession_ablation.py', report['sources'])
+            self.assertTrue(all(row['possession_ablation_metrics']['overrides'] == 2
+                                for row in report['summary'].values()))
+
+    def test_possession_value_reaches_trials_with_finisher_and_refinement_options(self):
+        args = build_parser().parse_args([
+            '--possession-value', '--cross-crease', '--deke',
+            '--classic-refinements', 'pass-timing', '--trials', '1'])
+        fixtures = []
+        def match(fixture):
+            fixtures.append(fixture)
+            return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                        goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
+                        possession_value_metrics={'selected:pass': 2})
+        with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+            report = run(args)
+        self.assertTrue(report['settings']['possession_value'])
+        self.assertTrue(all(fixture[7:] == (True, True, False, False, False,
+                                          ('pass-timing',), True) for fixture in fixtures))
+        self.assertIn('nhl94_ai/agents/possession_value.py', report['sources'])
+        self.assertTrue(all(row['possession_value_metrics']['selected:pass'] == 2
+                            for row in report['summary'].values()))
+        self.assertFalse(build_parser().parse_args([]).possession_value)
+
     def test_refinements_reach_trials_and_are_recorded_individually(self):
         args = build_parser().parse_args([
             '--classic-refinements', 'pass-timing', 'interceptions', '--trials', '1', '--deke'])
@@ -80,6 +205,7 @@ class CpuBenchmarkContracts(unittest.TestCase):
                 self.assertEqual(MATCHUPS[matchup],
                                  ('MightyDucksVsAllStarCampbell.ManualGoalie.Start', side))
                 self.assertEqual(parser.parse_args(['--matchups', matchup]).matchups, [matchup])
+
 
     def test_campbell_trials_use_matching_seeds_and_selective_goalies_on_both_sides(self):
         matchups = ['ducks-campbell-manual', 'campbell-ducks-manual']

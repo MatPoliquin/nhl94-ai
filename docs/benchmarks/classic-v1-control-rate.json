@@ -1,0 +1,1173 @@
+{
+  "protocol": "classic-control-rate-v1",
+  "settings": {
+    "seed": 26501,
+    "trials": 10,
+    "seconds": 300,
+    "workers": 8,
+    "repeats": [
+      1,
+      4
+    ],
+    "matchups": [
+      "sabres-ducks-manual",
+      "ducks-sabres-manual",
+      "ducks-campbell-manual",
+      "campbell-ducks-manual"
+    ],
+    "output": "/tmp/nhl94-control-rate-evidence.json.gz"
+  },
+  "semantics": {
+    "tactical_interval": 4,
+    "actions": "raw FILTERED",
+    "hold": "all buttons; no controller feedback between observations",
+    "clocks": "native frames continue; tactical decisions count actual calls",
+    "observation": "existing RAM decoder; controller reads only at rate boundary",
+    "extra_latency_frames": 0,
+    "retuned_for_rate": false
+  },
+  "evidence": {
+    "path": "docs/benchmarks/classic-v1-control-rate-evidence.json.gz",
+    "sha256": "9c572e78a2b8ff6af5c13624beb6cebb018ed0580771b793f2df99ca2aeeb7fe",
+    "contents": "All 80 period rows and frozen Python source text; no ROM or save-state bytes"
+  },
+  "overall": {
+    "1": {
+      "periods": 40,
+      "wins": 27,
+      "draws": 10,
+      "losses": 3,
+      "goals_for": 60,
+      "goals_against": 13,
+      "goal_difference": 47,
+      "shots_for": 258,
+      "shots_against": 142,
+      "one_timers": 106,
+      "one_timer_goals": 39,
+      "one_timer_setups": 159,
+      "input_frames": 359495,
+      "controller_observations": 359495,
+      "input_changes": 47463
+    },
+    "4": {
+      "periods": 40,
+      "wins": 25,
+      "draws": 13,
+      "losses": 2,
+      "goals_for": 64,
+      "goals_against": 21,
+      "goal_difference": 43,
+      "shots_for": 274,
+      "shots_against": 163,
+      "one_timers": 103,
+      "one_timer_goals": 50,
+      "one_timer_setups": 143,
+      "input_frames": 363985,
+      "controller_observations": 91011,
+      "input_changes": 36296
+    }
+  },
+  "per_matchup": {
+    "sabres-ducks-manual": {
+      "1": {
+        "periods": 10,
+        "wins": 9,
+        "draws": 1,
+        "losses": 0,
+        "goals_for": 17,
+        "goals_against": 1,
+        "goal_difference": 16,
+        "shots_for": 61,
+        "shots_against": 23,
+        "one_timers": 26,
+        "one_timer_goals": 11,
+        "one_timer_setups": 46,
+        "input_frames": 89337,
+        "controller_observations": 89337,
+        "input_changes": 12030
+      },
+      "4": {
+        "periods": 10,
+        "wins": 6,
+        "draws": 4,
+        "losses": 0,
+        "goals_for": 18,
+        "goals_against": 4,
+        "goal_difference": 14,
+        "shots_for": 72,
+        "shots_against": 30,
+        "one_timers": 27,
+        "one_timer_goals": 12,
+        "one_timer_setups": 40,
+        "input_frames": 91872,
+        "controller_observations": 22971,
+        "input_changes": 8877
+      }
+    },
+    "ducks-sabres-manual": {
+      "1": {
+        "periods": 10,
+        "wins": 5,
+        "draws": 4,
+        "losses": 1,
+        "goals_for": 10,
+        "goals_against": 3,
+        "goal_difference": 7,
+        "shots_for": 62,
+        "shots_against": 43,
+        "one_timers": 26,
+        "one_timer_goals": 7,
+        "one_timer_setups": 40,
+        "input_frames": 87392,
+        "controller_observations": 87392,
+        "input_changes": 11281
+      },
+      "4": {
+        "periods": 10,
+        "wins": 6,
+        "draws": 4,
+        "losses": 0,
+        "goals_for": 17,
+        "goals_against": 7,
+        "goal_difference": 10,
+        "shots_for": 67,
+        "shots_against": 48,
+        "one_timers": 26,
+        "one_timer_goals": 14,
+        "one_timer_setups": 35,
+        "input_frames": 92068,
+        "controller_observations": 23020,
+        "input_changes": 9065
+      }
+    },
+    "ducks-campbell-manual": {
+      "1": {
+        "periods": 10,
+        "wins": 6,
+        "draws": 3,
+        "losses": 1,
+        "goals_for": 11,
+        "goals_against": 7,
+        "goal_difference": 4,
+        "shots_for": 59,
+        "shots_against": 46,
+        "one_timers": 30,
+        "one_timer_goals": 7,
+        "one_timer_setups": 37,
+        "input_frames": 89354,
+        "controller_observations": 89354,
+        "input_changes": 11426
+      },
+      "4": {
+        "periods": 10,
+        "wins": 6,
+        "draws": 2,
+        "losses": 2,
+        "goals_for": 11,
+        "goals_against": 7,
+        "goal_difference": 4,
+        "shots_for": 61,
+        "shots_against": 53,
+        "one_timers": 24,
+        "one_timer_goals": 8,
+        "one_timer_setups": 31,
+        "input_frames": 86933,
+        "controller_observations": 21738,
+        "input_changes": 8852
+      }
+    },
+    "campbell-ducks-manual": {
+      "1": {
+        "periods": 10,
+        "wins": 7,
+        "draws": 2,
+        "losses": 1,
+        "goals_for": 22,
+        "goals_against": 2,
+        "goal_difference": 20,
+        "shots_for": 76,
+        "shots_against": 30,
+        "one_timers": 24,
+        "one_timer_goals": 14,
+        "one_timer_setups": 36,
+        "input_frames": 93412,
+        "controller_observations": 93412,
+        "input_changes": 12726
+      },
+      "4": {
+        "periods": 10,
+        "wins": 7,
+        "draws": 3,
+        "losses": 0,
+        "goals_for": 18,
+        "goals_against": 3,
+        "goal_difference": 15,
+        "shots_for": 74,
+        "shots_against": 32,
+        "one_timers": 26,
+        "one_timer_goals": 16,
+        "one_timer_setups": 37,
+        "input_frames": 93112,
+        "controller_observations": 23282,
+        "input_changes": 9502
+      }
+    }
+  },
+  "paired_deltas_15_minus_60": [
+    {
+      "seed": 26501,
+      "matchup": "sabres-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_difference": 0,
+        "shots_for": 0,
+        "shots_against": -2,
+        "one_timers": 0,
+        "one_timer_goals": 1,
+        "one_timer_setups": 3,
+        "input_frames": 468,
+        "controller_observations": -6243,
+        "input_changes": -279
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26501,
+      "matchup": "ducks-sabres-manual",
+      "delta": {
+        "periods": 0,
+        "wins": -1,
+        "draws": 1,
+        "losses": 0,
+        "goals_for": -3,
+        "goals_against": 0,
+        "goal_difference": -3,
+        "shots_for": -1,
+        "shots_against": -1,
+        "one_timers": 0,
+        "one_timer_goals": -3,
+        "one_timer_setups": -2,
+        "input_frames": -2348,
+        "controller_observations": -8195,
+        "input_changes": -515
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26501,
+      "matchup": "ducks-campbell-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 1,
+        "draws": -1,
+        "losses": 0,
+        "goals_for": 3,
+        "goals_against": 0,
+        "goal_difference": 3,
+        "shots_for": 1,
+        "shots_against": 2,
+        "one_timers": 0,
+        "one_timer_goals": 1,
+        "one_timer_setups": 0,
+        "input_frames": 1437,
+        "controller_observations": -5467,
+        "input_changes": -118
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26501,
+      "matchup": "campbell-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 1,
+        "goals_against": 0,
+        "goal_difference": 1,
+        "shots_for": 0,
+        "shots_against": 1,
+        "one_timers": 3,
+        "one_timer_goals": 2,
+        "one_timer_setups": 4,
+        "input_frames": -19,
+        "controller_observations": -6970,
+        "input_changes": -291
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26502,
+      "matchup": "sabres-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": -1,
+        "draws": 1,
+        "losses": 0,
+        "goals_for": -1,
+        "goals_against": 1,
+        "goal_difference": -2,
+        "shots_for": 4,
+        "shots_against": 1,
+        "one_timers": -1,
+        "one_timer_goals": -1,
+        "one_timer_setups": -1,
+        "input_frames": 540,
+        "controller_observations": -6255,
+        "input_changes": -292
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26502,
+      "matchup": "ducks-sabres-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 1,
+        "draws": -1,
+        "losses": 0,
+        "goals_for": -1,
+        "goals_against": -2,
+        "goal_difference": 1,
+        "shots_for": 0,
+        "shots_against": -1,
+        "one_timers": -2,
+        "one_timer_goals": -1,
+        "one_timer_setups": -3,
+        "input_frames": -950,
+        "controller_observations": -7607,
+        "input_changes": -417
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26502,
+      "matchup": "ducks-campbell-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 1,
+        "draws": -1,
+        "losses": 0,
+        "goals_for": 0,
+        "goals_against": -1,
+        "goal_difference": 1,
+        "shots_for": 0,
+        "shots_against": 1,
+        "one_timers": -1,
+        "one_timer_goals": 1,
+        "one_timer_setups": -2,
+        "input_frames": -1183,
+        "controller_observations": -7144,
+        "input_changes": -414
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26502,
+      "matchup": "campbell-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": -3,
+        "goals_against": 0,
+        "goal_difference": -3,
+        "shots_for": -1,
+        "shots_against": 2,
+        "one_timers": -3,
+        "one_timer_goals": -2,
+        "one_timer_setups": -2,
+        "input_frames": -1963,
+        "controller_observations": -7899,
+        "input_changes": -509
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26503,
+      "matchup": "sabres-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 2,
+        "goals_against": 0,
+        "goal_difference": 2,
+        "shots_for": 5,
+        "shots_against": 0,
+        "one_timers": 2,
+        "one_timer_goals": 0,
+        "one_timer_setups": -1,
+        "input_frames": 2106,
+        "controller_observations": -5470,
+        "input_changes": -61
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26503,
+      "matchup": "ducks-sabres-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 1,
+        "draws": -1,
+        "losses": 0,
+        "goals_for": 3,
+        "goals_against": 0,
+        "goal_difference": 3,
+        "shots_for": 0,
+        "shots_against": 4,
+        "one_timers": 1,
+        "one_timer_goals": 3,
+        "one_timer_setups": 3,
+        "input_frames": 1519,
+        "controller_observations": -5485,
+        "input_changes": -99
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26503,
+      "matchup": "ducks-campbell-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_difference": 0,
+        "shots_for": -2,
+        "shots_against": 0,
+        "one_timers": -1,
+        "one_timer_goals": 1,
+        "one_timer_setups": 0,
+        "input_frames": -512,
+        "controller_observations": -6461,
+        "input_changes": -324
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26503,
+      "matchup": "campbell-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": -1,
+        "draws": 1,
+        "losses": 0,
+        "goals_for": -6,
+        "goals_against": 1,
+        "goal_difference": -7,
+        "shots_for": -6,
+        "shots_against": 2,
+        "one_timers": -1,
+        "one_timer_goals": -2,
+        "one_timer_setups": -1,
+        "input_frames": -2425,
+        "controller_observations": -10328,
+        "input_changes": -731
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26504,
+      "matchup": "sabres-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_difference": 0,
+        "shots_for": 2,
+        "shots_against": -2,
+        "one_timers": 2,
+        "one_timer_goals": 0,
+        "one_timer_setups": 1,
+        "input_frames": -1137,
+        "controller_observations": -7350,
+        "input_changes": -383
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26504,
+      "matchup": "ducks-sabres-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 1,
+        "losses": -1,
+        "goals_for": 2,
+        "goals_against": 1,
+        "goal_difference": 1,
+        "shots_for": -2,
+        "shots_against": 0,
+        "one_timers": 0,
+        "one_timer_goals": 2,
+        "one_timer_setups": -1,
+        "input_frames": 1457,
+        "controller_observations": -6300,
+        "input_changes": -79
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26504,
+      "matchup": "ducks-campbell-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": -1,
+        "losses": 1,
+        "goals_for": -1,
+        "goals_against": 1,
+        "goal_difference": -2,
+        "shots_for": -5,
+        "shots_against": 3,
+        "one_timers": -3,
+        "one_timer_goals": -1,
+        "one_timer_setups": -2,
+        "input_frames": -349,
+        "controller_observations": -6835,
+        "input_changes": -441
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26504,
+      "matchup": "campbell-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 2,
+        "goals_against": 0,
+        "goal_difference": 2,
+        "shots_for": 2,
+        "shots_against": 0,
+        "one_timers": 3,
+        "one_timer_goals": 2,
+        "one_timer_setups": 4,
+        "input_frames": 886,
+        "controller_observations": -6664,
+        "input_changes": -247
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26505,
+      "matchup": "sabres-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": -1,
+        "draws": 1,
+        "losses": 0,
+        "goals_for": -1,
+        "goals_against": 1,
+        "goal_difference": -2,
+        "shots_for": 0,
+        "shots_against": 1,
+        "one_timers": 3,
+        "one_timer_goals": 0,
+        "one_timer_setups": 4,
+        "input_frames": 362,
+        "controller_observations": -6379,
+        "input_changes": -280
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26505,
+      "matchup": "ducks-sabres-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 0,
+        "goals_against": 1,
+        "goal_difference": -1,
+        "shots_for": 0,
+        "shots_against": 0,
+        "one_timers": 0,
+        "one_timer_goals": 2,
+        "one_timer_setups": 1,
+        "input_frames": 266,
+        "controller_observations": -6726,
+        "input_changes": -309
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26505,
+      "matchup": "ducks-campbell-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 1,
+        "losses": -1,
+        "goals_for": 0,
+        "goals_against": -2,
+        "goal_difference": 2,
+        "shots_for": 3,
+        "shots_against": -1,
+        "one_timers": -1,
+        "one_timer_goals": -1,
+        "one_timer_setups": 0,
+        "input_frames": -2054,
+        "controller_observations": -8571,
+        "input_changes": -494
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26505,
+      "matchup": "campbell-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": -1,
+        "goals_against": 0,
+        "goal_difference": -1,
+        "shots_for": -3,
+        "shots_against": 0,
+        "one_timers": -2,
+        "one_timer_goals": -2,
+        "one_timer_setups": -4,
+        "input_frames": -642,
+        "controller_observations": -6950,
+        "input_changes": -429
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26506,
+      "matchup": "sabres-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": -1,
+        "draws": 1,
+        "losses": 0,
+        "goals_for": -2,
+        "goals_against": -1,
+        "goal_difference": -1,
+        "shots_for": -1,
+        "shots_against": 1,
+        "one_timers": -2,
+        "one_timer_goals": -1,
+        "one_timer_setups": -4,
+        "input_frames": -1952,
+        "controller_observations": -7457,
+        "input_changes": -652
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26506,
+      "matchup": "ducks-sabres-manual",
+      "delta": {
+        "periods": 0,
+        "wins": -1,
+        "draws": 1,
+        "losses": 0,
+        "goals_for": 1,
+        "goals_against": 2,
+        "goal_difference": -1,
+        "shots_for": 6,
+        "shots_against": 3,
+        "one_timers": 3,
+        "one_timer_goals": 2,
+        "one_timer_setups": 3,
+        "input_frames": 1837,
+        "controller_observations": -5837,
+        "input_changes": -171
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26506,
+      "matchup": "ducks-campbell-manual",
+      "delta": {
+        "periods": 0,
+        "wins": -1,
+        "draws": 1,
+        "losses": 0,
+        "goals_for": -1,
+        "goals_against": 0,
+        "goal_difference": -1,
+        "shots_for": -1,
+        "shots_against": 0,
+        "one_timers": 1,
+        "one_timer_goals": 0,
+        "one_timer_setups": 2,
+        "input_frames": 456,
+        "controller_observations": -6111,
+        "input_changes": -188
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26506,
+      "matchup": "campbell-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 4,
+        "goals_against": 0,
+        "goal_difference": 4,
+        "shots_for": 2,
+        "shots_against": 1,
+        "one_timers": 2,
+        "one_timer_goals": 4,
+        "one_timer_setups": 2,
+        "input_frames": 2029,
+        "controller_observations": -5810,
+        "input_changes": -51
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26507,
+      "matchup": "sabres-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": -1,
+        "goals_against": 1,
+        "goal_difference": -2,
+        "shots_for": 2,
+        "shots_against": 3,
+        "one_timers": -2,
+        "one_timer_goals": -2,
+        "one_timer_setups": -3,
+        "input_frames": -440,
+        "controller_observations": -7405,
+        "input_changes": -486
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26507,
+      "matchup": "ducks-sabres-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 2,
+        "goals_against": 2,
+        "goal_difference": 0,
+        "shots_for": 5,
+        "shots_against": 5,
+        "one_timers": 2,
+        "one_timer_goals": 1,
+        "one_timer_setups": 3,
+        "input_frames": 2151,
+        "controller_observations": -5321,
+        "input_changes": -94
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26507,
+      "matchup": "ducks-campbell-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 1,
+        "goals_against": 1,
+        "goal_difference": 0,
+        "shots_for": 1,
+        "shots_against": 0,
+        "one_timers": 1,
+        "one_timer_goals": 2,
+        "one_timer_setups": -1,
+        "input_frames": 1225,
+        "controller_observations": -5666,
+        "input_changes": -138
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26507,
+      "matchup": "campbell-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 1,
+        "draws": -1,
+        "losses": 0,
+        "goals_for": 2,
+        "goals_against": 1,
+        "goal_difference": 1,
+        "shots_for": -2,
+        "shots_against": -2,
+        "one_timers": -2,
+        "one_timer_goals": 1,
+        "one_timer_setups": -3,
+        "input_frames": 1579,
+        "controller_observations": -5391,
+        "input_changes": -132
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26508,
+      "matchup": "sabres-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 1,
+        "goals_against": 1,
+        "goal_difference": 0,
+        "shots_for": -2,
+        "shots_against": 3,
+        "one_timers": -2,
+        "one_timer_goals": 0,
+        "one_timer_setups": 0,
+        "input_frames": 1412,
+        "controller_observations": -6394,
+        "input_changes": -145
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26508,
+      "matchup": "ducks-sabres-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_difference": 0,
+        "shots_for": 2,
+        "shots_against": -2,
+        "one_timers": 0,
+        "one_timer_goals": 0,
+        "one_timer_setups": -3,
+        "input_frames": -263,
+        "controller_observations": -6603,
+        "input_changes": -159
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26508,
+      "matchup": "ducks-campbell-manual",
+      "delta": {
+        "periods": 0,
+        "wins": -1,
+        "draws": 0,
+        "losses": 1,
+        "goals_for": -1,
+        "goals_against": 2,
+        "goal_difference": -3,
+        "shots_for": 3,
+        "shots_against": 5,
+        "one_timers": 1,
+        "one_timer_goals": -1,
+        "one_timer_setups": 0,
+        "input_frames": -157,
+        "controller_observations": -6925,
+        "input_changes": -262
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26508,
+      "matchup": "campbell-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 1,
+        "draws": -1,
+        "losses": 0,
+        "goals_for": 1,
+        "goals_against": 0,
+        "goal_difference": 1,
+        "shots_for": 3,
+        "shots_against": 3,
+        "one_timers": 3,
+        "one_timer_goals": 1,
+        "one_timer_setups": 3,
+        "input_frames": 1579,
+        "controller_observations": -5102,
+        "input_changes": -123
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26509,
+      "matchup": "sabres-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 2,
+        "goals_against": 0,
+        "goal_difference": 2,
+        "shots_for": 2,
+        "shots_against": -1,
+        "one_timers": -1,
+        "one_timer_goals": 0,
+        "one_timer_setups": -4,
+        "input_frames": 739,
+        "controller_observations": -6184,
+        "input_changes": -296
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26509,
+      "matchup": "ducks-sabres-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 2,
+        "goals_against": 0,
+        "goal_difference": 2,
+        "shots_for": -2,
+        "shots_against": 0,
+        "one_timers": -1,
+        "one_timer_goals": 1,
+        "one_timer_setups": 0,
+        "input_frames": 1276,
+        "controller_observations": -6013,
+        "input_changes": -3
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26509,
+      "matchup": "ducks-campbell-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": -1,
+        "goals_against": -1,
+        "goal_difference": 0,
+        "shots_for": -1,
+        "shots_against": -3,
+        "one_timers": -2,
+        "one_timer_goals": -1,
+        "one_timer_setups": -3,
+        "input_frames": -1698,
+        "controller_observations": -7629,
+        "input_changes": 129
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26509,
+      "matchup": "campbell-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 1,
+        "losses": -1,
+        "goals_for": 1,
+        "goals_against": -1,
+        "goal_difference": 2,
+        "shots_for": 7,
+        "shots_against": -7,
+        "one_timers": 1,
+        "one_timer_goals": 1,
+        "one_timer_setups": 1,
+        "input_frames": 910,
+        "controller_observations": -6563,
+        "input_changes": -170
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26510,
+      "matchup": "sabres-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 1,
+        "goals_against": 0,
+        "goal_difference": 1,
+        "shots_for": -1,
+        "shots_against": 3,
+        "one_timers": 2,
+        "one_timer_goals": 4,
+        "one_timer_setups": -1,
+        "input_frames": 437,
+        "controller_observations": -7229,
+        "input_changes": -279
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26510,
+      "matchup": "ducks-sabres-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 1,
+        "draws": -1,
+        "losses": 0,
+        "goals_for": 1,
+        "goals_against": 0,
+        "goal_difference": 1,
+        "shots_for": -3,
+        "shots_against": -3,
+        "one_timers": -3,
+        "one_timer_goals": 0,
+        "one_timer_setups": -6,
+        "input_frames": -269,
+        "controller_observations": -6285,
+        "input_changes": -370
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26510,
+      "matchup": "ducks-campbell-manual",
+      "delta": {
+        "periods": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_difference": 0,
+        "shots_for": 3,
+        "shots_against": 0,
+        "one_timers": -1,
+        "one_timer_goals": 0,
+        "one_timer_setups": 0,
+        "input_frames": 414,
+        "controller_observations": -6807,
+        "input_changes": -324
+      },
+      "same_actions": false
+    },
+    {
+      "seed": 26510,
+      "matchup": "campbell-ducks-manual",
+      "delta": {
+        "periods": 0,
+        "wins": -1,
+        "draws": 1,
+        "losses": 0,
+        "goals_for": -5,
+        "goals_against": 0,
+        "goal_difference": -5,
+        "shots_for": -4,
+        "shots_against": 2,
+        "one_timers": -2,
+        "one_timer_goals": -3,
+        "one_timer_setups": -3,
+        "input_frames": -2234,
+        "controller_observations": -8453,
+        "input_changes": -541
+      },
+      "same_actions": false
+    }
+  ],
+  "uncertainty": {
+    "resampling_unit": "seed, retaining all four matchups and both arms together",
+    "seed_clusters": 10,
+    "bootstrap_replicates": 20000,
+    "bootstrap_seed": 26500,
+    "metrics": {
+      "goals_for": {
+        "mean_delta_per_period": 0.1,
+        "seed_cluster_bootstrap_95_percent_interval": [
+          -0.35,
+          0.525
+        ]
+      },
+      "goals_against": {
+        "mean_delta_per_period": 0.2,
+        "seed_cluster_bootstrap_95_percent_interval": [
+          -0.1,
+          0.525
+        ]
+      },
+      "goal_difference": {
+        "mean_delta_per_period": -0.1,
+        "seed_cluster_bootstrap_95_percent_interval": [
+          -0.45,
+          0.35
+        ]
+      },
+      "shots_for": {
+        "mean_delta_per_period": 0.4,
+        "seed_cluster_bootstrap_95_percent_interval": [
+          -0.25,
+          1.0
+        ]
+      },
+      "one_timers": {
+        "mean_delta_per_period": -0.075,
+        "seed_cluster_bootstrap_95_percent_interval": [
+          -0.6,
+          0.4
+        ]
+      },
+      "one_timer_goals": {
+        "mean_delta_per_period": 0.275,
+        "seed_cluster_bootstrap_95_percent_interval": [
+          -0.05,
+          0.6
+        ]
+      }
+    }
+  },
+  "paired_outcomes": {
+    "same": 9,
+    "worse": 14,
+    "better": 17
+  },
+  "verification": {
+    "completed_periods": 80,
+    "matched_pairs": 40,
+    "paired_fixture_and_lineup_equal": true,
+    "clock_and_rate_accounting_exact": true,
+    "balanced_one_timer_lifecycles": true,
+    "source_hashes_verified": true,
+    "native_parity": "Seed 26500, 30 seconds, both Sabres/Ducks sides: repeat=1 and unwrapped Classic match actions, frames, score, shots, one-timers exactly",
+    "focused_tests_passed": 29,
+    "pylint": "10.00/10"
+  },
+  "limitations": [
+    "Untuned rate ablation; not a trained ML comparison.",
+    "Perfect existing RAM observations at sampled times and no extra inference latency.",
+    "Only first periods, two roster pairings, and ten seed clusters.",
+    "Current default offense with selective goalie control; optional cross-crease/deke experiments disabled.",
+    "Native observer records telemetry every frame but never supplies intermediate observations to the capped controller.",
+    "Intent or target-position agents may execute action helpers between model calls; not equivalent to this raw-button cap.",
+    "Diagnostic request counts may repeat during held inputs; native shots, goals and one-timer counters are used for conclusions."
+  ]
+}

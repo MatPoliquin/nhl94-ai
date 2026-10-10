@@ -14,7 +14,7 @@ from nhl94_ai.agents.motion import (
 )
 from nhl94_ai.agents.passing import (
     evaluate_pass, one_timer_contact_frame, pass_contact, pass_point_at, pass_release_frames,
-    option_receiver, pressure_margin, rom_direction, shot_value,
+    one_timer_position_ok, option_receiver, pressure_margin, rom_direction, shot_value,
 )
 from nhl94_ai.agents.responses import response_future
 from nhl94_ai.env.target_control import project_target, route_waypoint
@@ -358,6 +358,7 @@ class OffenseController:
         self.diagnostics = {}
         self.risk_cache = {}
         self.pass_timing = self.carry_motion = False
+        self.rank_pass_risk = False
 
     @property
     def movement_interval(self):
@@ -675,14 +676,13 @@ class OffenseController:
                 continue
             option, details = evaluate_pass(
                 state, player, index, receiver, purpose, decision_interval=self.decision_interval,
-                release_prediction=self.pass_timing)
+                release_prediction=self.pass_timing, rank_risk=self.rank_pass_risk)
             details['purpose'] = purpose
             if option is not None and purpose != 'one-timer' and continuations and self.uses_lookahead:
                 option, continuation = self._receiver_continuation(state, option)
                 details.update(continuation, value=option.value)
             if (purpose == 'one-timer' and option is not None
-                    and not (option.point[0] * player.x <= 0 and abs(option.point[0] - player.x) > 30)
-                    and option.shot_value <= current_shot + 12):
+                    and not one_timer_position_ok(option, player, current_shot)):
                 option = None
                 details = {**details, 'status': 'weaker-one-timer-position'}
             diagnostics.append(details)

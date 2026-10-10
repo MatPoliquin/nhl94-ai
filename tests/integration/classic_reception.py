@@ -22,7 +22,7 @@ def _view(info):
     return away_view(state)
 
 
-def run():
+def run(*, stick_control=False):
     fixture = json.loads((Path(__file__).parents[1] / 'fixtures/classic-missed-reception.json').read_text())
     args = parse_cmdline(['--nn', 'ClassicAIV1', '--env', 'NHL94-Genesis-v0',
                          '--mode', 'model_vs_game', '--rf', 'PostPlay', '--state', fixture['state'],
@@ -48,6 +48,7 @@ def run():
             state = deepcopy(initial)
             model_args = deepcopy(args)
             model_args.action_type = schema
+            model_args.reception_control = stick_control
             if schema != 'FILTERED':
                 model_args.goalie_policy = 'off'
             model = ClassicAIV1Model(model_args)

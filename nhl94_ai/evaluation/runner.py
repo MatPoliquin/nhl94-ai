@@ -57,6 +57,8 @@ def evaluate(agent, config, *, env):
         metadata['last_defense_by_episode'] = defense_episodes
     if any(offense_episodes):
         metadata['last_offense_by_episode'] = offense_episodes
+    if getattr(agent, 'control_interval', 0):
+        metadata['classic_control_interval'] = agent.control_interval
     return EvaluationResult(rewards, lengths, terminations, truncations, exhausted, metadata)
 
 
@@ -80,6 +82,9 @@ def build_parser():
 
 
 def run(args):
+    from nhl94_ai.agents.control_rate import control_interval
+    if control_interval(args) and args.model:
+        raise ValueError('--classic-control-interval requires a Classic agent')
     if getattr(args, 'offense_lookahead', False) and args.model:
         raise ValueError('--offense-lookahead selects a Classic experiment, not a learned policy')
     if getattr(args, 'classic_refinements', ()) and args.model:

@@ -2,6 +2,7 @@
 import argparse
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 import hashlib
 import inspect
 import json
@@ -11,6 +12,7 @@ from types import SimpleNamespace
 import numpy as np
 
 from nhl94_ai.agents.registry import ALIASES, add_classic_arguments, create_scripted
+from nhl94_ai.agents.control_rate import control_interval
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.evaluation.benchmark import RAM, away_view, update_state
 from nhl94_ai.game.state import NHL94GameState
@@ -80,7 +82,7 @@ def cpu_view(state, info, side):
     return away_view(state)
 
 
-def cpu_match(fixture):
+def cpu_match(fixture, *, classic_control_interval=0):
     from nhl94_ai.env.factory import make_retro
     from stable_retro.data import get_romfile_path
     agent_name, matchup, seed, seconds, frame_skip, schema, *options = fixture
@@ -91,6 +93,13 @@ def cpu_match(fixture):
     chance_creation = bool(options[4]) if len(options) > 4 else False
     offense_lookahead = bool(options[5]) if len(options) > 5 else False
     refinements = options[6] if len(options) > 6 else ()
+    possession_value = bool(options[7]) if len(options) > 7 else False
+    possession_ablation = options[8] if len(options) > 8 else None
+    receiver_selection = options[9] if len(options) > 9 else None
+    shot_placement = options[10] if len(options) > 10 else None
+    reception_control = bool(options[11]) if len(options) > 11 else False
+    one_timer_execution = options[12] if len(options) > 12 else None
+    rebound_recovery = bool(options[13]) if len(options) > 13 else False
     if goalie_policy != 'off' and schema != 'FILTERED':
         raise ValueError('Manual goalie CPU trials require FILTERED buttons')
     state_name, side = MATCHUPS[matchup]
@@ -108,9 +117,14 @@ def cpu_match(fixture):
         if (info['bench_team1'], info['bench_team2']) != (side, 0):
             raise ValueError('CPU opponent still has a joystick assigned.')
         agent = create_scripted(agent_name, SimpleNamespace(
+            classic_control_interval=classic_control_interval,
             action_type=schema, goalie_policy=goalie_policy, cross_crease=cross_crease, deke=deke,
             uncertain_carry=uncertain_carry, chance_creation=chance_creation,
-            offense_lookahead=offense_lookahead, classic_refinements=refinements))
+            offense_lookahead=offense_lookahead, classic_refinements=refinements,
+            possession_value=possession_value, possession_ablation=possession_ablation,
+            receiver_selection=receiver_selection, shot_placement=shot_placement,
+            reception_control=reception_control, one_timer_execution=one_timer_execution,
+            rebound_recovery=rebound_recovery))
         agent.frame_skip = frame_skip
         state, frames = NHL94GameState(5), 1
         context = SimpleNamespace(action_type=schema, game_state=state)
@@ -179,6 +193,8 @@ def cpu_match(fixture):
             raise RuntimeError(f'Unbalanced one-timer lifecycle: {agent.one_timer.starts} starts, {ended} endings.')
         return {
             'agent': agent_name, 'matchup': matchup, 'side': side, 'seed': seed,
+            'classic_control_interval': classic_control_interval,
+            'control_rate': agent.control_rate.report() if getattr(agent, 'control_rate', None) else None,
             'goals': [info['p1_score'], info['p2_score']],
             'shots': [info['bench_shots1'], info['bench_shots2']],
             'one_timers': [info['bench_one_timers1'], info['bench_one_timers2']],
@@ -210,6 +226,20 @@ def cpu_match(fixture):
             'chance_creation': chance_creation,
             'offense_lookahead': offense_lookahead,
             'classic_refinements': list(refinements),
+            'possession_value': possession_value,
+            'possession_ablation': possession_ablation,
+            'receiver_selection': receiver_selection,
+            'shot_placement': shot_placement,
+            'reception_control': reception_control,
+            'one_timer_execution': one_timer_execution,
+            'rebound_recovery': rebound_recovery,
+            'rebound_recoveries': agent.shot.recoveries,
+            'reception_metrics': dict(agent.offense.pass_action.reception_metrics),
+            'shot_placement_sha256': agent.shot_placement.sha256 if agent.shot_placement else None,
+            'shot_placement_metrics': dict(agent.shot_placement.metrics) if agent.shot_placement else {},
+            'receiver_selection_metrics': dict(agent.receiver_selector.metrics) if agent.receiver_selector else {},
+            'possession_ablation_metrics': dict(agent.possession_ablation.metrics) if agent.possession_ablation else {},
+            'possession_value_metrics': dict(agent.possession_value.metrics) if agent.possession_value else {},
             'deke_metrics': dict(agent.deke.metrics) if agent.deke else {},
             'deke_events': agent.deke.events if agent.deke else [],
         }
@@ -280,6 +310,17 @@ def summarize(results):
         for row in rows:
             deke_metrics.update(row.get('deke_metrics', {}))
         summary[matchup]['deke_metrics'] = dict(deke_metrics)
+        summary[matchup]['possession_value_metrics'] = dict(sum(
+            (Counter(row.get('possession_value_metrics', {})) for row in rows), Counter()))
+        summary[matchup]['possession_ablation_metrics'] = dict(sum(
+            (Counter(row.get('possession_ablation_metrics', {})) for row in rows), Counter()))
+        summary[matchup]['receiver_selection_metrics'] = dict(sum(
+            (Counter(row.get('receiver_selection_metrics', {})) for row in rows), Counter()))
+        summary[matchup]['shot_placement_metrics'] = dict(sum(
+            (Counter(row.get('shot_placement_metrics', {})) for row in rows), Counter()))
+        summary[matchup]['rebound_recoveries'] = sum(row.get('rebound_recoveries', 0) for row in rows)
+        summary[matchup]['reception_metrics'] = dict(sum(
+            (Counter(row.get('reception_metrics', {})) for row in rows), Counter()))
         summary[matchup]['passes_by_purpose'] = {
             purpose: dict(Counter(event['outcome'] for row in rows for event in row.get('pass_events', [])
                                   if event.get('purpose', 'one-timer') == purpose))
@@ -305,6 +346,10 @@ def build_parser():
 
 
 def run(args):
+    from nhl94_ai.agents.lifecycle import validate_one_timer_execution, validate_rebound_recovery
+    validate_one_timer_execution(args)
+    validate_rebound_recovery(args)
+    interval = control_interval(args)
     if (min(args.trials, args.seconds, args.frame_skip, args.workers) < 1
             or args.seconds > 65535 or args.seed < 0 or args.seed + args.trials > 2**32):
         raise ValueError('Use positive counts, a uint16 clock, and uint32 ROM seeds.')
@@ -329,11 +374,46 @@ def run(args):
         fixtures = [(*fixture[:7], bool(getattr(args, 'cross_crease', False)),
                      bool(getattr(args, 'deke', False)), bool(getattr(args, 'uncertain_carry', False)),
                      bool(getattr(args, 'chance_creation', False)), True) for fixture in fixtures]
-    if args.classic_refinements:
+    if args.classic_refinements or getattr(args, 'possession_value', False):
         fixtures = [(*fixture[:7], bool(getattr(args, 'cross_crease', False)),
                      bool(getattr(args, 'deke', False)), bool(getattr(args, 'uncertain_carry', False)),
                      bool(getattr(args, 'chance_creation', False)), bool(getattr(args, 'offense_lookahead', False)),
                      tuple(args.classic_refinements)) for fixture in fixtures]
+    if getattr(args, 'possession_value', False):
+        fixtures = [(*fixture, True) for fixture in fixtures]
+    if getattr(args, 'possession_ablation', None):
+        if any(getattr(args, name, False) for name in (
+                'possession_value', 'offense_lookahead', 'uncertain_carry', 'chance_creation',
+                'cross_crease', 'deke', 'classic_refinements')):
+            raise ValueError('Possession ablations cannot combine with other offensive experiments/refinements')
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, args.possession_ablation)
+                    for fixture in fixtures]
+    if getattr(args, 'receiver_selection', None):
+        from nhl94_ai.agents.receiver_selection import INCOMPATIBLE
+        if any(getattr(args, name, False) for name in INCOMPATIBLE):
+            raise ValueError('Receiver selection cannot combine with other experiments/refinements')
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, args.receiver_selection)
+                    for fixture in fixtures]
+    shot_path = Path(args.shot_placement).resolve() if getattr(args, 'shot_placement', None) else None
+    shot_digest = hashlib.sha256(shot_path.read_bytes()).hexdigest() if shot_path else None
+    if shot_path:
+        from nhl94_ai.agents.shot_placement import INCOMPATIBLE as SHOT_INCOMPATIBLE
+        if any(getattr(args, name, False) for name in SHOT_INCOMPATIBLE):
+            raise ValueError('Shot placement cannot combine with other offensive experiments')
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, str(shot_path))
+                    for fixture in fixtures]
+    if getattr(args, 'reception_control', False):
+        from nhl94_ai.agents.receiving import INCOMPATIBLE as RECEPTION_INCOMPATIBLE
+        if any(getattr(args, name, False) for name in RECEPTION_INCOMPATIBLE):
+            raise ValueError('Reception control cannot combine with other offensive experiments')
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, None, True)
+                    for fixture in fixtures]
+    if getattr(args, 'one_timer_execution', None):
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, None, False,
+                     args.one_timer_execution) for fixture in fixtures]
+    if getattr(args, 'rebound_recovery', False):
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, None, False,
+                     None, True) for fixture in fixtures]
     controller = create_scripted(args.agent, SimpleNamespace(action_type=args.action_type)).controller
     files = {Path(__file__), Path(inspect.getfile(PassOutcomes)), Path(inspect.getfile(OffenseMetrics)),
              Path(inspect.getfile(CarrierDefenseMetrics)),
@@ -343,27 +423,35 @@ def run(args):
     root = Path(__file__).resolve().parents[2]
     files.update(root / 'nhl94_ai' / name for name in (
         'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
-        'agents/base.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
-        'agents/offense.py', 'agents/possession.py', 'agents/passing.py', 'agents/receiving.py', 'agents/responses.py', 'agents/finishing.py',
+        'agents/base.py', 'agents/control_rate.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
+        'agents/offense.py', 'agents/possession.py', 'agents/possession_value.py', 'agents/possession_ablation.py',
+        'agents/receiver_selection.py', 'agents/shot_placement.py',
+        'agents/passing.py', 'agents/receiving.py', 'agents/responses.py', 'agents/finishing.py',
         'agents/goalie.py', 'agents/cross_crease.py', 'agents/deke.py', 'agents/skating.py', 'agents/registry.py'))
     sources = {str(path.relative_to(root)):
                hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
+    match = partial(cpu_match, classic_control_interval=interval) if interval else cpu_match
     if args.workers == 1:
-        results = [cpu_match(fixture) for fixture in fixtures]
+        results = [match(fixture) for fixture in fixtures]
     else:
         with ProcessPoolExecutor(max_workers=args.workers) as pool:
-            results = list(pool.map(cpu_match, fixtures))
+            results = list(pool.map(match, fixtures))
     if any(hashlib.sha256((root / name).read_bytes()).hexdigest() != digest
            for name, digest in sources.items()):
         raise RuntimeError('CPU benchmark sources changed during measurement; discard the results.')
+    if shot_path and hashlib.sha256(shot_path.read_bytes()).hexdigest() != shot_digest:
+        raise RuntimeError('Shot-placement model changed during measurement; discard the results.')
     from importlib.metadata import version
     report = {
         'protocol': 'nhl94-cpu-first-period-v2', 'settings': vars(args), 'sources': sources,
+        'shot_placement_sha256': shot_digest,
         'versions': {name: version(name) for name in ('nhl94-ai', 'stable-retro', 'numpy')},
         'limitations': ['Fixed starting rosters, first periods only; not full-game win rates.',
                         'Away trials transfer the joystick to the away team and correct RAM control observations.',
                         'Defense uses authoritative control slots; offensive inference is unchanged.',
-                        'Defense reacts each frame; frame-skip controls the offensive decision interval.',
+                        (f'All Classic observations/raw inputs are held for {interval} native frames; '
+                         'frame-skip separately controls tactical scheduling.' if interval else
+                         'Defense reacts each frame; frame-skip controls the offensive decision interval.'),
                         'Team changes also change opponents; this does not isolate any individual rating effect.'],
         'summary': summarize(results), 'matches': results,
     }

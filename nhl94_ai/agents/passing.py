@@ -322,8 +322,21 @@ def shot_value(state, shooter, point=None, delay=0):
     return clear * 12 + max(0, point[1] * sign - 170) * 0.3 + accuracy * 0.3 + opening
 
 
+def one_timer_position_ok(option, passer, current_shot):
+    """Classic's comparative-position gate, shared with admission diagnostics."""
+    return not (not (option.point[0] * passer.x <= 0 and abs(option.point[0] - passer.x) > 30)
+                and option.shot_value <= current_shot + 12)
+
+
 def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision_interval=4,
-                  release_prediction=False):
+                  release_prediction=False, rank_risk=False, one_timer_window=True):
+    """Evaluate native recipient/contact feasibility and estimated reception risk.
+
+    rank_risk lets a caller price race/scenario uncertainty instead of applying
+    the legacy thresholds. Physical obstructions and execution gates still veto.
+    one_timer_window=False is an evaluation hook that skips only the shooting
+    rectangle. Native contact, cue timing, offside and interception checks remain.
+    """
     if decision_interval < 1:
         raise ValueError('Pass decision interval must be positive')
     slot = state.team1.skater_scnum_base() + index
@@ -367,7 +380,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
                    else 'facing-hotspot-estimate')
     if purpose == 'one-timer':
         accuracy = receiver.shot_accuracy if receiver.shot_accuracy is not None else 15
-        if abs(point[0]) > 70 or not 175 + max(0, 15 - accuracy) <= point[1] * sign < 245:
+        if one_timer_window and (abs(point[0]) > 70 or not 175 + max(0, 15 - accuracy) <= point[1] * sign < 245):
             return None, {**details, 'status': 'outside-one-timer-window'}
         cue = math.ceil(max(HOCKEY_PASS_PRESS_FRAMES, release) / decision_interval) * decision_interval
         details['cue_frame'] = cue
@@ -437,7 +450,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
     margin = min(margin, reception)
     robustness = float(safe.mean())
     details.update(margin=margin, robustness=robustness)
-    if margin < 3 or robustness < 0.875:
+    if not rank_risk and (margin < 3 or robustness < 0.875):
         return None, {**details, 'status': 'contested-reception-or-lane'}
     bypassed = sum(passer.y * sign < p.y * sign < point[1] * sign
                    for p in state.team2.players if on_ice(p))
