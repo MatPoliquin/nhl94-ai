@@ -11,6 +11,9 @@ COMMANDS = {
     'export': 'export', 'evaluate': 'evaluation.runner',
     'benchmark': 'evaluation.benchmark',
     'benchmark-cpu': 'evaluation.cpu_benchmark',
+    'external': 'evaluation.external',
+    'offense': 'training.offense',
+    'goalie': 'training.goalie',
 }
 
 

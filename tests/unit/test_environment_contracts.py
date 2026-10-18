@@ -206,8 +206,9 @@ class EnvironmentContracts(unittest.TestCase):
         info['p1_emptystar_y'] = info['g1_y']
         info['puck_owner'] = 5
         for period in (1, 2, 3):
-            info['period'] = period
+            info['period'] = period - 1  # Native RAM is zero-based.
             env.reset()
+            self.assertEqual(env.game_state.period, period)
             self.assertEqual(env.game_state.team1.control, 0)
             self.assertIs(env.game_state.team1.get_controlled_player(), env.game_state.team1.goalie)
             self.assertEqual(env._should_flip_zones_for_opponent(), period == 2)

@@ -544,8 +544,8 @@ def run(args):
 
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--benchmark', default='docs/benchmarks/classic-v1-chance-creation-candidate.json')
-    parser.add_argument('--gate', default='docs/benchmarks/classic-v1-chance-creation-cadence.json')
+    parser.add_argument('--benchmark', required=True, help='Path to a completed benchmark report')
+    parser.add_argument('--gate', required=True, help='Path to the matching cadence gate report')
     parser.add_argument('--fresh-seed', type=int, default=20262801)
     parser.add_argument('--fresh-seeds', type=int, default=4)
     parser.add_argument('--samples-per-period', type=int, default=4)

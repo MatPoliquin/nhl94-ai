@@ -1,6 +1,6 @@
 """Jointly sampled full-team defensive starts, using the existing live-play save.
 
-RAM layout and assignment IDs: docs/nhl94 Deep dive.md, sections 2.2, 2.3, 6.1.
+RAM decoding and assignment fields: nhl94_ai/game/ram.py and game/state.py.
 Writes affect only this emulator instance, not the installed Retro integration.
 """
 import math

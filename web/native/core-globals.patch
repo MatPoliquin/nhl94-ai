@@ -1,0 +1,30 @@
+--- a/libretro/osd.h
++++ b/libretro/osd.h
+@@ -82,7 +82,7 @@
+   uint8 padtype;
+ } t_input_config;
+ 
+-struct 
++extern struct libretro_config
+ {
+   char version[16];
+   uint8 hq_fm;
+--- a/core/membnk.h
++++ b/core/membnk.h
+@@ -52,7 +52,7 @@
+ extern unsigned int zbank_read_vdp(unsigned int address);
+ extern void zbank_write_vdp(unsigned int address, unsigned int data);
+ 
+-struct _zbank_memory_map
++extern struct _zbank_memory_map
+ {
+   unsigned int (*read)(unsigned int address);
+   void (*write)(unsigned int address, unsigned int data);
+--- a/libretro/libretro.c
++++ b/libretro/libretro.c
+@@ -76,2 +76,5 @@
+ #include "shared.h"
+ #include "libretro.h"
++
++struct libretro_config config;
++struct _zbank_memory_map zbank_memory_map[256];

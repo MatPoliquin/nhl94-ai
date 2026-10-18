@@ -212,7 +212,8 @@ class CpuBenchmarkContracts(unittest.TestCase):
         args = build_parser().parse_args(
             ['--matchups', *matchups, '--trials', '2', '--seed', '7', '--goalie-policy', 'selective'])
         fixtures = []
-        def match(fixture):
+        def match(fixture, *, goalie_positioning):
+            self.assertEqual(goalie_positioning, 'deep-csave')
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                         goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})

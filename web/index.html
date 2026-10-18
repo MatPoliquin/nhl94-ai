@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>NHL94 Browser Lab</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">NHL94 AI / LOCAL DEVELOPMENT</p>
+          <h1>Browser Lab<span class="badge">Smoke test 0.0.1</span></h1>
+          <p class="intro">Genesis Plus GX, one native frame at a time. Your ROM stays in this browser.</p>
+        </div>
+        <span class="local-indicator">LOCAL ONLY</span>
+      </header>
+      <section class="notice">
+        <strong>This is the emulator test, not Classic AI.</strong>
+        The diagnostic bot only chases the puck. A faithful TypeScript Classic port is the next milestone.
+      </section>
+      <p id="error" role="alert" hidden></p>
+      <div class="layout">
+        <section class="arena" aria-label="Emulator">
+          <div class="screen">
+            <canvas id="screen" width="320" height="224" tabindex="0" aria-label="NHL94 game screen"></canvas>
+            <p id="placeholder">Load your local NHL94 ROM to begin.</p>
+          </div>
+          <div class="transport">
+            <button id="play" disabled>Play</button>
+            <button id="step" disabled>Step one frame</button>
+            <button id="restart" disabled>Restart ROM</button>
+            <label class="check"><input id="sound" type="checkbox" /> Sound</label>
+            <span class="frame-label">FRAME <output id="frame" aria-label="Native frame">0</output></span>
+          </div>
+          <p id="status" role="status">Ready. Select an uncompressed original NHL94 Genesis ROM.</p>
+          <div class="virtual-controls" aria-label="On-screen controller">
+            <button data-code="ArrowUp" aria-label="Up">Up</button>
+            <button data-code="ArrowDown" aria-label="Down">Down</button>
+            <button data-code="ArrowLeft" aria-label="Left">Left</button>
+            <button data-code="ArrowRight" aria-label="Right">Right</button>
+            <button data-code="KeyZ">A</button>
+            <button data-code="KeyX">B</button>
+            <button data-code="KeyC">C</button>
+            <button data-code="Enter">Start</button>
+          </div>
+          <p class="hint">Arrows: skate/menu &middot; Z: A &middot; X: B &middot; C: C &middot; Enter: Start.
+            Standard gamepad: left stick/D-pad, X/A/B for Genesis A/B/C, Start.</p>
+        </section>
+        <aside>
+          <section class="panel">
+            <h2>1. Load your game</h2>
+            <label class="file-label" for="rom">Local NHL94 ROM (.bin, .md, .gen)</label>
+            <input id="rom" type="file" accept=".bin,.md,.gen" />
+            <p id="rom-info" class="detail">Original ROM only for this test. No ROM is bundled or uploaded.</p>
+          </section>
+          <section class="panel">
+            <h2>2. Choose the controller</h2>
+            <label for="port">Keyboard / gamepad controls</label>
+            <select id="port">
+              <option value="0">Controller 1</option>
+              <option value="1">Controller 2</option>
+            </select>
+            <label class="check"><input id="bot" type="checkbox" /> Diagnostic bot on the other controller</label>
+            <p class="detail">Start a two-player game using the normal menus, then enable the bot on the rink.
+              Controller assignment is controlled by the game, not this dropdown.</p>
+          </section>
+          <section class="panel">
+            <h2>3. Inspect and replay</h2>
+            <button id="export" disabled>Download input replay</button>
+            <label class="file-label" for="replay">Load a local input replay</label>
+            <input id="replay" type="file" accept=".json" disabled />
+            <p class="detail">Replays restart from ROM boot and use recorded buttons, not bot inference.
+              Maximum recording: 108,000 native frames.</p>
+          </section>
+        </aside>
+      </div>
+      <section class="panel telemetry">
+        <h2>Live RAM observations</h2>
+        <p class="detail">Physical game coordinates. RAM checksum is a debugging aid, not a full-state
+          determinism check or proof of honest execution.</p>
+        <pre id="observations" aria-label="Live RAM observations">No game loaded.</pre>
+      </section>
+      <footer>
+        <span>TypeScript + custom Genesis Plus GX WASM bridge. No accounts, lobby, netplay or arbitrary bot uploads.</span>
+        <span><a href="./core/LICENSE.txt">Core license</a> &middot;
+          <a href="./core/source.tar.gz">Core + wrapper source</a></span>
+      </footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -66,6 +66,9 @@ class EnvironmentConfig:
             if not all(supported):
                 raise ValueError('PvG requires full-team NHL94 with one home controller and structured observations, without self-play')
         goalie_policy = getattr(args, 'goalie_policy', 'off')
+        if goalie_policy is None:
+            # Playback resolves its automatic default before creating an environment.
+            goalie_policy = 'off'
         if goalie_policy not in ('off', 'selective', 'always'):
             raise ValueError('goalie_policy must be off, selective or always')
         goalie_supported = (config.nn in CONTROLLERS and config.env == 'NHL94-Genesis-v0'
@@ -73,6 +76,11 @@ class EnvironmentConfig:
                             and getattr(args, 'rf', 'PostPlay') == 'PostPlay')
         if goalie_policy != 'off' and not goalie_supported:
             raise ValueError('Manual goalie AI requires full-team Classic FILTERED PostPlay without self-play')
+        goalie_options = (getattr(args, 'goalie_model', None)
+                          or getattr(args, 'goalie_decision_interval', None) is not None
+                          or getattr(args, 'goalie_save_timing', 'classic') != 'classic')
+        if goalie_options and (goalie_policy == 'off' or not goalie_supported):
+            raise ValueError('Goalie model/timing options require enabled full-team Classic manual goalie control')
         if getattr(args, 'possession_value', False) and any(getattr(args, name, False) for name in (
                 'offense_lookahead', 'uncertain_carry', 'chance_creation')):
             raise ValueError('Possession-value replaces offense-lookahead, uncertain-carry and chance-creation selection')
@@ -86,13 +94,16 @@ class EnvironmentConfig:
         from nhl94_ai.agents.lifecycle import validate_one_timer_execution, validate_rebound_recovery
         validate_one_timer_execution(args)
         validate_rebound_recovery(args)
+        from nhl94_ai.agents.crossing_finish import validate_crossing_finish
+        validate_crossing_finish(args)
         if getattr(args, 'reception_control', False) and any(getattr(args, name, False) for name in RECEPTION_INCOMPATIBLE):
             raise ValueError('Reception control isolates ordinary-pass execution; disable other offensive experiments')
         if getattr(args, 'shot_placement', None) and any(getattr(args, name, False) for name in SHOT_INCOMPATIBLE):
             raise ValueError('Shot placement isolates normal-shot execution; disable other offensive experiments')
         if getattr(args, 'receiver_selection', None) and any(getattr(args, name, False) for name in RECEIVER_INCOMPATIBLE):
             raise ValueError('Receiver selection isolates legacy passes; disable other experiments/refinements')
-        for flag, label in (('rebound_recovery', 'Rebound recovery'),
+        for flag, label in (('opportunistic_cross_crease', 'Opportunistic crossing'),
+                            ('rebound_recovery', 'Rebound recovery'),
                             ('one_timer_execution', 'One-timer execution'), ('reception_control', 'Reception control'),
                             ('shot_placement', 'Shot placement'), ('receiver_selection', 'Receiver selection'),
                             ('possession_ablation', 'Possession ablation'),
@@ -349,7 +360,7 @@ PATH_OPTIONS = frozenset({
     'hyperparams', 'output_basedir', 'output', 'output_dir', 'output_model',
     'model', 'model_1', 'model_2', 'load_model', 'load_p1_model', 'load_p2_model',
     'load_opponent_model', 'src', 'dest', 'video_path', 'datasets', 'base_datasets',
-    'model_input_config', 'record_mp4',
+    'model_input_config', 'record_mp4', 'adapter_config',
 })
 
 

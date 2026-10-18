@@ -17,3 +17,7 @@
 - For training rewards, randomized resets or RAM-backed behavior, start with
   `.github/skills/nhl94-task-development/SKILL.md` for the source map, known ROM
   pitfalls and focused validation workflow.
+
+- Keep plans, benchmark results, run records, and development history outside the
+  repository. Public docs describe current usage and contracts. Use explicit
+  external paths for measurement inputs and outputs.

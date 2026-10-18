@@ -329,7 +329,7 @@ def check_results(results):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline-root', required=True)
-    parser.add_argument('--cases', default='docs/benchmarks/classic-v1-goalie-timing-native.json')
+    parser.add_argument('--cases', required=True, help='Path to the captured native cases report')
     parser.add_argument('--output', required=True)
     args = parser.parse_args()
     source = json.loads(Path(args.cases).read_text(encoding='utf-8'))

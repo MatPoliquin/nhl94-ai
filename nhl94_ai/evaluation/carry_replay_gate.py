@@ -65,6 +65,8 @@ def validate_benchmark(report, root):
         raise ValueError('Default replay gate requires possession_ablation to be disabled.')
     if settings.get('receiver_selection'):
         raise ValueError('Default replay gate requires receiver_selection to be disabled.')
+    if settings.get('retention_model'):
+        raise ValueError('Default replay gate requires retention_model to be disabled.')
     if settings.get('shot_placement'):
         raise ValueError('Default replay gate requires shot_placement to be disabled.')
     if settings.get('reception_control'):

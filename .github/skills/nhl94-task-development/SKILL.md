@@ -42,12 +42,9 @@ the task, then follow specific symbols.
 
 Read [Architecture](../../../docs/ARCHITECTURE.md) for the current task contract
 and [Artifacts](../../../docs/ARTIFACTS.md) before changing a model/input schema.
-For ROM details, jump to the relevant sections of the
-[NHL94 deep dive](../../../docs/nhl94%20Deep%20dive.md):
-2.2 object layout, 2.3 flag byte order, 3 button semantics, 6.1 assignments,
-and 12 integration mapping pitfalls. Do not read the entire disassembly just to
-rediscover these. Consult the cited ROM routines only when a necessary detail
-is not established by the local reference or implementation.
+For ROM details, start with `nhl94_ai/game/ram.py`,
+`nhl94_ai/game/state.py`, and the relevant task setup helper. Consult a
+disassembly only when the necessary detail is absent from those contracts.
 
 ## Establish the behavior being changed
 

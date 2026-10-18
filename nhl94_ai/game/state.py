@@ -60,6 +60,7 @@ class Player:
     # Optional live ROM attribute; deliberately absent from neural encodings.
     shot_accuracy: int | None = None
     shot_power: int | None = None
+    puck_control: int | None = None
     handedness: int | None = None
     passing: int | None = None
     stick_x: int | None = None
@@ -179,6 +180,15 @@ class GoalieStats:
 
 @dataclass
 class EngineState:
+    @property
+    def native_one_timer_shot(self):
+        """ROM byte bit 1, when the integration reads FFC2F8 as big-endian u16.
+
+        Keep the historical normalized one_timer_collision_mode field unchanged
+        for saved skater-policy compatibility; new goalie code uses this bit.
+        """
+        return bool(self.word_ffc2f8 & 0x0200)
+
     puck_owner: int = -1
     puck_owner_known: bool = False
     offsides_enabled: bool | None = None
@@ -365,7 +375,7 @@ class Team():
             player.assignment = player.decision_timer = player.steering_timer = player.steering = None
             player.cpu_target = player.support_zone = None
             player.cpu_response_available = False
-        for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing',
+        for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing', 'puck_control',
                      'selection_flags', 'live_anim', 'live_anim_frame', 'animation_timer',
                      'live_state_flags', 'cover_timer', 'assignment', 'energy',
                      'contact_player', 'contact_impact', 'precise_x', 'precise_y',
@@ -433,7 +443,7 @@ class Team():
         goalie.steering = info.get(prefix + 'steering')
         delay = info.get(prefix + 'decision_delay')
         goalie.decision_interval = None if delay is None else max(0, delay - bool(flags & 0x40)) // 4
-        for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing'):
+        for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing', 'puck_control'):
             setattr(goalie, name, info.get(prefix + name))
         goalie.selection_flags = info.get(prefix + 'flags')
         goalie.unavailable = info.get(prefix + 'unavailable', 0)
@@ -802,18 +812,14 @@ class NHL94GameState(TacticalFeatures):
 
 
     def update_nets(self):
-        # Update team 1 net (bottom of screen)
-        self.team1.net.y = GameConsts.P1_NET_Y
-        self.team1.net.left = GameConsts.P1_NET_LEFT_POLL
-        self.team1.net.right = GameConsts.P1_NET_RIGHT_POLL
-
-        # Update team 2 net (top of screen)
-        self.team2.net.y = GameConsts.P2_NET_Y
-        self.team2.net.left = GameConsts.P2_NET_LEFT_POLL
-        self.team2.net.right = GameConsts.P2_NET_RIGHT_POLL
-
-        # Calculate relative net positions for both teams
+        # Public periods are one-based; teams change ends each period. Use
+        # physical team identity so an away view can also refresh its geometry.
+        direction = -1 if self.period % 2 == 0 else 1
         for team in [self.team1, self.team2]:
+            home = team.controller == 1
+            team.net.y = direction * (GameConsts.P1_NET_Y if home else GameConsts.P2_NET_Y)
+            team.net.left = GameConsts.P1_NET_LEFT_POLL if home else GameConsts.P2_NET_LEFT_POLL
+            team.net.right = GameConsts.P1_NET_RIGHT_POLL if home else GameConsts.P2_NET_RIGHT_POLL
             controlled = team.get_controlled_player()
             team.net.rel_controlled_left = 0 if controlled is None else team.net.left - controlled.x
             team.net.rel_controlled_right = 0 if controlled is None else team.net.right - controlled.x
@@ -837,7 +843,9 @@ class NHL94GameState(TacticalFeatures):
             self.slapshot_frames_held = 0  # Reset if C not pressed
 
 
-        self.period = info.get("period", 1) or 1
+        # The ROM counts periods from zero. Preserve the public one-based
+        # convention without collapsing the first and second periods together.
+        self.period = int(info.get("period") or 0) + 1
         self.time = info.get("time")
 
         #Puck
@@ -845,6 +853,9 @@ class NHL94GameState(TacticalFeatures):
         self.puck.y = info.get("puck_y")
         self.puck.vx = info.get("puck_vel_x")
         self.puck.vy = info.get("puck_vel_y")
+        for axis in ('x', 'y'):
+            position = info.get('defense_puck_precise_' + axis)
+            setattr(self.puck, 'precise_' + axis, None if position is None else position / 65536)
         for axis in ('x', 'y', 'z'):
             velocity = info.get('defense_puck_v' + axis)
             setattr(self.puck, 'motion_' + axis, None if velocity is None else velocity * 17 / 65536)

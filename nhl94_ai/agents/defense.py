@@ -5,6 +5,8 @@ import math
 
 import numpy as np
 
+from nhl94_ai.agents.classic_tuning import current as tuning
+
 from nhl94_ai.env.target_control import project_target, route_waypoint
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.agents.motion import (
@@ -184,7 +186,7 @@ class DefenseController:
                 reason = 'cover goal-mouth gap beside teammate'
         delta = goal_x - threat[0], state.team1.net.y - threat[1]
         length = max(1, math.hypot(*delta))
-        gap = min(34, max(14, (264 - depth) * 0.18))
+        gap = min(34, max(14, (264 - depth) * tuning().defensive_gap_scale))
         target = (threat[0] + delta[0] * gap / length,
                   sign * min(244, depth + abs(delta[1]) * gap / length))
         mode = 'protect-lane' if receiver is None else 'deny-reception'
@@ -416,7 +418,7 @@ class DefenseController:
         if self.plan and self.plan.mode in ('recover-safe', 'intercept-pass') and actual in costs:
             player = next(player for slot, player in candidates if slot == actual)
             current_can_wait = costs[actual] + self._race_margin(player) <= self.plan.puck_arrival
-        if actual in costs and costs[actual] <= costs[best] + SWITCH_MARGIN and current_can_wait:
+        if actual in costs and costs[actual] <= costs[best] + tuning().defender_switch_margin and current_can_wait:
             best = actual
         self.desired_slot = best
         return best, costs

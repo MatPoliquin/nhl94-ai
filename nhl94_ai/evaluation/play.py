@@ -40,8 +40,8 @@ def build_parser():
                        help='Opt-in NHL94 ROM seed; each episode uses the next uint32 seed. Omit to retain the saved RNG.')
     parser.add_argument('--side', choices=['home', 'away'], default='home',
                        help='Classic team in model_vs_game; away uses a home-only full-team save')
-    parser.add_argument('--goalie-policy', choices=['off', 'selective', 'always'], default='off',
-                        help='Opt-in Classic manual goalie AI; requires full-team FILTERED controls and a manual-goalie save')
+    parser.add_argument('--goalie-policy', choices=['off', 'selective', 'always'],
+                        help='Classic manual goalie AI (default: selective for supported full-team Classic play; off disables it)')
     parser.add_argument('--num_players', type=int, default=2)
     parser.add_argument('--num_env', type=int, default=1)
     parser.add_argument('--output_basedir', type=str, default='~/OUTPUT')
@@ -52,7 +52,7 @@ def build_parser():
     parser.add_argument('--rf', type=str, default='')
     parser.add_argument('--hyperparams', type=str, default=default_config_path("default"))
     parser.add_argument('--video', default=False, action='store_true')
-    parser.add_argument('--video_path', type=str, default='../retro_game.avi')
+    parser.add_argument('--video_path', type=str, default='../recordings/retro_game.avi')
     parser.add_argument('--record-mp4', metavar='PATH',
                        help='Record the entire 1920x1080 debug display to MP4 at 60 fps, including pauses (no audio).')
     parser.add_argument('--single_session', default=False, action='store_true',
@@ -91,6 +91,22 @@ def parse_cmdline(argv):
     elif args.mode == 'player_vs_model':
         args.num_players = 2
 
+    return resolve_play_goalie_defaults(args)
+
+
+def resolve_play_goalie_defaults(args):
+    """Enable the improved goalie for ordinary full-team Classic playback."""
+    if getattr(args, 'goalie_policy', None) is None:
+        state = getattr(args, 'state', None)
+        supported = (args.nn in CONTROLLERS and args.env == 'NHL94-Genesis-v0'
+                     and args.action_type.upper() == 'FILTERED'
+                     and args.mode in ('model_vs_game', 'player_vs_model')
+                     and getattr(args, 'rf', '') in ('', 'PostPlay')
+                     and not getattr(args, 'model_2', '') and not getattr(args, 'selfplay', False))
+        args.goalie_policy = ('selective' if supported and (state is None or 'ManualGoalie' in state)
+                              else 'off')
+    if args.goalie_policy != 'off' and args.state is None:
+        args.state = 'SabresVsMightyDucks.ManualGoalie.Start'
     return args
 
 class NHL94Player:
@@ -359,6 +375,7 @@ def main(argv):
 def run(args):
     if args.nn in CONTROLLERS and args.env in ('NHL941on1-Genesis-v0', 'NHL942on2-Genesis-v0', 'NHL94-Genesis-v0') and not args.rf:
         args.rf = 'PostPlay'
+    resolve_play_goalie_defaults(args)
     args.hyperparams_dict = resolve_hyperparams_for_model(load_hyperparams(
         args.hyperparams,
         required=True,

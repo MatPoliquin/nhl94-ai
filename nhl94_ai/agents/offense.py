@@ -3,6 +3,8 @@ from copy import copy
 from dataclasses import asdict, replace
 import math
 
+from nhl94_ai.agents.classic_tuning import current as tuning
+
 from nhl94_ai.agents.defense import controlled_slot, eligible, on_ice
 from nhl94_ai.agents.lifecycle import PassLifecycle
 from nhl94_ai.agents.carry import (
@@ -68,8 +70,9 @@ def ordinary_shot_conditions(state, player, hold_frames, escape):
     accuracy = 15 if player.shot_accuracy is None else max(0, min(30, player.shot_accuracy))
     safe = shot_release_in_front(state, player, hold_frames) and goalie_contact_time(
         player, state.team2.goalie, clearance=GOALIE_SHOT_CLEARANCE) > GOALIE_HORIZON
-    eligible_shot = abs(player.x) < 48 and safe
-    return (player.y * sign > 218 + max(0, 15 - accuracy) * 0.4 and eligible_shot,
+    params = tuning()
+    eligible_shot = abs(player.x) < params.normal_shot_half_width and safe
+    return (player.y * sign > params.normal_shot_depth + max(0, 15 - accuracy) * params.shot_accuracy_depth_scale and eligible_shot,
             player.y * sign > 175 and escape is not None and eligible_shot)
 
 
@@ -393,9 +396,10 @@ class OffenseController:
     @staticmethod
     def carry_target(state, player):
         sign = 1 if state.team2.net.y > state.team1.net.y else -1
-        x = (35 if player.x >= 0 else -35) if player.y * sign <= 140 else (
-            -35 if state.team2.goalie.x >= 0 else 35)
-        return x, sign * 235
+        lane = tuning().carry_lane_offset
+        x = (lane if player.x >= 0 else -lane) if player.y * sign <= 140 else (
+            -lane if state.team2.goalie.x >= 0 else lane)
+        return x, sign * tuning().carry_target_depth
 
     def _finish_value(self, state, player, *, carry_frames=0, pressure_state=None, pressure_delay=0):
         escape = goalie_avoidance(
@@ -723,9 +727,9 @@ class OffenseController:
         if frame < self.feint_at:
             return None
         sign = 1 if state.team2.net.y > state.team1.net.y else -1
-        if not 88 < player.y * sign < 218:
+        if not 88 < player.y * sign < tuning().normal_shot_depth:
             return None
-        forward_target = (player.x, sign * 235)
+        forward_target = (player.x, sign * tuning().carry_target_depth)
         straight_target = self._cut_target(state, player, forward_target)
         straight = (projected_state(state, straight_target, decision_interval=self.movement_interval)
                     if straight_target == forward_target and self.clear_carry(state, player, straight_target) else None)
@@ -880,8 +884,9 @@ class OffenseController:
         for candidate in self.diagnostics['candidates']:
             if candidate['status'] == 'safe':
                 candidate['worthwhile'] = candidate['slot'] in worthwhile_slots
-        finish_depth = 198 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * 0.4
-        if (player.y * sign > finish_depth and abs(player.x) < 48
+        params = tuning()
+        finish_depth = params.normal_shot_depth - 20 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * params.shot_accuracy_depth_scale
+        if (player.y * sign > finish_depth and abs(player.x) < params.normal_shot_half_width
                 and shot_release_in_front(state, player, self.decision_interval)
                 and pressure_margin(state.team2, (player.x, player.y), 8) >= 3):
             self.feint_target = None

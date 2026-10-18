@@ -19,10 +19,10 @@ separate stable-retro/runtime repositories unless explicitly requested.
 
 For PPO, rewards, randomized resets and save initialization, use
 [nhl94-task-development](../nhl94-task-development/SKILL.md).
-Read only the relevant portions of [Classic V1](../../../docs/CLASSIC_V1.md),
-[Architecture](../../../docs/ARCHITECTURE.md) and the
-[ROM deep dive](../../../docs/nhl94%20Deep%20dive.md); do not begin with a broad
-repository/disassembly search.
+Read the relevant portions of [Classic](../../../docs/CLASSIC.md) and
+[Architecture](../../../docs/ARCHITECTURE.md). RAM decoding is in
+`nhl94_ai/game/ram.py` and `nhl94_ai/game/state.py`; start with those sources
+before searching a disassembly.
 
 ## Start at the affected contract
 
@@ -32,7 +32,7 @@ repository/disassembly search.
 | Carry forecasting, defender reach, uncertainty and feasible exits | `nhl94_ai/agents/carry.py`, `nhl94_ai/agents/skating.py`, `nhl94_ai/agents/offense.py`; `tests/unit/test_carry_continuations.py`, `tests/unit/test_uncertain_carry.py` |
 | Native passing selector, reception and finishing credit | `nhl94_ai/agents/passing.py`, `nhl94_ai/game/geometry.py`; `tests/unit/test_pass_geometry.py`, `tests/integration/classic_carry.py` |
 | Optional finishers and goalie interactions | `nhl94_ai/agents/deke.py`, `nhl94_ai/agents/cross_crease.py`, `nhl94_ai/agents/goalie.py`; corresponding unit/explicit integration fixtures |
-| RAM attributes, physical slots, controller assignment and native counters | `nhl94_ai/game/ram.py`, `nhl94_ai/game/state.py`; ROM deep dive integration-mapping sections |
+| RAM attributes, physical slots, controller assignment and native counters | `nhl94_ai/game/ram.py`, `nhl94_ai/game/state.py`; `game/ram.py` field declarations and named decoding helpers |
 | Production CPU measurements and event attribution | `nhl94_ai/evaluation/cpu_benchmark.py`, `nhl94_ai/evaluation/offense_metrics.py`, `nhl94_ai/evaluation/pass_outcomes.py` |
 | Same-state replay, native endings and executable cadence gate | `nhl94_ai/evaluation/carry_replay.py`, `nhl94_ai/evaluation/carry_outcomes.py`, `nhl94_ai/evaluation/carry_replay_gate.py`; corresponding unit tests |
 | Teammate scores, cached/historical labels and pause | `nhl94_ai/ui/debug.py`, `nhl94_ai/ui/targets.py`, `nhl94_ai/evaluation/play.py`; `tests/unit/test_debug_playback.py`, `tests/integration/debug_playback.py` |
@@ -129,7 +129,7 @@ python -m nhl94_ai benchmark-cpu \
   --agent classic-v1 --matchups sabres-ducks-manual ducks-sabres-manual \
   --trials 20 --seed 20262004 --seconds 300 --frame-skip 4 \
   --action-type FILTERED --goalie-policy off --workers 4 \
-  --output docs/benchmarks/classic-v1-CHANGE-default.json
+  --output /path/to/private-runs/default.json
 ```
 
 Run the matching candidate command with its **explicit** opt-in flag and a
@@ -149,8 +149,9 @@ full benchmark. Keep experimental tactics opt-in unless promotion is requested.
 
 ## Finish with persistent evidence
 
-Update existing architecture/tactic docs, preserve negative/historical reports,
-and explicitly supersede invalid interpretations instead of hiding them.
+Keep plans, run records, benchmark results, and development history outside
+the repository. Use explicit external input/output paths for measurements.
+Public documentation describes current interfaces and usage only.
 Do not store temporary scores, seed sets or task status as durable conventions.
 Finish implementation changes with:
 

@@ -63,6 +63,7 @@ class ShotLifecycle:
     slot: int = -1
     side: int = 1
     extended_hold: bool = False
+    crossing: bool = False
     rebound_recovery: bool = False
     rebound_wait_for_animation: bool = True
     release_observed: bool = False
@@ -78,6 +79,7 @@ class ShotLifecycle:
 
     def start(self, state, decision, frame, hold_frames):
         self.extended_hold = False
+        self.crossing = False
         self.release_observed = False
         self.until_decision = decision + 7
         self.hold_until_frame = frame + hold_frames
@@ -87,6 +89,7 @@ class ShotLifecycle:
     def cancel(self):
         self.until_decision = 0
         self.extended_hold = False
+        self.crossing = False
         self.release_observed = False
 
     def same_shooter_recovery(self, state, decision):

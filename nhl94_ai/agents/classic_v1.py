@@ -19,6 +19,7 @@ from nhl94_ai.agents.defense import controlled_slot
 from nhl94_ai.agents.carry import carry_pad
 from nhl94_ai.agents.goalie import GoalieController, outlet_options
 from nhl94_ai.agents.cross_crease import CrossCreaseController, evaluate_cross_crease
+from nhl94_ai.agents.crossing_finish import CrossingFinishSelector, validate_crossing_finish
 from nhl94_ai.agents.deke import DekeController, evaluate_deke
 from nhl94_ai.agents.offense import (
     OffenseController, carry_clear,
@@ -48,6 +49,7 @@ class ClassicAIV1Model:
 
     def __init__(self, args=None, env=None):
         self.args, self.env = args, env
+        self.crossing_finish = CrossingFinishSelector() if validate_crossing_finish(args) else None
         self.refinements = frozenset(getattr(args, 'classic_refinements', ()))
         self.scheduler = ActionScheduler()
         self.buttons = ButtonState()
@@ -135,8 +137,69 @@ class ClassicAIV1Model:
         if goalie_policy != 'off' and getattr(args, 'action_type', 'FILTERED').upper() != 'FILTERED':
             raise ValueError('Manual goalie AI requires FILTERED buttons')
         self.goalie = None if goalie_policy == 'off' else GoalieController(
-            goalie_policy, pass_timing=self.offense.pass_timing)
+            goalie_policy, pass_timing=self.offense.pass_timing,
+            save_timing=getattr(args, 'goalie_save_timing', 'classic'))
+        goalie_model = getattr(args, 'goalie_model', None)
+        goalie_interval = getattr(args, 'goalie_decision_interval', None)
+        from nhl94_ai.agents.registry import resolve_goalie_positioning
+        goalie_positioning = resolve_goalie_positioning(args)
+        if goalie_positioning not in ('classic', 'deep', 'deep-csave'):
+            raise ValueError('goalie_positioning must be classic, deep or deep-csave')
+        if goalie_positioning in ('deep', 'deep-csave') and (self.goalie is None or goalie_model
+                or goalie_interval not in (None, 1) or getattr(args, 'goalie_planner', None)):
+            raise ValueError('Deep goalie positioning requires manual goalies and no other goalie controller')
+        if goalie_positioning == 'deep-csave' and getattr(args, 'goalie_save_timing', 'classic') != 'classic':
+            raise ValueError('Deep C-save positioning already includes its own save timing')
+        if (goalie_model or goalie_interval is not None or getattr(args, 'goalie_save_timing', 'classic') != 'classic') and self.goalie is None:
+            raise ValueError('Goalie model/timing options require --goalie-policy selective or always')
+        if goalie_interval is not None and goalie_interval < 1:
+            raise ValueError('Goalie decision interval must be positive')
+        if goalie_model:
+            if getattr(args, 'goalie_save_timing', 'classic') != 'classic':
+                raise ValueError('Learned goalie and scripted contact timing are separate controllers')
+            from nhl94_ai.agents.neural_goalie import NeuralGoalie
+            self.goalie = NeuralGoalie(goalie_policy, goalie_model, interval=goalie_interval,
+                                      pass_timing=self.offense.pass_timing)
+        elif goalie_interval and goalie_interval != 1:
+            from nhl94_ai.agents.learned_goalie import SampledGoalie
+            self.goalie = SampledGoalie(goalie_policy, interval=goalie_interval,
+                                        save_timing=getattr(args, 'goalie_save_timing', 'classic'),
+                                        pass_timing=self.offense.pass_timing)
+        goalie_planner = getattr(args, 'goalie_planner', None)
+        if goalie_planner:
+            if (self.goalie is None or goalie_model or goalie_interval not in (None, 1)
+                    or getattr(args, 'goalie_save_timing', 'classic') != 'classic'
+                    or getattr(args, 'classic_control_interval', 0)):
+                raise ValueError('Goalie planning requires manual goalies, native reactions and no other goalie experiment')
+            from nhl94_ai.agents.goalie_planner import PlanningGoalie
+            if goalie_planner == 'outcome-24':
+                from nhl94_ai.agents.goalie_outcome_planner import OutcomeGoalie
+                self.goalie = OutcomeGoalie(goalie_policy, pass_timing=self.offense.pass_timing)
+            else:
+                self.goalie = PlanningGoalie(goalie_policy, planning=goalie_planner,
+                                            pass_timing=self.offense.pass_timing)
+        if goalie_positioning == 'deep':
+            from nhl94_ai.agents.goalie_positioning import DeepGoalie
+            self.goalie = DeepGoalie(goalie_policy, pass_timing=self.offense.pass_timing,
+                                     save_timing=getattr(args, 'goalie_save_timing', 'classic'))
+        elif goalie_positioning == 'deep-csave':
+            from nhl94_ai.agents.goalie_csave import CSaveGoalie
+            self.goalie = CSaveGoalie(goalie_policy, pass_timing=self.offense.pass_timing)
         self.goalie_diagnostics = {}
+        self.retention_filter = None
+        retention_path = getattr(args, 'retention_model', None)
+        if retention_path:
+            from nhl94_ai.agents.retention_ranker import load_retention_filter
+            if (getattr(args, 'action_type', 'FILTERED').upper() != 'FILTERED'
+                    or getattr(args, 'classic_control_interval', 0)):
+                raise ValueError('Retention filtering requires FILTERED and native Classic reactions')
+            incompatible = ('possession_value', 'possession_ablation', 'receiver_selection', 'shot_placement',
+                            'reception_control', 'one_timer_execution', 'rebound_recovery',
+                            'classic_refinements', 'offense_lookahead', 'uncertain_carry',
+                            'chance_creation', 'cross_crease', 'deke')
+            if any(getattr(args, name, False) for name in incompatible):
+                raise ValueError('Retention filtering cannot combine with other offensive experiments')
+            self.retention_filter = load_retention_filter(retention_path)
 
     def predict(self, _observation, deterministic=True):
         return np.zeros((1, self._size), dtype=np.int8), None
@@ -152,6 +215,18 @@ class ClassicAIV1Model:
 
     def _observe_actions(self, state, elapsed, *, native=False):
         """Observe commitments in the established order before selecting input."""
+        if self.shot.crossing and self.shot.active(self.scheduler.decisions):
+            player = state.team1.get_player_by_scnum(self.shot.slot)
+            owner = state.engine.puck_owner
+            unavailable = player is None or player.is_falling
+            if (state.engine.clock_stopped or unavailable
+                    or controlled_slot(state.team1) != self.shot.slot
+                    or owner >= 0 and owner != self.shot.slot):
+                self.shot.cancel()
+                self.scheduler.interrupt()
+                self._idle(elapsed)
+                self._last_decision = 'crossing-ended'
+                return True
         self._observe_follow_through(state)
         if self._observe_one_timer(state, self.scheduler.frames + elapsed):
             self._idle(elapsed)
@@ -442,6 +517,19 @@ class ClassicAIV1Model:
         self.scheduler.elapsed = self.scheduler.interval
 
     def predict_frame(self, state, frame_skip=4, deterministic=True):
+        retention = getattr(self, 'retention_filter', None)
+        if retention is None:
+            return self._predict_native_frame(state, frame_skip, deterministic)
+        from nhl94_ai.agents.retention_features import available
+        if frame_skip != 4:
+            raise ValueError('The retention model requires four-frame offensive decisions')
+        ready, tick = available(self, state), self.scheduler.decisions
+        action = self._predict_native_frame(state, frame_skip, deterministic)
+        if ready and self.scheduler.decisions == tick + 1:
+            action = retention.apply(self, state, action)
+        return action
+
+    def _predict_native_frame(self, state, frame_skip=4, deterministic=True):
         """Observe, hand off exclusive actions, then run/repeat the tactical input.
 
         Goalies and finishers retain their existing precedence. Ordinary pass
@@ -495,7 +583,7 @@ class ClassicAIV1Model:
         self.scheduler.was_defending = defending
         self.scheduler.remaining -= 1
         self.scheduler.elapsed = self.scheduler.interval
-        if (self._last_decision == 'shoot' or self.shot.extended_hold) and self.scheduler.frames >= self.shot.hold_until_frame:
+        if (self._last_decision in ('shoot', 'crossing-shoot') or self.shot.extended_hold) and self.scheduler.frames >= self.shot.hold_until_frame:
             self.scheduler.action = self.scheduler.action.copy()
             if self._intents:
                 self.scheduler.action[0, 0] = HOCKEY_INTENT_NOOP
@@ -863,6 +951,32 @@ class ClassicAIV1Model:
 
         goalie_danger = progress > 175 and escape is not None
         preparing_one_timer = plan is not None and plan[0] == 'one-timer-setup'
+        ordinary_shot = normal_finish or (early_finish and not preparing_one_timer)
+        # Preserve chosen passes. Ordinary carry must deliver a usable crossing;
+        # this option takes no setup or roaming frames.
+        crossing = None
+        keep_pass = not ordinary_shot and plan is not None and plan[2] is not None
+        buttons_free = not self.buttons.c_down and not self.buttons.b_down
+        if self.crossing_finish is not None and buttons_free and not keep_pass:
+            crossing = self.crossing_finish.choose(state, self.scheduler.frames)
+            self.offense_diagnostics['crossing_finish'] = dict(self.crossing_finish.diagnostics)
+        if crossing is not None:
+            self.input_owner = 'shot'
+            self._last_decision = 'crossing-shoot'
+            self.shot.side, hold = crossing
+            self._last_target = self.shot.side * 13, opponents.net.y
+            self.offense_diagnostics.update(desired_slot=actual, receiver=None,
+                                            reason='moving crossing is ready for an immediate finish')
+            self.shot.start(state, self.scheduler.decisions, self.scheduler.frames, hold)
+            self.shot.crossing = True
+            extend_hold(self, hold)
+            release_frames = self.crossing_finish.diagnostics['release_frames']
+            self.shot.until_decision = max(
+                self.shot.until_decision,
+                self.scheduler.decisions + math.ceil((release_frames + 4) / self.scheduler.interval))
+            self.shot.aim(action)
+            action[Buttons.INPUT_C] = 1
+            return action, HOCKEY_INTENT_NORMAL_SHOOT
         if normal_finish or (early_finish and not preparing_one_timer):
             self.input_owner = 'shot'
             self._last_decision = 'shoot'

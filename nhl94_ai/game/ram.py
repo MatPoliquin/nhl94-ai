@@ -288,6 +288,7 @@ def register_goalie_control(env, skaters=5):
             ('decision_timer', 0x40, '|i1'), ('steering', 0x43, '|i1'), ('decision_delay', 0x6B, '|u1'),
             ('unavailable', 0x63, '|u1'), ('state_flags', 0x64, '|u1'),
             ('speed', 0x69, '|u1'), ('agility', 0x68, '|u1'), ('weight', 0x67, '|u1'),
+            ('puck_control', 0x6C, '|u1'),
             ('roster', 0x66, '|u1'), ('stick', 0x71, '|u1'), ('passing', 0x6E, '|u1'),
             ('anim', 0x58, '>u2'), ('anim_frame', 0x5A, '>u2'), ('anim_timer', 0x5C, '|i1'),
             ('contact_player', 0x2E, '>i2'), ('contact_impact', 0x32, '>u2'),
@@ -352,6 +353,8 @@ def register_defense_state(env, skaters):
     for axis, offset in (('x', 0x28), ('y', 0x2A), ('z', 0x2C)):
         fields['defense_puck_v' + axis] = 0xFFB74A + offset, '>i2'
     fields['defense_puck_z'] = 0xFFB74A + 0x18, '>i4'
+    fields['defense_puck_precise_x'] = 0xFFB74A, '>i4'
+    fields['defense_puck_precise_y'] = 0xFFB74A + 0x14, '>i4'
     fields['defense_puck_flags'] = 0xFFB74A + 0x62, '|u1'
     for side in (1, 2):
         for index in range(skaters):

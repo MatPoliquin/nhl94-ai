@@ -9,6 +9,7 @@ import numpy as np
 from nhl94_ai.agents.defense import DefenseController, controlled_slot, eligible, owns_puck
 from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, blocks_shot_lane, skating, velocity
 from nhl94_ai.agents.passing import evaluate_pass, one_timer_contact_frame, pass_contact, pass_release_frames
+from nhl94_ai.agents.skating import grounded_step
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
 
@@ -191,13 +192,64 @@ def goalie_steer(player, target):
     return action
 
 
+def moving_body_contact(state, action, horizon, *, save=False):
+    """Estimate low-puck contact while moving or entering a momentum-quartering save.
+
+    This is a short-horizon prediction, not a safety certificate. Twelve rink
+    units is the smaller one-timer body radius; ordinary manual saves may have
+    more reach. Do not use animation-specific reach for an upright goalie.
+    The save branch projects friction-only animation recovery after C quarters
+    velocity. Its normal/one-timer radius omits animation-specific extensions.
+    """
+    goalie, puck = state.team1.goalie, state.puck
+    if not 0 < horizon <= 12 or any(getattr(goalie, name) is None for name in (
+            'speed', 'agility', 'weight', 'energy')):
+        return None
+    pad = (int(action[Buttons.INPUT_RIGHT]) - int(action[Buttons.INPUT_LEFT]),
+           int(action[Buttons.INPUT_UP]) - int(action[Buttons.INPUT_DOWN]))
+    if not any(pad):
+        return None
+    x, y, z = float(puck.x), float(puck.y), max(0, puck.height)
+    vx, vy = velocity(puck)
+    vz = puck.motion_z or 0
+    previous = (x - goalie.x, y - goalie.y)
+    for frame in range(1, math.ceil(horizon) + 1):
+        previous_height = z
+        goalie = grounded_step(goalie, (0, 0) if save else pad, goalie=not save)
+        if save and frame == 1:
+            goalie.motion_x /= 4
+            goalie.motion_y /= 4
+        if z <= 0:
+            vx, vy = vx * puck.friction, vy * puck.friction
+        x, y = x + vx, y + vy
+        if z > 0 or vz:
+            vz -= 102 * VELOCITY_SCALE
+            z += vz
+            if z < 0:
+                z, vz = 0, -vz / 2
+        relative = (x - goalie.x, y - goalie.y)
+        dx, dy = relative[0] - previous[0], relative[1] - previous[1]
+        fraction = max(0, min(1, -(previous[0] * dx + previous[1] * dy)
+                              / max(1e-9, dx * dx + dy * dy)))
+        distance = math.hypot(previous[0] + fraction * dx, previous[1] + fraction * dy)
+        contact_height = previous_height + fraction * (z - previous_height)
+        radius = (12 if state.engine.native_one_timer_shot else 15) if save else 11
+        if contact_height <= 15 and distance <= radius and frame - 1 + fraction <= horizon:
+            return frame - 1 + fraction
+        previous = relative
+    return None
+
+
 class GoalieController:
     """Exclusive per-frame input owner; slot feedback, never gameplay RAM writes."""
 
-    def __init__(self, policy, *, pass_timing=False):
+    def __init__(self, policy, *, pass_timing=False, save_timing='classic'):
         if policy not in ('selective', 'always'):
             raise ValueError('Enabled goalie policy must be selective or always')
         self.policy = policy
+        if save_timing not in ('classic', 'contact'):
+            raise ValueError('Goalie save timing must be classic or contact')
+        self.save_timing = save_timing
         self.pass_timing = pass_timing
         self.frames = 0
         self.phase = 'skater'
@@ -484,6 +536,11 @@ class GoalieController:
             return self._possess(state)
         self.possession_since = None
         self.phase = 'positioning'
+        return self._position(state, plan)
+
+    def _position(self, state, plan):
+        """Choose an available goalie's movement/save; handoffs remain in _step."""
+        goalie = state.team1.goalie
         action = goalie_steer(goalie, plan.target)
         if plan.crossing_frames is not None and self.frames >= self.save_at:
             gap = abs(plan.crossing_x - goalie.x)
@@ -496,6 +553,12 @@ class GoalieController:
                 self.diagnostics.update(save_decision='align-before-save', alignment_gap=gap,
                                         alignment_frames=reach)
                 return action
+            if self.save_timing == 'contact' and gap > 8 and plan.height <= 15:
+                contact = moving_body_contact(state, action, plan.crossing_frames)
+                if contact is not None and moving_body_contact(state, action, plan.crossing_frames, save=True) is None:
+                    self.diagnostics.update(save_decision='body-contact-before-save',
+                                            body_contact_frames=contact)
+                    return action
             if plan.crossing_frames <= 9 and gap > 18 and plan.height <= 5:
                 action[:] = 0
                 action[Buttons.INPUT_A] = 1

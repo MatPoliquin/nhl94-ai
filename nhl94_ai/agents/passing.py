@@ -5,6 +5,8 @@ import math
 
 import numpy as np
 
+from nhl94_ai.agents.classic_tuning import current as tuning
+
 from nhl94_ai.agents.defense import eligible, on_ice
 from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, bounded_projection, facing, rom_direction, skating, velocity
 from nhl94_ai.agents.skating import grounded_step
@@ -398,7 +400,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
                 p.y + velocity(p)[1] * (release + flight * (sign * 88 - start[1]) / (point[1] - start[1]))
             ) * sign >= 88 for p in state.team1.players)):
         return None, {**details, 'status': 'offside-receiver'}
-    if purpose == 'advance' and gain < 20:
+    if purpose == 'advance' and gain < tuning().advance_pass_min_progress:
         return None, {**details, 'status': 'insufficient-progress'}
     if purpose != 'one-timer' and speed > (13000 + 350 * receiver.stick) * VELOCITY_SCALE:
         return None, {**details, 'status': 'too-fast-to-control'}
@@ -455,7 +457,9 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
     bypassed = sum(passer.y * sign < p.y * sign < point[1] * sign
                    for p in state.team2.players if on_ice(p))
     shooting = shot_value(state, receiver, point, total)
-    value = gain * 0.4 + bypassed * 16 + min(margin, 20) + shooting * 0.6
+    params = tuning()
+    value = (gain * params.pass_progress_weight + bypassed * params.pass_bypassed_defender_weight
+             + min(margin, 20) + shooting * params.pass_receiver_shot_weight)
     option = PassOption(index, slot, point, flight, direction, margin, robustness, gain, bypassed, shooting, value,
                         contact=contact, receiver_origin=(receiver.x, receiver.y, *velocity(receiver)),
                         release_frames=release)

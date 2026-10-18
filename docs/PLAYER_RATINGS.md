@@ -15,7 +15,7 @@ Skater Overall = Agl + 2*Spd + 3*Off + Def + 2*ShP + Chk + 3*Stk + 3*ShA + 2*End
 Goalie Overall = Agl + Def + floor(9*Puck/2) + StkR + floor(9*StkL/2) + GlvR + GlvL
 ```
 
-This follows `CalcAttrib`, `OvrPlayerWgtList`, and `OvrGoalWgtList` in the disassembly. See [the attribute-layout reference](nhl94%20Deep%20dive.md#7-how-player-attributes-become-gameplay-values) and [the goalie field mapping](nhl94%20Deep%20dive.md#94-which-goalie-attributes-map-where) for runtime semantics.
+This follows `CalcAttrib`, `OvrPlayerWgtList`, and `OvrGoalWgtList` in the disassembly. Runtime ratings can differ from these base values.
 
 ## Skaters
 

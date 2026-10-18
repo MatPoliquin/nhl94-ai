@@ -77,8 +77,8 @@ def parse_args() -> argparse.Namespace:
                         help="Path to hyperparameter JSON for model 1")
     parser.add_argument("--model2-hyperparams", type=str, default=DEFAULT_HYPERPARAMS,
                         help="Path to hyperparameter JSON for model 2")
-    parser.add_argument("--video-output", type=str, default="model_comparison.mp4",
-                        help="Output path for the comparison video (default: model_comparison.mp4)")
+    parser.add_argument("--video-output", type=str, default="../recordings/model_comparison.mp4",
+                        help="Output path for the comparison video (default: ../recordings/model_comparison.mp4)")
     parser.add_argument("--video-duration", type=float, default=DEFAULT_DURATION_SECONDS,
                         help="Length of the recorded video in seconds (default: 120)")
     parser.add_argument("--fps", type=int, default=DEFAULT_FPS,

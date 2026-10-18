@@ -11,7 +11,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from nhl94_ai.agents.registry import ALIASES, add_classic_arguments, create_scripted
+from nhl94_ai.agents.registry import ALIASES, add_classic_arguments, create_scripted, resolve_goalie_positioning
 from nhl94_ai.agents.control_rate import control_interval
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.evaluation.benchmark import RAM, away_view, update_state
@@ -82,7 +82,7 @@ def cpu_view(state, info, side):
     return away_view(state)
 
 
-def cpu_match(fixture, *, classic_control_interval=0):
+def cpu_match(fixture, *, classic_control_interval=0, goalie_planner=None, goalie_positioning=None):
     from nhl94_ai.env.factory import make_retro
     from stable_retro.data import get_romfile_path
     agent_name, matchup, seed, seconds, frame_skip, schema, *options = fixture
@@ -100,6 +100,15 @@ def cpu_match(fixture, *, classic_control_interval=0):
     reception_control = bool(options[11]) if len(options) > 11 else False
     one_timer_execution = options[12] if len(options) > 12 else None
     rebound_recovery = bool(options[13]) if len(options) > 13 else False
+    goalie_save_timing = options[14] if len(options) > 14 else 'classic'
+    goalie_model = options[15] if len(options) > 15 else None
+    goalie_interval = options[16] if len(options) > 16 else None
+    retention_model = options[17] if len(options) > 17 else None
+    opportunistic_cross_crease = bool(options[18]) if len(options) > 18 else False
+    goalie_positioning = resolve_goalie_positioning(SimpleNamespace(
+        goalie_positioning=goalie_positioning, goalie_policy=goalie_policy,
+        goalie_planner=goalie_planner, goalie_model=goalie_model,
+        goalie_decision_interval=goalie_interval, goalie_save_timing=goalie_save_timing))
     if goalie_policy != 'off' and schema != 'FILTERED':
         raise ValueError('Manual goalie CPU trials require FILTERED buttons')
     state_name, side = MATCHUPS[matchup]
@@ -118,13 +127,17 @@ def cpu_match(fixture, *, classic_control_interval=0):
             raise ValueError('CPU opponent still has a joystick assigned.')
         agent = create_scripted(agent_name, SimpleNamespace(
             classic_control_interval=classic_control_interval,
+            goalie_planner=goalie_planner,
+            goalie_positioning=goalie_positioning,
             action_type=schema, goalie_policy=goalie_policy, cross_crease=cross_crease, deke=deke,
             uncertain_carry=uncertain_carry, chance_creation=chance_creation,
             offense_lookahead=offense_lookahead, classic_refinements=refinements,
             possession_value=possession_value, possession_ablation=possession_ablation,
             receiver_selection=receiver_selection, shot_placement=shot_placement,
             reception_control=reception_control, one_timer_execution=one_timer_execution,
-            rebound_recovery=rebound_recovery))
+            rebound_recovery=rebound_recovery, goalie_save_timing=goalie_save_timing,
+            goalie_model=goalie_model, goalie_decision_interval=goalie_interval, retention_model=retention_model,
+            opportunistic_cross_crease=opportunistic_cross_crease))
         agent.frame_skip = frame_skip
         state, frames = NHL94GameState(5), 1
         context = SimpleNamespace(action_type=schema, game_state=state)
@@ -202,6 +215,8 @@ def cpu_match(fixture, *, classic_control_interval=0):
             'one_timer_metrics': dict(agent.one_timer.metrics),
             'one_timer_accounting': {'started': agent.one_timer.starts, 'ended': ended},
             'carry_metrics': dict(agent.carry_metrics),
+            'retention_model': retention_model,
+            'retention_metrics': dict(agent.retention_filter.metrics) if getattr(agent, 'retention_filter', None) else {},
             'decisions': dict(decisions), 'frames': frames,
             'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
             'controlled_recoveries': controlled_recoveries,
@@ -216,11 +231,18 @@ def cpu_match(fixture, *, classic_control_interval=0):
             'actions_sha256': digest.hexdigest(),
             'initial_state_sha256': hashlib.sha256(env.initial_state).hexdigest(),
             'goalie_policy': goalie_policy,
+            'goalie_planner': goalie_planner,
+            'goalie_positioning': goalie_positioning,
+            'goalie_save_timing': goalie_save_timing, 'goalie_model': goalie_model,
+            'goalie_decision_interval': goalie_interval,
             'goalie_metrics': dict(agent.goalie.metrics) if agent.goalie else {},
             'goalie_context_metrics': goalie_defense.summary(),
             'cross_crease': cross_crease,
             'cross_crease_metrics': dict(agent.cross_crease.metrics) if agent.cross_crease else {},
             'cross_crease_events': agent.cross_crease.events if agent.cross_crease else [],
+            'opportunistic_cross_crease': opportunistic_cross_crease,
+            'crossing_finish_metrics': dict(agent.crossing_finish.metrics) if agent.crossing_finish else {},
+            'crossing_finish_events': agent.crossing_finish.events if agent.crossing_finish else [],
             'deke': deke,
             'uncertain_carry': uncertain_carry,
             'chance_creation': chance_creation,
@@ -306,6 +328,8 @@ def summarize(results):
         for row in rows:
             crossing_metrics.update(row.get('cross_crease_metrics', {}))
         summary[matchup]['cross_crease_metrics'] = dict(crossing_metrics)
+        summary[matchup]['crossing_finish_metrics'] = dict(sum(
+            (Counter(row.get('crossing_finish_metrics', {})) for row in rows), Counter()))
         deke_metrics = Counter()
         for row in rows:
             deke_metrics.update(row.get('deke_metrics', {}))
@@ -346,9 +370,12 @@ def build_parser():
 
 
 def run(args):
+    args.goalie_positioning = resolve_goalie_positioning(args)
     from nhl94_ai.agents.lifecycle import validate_one_timer_execution, validate_rebound_recovery
     validate_one_timer_execution(args)
     validate_rebound_recovery(args)
+    from nhl94_ai.agents.crossing_finish import validate_crossing_finish
+    validate_crossing_finish(args)
     interval = control_interval(args)
     if (min(args.trials, args.seconds, args.frame_skip, args.workers) < 1
             or args.seconds > 65535 or args.seed < 0 or args.seed + args.trials > 2**32):
@@ -414,6 +441,24 @@ def run(args):
     if getattr(args, 'rebound_recovery', False):
         fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, None, False,
                      None, True) for fixture in fixtures]
+    if (args.goalie_save_timing != 'classic' or args.goalie_model or args.goalie_decision_interval is not None):
+        if args.goalie_policy == 'off':
+            raise ValueError('Goalie model/timing options require an enabled goalie policy')
+        defaults = [False, False, False, False, False, (), False, None, None, None, False, None, False]
+        fixtures = [(*fixture, *defaults[len(fixture) - 7:], args.goalie_save_timing,
+                     args.goalie_model, args.goalie_decision_interval) for fixture in fixtures]
+    retention_path = Path(args.retention_model).resolve() if getattr(args, 'retention_model', None) else None
+    retention_digest = hashlib.sha256(retention_path.read_bytes()).hexdigest() if retention_path else None
+    if retention_path:
+        if args.frame_skip != 4 or interval:
+            raise ValueError('Retention filtering requires four-frame offense and native reactions')
+        defaults = ['off', False, False, False, False, False, (), False, None, None, None,
+                    False, None, False, 'classic', None, None]
+        fixtures = [(*fixture, *defaults[len(fixture) - 6:], str(retention_path)) for fixture in fixtures]
+    if getattr(args, 'opportunistic_cross_crease', False):
+        defaults = ['off', False, False, False, False, False, (), False, None, None, None,
+                    False, None, False, 'classic', None, None, None]
+        fixtures = [(*fixture, *defaults[len(fixture) - 6:], True) for fixture in fixtures]
     controller = create_scripted(args.agent, SimpleNamespace(action_type=args.action_type)).controller
     files = {Path(__file__), Path(inspect.getfile(PassOutcomes)), Path(inspect.getfile(OffenseMetrics)),
              Path(inspect.getfile(CarrierDefenseMetrics)),
@@ -427,10 +472,40 @@ def run(args):
         'agents/offense.py', 'agents/possession.py', 'agents/possession_value.py', 'agents/possession_ablation.py',
         'agents/receiver_selection.py', 'agents/shot_placement.py',
         'agents/passing.py', 'agents/receiving.py', 'agents/responses.py', 'agents/finishing.py',
-        'agents/goalie.py', 'agents/cross_crease.py', 'agents/deke.py', 'agents/skating.py', 'agents/registry.py'))
+        'agents/goalie.py', 'agents/cross_crease.py', 'agents/deke.py', 'agents/skating.py', 'agents/registry.py',
+        'agents/crossing_finish.py', 'agents/cross_crease_only.py', 'agents/cross_crease_roaming.py'))
+    if args.goalie_model or args.goalie_decision_interval is not None:
+        files.add(root / 'nhl94_ai/agents/learned_goalie.py')
+    if args.goalie_model:
+        files.add(root / 'nhl94_ai/models/goalie.py')
+        files.add(root / 'nhl94_ai/agents/neural_goalie.py')
+    if getattr(args, 'goalie_planner', None):
+        files.add(root / 'nhl94_ai/agents/goalie_physics.py')
+        files.add(root / 'nhl94_ai/agents/goalie_planner.py')
+        if args.goalie_planner == 'outcome-24':
+            files.add(root / 'nhl94_ai/agents/goalie_outcomes.py')
+            files.add(root / 'nhl94_ai/agents/goalie_outcome_planner.py')
+    if getattr(args, 'goalie_positioning', 'classic') != 'classic':
+        files.add(root / 'nhl94_ai/agents/goalie_positioning.py')
+    if getattr(args, 'goalie_positioning', 'classic') == 'deep-csave':
+        files.add(root / 'nhl94_ai/agents/goalie_csave.py')
+        files.add(root / 'nhl94_ai/agents/goalie_physics.py')
+    if retention_path:
+        files.add(root / 'nhl94_ai/agents/retention_filter.py')
+        files.add(root / 'nhl94_ai/agents/retention_features.py')
+        files.add(root / 'nhl94_ai/agents/retention_ranker.py')
+    goalie_path = Path(args.goalie_model).resolve() if args.goalie_model else None
+    goalie_digest = hashlib.sha256(goalie_path.read_bytes()).hexdigest() if goalie_path else None
     sources = {str(path.relative_to(root)):
                hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
-    match = partial(cpu_match, classic_control_interval=interval) if interval else cpu_match
+    match_options = {}
+    if interval:
+        match_options['classic_control_interval'] = interval
+    if getattr(args, 'goalie_planner', None):
+        match_options['goalie_planner'] = args.goalie_planner
+    if getattr(args, 'goalie_positioning', 'classic') != 'classic':
+        match_options['goalie_positioning'] = args.goalie_positioning
+    match = partial(cpu_match, **match_options) if match_options else cpu_match
     if args.workers == 1:
         results = [match(fixture) for fixture in fixtures]
     else:
@@ -441,10 +516,16 @@ def run(args):
         raise RuntimeError('CPU benchmark sources changed during measurement; discard the results.')
     if shot_path and hashlib.sha256(shot_path.read_bytes()).hexdigest() != shot_digest:
         raise RuntimeError('Shot-placement model changed during measurement; discard the results.')
+    if goalie_path and hashlib.sha256(goalie_path.read_bytes()).hexdigest() != goalie_digest:
+        raise RuntimeError('Goalie model changed during measurement; discard the results.')
+    if retention_path and hashlib.sha256(retention_path.read_bytes()).hexdigest() != retention_digest:
+        raise RuntimeError('Retention model changed during measurement; discard the results.')
     from importlib.metadata import version
     report = {
         'protocol': 'nhl94-cpu-first-period-v2', 'settings': vars(args), 'sources': sources,
         'shot_placement_sha256': shot_digest,
+        'goalie_model_sha256': goalie_digest,
+        'retention_model_sha256': retention_digest,
         'versions': {name: version(name) for name in ('nhl94-ai', 'stable-retro', 'numpy')},
         'limitations': ['Fixed starting rosters, first periods only; not full-game win rates.',
                         'Away trials transfer the joystick to the away team and correct RAM control observations.',

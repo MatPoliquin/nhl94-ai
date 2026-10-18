@@ -3,6 +3,7 @@ environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'  # must be set before pygame import
 import gymnasium as gym
 import numpy as np
 from collections import deque
+from pathlib import Path
 from nhl94_ai.tasks.legacy import rf_defensezone, rf_scoregoal
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.game.ram import decode_shot_count
@@ -96,8 +97,10 @@ class NHL94GameDisplayEnv():
 
         # Initialize OpenCV video writer
         if args.video:
+            video_path = Path(args.video_path).expanduser()
+            video_path.parent.mkdir(parents=True, exist_ok=True)
             fourcc = cv2.VideoWriter_fourcc(*'XVID')
-            self.video_writer = cv2.VideoWriter(args.video_path, fourcc, 60.0, (self.FB_WIDTH, self.FB_HEIGHT))
+            self.video_writer = cv2.VideoWriter(str(video_path), fourcc, 60.0, (self.FB_WIDTH, self.FB_HEIGHT))
 
     def close(self):
         if self.args.video:

@@ -1,6 +1,8 @@
 """Immediate possession policy; long-horizon carry certificates stay experimental."""
 import math
 
+from nhl94_ai.agents.classic_tuning import current as tuning
+
 from nhl94_ai.agents.defense import eligible
 from nhl94_ai.agents.motion import facing
 from nhl94_ai.agents.offense import (
@@ -95,10 +97,10 @@ class PossessionOffenseController(OffenseController):
     @staticmethod
     def _immediate_gain(option, player, sign, purpose, current):
         if purpose == 'advance':
-            return option.forward_gain >= 20 and (
+            return option.forward_gain >= tuning().advance_pass_min_progress and (
                 option.bypassed > 0 or option.forward_gain >= 50
                 or player.y * sign < 88 <= option.point[1] * sign)
-        return option.shot_value > current + 12
+        return option.shot_value > current + tuning().position_pass_min_improvement
 
     def choose(self, state, frame):
         if self.allow_uncertified or self.chance_creation:
@@ -113,8 +115,9 @@ class PossessionOffenseController(OffenseController):
         sign = 1 if state.team2.net.y > state.team1.net.y else -1
         purpose = 'advance' if player.y * sign < 140 else 'position'
         choices, self.diagnostics['candidates'] = self.passes(state, purpose)
-        finish_depth = 198 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * 0.4
-        if (player.y * sign > finish_depth and abs(player.x) < 48
+        params = tuning()
+        finish_depth = params.normal_shot_depth - 20 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * params.shot_accuracy_depth_scale
+        if (player.y * sign > finish_depth and abs(player.x) < params.normal_shot_half_width
                 and shot_release_in_front(state, player, self.decision_interval)
                 and pressure_margin(state.team2, (player.x, player.y), 8) >= 3):
             self.feint_target = None

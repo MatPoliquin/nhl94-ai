@@ -8,7 +8,31 @@ CONTROLLERS = {
 ALIASES = {'classic': 'ClassicAIV1', 'classic-v1': 'ClassicAIV1'}
 
 
+def resolve_goalie_positioning(args):
+    """Use the improved manual goalie unless another controller is requested."""
+    explicit = getattr(args, 'goalie_positioning', None)
+    if explicit is not None:
+        return explicit
+    replaced = (getattr(args, 'goalie_model', None) or getattr(args, 'goalie_planner', None)
+                or getattr(args, 'goalie_decision_interval', None) not in (None, 1)
+                or getattr(args, 'goalie_save_timing', 'classic') != 'classic')
+    return ('deep-csave' if getattr(args, 'goalie_policy', 'off') in ('selective', 'always')
+            and not replaced else 'classic')
+
+
 def add_classic_arguments(parser):
+    parser.add_argument('--goalie-positioning', choices=('classic', 'deep', 'deep-csave'),
+                        help='Manual goalie controller (default: deep-csave); classic restores the original positioning and saves')
+    parser.add_argument('--goalie-planner', choices=('physics', 'search-12', 'search-24', 'search-48', 'outcome-24'),
+                        help='Experimental independent released-shot physics planner; manual goalies, native reactions only')
+    parser.add_argument('--retention-model', metavar='MODEL.json',
+                        help='Experimental puck-retention movement filter; FILTERED, four-frame offense only')
+    parser.add_argument('--goalie-save-timing', choices=('classic', 'contact'), default='classic',
+                        help='Experimental moving-body interception before committing a C save')
+    parser.add_argument('--goalie-model', metavar='MODEL.zip',
+                        help='Trained goalie-only policy; requires an enabled manual goalie policy')
+    parser.add_argument('--goalie-decision-interval', type=int,
+                        help='Goalie positioning/save interval; default: native for scripted, checkpoint interval for learned')
     parser.add_argument('--classic-control-interval', type=int, default=0, metavar='N',
                         help='Classic reaction/input cadence: 0 keeps native-frame reactions (default); '
                              'N >= 1 observes and holds raw buttons every N frames (4 = 15 Hz, 10 = 6 Hz, '
@@ -35,6 +59,8 @@ def add_classic_arguments(parser):
                         help='Experimental native carry and receiver-continuation policy (default: off)')
     parser.add_argument('--cross-crease', action='store_true',
                         help='Opt-in full-team Classic held-C cross-crease finishing (default: off)')
+    parser.add_argument('--opportunistic-cross-crease', action='store_true',
+                        help='Use the crossing specialist\'s immediate finish within ordinary Classic offense (FILTERED; default: off)')
     parser.add_argument('--deke', action='store_true',
                         help='Opt-in full-team Classic reaction-based skating dekes (default: off)')
     parser.add_argument('--uncertain-carry', action='store_true',

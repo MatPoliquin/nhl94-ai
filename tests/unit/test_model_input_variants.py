@@ -346,7 +346,7 @@ class CompactInputTests(unittest.TestCase):
         memory.assign(0xFFB7AA, '>i2', 6)
         memory.assign(0xFFB04A + 6 * 0x80 + 0x28, '>i2', 1200)
         memory.assign(0xFFB04A + 6 * 0x80 + 0x54, '>u2', 2)
-        env.unwrapped.info['period'] = 2
+        env.unwrapped.info['period'] = 1  # Native second period.
         info = env._model_input_info(env.unwrapped.info)
         self.assertIn('model_input_players', info)
         env.game_state.BeginFrame(info, [0] * 6)

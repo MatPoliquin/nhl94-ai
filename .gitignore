@@ -130,3 +130,25 @@ dmypy.json
 
 # Local temporary files
 /tmp/
+
+# Local development records
+/docs/benchmarks/
+/docs/plans/
+/docs/reports/
+/benchmarks/
+/plans/
+/reports/
+/docs/*PLAN*.md
+/docs/*RESULTS*.md
+/docs/CLASSIC_V1.md
+
+# Generated recordings
+/recordings/
+*.mp4
+*.webm
+*.mkv
+*.avi
+*.mov
+*.m4v
+*.bk2
+*.fm2

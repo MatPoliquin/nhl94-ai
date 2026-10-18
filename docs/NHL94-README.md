@@ -67,8 +67,3 @@ nhl94 play --mode player_vs_game --env NHL94-Genesis-v0 --nn MlpPolicy \
 
 The debug display implementation is in
 [`nhl94_ai/ui/debug.py`](../nhl94_ai/ui/debug.py).
-
-## Project history
-
-- [NHL94 Discord, including its AI subgroup](https://discord.gg/SDnKEXujDs)
-- [Earlier 1-on-1 AI and reward-function demonstration](https://www.youtube.com/watch?v=UBXXn2amGUU)

@@ -58,7 +58,8 @@ class ChanceReplayTests(unittest.TestCase):
         self.assertEqual(history.offense.pass_action.last_pass['owner'], 0)
 
     def test_fresh_protocol_is_declared_and_bounded(self):
-        args = build_parser().parse_args([])
+        args = build_parser().parse_args([
+            '--benchmark', '/path/to/report.json', '--gate', '/path/to/gate.json'])
         self.assertEqual((args.fresh_seed, args.fresh_seeds, args.samples_per_period), (20262801, 4, 4))
         self.assertEqual((args.horizon, args.pass_horizon), (240, 120))
 
