@@ -118,7 +118,7 @@ class ShotDecodingTests(unittest.TestCase):
         for game, spec in GAMES.items():
             with self.subTest(game=game):
                 info = json.loads((root / f'{game}.json').read_text(encoding='utf-8'))
-                state = NHL94GameState(spec.skaters_per_team)
+                state = NHL94GameState(spec.skaters_per_team, platform=spec.backend)
                 for high in (0, 1, 65535, 0):
                     info.update(p1_shots=(high << 16) | 9, p2_shots=(high << 16) | 12)
                     original = info.copy()

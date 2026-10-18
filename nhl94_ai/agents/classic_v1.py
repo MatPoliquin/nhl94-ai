@@ -49,6 +49,8 @@ class ClassicAIV1Model:
 
     def __init__(self, args=None, env=None):
         self.args, self.env = args, env
+        from nhl94_ai.game.specs import get_game
+        self.platform = get_game(getattr(args, 'env', 'NHL94-Genesis-v0')).backend
         self.crossing_finish = CrossingFinishSelector() if validate_crossing_finish(args) else None
         self.refinements = frozenset(getattr(args, 'classic_refinements', ()))
         self.scheduler = ActionScheduler()
@@ -138,7 +140,7 @@ class ClassicAIV1Model:
             raise ValueError('Manual goalie AI requires FILTERED buttons')
         self.goalie = None if goalie_policy == 'off' else GoalieController(
             goalie_policy, pass_timing=self.offense.pass_timing,
-            save_timing=getattr(args, 'goalie_save_timing', 'classic'))
+            save_timing=getattr(args, 'goalie_save_timing', 'classic'), platform=self.platform)
         goalie_model = getattr(args, 'goalie_model', None)
         goalie_interval = getattr(args, 'goalie_decision_interval', None)
         from nhl94_ai.agents.registry import resolve_goalie_positioning
@@ -315,6 +317,8 @@ class ClassicAIV1Model:
         self.buttons.b_down = bool(action[Buttons.INPUT_B])
         if self._intents:
             action = np.asarray([intent, *action[4:8], int(action[8] and intent == HOCKEY_INTENT_NOOP)], dtype=np.int8)
+        elif self.platform.name != 'genesis':
+            action = self.platform.encode_action(action)
         self._last_action_preferences = action[None].astype(np.float32)
         return action[None]
 
@@ -538,6 +542,28 @@ class ClassicAIV1Model:
         """
         self.scheduler.configure(frame_skip)
         self.offense.decision_interval = frame_skip
+        if state.engine.faceoff:
+            if self.goalie is not None:
+                self.goalie.phase = 'stoppage'
+                self.goalie.outlet = self.goalie.pending_save = None
+                self.goalie.possession_since = None
+                self.goalie.last_effective = False
+                self.goalie.pass_windup = None
+                self.goalie_diagnostics = {}
+            self.offense.cancel()
+            self.shot.cancel()
+            self.end_one_timer('stoppage', interrupt=False)
+            self.setup.until_decision = 0
+            self._idle(1)
+            self.scheduler.interrupt()
+            self._last_decision, self.input_owner = 'faceoff', 'faceoff'
+            self._last_target = (state.puck.x, state.puck.y)
+            self.defense_diagnostics = {}
+            self.offense_diagnostics = {'phase': 'faceoff', 'mode': 'faceoff',
+                                        'reason': 'capture the puck when the referee drops it'}
+            action = np.zeros(Buttons.INPUT_MAX, dtype=np.int8)
+            action[Buttons.INPUT_B] = self.scheduler.frames % 8 < 4
+            return self._encode(action, HOCKEY_INTENT_NOOP)
         if self._observe_actions(state, 1, native=True):
             return self._neutral('transition')
         self.scheduler.elapsed = 1

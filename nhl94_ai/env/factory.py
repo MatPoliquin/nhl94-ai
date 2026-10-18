@@ -87,8 +87,12 @@ def make_retro(
         'MULTI_DISCRETE': retro.Actions.MULTI_DISCRETE
     }
     action_enum = action_map.get(action_type.upper(), retro.Actions.FILTERED)
+    backend = GAMES[game].backend if game in GAMES else None
+    if backend is not None and backend.name == 'snes':
+        kwargs.setdefault('scenario', backend.scenario)
     if goalie_policy != 'off':
-        if goalie_policy not in ('selective', 'always') or game != 'NHL94-Genesis-v0' or action_type.upper() != 'FILTERED':
+        if (goalie_policy not in ('selective', 'always') or game not in GAMES
+                or GAMES[game].skaters_per_team != 5 or action_type.upper() != 'FILTERED'):
             raise ValueError('Manual goalie buttons require full-team FILTERED controls')
         # The integration's FILTERED button group omits A (dives and clears).
         # ALL has the same 12 binary fields; the opt-in controller owns button edges.
@@ -105,12 +109,9 @@ def make_retro(
         inttype=inttype,
     )
     if game in GAMES:
-        env.pass_geometry_rom = stable_retro.data.get_romfile_path(game, inttype)
-        register_skater_ratings(env, GAMES[game].skaters_per_team)
-        register_pass_state(env)
-        register_goalie_motion(env, GAMES[game].skaters_per_team)
-        register_goalie_control(env, GAMES[game].skaters_per_team)
-        register_defense_state(env, GAMES[game].skaters_per_team)
+        if backend.name == 'genesis':
+            env.pass_geometry_rom = stable_retro.data.get_romfile_path(game, inttype)
+        backend.register(env, GAMES[game].skaters_per_team)
     #env = NHL94Discretizer(env)
     #if max_episode_steps is not None:
     #    env = TimeLimit(env, max_episode_steps=max_episode_steps)
@@ -132,7 +133,8 @@ def build_single_nhl94_env(
     hyperparams = resolve_task_model_input(args, hyperparams)
     if episode_rom_seed is not None:
         validate_rom_seed(episode_rom_seed)
-        get_game(args.env)
+        if get_game(args.env).platform != 'genesis':
+            raise ValueError('ROM RNG seeding is currently mapped for Genesis only')
     target_mode = getattr(args, 'action_type', '').upper() == 'TARGET_POSITION'
     if target_mode and num_players != 1:
         raise ValueError('TARGET_POSITION requires one emulator controller')
@@ -267,12 +269,16 @@ def get_button_names(args):
     if getattr(args, 'state', None) is None and state is not None:
         args.state = state
 
+    backend_kwargs = {}
+    if get_game(args.env).platform == 'snes':
+        backend_kwargs['scenario'] = get_game(args.env).backend.scenario
     env = retro.make(
         game=args.env,
         state=state,
         use_restricted_actions=action_enum,
         players=2 if getattr(args, 'selfplay', False) else args.num_players,
         inttype=retro.data.Integrations.ALL,
+        **backend_kwargs,
     )
     try:
         games.get_bindings(args)

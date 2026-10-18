@@ -72,7 +72,8 @@ class HumanPlayContracts(unittest.TestCase):
 
     def test_only_external_match_env_uses_24_buttons(self):
         for controllers, mode, shape in (
-            (2, 'player_vs_model', (24,)), (1, 'player_vs_model', (12,)),
+            (2, 'player_vs_model', (24,)), (2, 'model_vs_model', (24,)),
+            (1, 'player_vs_model', (12,)),
             (2, 'model_vs_game', (12,)), (1, 'model_vs_game', (12,)),
         ):
             with self.subTest(controllers=controllers, mode=mode):

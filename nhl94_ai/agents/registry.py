@@ -13,6 +13,8 @@ def resolve_goalie_positioning(args):
     explicit = getattr(args, 'goalie_positioning', None)
     if explicit is not None:
         return explicit
+    if getattr(args, 'env', '') == 'NHL94-Snes-v0':
+        return 'classic'
     replaced = (getattr(args, 'goalie_model', None) or getattr(args, 'goalie_planner', None)
                 or getattr(args, 'goalie_decision_interval', None) not in (None, 1)
                 or getattr(args, 'goalie_save_timing', 'classic') != 'classic')
@@ -22,7 +24,7 @@ def resolve_goalie_positioning(args):
 
 def add_classic_arguments(parser):
     parser.add_argument('--goalie-positioning', choices=('classic', 'deep', 'deep-csave'),
-                        help='Manual goalie controller (default: deep-csave); classic restores the original positioning and saves')
+                        help='Manual goalie controller (default: deep-csave on Genesis, classic on SNES)')
     parser.add_argument('--goalie-planner', choices=('physics', 'search-12', 'search-24', 'search-48', 'outcome-24'),
                         help='Experimental independent released-shot physics planner; manual goalies, native reactions only')
     parser.add_argument('--retention-model', metavar='MODEL.json',

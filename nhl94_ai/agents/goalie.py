@@ -12,13 +12,13 @@ from nhl94_ai.agents.passing import evaluate_pass, one_timer_contact_frame, pass
 from nhl94_ai.agents.skating import grounded_step
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
+from nhl94_ai.game.platforms import get_backend
 
 
-TAKEOVER_FRAMES = 24
+TAKEOVER_FRAMES = get_backend().goalie_takeover_frames
 HANDOFF_TIMEOUT = 60
-SAVE_ANIMATIONS = frozenset((0x146, 0x178, 0x1AA, 0x1EC, 0x21E, 0x250, 0x2A2,
-                             0x148E, 0x14C0, 0x14F2, 0x1544))
-DIVE_ANIMATION = 0x2F4
+SAVE_ANIMATIONS = get_backend().goalie_save_animations
+DIVE_ANIMATION = next(iter(get_backend().goalie_dive_animations))
 
 
 def outlet_options(state, *, decision_interval=4, limit=None, release_prediction=False):
@@ -45,6 +45,8 @@ class GoaliePlan:
 
 def goalie_motion(player):
     """Near-net goalieacc accelerates in pad direction, without skater turn cost."""
+    if getattr(player, 'platform', 'genesis') != 'genesis':
+        return get_backend(player.platform).goalie_motion(player)
     _, limit, _ = skating(player)
     factor = max(1, (64 - player.weight // 4 + 2 * player.agility + 16 + player.movement_bonus) // 2)
     acceleration = (200 * factor // 32) * VELOCITY_SCALE
@@ -243,7 +245,8 @@ def moving_body_contact(state, action, horizon, *, save=False):
 class GoalieController:
     """Exclusive per-frame input owner; slot feedback, never gameplay RAM writes."""
 
-    def __init__(self, policy, *, pass_timing=False, save_timing='classic'):
+    def __init__(self, policy, *, pass_timing=False, save_timing='classic', platform=None):
+        self.platform = platform or get_backend()
         if policy not in ('selective', 'always'):
             raise ValueError('Enabled goalie policy must be selective or always')
         self.policy = policy
@@ -271,6 +274,8 @@ class GoalieController:
 
     @staticmethod
     def validate(state):
+        if state.platform.name != 'genesis':
+            return state.platform.validate_goalie(state)
         engine, team = state.engine, state.team1
         if len(team.players) != 5:
             raise ValueError('Manual goalie AI supports full-team NHL94 only')
@@ -305,7 +310,9 @@ class GoalieController:
         self.phase, self.retry_at = 'backoff', self.frames + 180
         self.release_until = self.frames + 2
 
-    def _takeover(self, state, plan, blocked, takeover_frames=TAKEOVER_FRAMES):
+    def _takeover(self, state, plan, blocked, takeover_frames=None):
+        if takeover_frames is None:
+            takeover_frames = self.platform.goalie_takeover_frames
         if blocked or self.frames < self.retry_at:
             return False, 'preserve pending skater action'
         if owns_puck(state.team1, state.engine.puck_owner):
@@ -313,8 +320,9 @@ class GoalieController:
         goalie = state.team1.goalie
         if goalie.selection_flags & 0x20 or goalie.unavailable & 2:
             return False, 'retain CPU during goalie animation recovery'
-        if (abs(goalie.x - state.engine.camera[0]) >= 108
-                or abs(goalie.y - state.engine.camera[1]) >= 92):
+        viewport = self.platform.goalie_viewport
+        if viewport is not None and (abs(goalie.x - state.engine.camera[0]) >= viewport[0]
+                                     or abs(goalie.y - state.engine.camera[1]) >= viewport[1]):
             return False, 'goalie outside effective manual viewport'
         sign = 1 if state.team1.net.y > 0 else -1
         depth = state.puck.y * sign
@@ -327,11 +335,12 @@ class GoalieController:
         reach = goalie_arrival(goalie, plan.target)
         deadline = plan.crossing_frames if plan.crossing_frames is not None else plan.deadline
         if deadline < takeover_frames + reach + 6:
-            return False, 'too late for B hold plus goalie reach'
+            return False, 'too late for goalie takeover plus reach'
         player = state.team1.get_player_by_scnum(controlled_slot(state.team1))
         if player is not None and eligible(player):
             if (plan.receiver is None and state.engine.puck_owner >= 0
-                    and arrival_time(player, (state.puck.x, state.puck.y), boost=True) <= TAKEOVER_FRAMES / 2):
+                    and arrival_time(player, (state.puck.x, state.puck.y), boost=True)
+                    <= self.platform.goalie_takeover_frames / 2):
                 return False, 'skater can contest before takeover'
             if plan.receiver is not None and state.engine.puck_owner < 0:
                 race = DefenseController().choose_target(state)
@@ -385,7 +394,8 @@ class GoalieController:
             'crossing_frames': plan.crossing_frames, 'crossing_x': plan.crossing_x,
             'deadline': plan.deadline, 'reach_frames': goalie_arrival(goalie, plan.target),
             'receiver': plan.receiver, 'reception_frames': plan.reception_frames,
-            'hold_count': state.engine.goalie_hold_counts[controller],
+            'hold_count': (state.engine.goalie_hold_counts[controller]
+                           if state.engine.goalie_hold_counts is not None else None),
             'animation': goalie.live_anim, 'assignment': goalie.assignment,
             'cpu_fallback': bool(goalie.live_state_flags & 4),
             'metrics': dict(self.metrics), 'last_event': self.last_event,
@@ -411,7 +421,8 @@ class GoalieController:
         neutral = np.zeros(Buttons.INPUT_MAX, dtype=np.int8)
         if self.pending_save is not None:
             request, started = self.pending_save
-            expected = SAVE_ANIMATIONS if request == 'save' else (DIVE_ANIMATION,)
+            expected = (self.platform.goalie_save_animations if request == 'save'
+                        else self.platform.goalie_dive_animations)
             if (selected and not goalie.live_state_flags & 4
                     and goalie.live_anim in expected and goalie.live_anim != self.last_anim):
                 self._event(request + '_animations')
@@ -445,7 +456,8 @@ class GoalieController:
             self.phase = 'positioning' if selected else 'skater'
         if self.phase in ('prepare-goalie', 'request-goalie') and not selected:
             remaining = (self._remaining_hold(state.engine.goalie_hold_counts[
-                self.validate(state)]) if self.phase == 'request-goalie' else TAKEOVER_FRAMES)
+                self.validate(state)]) if self.phase == 'request-goalie'
+                and state.engine.goalie_hold_counts is not None else self.platform.goalie_takeover_frames)
             self.diagnostics['remaining_hold_frames'] = remaining
             take, reason = self._takeover(state, plan, blocked, remaining)
             if not take:
@@ -467,7 +479,9 @@ class GoalieController:
             if self.frames - self.started >= HANDOFF_TIMEOUT:
                 self._timeout('takeover')
                 return neutral
-            neutral[Buttons.INPUT_B] = 1
+            pulse = getattr(self.platform, 'goalie_takeover_pulse', None)
+            if pulse is None or (self.frames - self.started) % (pulse * 2) < pulse:
+                neutral[self.platform.goalie_takeover_button] = 1
             return neutral
         if self.phase == 'release-goalie' and self.frames < self.release_until:
             return neutral
@@ -620,6 +634,10 @@ class GoalieController:
         self.phase = 'outlet-flight'
         launched = (state.team1.pass_attempts is not None and request['passes'] is not None
                     and state.team1.pass_attempts > request['passes'])
+        clear_animation = getattr(self.platform, 'goalie_clear_animation', None)
+        if request['receiver'] is None and clear_animation is not None:
+            launched = (owner < 0 and state.team1.goalie.live_anim == clear_animation
+                        and math.hypot(*velocity(state.puck)) > 0)
         if not request['launched'] and launched:
             request['launched'] = True
             self._event('outlets_launched' if request['receiver'] is not None else 'clears_launched')

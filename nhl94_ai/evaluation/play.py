@@ -16,6 +16,7 @@ import sys
 import argparse
 import os
 import time
+from copy import copy
 import numpy as np
 from nhl94_ai.training.logging import com_print, init_logger
 from nhl94_ai.env.factory import init_env, init_play_env
@@ -39,7 +40,7 @@ def build_parser():
     parser.add_argument('--seed', type=int, default=None,
                        help='Opt-in NHL94 ROM seed; each episode uses the next uint32 seed. Omit to retain the saved RNG.')
     parser.add_argument('--side', choices=['home', 'away'], default='home',
-                       help='Classic team in model_vs_game; away uses a home-only full-team save')
+                       help='Classic team versus CPU; SNES multiplayer also assigns controller 1 to this team')
     parser.add_argument('--goalie-policy', choices=['off', 'selective', 'always'],
                         help='Classic manual goalie AI (default: selective for supported full-team Classic play; off disables it)')
     parser.add_argument('--num_players', type=int, default=2)
@@ -88,7 +89,7 @@ def parse_cmdline(argv):
     # Set default num_players based on mode
     if args.mode == 'model_vs_game' or args.mode == 'player_vs_game':
         args.num_players = 1
-    elif args.mode == 'player_vs_model':
+    elif args.mode in ('player_vs_model', 'model_vs_model'):
         args.num_players = 2
 
     return resolve_play_goalie_defaults(args)
@@ -98,15 +99,17 @@ def resolve_play_goalie_defaults(args):
     """Enable the improved goalie for ordinary full-team Classic playback."""
     if getattr(args, 'goalie_policy', None) is None:
         state = getattr(args, 'state', None)
-        supported = (args.nn in CONTROLLERS and args.env == 'NHL94-Genesis-v0'
+        supported = (args.nn in CONTROLLERS and get_game(args.env).skaters_per_team == 5
                      and args.action_type.upper() == 'FILTERED'
-                     and args.mode in ('model_vs_game', 'player_vs_model')
+                     and (args.mode in ('model_vs_game', 'player_vs_model')
+                          or args.mode == 'model_vs_model' and get_game(args.env).platform == 'snes')
                      and getattr(args, 'rf', '') in ('', 'PostPlay')
                      and not getattr(args, 'model_2', '') and not getattr(args, 'selfplay', False))
         args.goalie_policy = ('selective' if supported and (state is None or 'ManualGoalie' in state)
                               else 'off')
     if args.goalie_policy != 'off' and args.state is None:
-        args.state = 'SabresVsMightyDucks.ManualGoalie.Start'
+        args.state = ('DucksVsSabres.ManualGoalie.Start' if get_game(args.env).platform == 'snes'
+                      else 'SabresVsMightyDucks.ManualGoalie.Start')
     return args
 
 class NHL94Player:
@@ -116,8 +119,11 @@ class NHL94Player:
             args.num_players = 2
         self.logger = logger
         self.need_display = need_display
+        self.scripted_match = args.mode == 'model_vs_model' and args.nn in CONTROLLERS
+        if get_game(args.env).platform == 'snes':
+            EnvironmentConfig.from_args(args)
         record_mp4 = getattr(args, 'record_mp4', None)
-        if record_mp4 and (not need_display or args.mode == 'model_vs_model'):
+        if record_mp4 and (not need_display or args.mode == 'model_vs_model' and not self.scripted_match):
             raise ValueError('--record-mp4 requires the debug display in model_vs_game, '
                              'player_vs_game, or player_vs_model mode')
         if getattr(args, 'seed', None) is not None:
@@ -131,12 +137,14 @@ class NHL94Player:
                 raise ValueError('--classic-control-interval supports one Classic agent versus CPU or human playback')
         if getattr(args, 'goalie_policy', 'off') != 'off':
             EnvironmentConfig.from_args(args)
-            if args.mode not in ('model_vs_game', 'player_vs_model') or args.model_2:
-                raise ValueError('Manual goalie AI supports one Classic agent versus CPU or human')
+            if args.mode not in ('model_vs_game', 'player_vs_model', 'model_vs_model') or args.model_2:
+                raise ValueError('Manual goalie AI requires Classic agents versus CPU, human or Classic')
         if getattr(args, 'side', 'home') != 'home':
+            snes = get_game(args.env).platform == 'snes'
             requirements = (
-                args.side == 'away', args.mode == 'model_vs_game', args.nn in CONTROLLERS,
-                args.env == 'NHL94-Genesis-v0', args.action_type.upper() == 'FILTERED',
+                args.side == 'away', args.mode == 'model_vs_game' or snes,
+                args.nn in CONTROLLERS or snes and args.mode == 'player_vs_game',
+                get_game(args.env).skaters_per_team == 5, args.action_type.upper() == 'FILTERED',
                 args.rf == 'PostPlay', not args.model_2,
             )
             if not all(requirements):
@@ -148,6 +156,8 @@ class NHL94Player:
 
         if getattr(args, 'action_type', 'FILTERED').upper() == 'TARGET_POSITION':
             self.init_target_mode()
+        elif self.scripted_match:
+            self.init_scripted_match()
         elif args.mode == 'model_vs_model':
             self.init_model_vs_model()
         else:
@@ -248,6 +258,28 @@ class NHL94Player:
         self.play_env.model1_params = get_num_parameters(self.p1_model)
         self.play_env.model2_params = get_num_parameters(self.p2_model)
 
+    def init_scripted_match(self):
+        """Two independent controllers observe the same native frame in world coordinates."""
+        self.display_env = init_play_env(self.args, 2, self.args.hyperparams_dict,
+                                         False, self.need_display, False)
+        bindings = games.get_bindings(self.args)
+        self.ai_sys = bindings.ai_sys(self.args, None, self.logger)
+        other = copy(self.args)
+        other.side = 'away' if getattr(self.args, 'side', 'home') == 'home' else 'home'
+        self.opponent_ai_sys = bindings.ai_sys(other, None, self.logger)
+        for system in (self.ai_sys, self.opponent_ai_sys):
+            system.SetModels(['', ''])
+            system.models[1].frame_skip = 4
+
+    def _ai_actions(self, state, info):
+        first = self.ai_sys.predict(state, info=info, deterministic=self.args.deterministic)[0]
+        if getattr(self, 'scripted_match', False):
+            second = self.opponent_ai_sys.predict(state, info=info, deterministic=self.args.deterministic)[0]
+            return np.concatenate((first, second))
+        if self.args.mode == 'player_vs_model' and not self.need_display:
+            return np.concatenate((first, np.zeros_like(first)))
+        return first
+
     def init_player_or_game_mode(self):
         """Initialize for player vs model or model vs game modes"""
         num_players = 1 if self.args.mode in ['model_vs_game', 'player_vs_game'] else 2
@@ -268,7 +300,7 @@ class NHL94Player:
         """Main game loop"""
         if getattr(self.args, 'action_type', 'FILTERED').upper() == 'TARGET_POSITION':
             return self.play_target_mode(continuous)
-        if self.args.mode == 'model_vs_model':
+        if self.args.mode == 'model_vs_model' and not self.scripted_match:
             self.play_model_vs_model(continuous, need_reset)
         else:
             self.play_player_or_game_mode(continuous, need_reset)
@@ -314,15 +346,12 @@ class NHL94Player:
             if self.args.mode == 'player_vs_game':
                 # Player vs Game mode - just use player inputs
                 # Ensure we pass a valid action format
-                actions = self.display_env.player_actions
+                actions = getattr(self.display_env, 'player_actions', [0] * 12)
                 if not isinstance(actions, list) or len(actions) not in [12, 24]:
                     actions = [0] * 12  # Default no-op action
             else:
                 # Get actions from AI system for other modes
-                p1_actions = self.ai_sys.predict(state, info=info, deterministic=self.args.deterministic)
-
-                # The display samples human controller 2 independently every frame.
-                actions = [p1_actions[0]]
+                actions = [self._ai_actions(state, info)]
 
             self.display_env.action_probabilities = []
 
@@ -330,7 +359,7 @@ class NHL94Player:
                 if i:
                     self._wait_for_display()
                 if i and scripted and initialized:
-                    actions[0] = self.ai_sys.predict(state, info=info, deterministic=self.args.deterministic)[0]
+                    actions[0] = self._ai_actions(state, info)
                 if self.need_display and self.args.mode != 'player_vs_game':
                     self.display_env.set_ai_sys_info(self.ai_sys)
                 try:
@@ -349,6 +378,8 @@ class NHL94Player:
                     for model in self.ai_sys.models:
                         if model is not None:
                             model.reset()
+                    if getattr(self, 'scripted_match', False):
+                        self.opponent_ai_sys.models[1].reset()
                     self.ai_sys.last_diagnostics = {}
                     break
 
@@ -373,7 +404,8 @@ def main(argv):
 
 
 def run(args):
-    if args.nn in CONTROLLERS and args.env in ('NHL941on1-Genesis-v0', 'NHL942on2-Genesis-v0', 'NHL94-Genesis-v0') and not args.rf:
+    from nhl94_ai.game.specs import GAMES
+    if args.nn in CONTROLLERS and args.env in GAMES and not args.rf:
         args.rf = 'PostPlay'
     resolve_play_goalie_defaults(args)
     args.hyperparams_dict = resolve_hyperparams_for_model(load_hyperparams(

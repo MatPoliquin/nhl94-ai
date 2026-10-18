@@ -46,6 +46,8 @@ class NHL94Observation2PEnv(gym.Wrapper):
         self.task = get_task(self.rf_name)
         params = resolve_task_model_input(args, getattr(args, 'hyperparams_dict', {}), task=self.task)
         self.model_input_config = params['model_input']
+        if get_game(args.env).platform == 'snes' and self.model_input_config.get('layout'):
+            raise ValueError('SNES Classic requires the full-team observation layout')
         self.init_function = self.task.initialize
         self.reward_function = self.task.reward
         self.done_function = self.task.done
@@ -60,6 +62,7 @@ class NHL94Observation2PEnv(gym.Wrapper):
         self.opponent_input_overide = None
 
         self.num_players_per_team = get_game(args.env).skaters_per_team
+        self.platform = get_game(args.env).backend
 
         from nhl94_ai.env.encoding import ObservationEncoder
         self.encoder = ObservationEncoder(self.task, self.num_players_per_team, self.model_input_config)
@@ -76,7 +79,7 @@ class NHL94Observation2PEnv(gym.Wrapper):
             self.target_controller = TargetPositionController(self.task.target_control, self.task.target_bounds)
             self.NUM_PARAMS += len(CONTROLLER_FIELDS)
 
-        self.game_state = NHL94GameState(self.num_players_per_team)
+        self.game_state = NHL94GameState(self.num_players_per_team, platform=self.platform)
         self.uses_sequence_obs = self.nn in ('HybridMambaPolicy', 'GRUMlpPolicy')
         self.frame_stack_size = max(1, int(getattr(args, 'seq_len', 16)))
         self.frame_buffer = deque(maxlen=self.frame_stack_size) if self.uses_sequence_obs else None
@@ -102,7 +105,8 @@ class NHL94Observation2PEnv(gym.Wrapper):
         self.target_xy = [-1, -1]
 
         self.num_players = num_players
-        self.external_opponent = num_players == 2 and getattr(args, 'mode', None) == 'player_vs_model'
+        self.external_opponent = num_players == 2 and getattr(args, 'mode', None) in (
+            'player_vs_model', 'model_vs_model')
         if self.external_opponent and (self.action_type != 'FILTERED' or self.selfplay_enabled):
             raise ValueError('player_vs_model requires FILTERED buttons without self-play')
         if self.selfplay_enabled and self.num_players != 2:
@@ -238,7 +242,9 @@ class NHL94Observation2PEnv(gym.Wrapper):
         state, info = self.env.reset(**kwargs)
 
         self.init_function(self.env, self.env_name)
-        if self.play_side == 'away':
+        if self.platform.name == 'snes':
+            self.platform.configure_controllers(self.env, self.play_side, self.num_players)
+        elif self.play_side == 'away':
             select_cpu_side(self.env.data, self.env.data.lookup_all(), 2)
         if self.target_controller is not None:
             self.target_info = self.env.data.lookup_all()
@@ -248,16 +254,17 @@ class NHL94Observation2PEnv(gym.Wrapper):
             reset_action = np.concatenate([reset_action, reset_action])
 
         state, _, _, _, info = self.env.step(reset_action)
-        info = pass_geometry_info(self.env, info)
+        info = self.platform.frame_info(self.env, info)
         info = self._model_input_info(info)
-        if self.play_side == 'away' and (info.get('defense_team1'), info.get('defense_team2')) != (2, 0):
+        expected = ((2, 1) if self.external_opponent else (2, 0)) if self.play_side == 'away' else (1, 2)
+        if self.play_side == 'away' and (info.get('defense_team1'), info.get('defense_team2')) != expected:
             raise ValueError('Away playback did not leave the home team under CPU control.')
         if self.play_side == 'away':
             info = controller_team_info(info)
-        if self.external_opponent and (info.get('defense_team1'), info.get('defense_team2')) != (1, 2):
+        if self.external_opponent and (info.get('defense_team1'), info.get('defense_team2')) != expected:
             raise ValueError('player_vs_model requires a two-controller save with P1 home and P2 away; use a compatible .2P state')
 
-        self.game_state = NHL94GameState(self.num_players_per_team)
+        self.game_state = NHL94GameState(self.num_players_per_team, platform=self.platform)
         self.ram_inited = True
         self._reset_action_state(self.learner_action_state)
         self._reset_action_state(self.opponent_action_state)
@@ -412,9 +419,9 @@ class NHL94Observation2PEnv(gym.Wrapper):
             ac2 = np.concatenate([learner_action, opponent_action])
 
         ob, rew, terminated, truncated, info = self.env.step(ac2)
-        info = pass_geometry_info(self.env, info)
+        info = self.platform.frame_info(self.env, info)
         info = self._model_input_info(info)
-        if self.play_side == 'away':
+        if self.play_side == 'away' and self.platform.name == 'genesis':
             info = controller_team_info(restore_away_control(self.env.data, info))
         if 'defense_scroll_x' in self.defense_camera:
             info['target_camera_x'] = -64 - self.defense_camera['defense_scroll_x']
@@ -426,7 +433,7 @@ class NHL94Observation2PEnv(gym.Wrapper):
             self._update_target_feedback(info)
 
         rew = self.reward_function(self.game_state)
-        terminated = self.done_function(self.game_state)
+        terminated = self.platform.episode_done(self.game_state, self.done_function)
 
         self.game_state.EndFrame()
 

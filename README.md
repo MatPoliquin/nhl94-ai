@@ -1,7 +1,8 @@
 # NHL94 AI
 
 Agents, gameplay, evaluation, and training for NHL94 on Genesis: 1-on-1,
-2-on-2, and full-team hockey. The Python package lives in `nhl94_ai/` at the
+2-on-2, and full-team hockey. Classic also plays full-team NHL94 on SNES
+against the built-in CPU using the same tactical agent. The Python package lives in `nhl94_ai/` at the
 repository root. The `models/` directory holds bundled checkpoints.
 
 ## Install
@@ -21,6 +22,14 @@ python -m pip install -e '.[display,vision,export]'
 ```bash
 # Watch Classic with selective deep-csave goalie control; requires the display extra.
 nhl94 play --agent classic-v1 --env NHL94-Genesis-v0
+
+# Watch the shared Classic agent on SNES against the CPU.
+nhl94 play --agent classic-v1 --env NHL94-Snes-v0
+
+# SNES: away versus CPU, human versus AI, or two Classic agents.
+nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --side away
+nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --mode player_vs_model
+nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --mode model_vs_model
 
 # Watch Classic as Quebec against Montreal's built-in CPU.
 nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --state CanadiensVsNordiques.start --side away --max_playback_speed 1.0
@@ -110,7 +119,8 @@ coordinate-based policies.
 ## Classic
 
 `classic-v1` (also `classic`) is the scripted gameplay agent. Full-team playback
-uses selective manual-goalie control and `deep-csave` positioning by default.
+uses selective manual-goalie control by default, with `deep-csave` positioning
+on Genesis and shared classic positioning on SNES.
 `--goalie-positioning classic` selects the original manual goalie;
 `--goalie-policy off` disables manual-goalie AI.
 
@@ -118,6 +128,20 @@ The agent reacts to native emulator frames while retaining its configured
 tactical decision interval. Use the [Classic guide](docs/CLASSIC.md) for timing,
 goalie options, and supported optional behavior. `nhl94 play --help` lists the
 available flags.
+
+SNES uses `DucksVsSabres.ManualGoalie.Start` from the experimental stable-retro
+integration. The project supplies its action scenario, so that integration does
+not need its own `metadata.json` or `scenario.json`. SNES supports home or away
+versus CPU, human versus Classic, and Classic versus Classic, with `FILTERED`
+actions and `PostPlay`. Reset configures native controller assignments from the
+supplied save; multiplayer needs no additional save. Controller 1 uses `--side`
+(home by default); controller 2 uses the other team. In `player_vs_model`, the
+keyboard controls controller 2. Manual goalies use X to take over, A to save,
+Y to dive, and B to return/pass, with native feedback for catches and outlets.
+`--goalie-policy off` leaves goalie positioning to the game. ROM RNG seeding,
+training tasks, learned checkpoints, deep goalie controllers, and Genesis-only
+experiments remain unsupported on SNES. Movement and pass forecasts use explicit
+SNES estimates where live ratings or native mechanics have not been mapped.
 
 ## Development
 
@@ -130,6 +154,7 @@ python -m build --wheel
 # Run emulator checks with local game integrations and ROMs installed.
 python tests/integration/smoke.py
 python tests/integration/workflows.py
+python -m tests.integration.snes
 ```
 
 Unit tests run without ROM files. Emulator checks in `tests/integration/` run

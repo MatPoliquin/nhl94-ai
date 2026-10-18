@@ -32,7 +32,7 @@ class NHL94AISystem():
         from nhl94_ai.game.specs import get_game
         num_players_per_team = get_game(args.env).skaters_per_team
 
-        self.game_state = NHL94GameState(num_players_per_team)
+        self.game_state = NHL94GameState(num_players_per_team, platform=get_game(args.env).backend)
 
         self.models = [None, None, None]
         self.model_params = [None, None, None]

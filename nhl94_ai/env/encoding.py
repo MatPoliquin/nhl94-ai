@@ -171,14 +171,19 @@ POSSESSION_FIELD_GETTERS: Dict[str, FieldGetter] = {
         and not _team_entity_has_puck(game_state.team2)
     ),
 }
+def _puck_scale(state, axis):
+    return getattr(getattr(state, 'rink', None), 'puck_' + axis,
+                   GameConsts.MAX_PUCK_X if axis == 'x' else GameConsts.MAX_PUCK_Y)
+
+
 NET_FIELD_GETTERS: Dict[str, FieldGetter] = {
     "y": lambda game_state, source: game_state.team2.nz_net.y,
     "left": lambda game_state, source: game_state.team2.nz_net.left,
     "right": lambda game_state, source: game_state.team2.nz_net.right,
     "depth": lambda game_state, source: game_state.team2.nz_net.depth,
-    "rel_puck_y": lambda game_state, source: (game_state.team2.net.y - game_state.puck.y) / GameConsts.MAX_PUCK_Y,
-    "rel_puck_left": lambda game_state, source: (game_state.team2.net.left - game_state.puck.x) / GameConsts.MAX_PUCK_X,
-    "rel_puck_right": lambda game_state, source: (game_state.team2.net.right - game_state.puck.x) / GameConsts.MAX_PUCK_X,
+    "rel_puck_y": lambda game_state, source: (game_state.team2.net.y - game_state.puck.y) / _puck_scale(game_state, 'y'),
+    "rel_puck_left": lambda game_state, source: (game_state.team2.net.left - game_state.puck.x) / _puck_scale(game_state, 'x'),
+    "rel_puck_right": lambda game_state, source: (game_state.team2.net.right - game_state.puck.x) / _puck_scale(game_state, 'x'),
 }
 BUTTON_FIELD_GETTERS: Dict[str, FieldGetter] = {
     "up": lambda game_state, source: float(game_state.action[0]),

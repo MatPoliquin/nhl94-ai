@@ -51,13 +51,16 @@ class NHL94DebugDisplay:
         self._closed = False
 
         self.game_state = env.get_attr("game_state")[0]
+        from nhl94_ai.game.platforms import get_backend
+        self.platform = getattr(self.game_state, 'platform', get_backend())
+        self.rink = getattr(self.game_state, 'rink', get_backend().rink)
 
         pygame.init()
         self.screen_height = self.CANVAS_HEIGHT
 
-        self.scale_x = self.DEBUG_HEIGHT / (2 * GameConsts.MAX_PUCK_Y)
+        self.scale_x = self.DEBUG_HEIGHT / (2 * self.rink.puck_y)
         self.scale_y = self.scale_x
-        self.rink_pixel_width = int(round(2 * GameConsts.MAX_PUCK_X * self.scale_x))
+        self.rink_pixel_width = int(round(2 * self.rink.puck_x * self.scale_x))
         self.DEBUG_WIDTH = self.rink_pixel_width + (2 * self.RINK_SIDE_PADDING)
         self.rink_rect = pygame.Rect(
             self.RINK_SIDE_PADDING,
@@ -124,11 +127,11 @@ class NHL94DebugDisplay:
         self.control_help = [
             "CONTROLS:",
             "Arrows: Move",
-            "Z: A Button (Clear/Hold)",
+            f"Z: {self.platform.buttons[1]} Button (Clear/Hold)",
             "X: B Button (Pass/Switch/Poke)",
-            "C: C Button (Shoot/Burst/Check)",
-            "A/S/D: X/Y/Z Buttons",
-            "TAB: Mode Button",
+            f"C: {self.platform.buttons[8]} Button (Shoot/Burst/Check)",
+            f"A/S/D: {'/'.join(self.platform.buttons[index] for index in (10, 9, 11))} Buttons",
+            f"TAB: {self.platform.buttons[2].title()} Button",
             "ENTER: Start Button",
             "F1: Toggle P2 Keyboard" if args.mode == 'player_vs_model' else "F1: Toggle AI/Human Control",
             "ESC: Quit",
@@ -193,6 +196,8 @@ class NHL94DebugDisplay:
                 values = values[0]
             return [validate_target(values).tolist()]
         expected_action_size = 6 if getattr(self.args, 'action_type', '').upper() == 'HOCKEY_INTENT_DPAD' else GameConsts.INPUT_MAX
+        if getattr(self.args, 'mode', None) == 'model_vs_model':
+            expected_action_size *= 2
 
         if action is None:
             return [[0] * expected_action_size]
@@ -355,6 +360,10 @@ class NHL94DebugDisplay:
                 raise ValueError('player_vs_model expects one 12-button AI action')
             self.player_actions = self.get_human_input() if self.human_control else [0] * GameConsts.INPUT_MAX
             env_action = [np.concatenate((ai_action, self.player_actions)).astype(np.int8)]
+        elif self.args.mode == 'model_vs_model':
+            env_action = self._normalize_env_action(action)
+            if self.human_control:
+                env_action[0][:GameConsts.INPUT_MAX] = self.get_human_input()
         else:
             if self.human_control:
                 action = self.get_human_input()
@@ -377,7 +386,8 @@ class NHL94DebugDisplay:
             render_info = [dict(render_info[0], classic_offense=self.classic_offense)]
         self._last_frame = np.array(framebuffer, copy=True)
         self._last_render_info = deepcopy(render_info)
-        applied = env_action[0][:GameConsts.INPUT_MAX] if human_vs_model else env_action[0]
+        applied = (env_action[0][:GameConsts.INPUT_MAX]
+                   if human_vs_model or self.args.mode == 'model_vs_model' else env_action[0])
         self._last_action = deepcopy(applied)
         self.draw_frame(self._last_frame, self._last_render_info, applied)
         self.process_events()
@@ -656,6 +666,8 @@ class NHL94DebugDisplay:
         header_text = f"NHL '94 - {'HUMAN' if self.human_control else 'AI'} CONTROL"
         if self.args.mode == 'player_vs_model':
             header_text = "NHL '94 - P1 AI / P2 KEYBOARD"
+        elif self.args.mode == 'model_vs_model':
+            header_text = f"NHL '94 - P1 {'KEYBOARD' if self.human_control else 'AI'} / P2 AI"
         if self.paused:
             header_text += " - PAUSED"
         self.screen.blit(self.big_font.render(header_text, True, WHITE), (info_x, info_y))

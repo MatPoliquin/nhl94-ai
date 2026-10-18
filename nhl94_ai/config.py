@@ -47,6 +47,8 @@ class EnvironmentConfig:
         values = {name: getattr(args, name, definition.default) for name, definition in cls.__dataclass_fields__.items()}
         values['action_type'] = values['action_type'].upper()
         config = cls(**values).validate()
+        from nhl94_ai.game.specs import get_game
+        get_game(config.env).backend.validate_options(args)
         if getattr(args, "alg", "ppo2") not in ("ppo2", "es"):
             raise ValueError("alg must be ppo2 or es")
         from nhl94_ai.models.factory import MODEL_BUILDERS
@@ -71,7 +73,7 @@ class EnvironmentConfig:
             goalie_policy = 'off'
         if goalie_policy not in ('off', 'selective', 'always'):
             raise ValueError('goalie_policy must be off, selective or always')
-        goalie_supported = (config.nn in CONTROLLERS and config.env == 'NHL94-Genesis-v0'
+        goalie_supported = (config.nn in CONTROLLERS and get_game(config.env).skaters_per_team == 5
                             and config.action_type == 'FILTERED' and not config.selfplay
                             and getattr(args, 'rf', 'PostPlay') == 'PostPlay')
         if goalie_policy != 'off' and not goalie_supported:

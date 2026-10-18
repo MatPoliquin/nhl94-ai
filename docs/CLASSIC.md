@@ -2,17 +2,39 @@
 
 `classic-v1` and `classic` select the `ClassicAIV1` scripted controller. It supports
 the NHL94 variants registered by the project; full-team goalie options require
-`NHL94-Genesis-v0`, filtered buttons, and a compatible save.
+filtered buttons and a compatible Genesis or SNES save.
 
 ## Play
 
 ```bash
 nhl94 play --agent classic-v1 --env NHL94-Genesis-v0
 nhl94 play --agent classic-v1 --mode player_vs_model --env NHL94-Genesis-v0
+nhl94 play --agent classic-v1 --env NHL94-Snes-v0
+nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --side away
+nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --mode player_vs_model
+nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --mode model_vs_model
 ```
 
-In human-versus-agent mode Classic uses controller 1/home; the human uses
-controller 2/away. See [gameplay examples](NHL94-README.md) for keyboard controls.
+In human-versus-agent mode Classic uses controller 1; the human uses controller
+2. The default assignment is home/away. SNES `--side away` reverses these teams.
+See [gameplay examples](NHL94-README.md) for keyboard controls. The SNES keyboard
+uses S for X (select goalie), C for A (shoot/save), Z for Y (clear/dive), and X
+for B (pass/switch/return).
+
+SNES uses the shared offense, defense, scheduling, and pass/shot lifecycle with
+a console backend. It supports either side versus CPU and two controllers for
+human-versus-Classic or Classic-versus-Classic play. It defaults to
+`DucksVsSabres.ManualGoalie.Start`, configuring native assignment tables at reset
+for the requested sides and controller count. Its native `B` passes/switches, `A`
+shoots/checks, and `Y` clears; these map to the same hockey control channels as
+Genesis `B`, `C`, and `A`. The [original SNES manual](https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_SNES/manual/Formated/NHL_-94_-_1993_-_Electronic_Arts.pdf)
+describes these controls. Manual-goalie AI shares positioning, threat prediction,
+save decisions, and outlets with Genesis. The backend supplies X takeover,
+native A/Y save animation feedback, and motion estimates. Each multiplayer agent
+keeps its own scheduler and action state, observing the same native frame in
+world coordinates. Learned policies, training tasks, deep goalie controllers,
+and optional Genesis experiments fail validation on SNES. Forecasts are estimates
+where SNES ratings, animation timing, or receiver selection are not mapped.
 
 ## Decision timing
 
@@ -27,9 +49,11 @@ every N frames instead. It is separate from the tactical frame-skip setting.
 
 ## Goalies
 
-Full-team playback defaults to selective manual goalie control and `deep-csave`
-positioning. With no explicit save it selects the manual-goalie Sabres/Ducks
-start. Explicit non-manual saves retain automatic goalies unless requested.
+Full-team playback defaults to selective manual goalie control. Genesis uses
+`deep-csave` positioning and SNES uses `classic`. With no explicit save it selects
+the console's manual-goalie Ducks/Sabres start. Explicit non-manual saves retain
+automatic goalies unless requested. The following deep, learned, and planner
+options apply to Genesis.
 
 - `--goalie-policy off` disables manual goalie AI.
 - `--goalie-positioning classic` selects the original manual positioning/saves.

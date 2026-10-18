@@ -34,6 +34,9 @@ CARRY_SAMPLES = (4, 8, 12, FEINT_FRAMES)
 
 def normal_shot_release_frames(player, hold_frames):
     """Bound updateanim/ShotMode through contact, including the C-release jump."""
+    if getattr(player, 'platform', 'genesis') != 'genesis':
+        from nhl94_ai.game.platforms import get_backend
+        return max(hold_frames + 2, get_backend(player.platform).normal_release_frames)
     durations = player.shot_durations or (4,) * 8
     index, timer = 0, -1
     for elapsed in range(1, hold_frames + 2 * sum(duration + 1 for duration in durations) + 3):

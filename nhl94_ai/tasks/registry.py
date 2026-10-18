@@ -49,4 +49,8 @@ def resolve_task_model_input(args, hyperparams, *, task=None):
         task = get_task(args.rf)
     params = resolve_model_input(args, hyperparams, task=task)
     params['model_input']['groups'] = _normalize_model_input_config(params['model_input'])
+    from nhl94_ai.game.specs import GAMES
+    spec = GAMES.get(getattr(args, 'env', None))
+    if spec is not None and spec.backend.normalization:
+        params['model_input']['normalization'] = spec.backend.normalization
     return params

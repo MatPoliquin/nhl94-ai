@@ -12,6 +12,9 @@ _DIRECTIONS = ((0, 200), (141, 141), (200, 0), (141, -141),
 
 def grounded_step(player, pad, *, goalie=False, stop=False):
     """Integrate friction first, then turn/brake/accelerate for the next frame."""
+    if getattr(player, 'platform', 'genesis') != 'genesis':
+        from nhl94_ai.game.platforms import get_backend
+        return get_backend(player.platform).grounded_step(player, pad, goalie=goalie, stop=stop)
     future = copy(player)
     vx, vy = (round(component / VELOCITY_SCALE) for component in velocity(player))
     vx, vy = (component - ((component >> 6) or bool(component)) for component in (vx, vy))

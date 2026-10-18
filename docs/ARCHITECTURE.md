@@ -19,6 +19,25 @@ application is a separate TypeScript project in `web/`.
 Game decoding does not import UI or training code. Display and export dependencies
 load only when requested. Environment bindings are per-instance objects.
 
+`GameSpec.platform` selects the console backend in `game/platforms/`. Both
+consoles use `NHL94GameState` and `ClassicAIV1Model`; backend hooks own telemetry
+registration, player/engine decoding, rink dimensions, action encoding, movement
+projection, goalie mechanics, and episode clock semantics. Profiles are selected per environment,
+without mutating global constants. Genesis retains its public button ordering,
+observation normalization, and ROM-derived forecasts. SNES uses native array
+ownership/selection and signed word velocities, with a separate normalization
+identifier and explicitly estimated motion/pass forecasts. Its integration
+scenario is packaged with this project; ROMs and save states stay in stable-retro.
+
+SNES supports full-team Classic `FILTERED` `PostPlay` against CPU on either side,
+human versus Classic, and Classic versus Classic. Reset writes native menu,
+joystick/player assignment, and team cursor tables before advancing the supplied
+save. Gameplay uses controller inputs and native selection/animation feedback;
+the shared goalie controller receives console-specific takeover and save mechanics.
+Two scripted agents keep independent schedulers and world-coordinate team views.
+Configuration validation rejects unmapped training tasks, RNG, learned artifacts,
+and Genesis goalie experiments.
+
 ## Services
 
 `training.service.train(config)` accepts an options dictionary, `RunConfig`, or

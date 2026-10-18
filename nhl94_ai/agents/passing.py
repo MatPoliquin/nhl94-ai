@@ -122,6 +122,9 @@ def option_receiver(receiver, option):
 
 def pass_speed(passer):
     """Nominal rating-derived speed; live launch vectors include ROM quantization."""
+    if getattr(passer, 'platform', 'genesis') != 'genesis':
+        from nhl94_ai.game.platforms import get_backend
+        return get_backend(passer.platform).estimated_pass_speed
     if passer.passing is None:
         return None
     speed = _nominal_speed(passer.passing, passer.role == 0)
@@ -344,9 +347,12 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
     slot = state.team1.skater_scnum_base() + index
     details = {'slot': slot, 'status': 'missing-feedback'}
     required = ('motion_x', 'motion_y', 'speed', 'agility', 'weight', 'energy', 'facing', 'stick')
+    native_ratings = getattr(passer, 'platform', 'genesis') == 'genesis'
+    if not native_ratings:
+        required = ('motion_x', 'motion_y', 'facing')
     if (state.puck.height is None or not eligible(receiver)
             or any(getattr(p, field) is None for p in (passer, receiver)
-                                     for field in required) or passer.passing is None):
+                                     for field in required) or native_ratings and passer.passing is None):
         return None, details
     if receiver.projection_uncertainty:
         return None, {**details, 'status': 'uncertain-reception'}
@@ -402,7 +408,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
         return None, {**details, 'status': 'offside-receiver'}
     if purpose == 'advance' and gain < tuning().advance_pass_min_progress:
         return None, {**details, 'status': 'insufficient-progress'}
-    if purpose != 'one-timer' and speed > (13000 + 350 * receiver.stick) * VELOCITY_SCALE:
+    if native_ratings and purpose != 'one-timer' and speed > (13000 + 350 * receiver.stick) * VELOCITY_SCALE:
         return None, {**details, 'status': 'too-fast-to-control'}
     opponents = [*state.team2.players, state.team2.goalie]
     if any(on_ice(p) and (p.motion_x is None or p.motion_y is None) for p in state.team2.players):

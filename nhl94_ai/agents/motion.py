@@ -23,6 +23,10 @@ def rom_direction(dx, dy):
 
 def velocity(player):
     if player.motion_x is None or player.motion_y is None:
+        if getattr(player, 'platform', 'genesis') != 'genesis':
+            from nhl94_ai.game.platforms import get_backend
+            scale = 256 * get_backend(player.platform).velocity_scale
+            return player.vx * scale, player.vy * scale
         return player.vx * 256 * VELOCITY_SCALE, player.vy * 256 * VELOCITY_SCALE
     return player.motion_x, player.motion_y
 
@@ -100,6 +104,9 @@ def blocks_shot_lane(player, start, goal, delay=0):
 
 def skating(player, optimistic=False):
     """ROM playeracc/MaxSpeed units, with explicit conservative unknown ratings."""
+    if getattr(player, 'platform', 'genesis') != 'genesis':
+        from nhl94_ai.game.platforms import get_backend
+        return get_backend(player.platform).skating(player, optimistic)
     speed = player.speed if player.speed is not None else (30 if optimistic else 10)
     agility = player.agility if player.agility is not None else (30 if optimistic else 10)
     weight = player.weight if player.weight is not None else (32 if optimistic else 88)
@@ -122,6 +129,9 @@ def facing(player):
 
 
 def boost_impulse(player):
+    if getattr(player, 'platform', 'genesis') != 'genesis':
+        from nhl94_ai.game.platforms import get_backend
+        return get_backend(player.platform).boost_speed
     _, _, energy = skating(player)
     return max(0, energy - 204) // 128 * 200 * VELOCITY_SCALE
 

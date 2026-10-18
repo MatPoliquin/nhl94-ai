@@ -116,6 +116,8 @@ class Player:
     contact_impact: int | None = None
     input_state: dict[str, int] | None = None
     input_state_known: bool = False
+    platform: str = 'genesis'
+    native_state_flags: int | None = None
 
     def debug_print(self, prefix="Player"):
         print(f"{prefix} - x: {self.x}, y: {self.y}, vx: {self.vx}, vy: {self.vy}, "
@@ -217,6 +219,7 @@ class EngineState:
     input_block: int | None = None
     clock_stopped: bool | None = None
     camera: tuple | None = None
+    faceoff: bool = False
 
     def debug_print(self, prefix="EngineState"):
         print(
@@ -233,7 +236,10 @@ class Team():
     PAD_STACK_ANIMS = {0x250, 0x2A2}
     DIVE_ANIM = 0x2F4
 
-    def __init__(self, controller: int, num_players: int):
+    def __init__(self, controller: int, num_players: int, platform=None):
+        from nhl94_ai.game.platforms import get_backend
+        self.platform = platform or get_backend()
+        self.rink = self.platform.rink
         self.controller = controller
         self.stats = Stats()
         self.last_stats = Stats()
@@ -260,7 +266,7 @@ class Team():
         self.nz_goalie_haspuck = 0.0
         self.nz_goalie_stats = GoalieStats()
 
-        self.net = Net()
+        self.net = Net(depth=self.rink.net_depth, left=-self.rink.post_x, right=self.rink.post_x)
         self.nz_net = Net()
 
         net_left: tuple = (0.0, 0.0)        # Normalized absolute left post
@@ -331,20 +337,7 @@ class Team():
                 )
 
     def _load_hidden_player_fields(self, player: Player, info: Dict[str, Any], prefix: str) -> None:
-        player.shot_accuracy = info.get(f"{prefix}shot_accuracy")
-        for axis in ('x', 'y'):
-            velocity = info.get(f'{prefix}live_vel_{axis}')
-            setattr(player, f'motion_{axis}', None if velocity is None else velocity * 17 / 65536)
-        player.anim = info.get(f"{prefix}anim", 0) or 0
-        player.anim_frame = info.get(f"{prefix}anim_frame", 0) or 0
-        player.state_flags = info.get(f"{prefix}state_flags", 0) or 0
-
-        player.is_one_timer = 1.0 if player.state_flags & (1 << 3) else 0.0
-        player.is_breakaway = 1.0 if player.state_flags & (1 << 1) else 0.0
-        player.is_falling = 1.0 if player.state_flags & (1 << 5) else 0.0
-        player.is_pad_stack = 1.0 if player.anim in self.PAD_STACK_ANIMS else 0.0
-        player.is_dive = 1.0 if player.anim == self.DIVE_ANIM else 0.0
-        player.has_anim = 1.0 if player.anim != 0 else 0.0
+        self.platform.decode_player(player, info, prefix)
 
         nz_net_left: tuple = (0.0, 0.0)        # Normalized absolute left post
         nz_net_right: tuple = (0.0, 0.0)       # Normalized absolute right post
@@ -367,99 +360,7 @@ class Team():
         self.goalie_stats.weight = info.get(f"{prefix}weight", 0) or 0
 
     def _load_defense_fields(self, info):
-        self.pass_attempts = info.get(f'p{self.controller}_pass_attempts')
-        self.one_timer_attempts = info.get(f'p{self.controller}_one_timer_attempts')
-        self.defense_control = None
-        self.defense_goalie = None
-        for player in self.players:
-            player.assignment = player.decision_timer = player.steering_timer = player.steering = None
-            player.cpu_target = player.support_zone = None
-            player.cpu_response_available = False
-        for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing', 'puck_control',
-                     'selection_flags', 'live_anim', 'live_anim_frame', 'animation_timer',
-                     'live_state_flags', 'cover_timer', 'assignment', 'energy',
-                     'contact_player', 'contact_impact', 'precise_x', 'precise_y',
-                     'decision_timer', 'decision_interval', 'steering', 'cpu_tracking_active'):
-            setattr(self.goalie, name, None)
-        self.goalie.unavailable = 0
-        if 'defense_control1' not in info:
-            return
-        self.defense_goalie = self.skater_scnum_base() + self.num_players
-        for controller in (1, 2):
-            if info.get(f'defense_team{controller}') == self.controller:
-                self.defense_control = max(-1, info[f'defense_control{controller}'])
-        flags = info.get('defense_energy_override', 0)
-        bonus = 2 if flags & 0x40 or info.get('defense_skill_boost', 0) & 2 else 0
-        for index, player in enumerate(self.players):
-            prefix = f'defense_{self.skater_scnum_base() + index}_'
-            player.burst_full_energy = (bool(flags & 0x10)
-                                        if 'defense_energy_override' in info else None)
-            player.stick_x = info.get(f'offense_{self.skater_scnum_base() + index}_stick_x')
-            player.stick_y = info.get(f'offense_{self.skater_scnum_base() + index}_stick_y')
-            player.shot_durations = info.get(f'offense_{self.skater_scnum_base() + index}_shot_durations')
-            player.shot_offsets_y = info.get(f'offense_{self.skater_scnum_base() + index}_shot_offsets_y')
-            player.shot_offsets_x = info.get(f'offense_{self.skater_scnum_base() + index}_shot_offsets_x')
-            player.shot_projection_durations = info.get(
-                f'offense_{self.skater_scnum_base() + index}_shot_projection_durations')
-            for axis in ('x', 'y'):
-                setattr(player, 'shot_projection_offsets_' + axis,
-                        info.get(f'offense_{self.skater_scnum_base() + index}_shot_projection_offsets_' + axis))
-                coordinate = info.get(prefix + 'precise_' + axis)
-                setattr(player, 'precise_' + axis, None if coordinate is None else coordinate / 65536)
-            phase = info.get(prefix + 'facing_phase')
-            player.facing_phase = None if phase is None else phase / 65536
-            player.sprite_flipped_x = info.get(f'offense_{self.skater_scnum_base() + index}_sprite_flipped_x')
-            for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'checking', 'endurance', 'passing',
-                         'shot_power', 'handedness', 'live_anim', 'live_anim_frame', 'animation_timer',
-                         'contact_player', 'contact_impact'):
-                setattr(player, name, info.get(prefix + name))
-            player.unavailable = info.get(prefix + 'unavailable', 0)
-            player.selection_flags = info.get(prefix + 'flags')
-            assignment_index = info.get(prefix + 'assignment_index')
-            player.assignment = (info.get(prefix + f'assignment_{assignment_index}')
-                                 if assignment_index in range(8) else None)
-            player.decision_timer = info.get(prefix + 'decision_timer')
-            player.steering_timer = info.get(prefix + 'steering_timer')
-            player.steering = info.get(prefix + 'steering')
-            target = info.get(prefix + 'target_x'), info.get(prefix + 'target_y')
-            player.cpu_target = None if None in target else target
-            player.support_zone = info.get(prefix + 'support_zone')
-            player.cpu_response_available = (player.selection_flags is not None
-                                             and not player.selection_flags & 0x3A
-                                             and not player.unavailable & 0x27)
-            player.movement_bonus = bonus
-            roster = info.get(prefix + 'roster')
-            player.energy = 4096 if flags & 0x10 else info.get(f'defense_energy_{self.controller}_{roster}')
-            for axis in ('x', 'y'):
-                velocity = info.get(prefix + 'v' + axis)
-                if velocity is not None:
-                    setattr(player, 'motion_' + axis, velocity * 17 / 65536)
-        goalie = self.goalie
-        prefix = f'g{self.controller}_control_'
-        for axis in ('x', 'y'):
-            coordinate = info.get(prefix + 'precise_' + axis)
-            setattr(goalie, 'precise_' + axis, None if coordinate is None else coordinate / 65536)
-        goalie.decision_timer = info.get(prefix + 'decision_timer')
-        goalie.steering = info.get(prefix + 'steering')
-        delay = info.get(prefix + 'decision_delay')
-        goalie.decision_interval = None if delay is None else max(0, delay - bool(flags & 0x40)) // 4
-        for name in ('role', 'facing', 'speed', 'agility', 'weight', 'stick', 'passing', 'puck_control'):
-            setattr(goalie, name, info.get(prefix + name))
-        goalie.selection_flags = info.get(prefix + 'flags')
-        goalie.unavailable = info.get(prefix + 'unavailable', 0)
-        goalie.cpu_tracking_active = (None if goalie.selection_flags is None else
-                                     not bool(goalie.selection_flags & 0x20 or goalie.unavailable & 2))
-        goalie.movement_bonus = bonus
-        goalie.energy = 4096 if flags & 0x10 else info.get(
-            f'defense_energy_{self.controller}_{info.get(prefix + "roster")}')
-        goalie.live_anim, goalie.live_anim_frame = info.get(prefix + 'anim'), info.get(prefix + 'anim_frame')
-        goalie.animation_timer = info.get(prefix + 'anim_timer')
-        goalie.contact_player = info.get(prefix + 'contact_player')
-        goalie.contact_impact = info.get(prefix + 'contact_impact')
-        goalie.live_state_flags = info.get(prefix + 'state_flags')
-        goalie.cover_timer = info.get(prefix + 'cover_timer')
-        index = info.get(prefix + 'assignment_index')
-        goalie.assignment = info.get(prefix + f'assignment_{index}') if index in range(8) else None
+        self.platform.load_team_telemetry(self, info)
 
     def has_puck(self, pos_x, pos_y):
         return (abs(pos_x - self.stats.fullstar_x) < self.HAS_PUCK_TRESHOLD and abs(pos_y - self.stats.fullstar_y) < self.HAS_PUCK_TRESHOLD)
@@ -577,26 +478,26 @@ class Team():
     def Normalize(self):
         # Normalize for model input
         for p in range(0, self.num_players):
-            self.nz_players[p].x = self.players[p].x / GameConsts.MAX_PLAYER_X
-            self.nz_players[p].y = self.players[p].y / GameConsts.MAX_PLAYER_Y
-            self.nz_players[p].vx = self.players[p].vx / GameConsts.MAX_VEL_XY
-            self.nz_players[p].vy = self.players[p].vy / GameConsts.MAX_VEL_XY
+            self.nz_players[p].x = self.players[p].x / self.rink.player_x
+            self.nz_players[p].y = self.players[p].y / self.rink.player_y
+            self.nz_players[p].vx = self.players[p].vx / self.rink.max_velocity
+            self.nz_players[p].vy = self.players[p].vy / self.rink.max_velocity
             # Orientation vector is already normalized (-1 to 1)
             self.nz_players[p].ori_x = self.players[p].ori_x
             self.nz_players[p].ori_y = self.players[p].ori_y
             # Normalize relative puck position and velocity
-            self.nz_players[p].rel_puck_x = self.players[p].rel_puck_x / GameConsts.MAX_PUCK_X
-            self.nz_players[p].rel_puck_y = self.players[p].rel_puck_y / GameConsts.MAX_PUCK_Y
-            self.nz_players[p].rel_puck_vx = self.players[p].rel_puck_vx / GameConsts.MAX_VEL_XY
-            self.nz_players[p].rel_puck_vy = self.players[p].rel_puck_vy / GameConsts.MAX_VEL_XY
+            self.nz_players[p].rel_puck_x = self.players[p].rel_puck_x / self.rink.puck_x
+            self.nz_players[p].rel_puck_y = self.players[p].rel_puck_y / self.rink.puck_y
+            self.nz_players[p].rel_puck_vx = self.players[p].rel_puck_vx / self.rink.max_velocity
+            self.nz_players[p].rel_puck_vy = self.players[p].rel_puck_vy / self.rink.max_velocity
             # Normalize relative controlled player position and velocity
-            self.nz_players[p].rel_controlled_x = self.players[p].rel_controlled_x / GameConsts.MAX_PLAYER_X
-            self.nz_players[p].rel_controlled_y = self.players[p].rel_controlled_y / GameConsts.MAX_PLAYER_Y
-            self.nz_players[p].rel_controlled_vx = self.players[p].rel_controlled_vx / GameConsts.MAX_VEL_XY
-            self.nz_players[p].rel_controlled_vy = self.players[p].rel_controlled_vy / GameConsts.MAX_VEL_XY
+            self.nz_players[p].rel_controlled_x = self.players[p].rel_controlled_x / self.rink.player_x
+            self.nz_players[p].rel_controlled_y = self.players[p].rel_controlled_y / self.rink.player_y
+            self.nz_players[p].rel_controlled_vx = self.players[p].rel_controlled_vx / self.rink.max_velocity
+            self.nz_players[p].rel_controlled_vy = self.players[p].rel_controlled_vy / self.rink.max_velocity
             # Normalize distances
-            self.nz_players[p].dist_to_controlled = self.players[p].dist_to_controlled / GameConsts.MAX_PLAYER_X
-            self.nz_players[p].dist_to_puck = self.players[p].dist_to_puck / GameConsts.MAX_PUCK_X
+            self.nz_players[p].dist_to_controlled = self.players[p].dist_to_controlled / self.rink.player_x
+            self.nz_players[p].dist_to_puck = self.players[p].dist_to_puck / self.rink.puck_x
             self.nz_players[p].is_controlled = 1.0 if self.control == p + 1 else 0.0
             self.nz_players[p].has_puck = float(self.players[p].has_puck)
             self.nz_players[p].is_one_timer = self.players[p].is_one_timer
@@ -607,23 +508,23 @@ class Team():
             self.nz_players[p].anim_frame = min(abs(self.players[p].anim_frame) / 32.0, 1.0)
             self.nz_players[p].has_anim = self.players[p].has_anim
 
-        self.nz_goalie.x = self.goalie.x / GameConsts.MAX_PLAYER_X
-        self.nz_goalie.y = self.goalie.y / GameConsts.MAX_PLAYER_Y
-        self.nz_goalie.vx = self.goalie.vx / GameConsts.MAX_VEL_XY
-        self.nz_goalie.vy = self.goalie.vy / GameConsts.MAX_VEL_XY
+        self.nz_goalie.x = self.goalie.x / self.rink.player_x
+        self.nz_goalie.y = self.goalie.y / self.rink.player_y
+        self.nz_goalie.vx = self.goalie.vx / self.rink.max_velocity
+        self.nz_goalie.vy = self.goalie.vy / self.rink.max_velocity
         # Normalize relative puck position and velocity for goalie
-        self.nz_goalie.rel_puck_x = self.goalie.rel_puck_x / GameConsts.MAX_PUCK_X
-        self.nz_goalie.rel_puck_y = self.goalie.rel_puck_y / GameConsts.MAX_PUCK_Y
-        self.nz_goalie.rel_puck_vx = self.goalie.rel_puck_vx / GameConsts.MAX_VEL_XY
-        self.nz_goalie.rel_puck_vy = self.goalie.rel_puck_vy / GameConsts.MAX_VEL_XY
+        self.nz_goalie.rel_puck_x = self.goalie.rel_puck_x / self.rink.puck_x
+        self.nz_goalie.rel_puck_y = self.goalie.rel_puck_y / self.rink.puck_y
+        self.nz_goalie.rel_puck_vx = self.goalie.rel_puck_vx / self.rink.max_velocity
+        self.nz_goalie.rel_puck_vy = self.goalie.rel_puck_vy / self.rink.max_velocity
         # Normalize relative controlled player position and velocity for goalie
-        self.nz_goalie.rel_controlled_x = self.goalie.rel_controlled_x / GameConsts.MAX_PLAYER_X
-        self.nz_goalie.rel_controlled_y = self.goalie.rel_controlled_y / GameConsts.MAX_PLAYER_Y
-        self.nz_goalie.rel_controlled_vx = self.goalie.rel_controlled_vx / GameConsts.MAX_VEL_XY
-        self.nz_goalie.rel_controlled_vy = self.goalie.rel_controlled_vy / GameConsts.MAX_VEL_XY
+        self.nz_goalie.rel_controlled_x = self.goalie.rel_controlled_x / self.rink.player_x
+        self.nz_goalie.rel_controlled_y = self.goalie.rel_controlled_y / self.rink.player_y
+        self.nz_goalie.rel_controlled_vx = self.goalie.rel_controlled_vx / self.rink.max_velocity
+        self.nz_goalie.rel_controlled_vy = self.goalie.rel_controlled_vy / self.rink.max_velocity
         # Normalize distances for goalie
-        self.nz_goalie.dist_to_controlled = self.goalie.dist_to_controlled / GameConsts.MAX_PLAYER_X
-        self.nz_goalie.dist_to_puck = self.goalie.dist_to_puck / GameConsts.MAX_PUCK_X
+        self.nz_goalie.dist_to_controlled = self.goalie.dist_to_controlled / self.rink.player_x
+        self.nz_goalie.dist_to_puck = self.goalie.dist_to_puck / self.rink.puck_x
         self.nz_goalie.is_controlled = 1.0 if self.control == 0 else 0.0
         self.nz_goalie.has_puck = float(self.goalie.has_puck)
         self.nz_goalie.is_one_timer = self.goalie.is_one_timer
@@ -651,7 +552,7 @@ class Team():
 
         # Normalize
         for p in range(0, self.num_players):
-            self.nz_players[p].dist_to_controlled_opp = self.players[p].dist_to_controlled_opp / GameConsts.MAX_PLAYER_X
+            self.nz_players[p].dist_to_controlled_opp = self.players[p].dist_to_controlled_opp / self.rink.player_x
             self.nz_players[p].passing_lane_clear = float(self.players[p].passing_lane_clear)  # Convert bool to 0.0/1.0
             self.nz_players[p].one_timer_lane_good = float(self.players[p].one_timer_lane_good)
             self.nz_players[p].clear_shot_lane = float(self.players[p].clear_shot_lane)
@@ -659,15 +560,15 @@ class Team():
 
         # Normalize net positions
         # Absolute positions
-        self.nz_net.left = self.net.left / GameConsts.MAX_PUCK_X
-        self.nz_net.right = self.net.right / GameConsts.MAX_PUCK_X
-        self.nz_net.y = self.net.y / GameConsts.MAX_PUCK_Y
-        self.nz_net.depth = self.net.depth / GameConsts.MAX_PUCK_Y
+        self.nz_net.left = self.net.left / self.rink.puck_x
+        self.nz_net.right = self.net.right / self.rink.puck_x
+        self.nz_net.y = self.net.y / self.rink.puck_y
+        self.nz_net.depth = self.net.depth / self.rink.puck_y
 
         # Relative positions
-        self.nz_net.rel_controlled_left = self.net.rel_controlled_left / GameConsts.MAX_PUCK_X
-        self.nz_net.rel_controlled_right = self.net.rel_controlled_right / GameConsts.MAX_PUCK_X
-        self.nz_net.rel_controlled_y = self.net.rel_controlled_y / GameConsts.MAX_PUCK_Y
+        self.nz_net.rel_controlled_left = self.net.rel_controlled_left / self.rink.puck_x
+        self.nz_net.rel_controlled_right = self.net.rel_controlled_right / self.rink.puck_x
+        self.nz_net.rel_controlled_y = self.net.rel_controlled_y / self.rink.puck_y
 
     def end_frame(self) -> None:
         self.last_stats = deepcopy(self.stats)
@@ -703,9 +604,12 @@ class Team():
 
 
 class NHL94GameState(TacticalFeatures):
-    def __init__(self, numPlayers):
-        self.team1 = Team(1, numPlayers)
-        self.team2 = Team(2, numPlayers)
+    def __init__(self, numPlayers, platform=None):
+        from nhl94_ai.game.platforms import get_backend
+        self.platform = platform or get_backend()
+        self.rink = self.platform.rink
+        self.team1 = Team(1, numPlayers, self.platform)
+        self.team2 = Team(2, numPlayers, self.platform)
         self.puck = Player()
         self.engine = EngineState()
         self.is_shootout_active = False
@@ -729,49 +633,8 @@ class NHL94GameState(TacticalFeatures):
         #For model input
         self.nz_puck = Player()
 
-    def _update_engine_state(self, info: Dict[str, Any]) -> None:
-        self.engine.goalie_modes = tuple(info[f'goalie_mode_{i}'] for i in (1, 2)) if all(
-            f'goalie_mode_{i}' in info for i in (1, 2)) else None
-        self.engine.goalie_hold_counts = tuple(info[f'goalie_hold_b_{i}'] for i in (1, 2)) if all(
-            f'goalie_hold_b_{i}' in info for i in (1, 2)) else None
-        self.engine.controller_teams = tuple(info[f'defense_team{i}'] for i in (1, 2)) if all(
-            f'defense_team{i}' in info for i in (1, 2)) else None
-        self.engine.input_block = info.get('goalie_input_block')
-        self.engine.clock_stopped = bool(info['goalie_clock_flags'] & 1) if 'goalie_clock_flags' in info else None
-        self.engine.camera = (-64 - info['defense_scroll_x'], -info['defense_scroll_y']) if all(
-            f'defense_scroll_{axis}' in info for axis in ('x', 'y')) else None
-        puck_owner = info.get("puck_owner")
-        shot_player = info.get("shot_player")
-
-        self.engine.puck_owner = -1 if puck_owner is None else puck_owner
-        self.engine.puck_owner_known = puck_owner is not None
-        rules = info.get('offense_rule_flags')
-        self.engine.offsides_enabled = None if rules is None else bool(rules & 0x20)
-        self.engine.pass_target = info.get('pass_target')
-        self.engine.last_puck_player = info.get('last_puck_player')
-        self.engine.shot_player = -1 if shot_player is None else shot_player
-        self.engine.pass_dir = info.get("pass_dir", 0) or 0
-        self.engine.pass_speed = info.get("pass_speed", 0) or 0
-        self.engine.goalie_chk_body = info.get("goalie_chk_body", 0) or 0
-        self.engine.sflags = info.get("sflags", 0) or 0
-        self.engine.sflags2 = info.get("sflags2", 0) or 0
-        self.is_shooting = bool(self.engine.sflags & 0x0800)
-        self.has_released_shot = self.has_released_shot or bool(self.engine.sflags2 & 0x1000)
-        self.engine.ba_ps_flags = info.get("ba_ps_flags", 0) or 0
-        self.is_shootout_active = bool(self.engine.ba_ps_flags & 0x0400)
-        self.engine.word_ffc2f6 = info.get("word_ffc2f6", 0) or 0
-        self.engine.word_ffc2f8 = info.get("word_ffc2f8", 0) or 0
-        self.engine.word_ffc2fa = info.get("word_ffc2fa", 0) or 0
-
-        self.engine.shot_mode_active = 1.0 if self.engine.sflags & (1 << 3) else 0.0
-        self.engine.shot_taken = 1.0 if self.engine.sflags2 & (1 << 4) else 0.0
-        self.engine.in_close_top_shelf = 1.0 if self.engine.word_ffc2f6 & (1 << 4) else 0.0
-        self.engine.one_timer_collision_mode = 1.0 if self.engine.word_ffc2f8 & (1 << 1) else 0.0
-        self.engine.breakaway_context = 1.0 if self.engine.word_ffc2fa & (1 << 4) else 0.0
-        self.engine.controlled_is_shooter = float(
-            self.engine.shot_player >= 0 and self.engine.shot_player == self.team1.controlled_scnum()
-        )
-        self.engine.goalie_box_small = 1.0 if self.engine.goalie_chk_body <= 0xC else 0.0
+    def _update_engine_state(self, info):
+        self.platform.update_engine_state(self, info)
 
     def _clear_possession_flags(self) -> None:
         for team in [self.team1, self.team2]:
@@ -817,9 +680,9 @@ class NHL94GameState(TacticalFeatures):
         direction = -1 if self.period % 2 == 0 else 1
         for team in [self.team1, self.team2]:
             home = team.controller == 1
-            team.net.y = direction * (GameConsts.P1_NET_Y if home else GameConsts.P2_NET_Y)
-            team.net.left = GameConsts.P1_NET_LEFT_POLL if home else GameConsts.P2_NET_LEFT_POLL
-            team.net.right = GameConsts.P1_NET_RIGHT_POLL if home else GameConsts.P2_NET_RIGHT_POLL
+            team.net.y = direction * (-self.rink.net_y if home else self.rink.net_y)
+            team.net.left = -self.rink.post_x
+            team.net.right = self.rink.post_x
             controlled = team.get_controlled_player()
             team.net.rel_controlled_left = 0 if controlled is None else team.net.left - controlled.x
             team.net.rel_controlled_right = 0 if controlled is None else team.net.right - controlled.x
@@ -827,6 +690,7 @@ class NHL94GameState(TacticalFeatures):
 
 
     def BeginFrame(self, info, action):
+        info = self.platform.decode_info(info)
         self.action = action
         self.c_pressed = bool(action[5])
         self.c_frames_held = self.c_frames_held + 1 if self.c_pressed else 0
@@ -869,6 +733,7 @@ class NHL94GameState(TacticalFeatures):
         self.team1._load_defense_fields(info)
         self.team2._load_defense_fields(info)
         self._update_engine_state(info)
+        self.platform.update_state(self, info)
         if 'p1_control_slot' in info:
             self._clear_possession_flags()
             self._set_possession_flag_from_owner()
@@ -894,10 +759,10 @@ class NHL94GameState(TacticalFeatures):
         self.team2.Normalize()
 
         #Normalize Puck
-        self.nz_puck.x = self.puck.x / GameConsts.MAX_PUCK_X
-        self.nz_puck.y = self.puck.y / GameConsts.MAX_PUCK_Y
-        self.nz_puck.vx = self.puck.vx / GameConsts.MAX_VEL_XY
-        self.nz_puck.vy = self.puck.vy / GameConsts.MAX_VEL_XY
+        self.nz_puck.x = self.puck.x / self.rink.puck_x
+        self.nz_puck.y = self.puck.y / self.rink.puck_y
+        self.nz_puck.vx = self.puck.vx / self.rink.max_velocity
+        self.nz_puck.vy = self.puck.vy / self.rink.max_velocity
 
     def EndFrame(self):
         self.last_time = self.time
