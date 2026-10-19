@@ -93,6 +93,7 @@ class NHL94DebugDisplay:
 
         # Input state
         self.player_actions = [0] * GameConsts.INPUT_MAX
+        self.input_focused = True
         self.action_probabilities = None
         self.model_params = None
         self.model_in_use = None
@@ -123,7 +124,7 @@ class NHL94DebugDisplay:
         }
 
         # Control mode (AI or human)
-        self.human_control = args.mode in ('player_vs_game', 'player_vs_model')
+        self.human_control = args.mode in ('player_vs_game', 'player_vs_model', 'team_vs_player')
         self.control_help = [
             "CONTROLS:",
             "Arrows: Move",
@@ -134,6 +135,7 @@ class NHL94DebugDisplay:
             f"TAB: {self.platform.buttons[2].title()} Button",
             "ENTER: Start Button",
             ("F1: AI teammates (keyboard override unavailable)" if args.mode == 'team_vs_game'
+             else f"F1: Toggle P{args.num_players} Keyboard" if args.mode == 'team_vs_player'
              else "F1: Toggle P2 Keyboard" if args.mode == 'player_vs_model' else "F1: Toggle AI/Human Control"),
             "ESC: Quit",
             "SPACE / P: Pause or resume playback",
@@ -198,8 +200,10 @@ class NHL94DebugDisplay:
                 values = values[0]
             return [validate_target(values).tolist()]
         expected_action_size = 6 if getattr(self.args, 'action_type', '').upper() == 'HOCKEY_INTENT_DPAD' else GameConsts.INPUT_MAX
-        if getattr(self.args, 'mode', None) in ('model_vs_model', 'team_vs_game'):
+        if getattr(self.args, 'mode', None) == 'model_vs_model':
             expected_action_size *= 2
+        elif getattr(self.args, 'mode', None) in ('team_vs_game', 'team_vs_player'):
+            expected_action_size *= getattr(self.args, 'num_players', 2)
 
         if action is None:
             return [[0] * expected_action_size]
@@ -280,6 +284,10 @@ class NHL94DebugDisplay:
             if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.close()
                 raise SystemExit("User requested exit")
+            if event.type in (pygame.WINDOWFOCUSLOST, pygame.WINDOWFOCUSGAINED):
+                self.input_focused = event.type == pygame.WINDOWFOCUSGAINED
+                self.player_actions = [0] * GameConsts.INPUT_MAX
+                continue
             if event.type == pygame.VIDEORESIZE:
                 self.window = pygame.display.set_mode((max(320, event.w), max(180, event.h)), pygame.RESIZABLE)
                 continue
@@ -342,6 +350,8 @@ class NHL94DebugDisplay:
     def get_human_input(self):
         """Get input from keyboard and map to game actions"""
         pygame.event.pump()
+        if not getattr(self, 'input_focused', True):
+            return [0] * GameConsts.INPUT_MAX
         keys = pygame.key.get_pressed()
         actions = [0] * GameConsts.INPUT_MAX
 
@@ -355,18 +365,20 @@ class NHL94DebugDisplay:
         """Step the environment with either AI or human input"""
 
         self.wait_until_running()
-        human_vs_model = self.args.mode == 'player_vs_model'
+        human_vs_model = self.args.mode in ('player_vs_model', 'team_vs_player')
         if human_vs_model:
+            bot_width = GameConsts.INPUT_MAX * (getattr(self.args, 'team_size', 2) if self.args.mode == 'team_vs_player' else 1)
             ai_action = np.asarray(action)
-            if ai_action.shape == (1, GameConsts.INPUT_MAX):
+            if ai_action.shape == (1, bot_width):
                 ai_action = ai_action[0]
-            if ai_action.shape != (GameConsts.INPUT_MAX,) or not np.all((ai_action == 0) | (ai_action == 1)):
-                raise ValueError('player_vs_model expects one 12-button AI action')
+            if ai_action.shape != (bot_width,) or not np.all((ai_action == 0) | (ai_action == 1)):
+                raise ValueError('player_vs_model expects one 12-button AI action' if self.args.mode == 'player_vs_model'
+                                 else f'team_vs_player expects {bot_width} binary bot buttons')
             self.player_actions = self.get_human_input() if self.human_control else [0] * GameConsts.INPUT_MAX
             env_action = [np.concatenate((ai_action, self.player_actions)).astype(np.int8)]
         elif self.args.mode in ('model_vs_model', 'team_vs_game'):
             env_action = self._normalize_env_action(action)
-            if self.human_control:
+            if self.human_control and self.args.mode == 'model_vs_model':
                 env_action[0][:GameConsts.INPUT_MAX] = self.get_human_input()
         else:
             if self.human_control:
@@ -672,8 +684,9 @@ class NHL94DebugDisplay:
             header_text = "NHL '94 - P1 AI / P2 KEYBOARD"
         elif self.args.mode == 'model_vs_model':
             header_text = f"NHL '94 - P1 {'KEYBOARD' if self.human_control else 'AI'} / P2 AI"
-        elif self.args.mode == 'team_vs_game':
-            header_text = "NHL '94 - TWO AI TEAMMATES / CPU"
+        elif self.args.mode in ('team_vs_game', 'team_vs_player'):
+            opponent = f'P{self.args.num_players} KEYBOARD / AWAY' if self.args.mode == 'team_vs_player' else 'CPU'
+            header_text = f"NHL '94 - {getattr(self.args, 'team_size', 2)} HOME BOTS / {opponent}"
         if self.paused:
             header_text += " - PAUSED"
         self.screen.blit(self.big_font.render(header_text, True, WHITE), (info_x, info_y))
@@ -714,12 +727,16 @@ class NHL94DebugDisplay:
             text = f"P{row['controller']} slot {row['slot']}: {row['role']} -> ({x:.0f}, {y:.0f})"
             self.screen.blit(self.font.render(text, True, CYAN),
                              (info_x + 510, stats_y + index * self.HUD_LINE_HEIGHT))
+        if self.args.mode == 'team_vs_player':
+            text = f'P{self.args.num_players} away human slot {team2.controlled_scnum()}'
+            self.screen.blit(self.font.render(text, True, CYAN),
+                             (info_x + 510, stats_y + self.args.team_size * self.HUD_LINE_HEIGHT))
 
     def _scores_historical(self):
         return (self.score_evaluation['evaluation_frame'] != self.classic_offense.get('evaluation_frame')
                 or self.game_state.engine.puck_owner != self.score_evaluation['evaluation_carrier']
                 or self.classic_goalie.get('target') is not None or bool(self.classic_defense)
-                or self.human_control and self.args.mode != 'player_vs_model')
+                or self.human_control and self.args.mode not in ('player_vs_model', 'team_vs_player'))
 
     def draw_frame(self, frame_img, info, action=None):
         self.screen.fill(self.COLOR_BLACK)
@@ -799,7 +816,7 @@ class NHL94DebugDisplay:
         self.inspector.draw(
             self.screen, pygame.Rect(0, 0, self.ACTION_WIDTH, self.CANVAS_HEIGHT),
             self.font, self.big_font, self.playback_frames, actual_action=actual,
-            human_override=self.human_control and self.args.mode != 'player_vs_model',
+            human_override=self.human_control and self.args.mode not in ('player_vs_model', 'team_vs_player'),
             mouse_position=self._logical_mouse_position())
         if self.paused:
             text = self.big_font.render("PAUSED", True, self.COLOR_YELLOW, self.COLOR_BLACK)

@@ -73,15 +73,12 @@ def main(argv=None):
         command_parser.add_argument('--live', dest='headless', action='store_false', help='Show live training display')
     if command == 'play':
         command_parser.add_argument('--agent', choices=list(ALIASES))
-        command_parser.set_defaults(mode='model_vs_game', num_players=1, rf='PostPlay')
+        command_parser.set_defaults(mode='model_vs_game', num_players=None, rf='PostPlay')
     args = parse_configured(command_parser, rest)
     if command == 'play':
         if args.agent:
             args.nn = ALIASES[args.agent]
-        if args.mode in ('model_vs_game', 'player_vs_game'):
-            args.num_players = 1
-        elif args.mode in ('player_vs_model', 'model_vs_model', 'team_vs_game'):
-            args.num_players = 2
+        module.resolve_play_controllers(args)
         module.resolve_play_goalie_defaults(args)
     if command == 'train':
         from nhl94_ai.training.service import train

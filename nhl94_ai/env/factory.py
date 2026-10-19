@@ -77,6 +77,12 @@ def make_retro(
     **kwargs,
 ):
     import stable_retro as retro  # pylint: disable=import-outside-toplevel,reimported
+    if num_players > 2:
+        from nhl94_ai.game.multitap import require_multitap, WAYPLAY_3_BUTTON
+        require_multitap()
+        if game != 'NHL94-Genesis-v0':
+            raise ValueError('Multitap playback supports NHL94-Genesis-v0 only')
+        kwargs['controller_devices'] = {0: WAYPLAY_3_BUTTON}
     state = resolve_default_state(game, state)
     if state is None:
         state = retro.State.DEFAULT
@@ -156,7 +162,7 @@ def build_single_nhl94_env(
         state=args.state,
         num_players=num_players,
         goalie_policy=getattr(args, 'goalie_policy', 'off'),
-        allow_menu_buttons=getattr(args, 'mode', None) == 'team_vs_game',
+        allow_menu_buttons=getattr(args, 'mode', None) in ('team_vs_game', 'team_vs_player'),
     )
     if episode_rom_seed is not None:
         env = EpisodeROMSeed(env, episode_rom_seed)
@@ -261,6 +267,9 @@ def init_env(
 
 
 def get_button_names(args):
+    if args.num_players > 2:
+        from nhl94_ai.game.multitap import require_multitap
+        require_multitap()
     action_map = {
         'FILTERED': retro.Actions.FILTERED,
         'DISCRETE': retro.Actions.DISCRETE,

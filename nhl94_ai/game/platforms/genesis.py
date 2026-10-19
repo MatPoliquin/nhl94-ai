@@ -55,7 +55,7 @@ class GenesisBackend(PlatformBackend):
         if 'defense_control1' not in info:
             return
         team.defense_goalie = team.skater_scnum_base() + team.num_players
-        for controller in (1, 2):
+        for controller in range(1, 5):
             if info.get(f'defense_team{controller}') == team.controller:
                 team.defense_control = max(-1, info[f'defense_control{controller}'])
         # Same-team controllers each receive their own authoritative view.
@@ -140,7 +140,7 @@ class GenesisBackend(PlatformBackend):
             f'goalie_mode_{i}' in info for i in (1, 2)) else None
         state.engine.goalie_hold_counts = tuple(info[f'goalie_hold_b_{i}'] for i in (1, 2)) if all(
             f'goalie_hold_b_{i}' in info for i in (1, 2)) else None
-        state.engine.controller_teams = tuple(info[f'defense_team{i}'] for i in (1, 2)) if all(
+        state.engine.controller_teams = tuple(info[f'defense_team{i}'] for i in range(1, info.get('teammate_controller_count', 2) + 1)) if all(
             f'defense_team{i}' in info for i in (1, 2)) else None
         state.engine.input_block = info.get('goalie_input_block')
         state.engine.clock_stopped = bool(info['goalie_clock_flags'] & 1) if 'goalie_clock_flags' in info else None

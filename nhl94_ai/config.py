@@ -13,6 +13,36 @@ def default_config_path(name='default'):
     return str(files('nhl94_ai').joinpath(f'data/training/{name}.json'))
 
 
+TEAM_MODES = ('team_vs_game', 'team_vs_player')
+
+
+def resolve_play_controllers(args):
+    """Resolve joystick counts without interpreting omitted defaults as overrides."""
+    mode = getattr(args, 'mode', None)
+    if mode in TEAM_MODES:
+        size = getattr(args, 'team_size', None)
+        size = 2 if size is None else size
+        if isinstance(size, bool) or size not in (2, 3):
+            raise ValueError('--team-size must be 2 or 3')
+        count = size + (mode == 'team_vs_player')
+        supplied = getattr(args, 'num_players', None)
+        if supplied is not None and supplied != count:
+            raise ValueError(f'{mode} with --team-size {size} requires --num_players {count}; omit --num_players or use {count}')
+        args.team_size, args.num_players = size, count
+        strategy = getattr(args, 'team_strategy', None) or 'coordinated'
+        if strategy not in ('independent', 'coordinated'):
+            raise ValueError('--team-strategy must be coordinated or independent')
+        args.team_strategy = strategy
+    else:
+        if getattr(args, 'team_size', None) is not None or getattr(args, 'team_strategy', None) is not None:
+            raise ValueError('--team-size and --team-strategy require team_vs_game or team_vs_player')
+        if mode in ('model_vs_game', 'player_vs_game'):
+            args.num_players = 1
+        elif mode in ('player_vs_model', 'model_vs_model'):
+            args.num_players = 2
+    return args
+
+
 @dataclass(frozen=True)
 class EnvironmentConfig:
     env: str = 'NHL941on1-Genesis-v0'
@@ -21,12 +51,13 @@ class EnvironmentConfig:
     action_type: str = 'FILTERED'
     selfplay: bool = False
     seq_len: int = 16
+    mode: str = ''
 
     def validate(self):
         from nhl94_ai.game.specs import get_game
         get_game(self.env)
-        if self.num_players not in (1, 2):
-            raise ValueError('num_players is the controller count and must be 1 or 2')
+        if self.num_players not in ((2, 3, 4) if self.mode in TEAM_MODES else (1, 2)):
+            raise ValueError('num_players must be 1 or 2 in ordinary modes, or the derived teammate controller count')
         if self.seq_len < 1:
             raise ValueError('seq_len must be positive')
         if self.action_type not in ('FILTERED', 'DISCRETE', 'MULTI_DISCRETE', 'HOCKEY_INTENT_DPAD', 'TARGET_POSITION'):
@@ -44,6 +75,9 @@ class EnvironmentConfig:
 
     @classmethod
     def from_args(cls, args):
+        if (getattr(args, 'mode', None) in TEAM_MODES or getattr(args, 'team_size', None) is not None
+                or getattr(args, 'team_strategy', None) is not None):
+            resolve_play_controllers(args)
         values = {name: getattr(args, name, definition.default) for name, definition in cls.__dataclass_fields__.items()}
         values['action_type'] = values['action_type'].upper()
         config = cls(**values).validate()
@@ -55,17 +89,19 @@ class EnvironmentConfig:
         from nhl94_ai.agents.registry import CONTROLLERS, ALIASES
         if config.nn not in MODEL_BUILDERS and config.nn not in CONTROLLERS:
             raise ValueError(f'Unknown policy or agent: {config.nn}')
-        if getattr(args, 'teammate_support_options', False) and getattr(args, 'mode', None) != 'team_vs_game':
+        if getattr(args, 'teammate_support_options', False) and getattr(args, 'mode', None) not in TEAM_MODES:
             raise ValueError('--teammate-support-options requires team_vs_game')
-        if getattr(args, 'mode', None) == 'team_vs_game':
-            supported = (config.env == 'NHL94-Genesis-v0', config.num_players == 2,
+        if getattr(args, 'mode', None) in TEAM_MODES:
+            supported = (config.env == 'NHL94-Genesis-v0', config.num_players == args.team_size + (args.mode == 'team_vs_player'),
                          config.nn == 'ClassicAIV1', config.action_type == 'FILTERED',
                          not config.selfplay, getattr(args, 'rf', 'PostPlay') in ('', 'PostPlay'),
                          getattr(args, 'side', 'home') == 'home',
                          getattr(args, 'goalie_policy', 'off') in (None, 'off'))
             if not all(supported):
-                raise ValueError('team_vs_game requires full-team Genesis Classic, two home controllers, '
+                raise ValueError(f'{args.mode} requires full-team Genesis Classic, two or three home bots, '
                                  'FILTERED PostPlay, automatic goalies and no self-play')
+            if getattr(args, 'teammate_support_options', False) and args.team_strategy != 'coordinated':
+                raise ValueError('--teammate-support-options requires coordinated teammates')
             # These experiments own controller selection or frame dispatch and
             # have no same-team execution contract yet.
             from nhl94_ai.agents.registry import TEAM_INCOMPATIBLE

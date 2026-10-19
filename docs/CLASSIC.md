@@ -22,12 +22,15 @@ See [gameplay examples](NHL94-README.md) for keyboard controls. The SNES keyboar
 uses S for X (select goalie), C for A (shoot/save), Z for Y (clear/dive), and X
 for B (pass/switch/return).
 
-In `team_vs_game`, a shared coordinator controls two home teammates against the
-built-in CPU. Classic handles the carrier and pursuer; the other controller
-positions for a pass or covers the middle. The debug display lists both roles,
-native selections and targets. This Genesis-only scripted mode uses automatic
-goalies and three regulation periods. See [AI teammates](../README.md#ai-teammates)
-for supported saves, evaluation and input replay.
+In `team_vs_game`, two or three home Classic bots play against the built-in CPU.
+Use `--team-size 3` for three bots, or `--mode team_vs_player` for an opposing
+human on the next controller. `--team-strategy independent` runs separate Classic
+instances; coordinated play assigns one carrier/pursuer, an outlet, and (with
+three bots) a deeper coverage skater. Shared receiving supports every bot as
+sender or receiver. Optional support positioning applies to the outlet; the
+third bot retains distinct coverage. Unavailable skaters are excluded from pursuit.
+These Genesis-only modes use automatic goalies and three regulation periods.
+See [AI teammates](../README.md#ai-teammates) for saves, dependencies and replay.
 
 SNES uses the shared offense, defense, scheduling, and pass/shot lifecycle with
 a console backend. It supports either side versus CPU and two controllers for

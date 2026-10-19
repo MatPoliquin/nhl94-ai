@@ -8,7 +8,7 @@ Play modes:
 """
 from nhl94_ai.agents.registry import CONTROLLERS, add_classic_arguments
 
-from nhl94_ai.config import default_config_path, EnvironmentConfig
+from nhl94_ai.config import default_config_path, EnvironmentConfig, resolve_play_controllers, TEAM_MODES
 from nhl94_ai.model_inputs import add_model_input_arguments
 from nhl94_ai.agents.base import AgentInput, LearnedAgent, FrameRepeatAgent
 
@@ -31,8 +31,8 @@ def build_parser():
 
     # Mode selection
     parser.add_argument('--mode', type=str, default='player_vs_model',
-                       choices=['player_vs_model', 'model_vs_model', 'model_vs_game', 'player_vs_game', 'team_vs_game'],
-                       help='Human, AI opponents, or two coordinated Classic teammates versus the CPU')
+                       choices=['player_vs_model', 'model_vs_model', 'model_vs_game', 'player_vs_game', 'team_vs_game', 'team_vs_player'],
+                       help='Human, AI opponents, or two/three Classic teammates versus CPU or human')
 
     # Common arguments
     parser.add_argument('--env', type=str, default='NHL941on1-Genesis-v0')
@@ -45,7 +45,9 @@ def build_parser():
                         help='Classic manual goalie AI (default: selective for supported full-team Classic play; off disables it)')
     parser.add_argument('--classic-config', metavar='PATH',
                         help='Classic bot JSON with comments (default: configs/classic_bot.json in the checkout)')
-    parser.add_argument('--num_players', type=int, default=2)
+    parser.add_argument('--num_players', type=int, default=None)
+    parser.add_argument('--team-size', type=int, choices=(2, 3), default=None)
+    parser.add_argument('--team-strategy', choices=('coordinated', 'independent'), default=None)
     parser.add_argument('--num_env', type=int, default=1)
     parser.add_argument('--output_basedir', type=str, default='~/OUTPUT')
     parser.add_argument('--display_width', type=int, default=1920)
@@ -91,11 +93,7 @@ def build_parser():
 def parse_cmdline(argv):
     args = build_parser().parse_args(argv)
 
-    # Set default num_players based on mode
-    if args.mode == 'model_vs_game' or args.mode == 'player_vs_game':
-        args.num_players = 1
-    elif args.mode in ('player_vs_model', 'model_vs_model', 'team_vs_game'):
-        args.num_players = 2
+    resolve_play_controllers(args)
 
     return resolve_play_goalie_defaults(args)
 
@@ -104,6 +102,8 @@ def resolve_play_goalie_defaults(args):
     """Enable the improved goalie for ordinary full-team Classic playback."""
     from nhl94_ai.agents.classic_config import apply_play_config
     apply_play_config(args)
+    if args.mode in TEAM_MODES and args.num_players > 2 and args.state is None:
+        args.state = 'SabresVsMightyDucks.ManualGoalie.Start'
     if getattr(args, 'goalie_policy', None) is None:
         state = getattr(args, 'state', None)
         supported = (args.nn in CONTROLLERS and get_game(args.env).skaters_per_team == 5
@@ -122,12 +122,13 @@ def resolve_play_goalie_defaults(args):
 class NHL94Player:
     def __init__(self, args, logger, need_display=True):
         self.args = args
-        if args.mode in ('player_vs_model', 'team_vs_game'):
-            args.num_players = 2
+        resolve_play_controllers(args)
+        if args.mode == 'team_vs_player' and not need_display:
+            raise ValueError('team_vs_player requires the Python display for human input')
         self.logger = logger
         self.need_display = need_display
         self.scripted_match = args.mode == 'model_vs_model' and args.nn in CONTROLLERS
-        if get_game(args.env).platform == 'snes' or args.mode == 'team_vs_game':
+        if get_game(args.env).platform == 'snes' or args.mode in TEAM_MODES:
             EnvironmentConfig.from_args(args)
         record_mp4 = getattr(args, 'record_mp4', None)
         if record_mp4 and (not need_display or args.mode == 'model_vs_model' and not self.scripted_match):
@@ -163,7 +164,7 @@ class NHL94Player:
 
         if getattr(args, 'action_type', 'FILTERED').upper() == 'TARGET_POSITION':
             self.init_target_mode()
-        elif args.mode == 'team_vs_game':
+        elif args.mode in TEAM_MODES:
             self.init_teammate_mode()
         elif self.scripted_match:
             self.init_scripted_match()
@@ -282,9 +283,9 @@ class NHL94Player:
 
     def init_teammate_mode(self):
         from nhl94_ai.agents.teammates import TeammateCoordinator
-        self.display_env = init_play_env(self.args, 2, self.args.hyperparams_dict,
+        self.display_env = init_play_env(self.args, self.args.num_players, self.args.hyperparams_dict,
                                          False, self.need_display, False)
-        self.ai_sys = TeammateCoordinator(self.args)
+        self.ai_sys = TeammateCoordinator(self.args, strategy=self.args.team_strategy)
 
     def _ai_actions(self, state, info):
         first = self.ai_sys.predict(state, info=info, deterministic=self.args.deterministic)[0]
@@ -390,7 +391,7 @@ class NHL94Player:
                     total_rewards += reward
                     self._throttle_display_frame()
                 if scripted and np.any(done):
-                    if self.args.mode == 'team_vs_game':
+                    if self.args.mode in TEAM_MODES:
                         self.ai_sys.reset()
                     else:
                         for model in self.ai_sys.models:
@@ -446,8 +447,9 @@ def run(args):
         com_print('AI: controller 1 / home team. Keyboard: controller 2 / away team.')
     elif args.mode == 'model_vs_game':
         com_print(f"AI: controller 1 / {getattr(args, 'side', 'home')} team. Opponent: built-in CPU.")
-    elif args.mode == 'team_vs_game':
-        com_print('AI teammates: controllers 1 and 2 / home team. Opponent: built-in CPU; automatic goalies.')
+    elif args.mode in TEAM_MODES:
+        com_print(f'AI teammates: controllers 1..{args.team_size} / home; automatic goalies. '
+                  f'Opponent: {"keyboard on controller " + str(args.num_players) if args.mode == "team_vs_player" else "built-in CPU"}.')
 
     try:
         player.play(continuous=not args.single_session, need_reset=False)

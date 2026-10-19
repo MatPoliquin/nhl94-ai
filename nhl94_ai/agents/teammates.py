@@ -1,4 +1,4 @@
-"""Two native controllers, one shared tactical plan, independent execution state."""
+"""Native teammate controllers, one shared tactical plan, independent execution state."""
 from copy import copy
 import math
 
@@ -31,6 +31,10 @@ class TeammateCoordinator:
             raise ValueError('Team strategy must be coordinated or independent')
         self.args = copy(args)
         self.side = 2 if getattr(args, 'side', 'home') == 'away' else 1
+        self.team_size = getattr(args, 'team_size', None) or 2
+        if isinstance(self.team_size, bool) or self.team_size not in (2, 3):
+            raise ValueError('Team size must be 2 or 3')
+        self.human = getattr(args, 'mode', None) == 'team_vs_player'
         self.strategy = strategy
         self.support_options = bool(getattr(args, 'teammate_support_options', False))
         self.interval = int(getattr(args, 'hyperparams_dict', {}).get('frame_skip', 4))
@@ -39,22 +43,23 @@ class TeammateCoordinator:
         self.reset()
 
     def reset(self):
-        self.states = [NHL94GameState(5), NHL94GameState(5)]
+        self.states = [NHL94GameState(5) for _ in range(self.team_size)]
         if self.side == 2:
             for state in self.states:
                 state.Flip()
-        self.controllers = [ClassicAIV1Model(self.args), ClassicAIV1Model(self.args)]
-        self.previous = np.zeros((2, 12), dtype=np.int8)
+        self.controllers = [ClassicAIV1Model(self.args) for _ in range(self.team_size)]
+        self.previous = np.zeros((self.team_size, 12), dtype=np.int8)
         self.frames = 0
+        self.transient_frames = 0
         self.primary = None
         self.primary_until = 0
         self.switch_at = 0
-        self.last_roles = [None, None]
-        self.last_slots = [None, None]
+        self.last_roles = [None] * self.team_size
+        self.last_slots = [None] * self.team_size
         self.last_menu = -120
         self.pending_pass = None
         self.receiving = SharedReceiving()
-        self.support = [SupportPlanner(), SupportPlanner()]
+        self.support = [SupportPlanner() for _ in range(self.team_size)]
         self.last_owner = -1
         self.last_pass_count = None
         self.last_diagnostics = {}
@@ -100,9 +105,14 @@ class TeammateCoordinator:
         return self.primary
 
     def _support_target(self, state, controller=0, slots=None):
+        supporters = [i for i in range(self.team_size) if i != self.primary]
+        if self.team_size == 3 and len(supporters) > 1 and controller == supporters[-1]:
+            team, puck = state.team1, state.puck
+            y = puck.y + (team.net.y - puck.y) * 0.65
+            return project_target((max(-30, min(30, puck.x * 0.25)), y)), 'deep-coverage'
         if not self.support_options:
             return self._classic_support_target(state)
-        slots = slots or [state.team1.controlled_scnum()] * 2
+        slots = slots or [state.team1.controlled_scnum()] * self.team_size
         primary_slot = slots[self.primary] if self.primary is not None else None
         return self.support[controller].choose(state, slots[controller], self.frames, primary_slot)
 
@@ -129,10 +139,13 @@ class TeammateCoordinator:
         return [self.act(info[0], deterministic).action]
 
     def act(self, info, deterministic=True):
-        views = [teammate_controller_info(info, i + 1, self.side) for i in range(2)]
+        views = [teammate_controller_info(info, i + 1, self.side, team_size=self.team_size, human=self.human) for i in range(self.team_size)]
+        self.transient_frames = self.transient_frames + 1 if views[0].get('teammate_transient') else 0
+        if self.transient_frames > 120:
+            raise RuntimeError('Native controller ownership failed to settle for 120 frames')
         if views[0]['teammate_highlight']:
             self.frames += 1
-            actions = np.zeros((2, 12), dtype=np.int8)
+            actions = np.zeros((self.team_size, 12), dtype=np.int8)
             if self.frames - self.last_menu >= 120:
                 actions[0, Buttons.INPUT_START] = 1
                 self.last_menu = self.frames
@@ -141,7 +154,7 @@ class TeammateCoordinator:
             self.receiving.finish(self.frames, 'highlight')
             self.receiving.last_owner, self.receiving.last_count = -1, None
             self.last_owner, self.last_pass_count = -1, None
-            self.last_roles, self.last_slots = ['highlight', 'highlight'], [-1, -1]
+            self.last_roles, self.last_slots = ['highlight'] * self.team_size, [-1] * self.team_size
             self.previous = actions.copy()
             for i, controller in enumerate(self.controllers):
                 controller.cancel_actions('highlight')
@@ -150,9 +163,9 @@ class TeammateCoordinator:
             self.last_diagnostics = {'teammates': {'frame': self.frames, 'strategy': self.strategy,
                 'primary_controller': None, 'controllers': [
                     {'controller': i + 1, 'slot': -1, 'role': 'highlight',
-                     'target': [0, 0], 'buttons': actions[i].tolist()} for i in range(2)],
+                     'target': [0, 0], 'buttons': actions[i].tolist()} for i in range(self.team_size)],
                 'pending_pass': None}}
-            return AgentOutput(actions.reshape(24).copy(), self.last_diagnostics)
+            return AgentOutput(actions.reshape(12 * self.team_size).copy(), self.last_diagnostics)
         for i, state in enumerate(self.states):
             state.BeginFrame(views[i], self._game_action(self.previous[i]))
             self.states[i] = decision_state(state, getattr(self.args, 'player_ratings_consideration', True))
@@ -168,12 +181,12 @@ class TeammateCoordinator:
                 if event['phase'] == 'ended' and sender is not None:
                     self.controllers[sender - 1].delegate_reception(self.states[sender - 1], event['reason'])
         primary = self._choose_primary(state, slots)
-        actions = np.zeros((2, 12), dtype=np.int8)
-        rows = [None, None]
+        actions = np.zeros((self.team_size, 12), dtype=np.int8)
+        rows = [None] * self.team_size
         intermission = state.time == 0 or bool(state.engine.sflags & 0x0100)
         if intermission:
             self.receiving.finish(self.frames, 'intermission')
-        order = (0, 1) if primary is None else (primary, 1 - primary)
+        order = tuple(range(self.team_size)) if primary is None else (primary, *(i for i in range(self.team_size) if i != primary))
         for i in order:
             view = self.states[i]
             slot = slots[i]
@@ -223,7 +236,7 @@ class TeammateCoordinator:
                     elif not self.previous[i, Buttons.INPUT_B]:
                         self.switch_at = self.frames + 8
             else:
-                if self.support_options and self.support[i].coast:
+                if self.support_options and role != 'deep-coverage' and self.support[i].coast:
                     actions[i] = np.zeros(12, dtype=np.int8)
                 else:
                     actions[i], target = self._steer(player, target)
@@ -239,7 +252,7 @@ class TeammateCoordinator:
                          'executor_frame': controller.scheduler.frames,
                          'decision_tick': controller.scheduler.decisions,
                          'decision': controller._last_decision,
-                         'support': self.support[i].diagnostics,
+                         'support': self.support[i].diagnostics if role != 'deep-coverage' else {},
                          'pass': (controller.offense.pass_action.pending.snapshot()
                                   if controller.offense.pass_action.pending is not None else None),
                          'one_timer': (dict(vars(controller.one_timer.pending))
@@ -254,9 +267,12 @@ class TeammateCoordinator:
         self.previous = actions.copy()
         self.display_probs = actions[0].copy()
         self.last_diagnostics = {'teammates': {'frame': self.frames, 'strategy': self.strategy,
+                                             'transient': views[0].get('teammate_transient', False),
+                                             'native_teams': views[0].get('native_controller_teams'),
+                                             'native_slots': views[0].get('native_controller_slots'),
                                              'primary_controller': None if primary is None else primary + 1,
                                              'controllers': rows, 'pending_pass': copy(self.pending_pass),
                                              'events': self.receiving.frame_events.copy()}}
         for view in self.states:
             view.EndFrame()
-        return AgentOutput(actions.reshape(24).copy(), self.last_diagnostics)
+        return AgentOutput(actions.reshape(12 * self.team_size).copy(), self.last_diagnostics)

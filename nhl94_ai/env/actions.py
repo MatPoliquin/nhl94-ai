@@ -18,8 +18,8 @@ HOCKEY_CATCH_BURST_DISTANCE = 22.0
 def filter_menu_actions(data, buttons):
     """Preserve native Start pulses while retaining FILTERED gameplay buttons."""
     values = np.asarray(buttons)
-    if values.shape not in ((12,), (24,)) or not np.isin(values, (0, 1)).all():
-        raise ValueError('Menu-capable input requires 12 or 24 binary buttons')
+    if values.shape not in ((12,), (24,), (36,), (48,)) or not np.isin(values, (0, 1)).all():
+        raise ValueError('Menu-capable input requires 12, 24, 36 or 48 binary buttons')
     result = []
     for chunk in values.reshape(-1, 12):
         raw = sum(int(value) << index for index, value in enumerate(chunk))

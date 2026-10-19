@@ -209,4 +209,5 @@ class NativeTeammateTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    from tests.integration.multitap import NativeMultitapTests  # pylint: disable=unused-import
     unittest.main()

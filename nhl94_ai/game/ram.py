@@ -25,7 +25,7 @@ def compact_input_info(env, info, skaters):
     memory = env.data.memory
     corrected = dict(info)
     slots = {skaters, 6 + skaters}
-    for controller in (1, 2):
+    for controller in range(1, 5):
         team = memory.extract(0xFFC328 + (controller - 1) * 2, '>u2')
         slot = memory.extract(0xFFC320 + (controller - 1) * 2, '>i2')
         corrected[f'defense_team{controller}'] = team
@@ -84,8 +84,8 @@ def controller_team_info(info):
     corrected = dict(info)
     for side in (1, 2):
         slot = -1
-        for controller in (1, 2):
-            if info[f'defense_team{controller}'] == side:
+        for controller in range(1, 5):
+            if info.get(f'defense_team{controller}') == side:
                 slot = info[f'defense_control{controller}']
         corrected[f'p{side}_control_slot'] = slot
     return corrected
@@ -96,7 +96,7 @@ def register_teammate_state(env):
     env.data.set_variable('teammate_clock', {'address': 0xFFC468, 'type': '>u2'})
 
 
-def configure_teammates(data, side=1):
+def configure_teammates(data, side=1, *, team_size=2, human=False):
     """Apply the native Two-Teammates assignment to a full-team exhibition save.
 
     Only reset writes live here. Skating, switching and possession subsequently
@@ -104,6 +104,10 @@ def configure_teammates(data, side=1):
     """
     if side not in (1, 2):
         raise ValueError('Teammate side must be home (1) or away (2)')
+    if isinstance(team_size, bool) or team_size not in (2, 3):
+        raise ValueError('Teammate team_size must be 2 or 3')
+    if (team_size == 3 or human) and side != 1:
+        raise ValueError('Multitap teammate modes require home bots')
     memory = data.memory
     read = memory.extract
     roles = [read(0xFFB04A + slot * 0x80 + 0x34, '>i2') for slot in range(12)]
@@ -124,20 +128,30 @@ def configure_teammates(data, side=1):
         0xFFC328: side, 0xFFC32A: side, 0xFFC32C: 0, 0xFFC32E: 0,
         0xFFC320: first, 0xFFC322: second, 0xFFC324: -1, 0xFFC326: -1,
     }
+    selected = [first, second]
+    if team_size == 3:
+        selected.append(next(slot for slot in range(5) if slot not in selected))
+    if human:
+        selected.append(6)
+    if team_size == 3 or human:
+        writes[0xFFD046] = 1
+        for port in range(4):
+            writes[0xFFC320 + port * 2] = selected[port] if port < len(selected) else -1
+            writes[0xFFC328 + port * 2] = side if port < team_size else 3 - side if human and port == team_size else 0
     for address, value in writes.items():
         memory.assign(address, '>i2', value)
     for slot in range(12):
         address = 0xFFB04A + slot * 0x80 + 0x62
         flags = read(address, '|u1')
-        memory.assign(address, '|u1', flags | 8 if slot in (first, second) else (flags & ~8) | 2)
+        memory.assign(address, '|u1', flags | 8 if slot in selected else (flags & ~8) | 2)
     data.update_ram()
-    return first, second
+    return (selected[0], selected[1]) if team_size == 2 else (selected[0], selected[1], selected[2])
 
 
-def teammate_controller_info(info, controller=1, side=1):
+def teammate_controller_info(info, controller=1, side=1, *, team_size=2, human=False):
     """A controller-specific view with physical team identities preserved."""
-    if controller not in (1, 2):
-        raise ValueError('Teammate controller must be 1 or 2')
+    if not 1 <= controller <= team_size:
+        raise ValueError('Teammate controller is outside the bot team')
     if side not in (1, 2):
         raise ValueError('Teammate side must be home (1) or away (2)')
     # gmode bit 4 is the ROM's intermission highlight game. It temporarily
@@ -145,17 +159,22 @@ def teammate_controller_info(info, controller=1, side=1):
     if info.get('goalie_clock_flags', 0) & 0x10:
         return {**info, 'p1_control_slot': -1, 'p2_control_slot': -1,
                 'time': info['teammate_clock'], 'teammate_highlight': True}
-    if tuple(info.get(f'defense_team{i}') for i in (1, 2)) != (side, side):
+    if team_size == 3 or human:
+        from nhl94_ai.game.multitap import controller_snapshot
+        if 'teammate_transient' not in info:
+            info = controller_snapshot(info, team_size, human, side)
+    if tuple(info.get(f'defense_team{i}') for i in range(1, team_size + 1)) != (side,) * team_size:
         raise ValueError('team_vs_game requires both controllers on the AI team and its opponent under CPU control')
-    slots = tuple(info[f'defense_control{i}'] for i in (1, 2))
+    slots = tuple(info[f'defense_control{i}'] for i in range(1, team_size + 1))
     base = (side - 1) * 6
     invalid_slot = any(slot >= 0 and not base <= slot < base + 6 for slot in slots)
-    if invalid_slot or slots[0] >= 0 and slots[0] == slots[1]:
+    if invalid_slot or len([slot for slot in slots if slot >= 0]) != len({slot for slot in slots if slot >= 0}):
         raise ValueError(f'Invalid teammate controller selections: {slots}')
     if any(info.get(f'goalie_mode_{i}') != 1 for i in (1, 2)):
         raise ValueError('team_vs_game requires automatic goalies')
-    return {**info, f'p{side}_control_slot': slots[controller - 1], f'p{3-side}_control_slot': -1,
-            'time': info['teammate_clock'], 'teammate_highlight': False}
+    return {**info, f'p{side}_control_slot': slots[controller - 1], f'p{3-side}_control_slot': info.get(f'defense_control{team_size + 1}', -1) if human else -1,
+            'time': info['teammate_clock'], 'teammate_highlight': False,
+            'teammate_controller_count': team_size + human}
 
 
 def restore_away_control(data, info, *, controller_prefix='defense', player_prefix='defense', slots=5):
@@ -438,6 +457,8 @@ def register_defense_state(env, skaters):
     fields = {
         'defense_control1': (0xFFC320, '>i2'), 'defense_control2': (0xFFC322, '>i2'),
         'defense_team1': (0xFFC328, '>u2'), 'defense_team2': (0xFFC32A, '>u2'),
+        'defense_team3': (0xFFC32C, '>u2'), 'defense_team4': (0xFFC32E, '>u2'),
+        'defense_control3': (0xFFC324, '>i2'), 'defense_control4': (0xFFC326, '>i2'),
         'defense_scroll_x': (0xFFBD1E, '>i2'), 'defense_scroll_y': (0xFFBD20, '>i2'),
         'defense_energy_override': (0xFFC2FC, '|u1'),
         'defense_skill_boost': (0xFFC2FE, '|u1'),

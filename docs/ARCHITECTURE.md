@@ -107,9 +107,9 @@ selection for one controller without changing physical team identities or the
 other controller's fields. The legacy composite clock is replaced only in these
 views by its native low-word clock. Existing neural input layouts are unchanged.
 
-`agents.teammates.TeammateCoordinator` observes the same RAM snapshot through two
+`agents.teammates.TeammateCoordinator` observes the same RAM snapshot through two or three
 independent game states, keeps controller execution histories separate, assigns
-pursuit/support roles and emits 24 buttons before the next native frame. Native
+pursuit/support roles and emits 24 or 36 bot buttons before the next native frame. Native
 pass feedback reserves a controlled receiver; input requests are distinct from
 completed passes and native one-timer attempts. Gameplay selection changes use
 controller buttons. `evaluation.teammates` runs bounded seeded CPU comparisons
@@ -168,3 +168,68 @@ DefenseZone supports button or target-position control. PvG supports the compact
 player-goalie input. Choose a matching game/save, controller count, action type,
 and observation layout for the task. Preserve shared self-play callers when
 changing task behavior.
+
+## EA 4-Way Play
+
+`config.resolve_play_controllers` resolves teammate layout for both playback
+entrypoints and configuration validation. The logical count is team size plus
+one human in `team_vs_player`. Logical slots map directly to zero-based emulator
+ports; EA 4-Way Play provides four physical input channels. Unused channels are
+neutral and unassigned. `make_retro` explicitly requests device 1025 on connector
+0 only for the new modes. This configures the adapter across both Genesis
+connectors; connector IDs and the four input-channel IDs are different concepts.
+
+The stable-retro patch lives in the sibling repository. It increases native
+capacity to four, exposes `RetroEmulator.max_players`, `controller_devices`, and
+`set_controller_port_device(port, device)`, and accepts `controller_devices` in
+`RetroEnv`. It bounds-checks native callbacks and movie access. Existing defaults
+remain unchanged. Feature detection fails before extra-controller environments
+start if the extension is older.
+
+Use this source checkout and its patched sibling together; a stock installed
+wheel is insufficient. In an already configured Unix Makefiles build using the
+development interpreter, rebuild only the frontend objects and extension:
+
+```bash
+cd /home/mat/github/stable-retro
+make -f CMakeFiles/retro-base.dir/build.make CMakeFiles/retro-base.dir/build -j4
+make -f CMakeFiles/stable_retro.dir/build.make CMakeFiles/stable_retro.dir/build -j4
+/home/mat/vretro/bin/python -c 'import stable_retro; print(stable_retro.__file__, stable_retro.RetroEmulator.max_players)'
+```
+
+For a fresh checkout, apply the sibling repository changes, install its documented
+build prerequisites, configure CMake with `-DPYTHON_EXECUTABLE=/path/to/python`
+and `-DPython_EXECUTABLE=/path/to/python`, and follow its source installation
+instructions. Build the `genesis` target for Genesis Plus GX. The targeted make
+commands above assume its other native build dependencies have already been
+built; a fresh installation must build those dependencies first. Start a fresh
+Python process after rebuilding. No Gymnasium or Stable-Baselines3 patch is used.
+
+`game.multitap.prepare_multitap_save` initializes the saved port-B IO direction
+register to the value used by the ROM's adapter boot routine. It validates the
+GENPLUS-GX 1.7.5 state format and expected IO values. `configure_teammates` then
+sets native polling, teams, unique selected skaters and automatic goalies at
+reset. Gameplay uses controller input exclusively. Snapshot restore retains the
+configured adapter and restores saved IO without calling device setup again.
+
+The ROM temporarily substitutes C3/C4 into C1/C2 during input and selection
+routines. A video-frame boundary can expose those unfinished RAM tables.
+`controller_snapshot` retains the raw tables in diagnostics and reports unknown
+selections for inconsistent snapshots; it neither guesses suspended selections
+nor writes ownership back. Bots produce neutral input while those selections
+are unavailable, and persistent inconsistency fails explicitly. Goalie slots
+use their own telemetry and are excluded from the skater-flag comparison.
+
+The observation wrapper accepts 24/36/48 binary buttons only for the corresponding
+scripted layout, maintains separate input histories, and steps the emulator once.
+Neural observation layouts and ordinary one-/two-controller action contracts are
+unchanged. Gymnasium returns scalar reward and five step values; the Monitor and
+VecEnv stack retains batching, four-value VecEnv steps and terminal auto-reset.
+The debug display appends the human's twelve buttons after all bot channels.
+
+New layouts use v2 teammate traces with physical capacity, logical port mapping,
+teams, opponent, seed, reset setup, and ROM/native/core hashes. Replay validates
+this metadata before stepping. Existing v1 traces retain their historical layout.
+Explicit native checks run with `python -m tests.integration.multitap`; legacy
+checks remain in `python -m tests.integration.teammates` and
+`python -m tests.integration.human_play`.

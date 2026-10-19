@@ -121,24 +121,38 @@ coordinate-based policies.
 
 ## AI teammates
 
-`team_vs_game` uses the native **Two - Teammates** mode: controllers 1 and 2
-share the home team against the built-in CPU. A shared scripted coordinator uses
-Classic for puck handling and pursuit, while the other controller provides a
-passing option or defensive coverage. Both controllers observe each native frame
-with their own selected-skater view and input history. The display shows each
-controller's selected slot, role and target.
+`team_vs_game` runs two or three home Classic bots against the built-in CPU.
+`team_vs_player` adds one opposing human through the Python keyboard display.
+`--team-size {2,3}` defaults to 2; `--team-strategy {coordinated,independent}`
+defaults to coordinated. Bots occupy controllers 1 through N; the human occupies
+controller N+1. The coordinator gives the third bot a separate deep coverage role.
+Each bot observes the same native frame with its own selection and input history.
+The display shows each bot's selected slot, role and target.
 
-This mode supports original full-team Genesis exhibition saves with five active
-skaters per side, home control, `FILTERED` buttons and automatic goalies. It
-configures the existing save in memory at reset; no new ROM, multitap or saved
-state installation is needed. Matches run through three regulation periods,
-including intermission navigation; overtime is outside this mode. Optional
-Classic experiments and learned checkpoints are unsupported in teammate mode.
+These modes support original full-team `NHL94-Genesis-v0`, home bots, `FILTERED`
+buttons, automatic goalies and three regulation periods. Use
+`SabresVsMightyDucks.ManualGoalie.Start`. On-ice rosters remain five skaters plus
+a goalie per side. Learned checkpoints, training, SNES, manual-goalie coordination
+and overtime are unsupported. Human play requires the display and uses arrows,
+X (pass/switch), C (shoot/check), and Enter (native pause).
 
-Seeded evaluation supports `coordinated`, `independent` (two Classic controllers),
-and `single` strategies. The default evaluation save is
-`SabresVsMightyDucks.ManualGoalie.Start`; goalies are set to automatic for all
-three strategies. Use a home-versus-CPU save for the single-controller baseline.
+Three or four controllers require the patched stable-retro frontend with explicit
+EA 4-Way Play support. See [dependency build and reset details](docs/ARCHITECTURE.md#ea-4-way-play).
+Two bots versus CPU retain the original two-controller path and work with older
+stable-retro. Reset configures RAM and the adapter's polling register in memory;
+ROM files and stored saves are unchanged. An explicit legacy `--num_players`
+value must match the derived bot-plus-human count; it can normally be omitted.
+
+```bash
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --mode team_vs_game --team-size 3
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --mode team_vs_player --team-size 3
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --mode team_vs_game --team-size 3 --team-strategy independent
+```
+
+Seeded evaluation supports `coordinated`, `independent` (separate Classic bots),
+and the existing `single` baseline. `--team-size 3` selects three home bots; the
+single and away-side benchmarks retain their original one-/two-controller scope.
+The default evaluation save is `SabresVsMightyDucks.ManualGoalie.Start`.
 
 ```bash
 nhl94 benchmark-teammates --strategy coordinated --trials 3 --seed 94 \
@@ -153,14 +167,24 @@ nhl94 benchmark-teammates --replay /tmp/teammates-inputs.jsonl \
   --output /tmp/teammates-replay.json
 ```
 
+Multitap input traces use `nhl94-teammate-inputs-v2`, including controller mapping,
+opponent type, reset setup and native/core hashes. Replay consumes the combined
+recorded buttons; it does not rerun bots. Historical v1 traces retain their
+one-/two-controller interpretation. The Python `play_match(human_input=...)`
+interface accepts a scripted 12-button human input source and records that channel
+when `trace` is supplied. Keyboard playback offers the existing video recorder.
+
+
 Evaluation defaults to one complete first period; `--periods 3` runs regulation.
-`--side away` evaluates the visitor and `--workers 4` runs independent trials in
-four processes. Playback remains home-only. Top-level scores and shots are
+`--side away` evaluates the visitor with the existing one-/two-controller
+strategies and `--workers 4` runs independent trials in four processes. Playback remains home-only. Top-level scores and shots are
 ordered AI first, CPU second; period scoreboards retain home/visitor order.
 Reports retain physical team IDs and live lineups.
 `--teammate-support-options` opts into estimated support positions that consider
-ordinary passes, one-timers, staying, braking and coasting. It remains experimental.
-Explicit input traces include sampled pass candidates and rejection reasons, live
+ordinary passes, one-timers, staying, braking and coasting. With three bots this
+planner owns the outlet; the other supporter retains deep coverage. It remains
+experimental.
+Two-bot input traces additionally include sampled pass candidates and rejection reasons, live
 contact estimates, native touch attribution and applied C edges. These forecasts
 describe heuristic opportunities; native counters determine completed shots.
 Reports include completion status, native-frame counts, scores, shots, pass and

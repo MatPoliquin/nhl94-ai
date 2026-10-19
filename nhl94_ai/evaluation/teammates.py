@@ -32,14 +32,14 @@ from nhl94_ai.evaluation.teammate_opportunities import opportunity_diagnostics
 DEFAULT_STATE = 'SabresVsMightyDucks.ManualGoalie.Start'
 
 
-def make_match_env(state, *, single=False):
+def make_match_env(state, *, single=False, team_size=2, human=False):
     """Named saves retain their behavior; external native saves are opt-in."""
     path = Path(state).expanduser()
     external = path.is_absolute()
     if external and not path.is_file():
         raise ValueError(f'External starting save does not exist: {path}')
     env = make_retro(game='NHL94-Genesis-v0', state=DEFAULT_STATE if external else state,
-                     num_players=1 if single else 2, allow_menu_buttons=True)
+                     num_players=1 if single else team_size + human, allow_menu_buttons=True)
     if external:
         try:
             env.initial_state = gzip.decompress(path.read_bytes())
@@ -49,12 +49,15 @@ def make_match_env(state, *, single=False):
     return env
 
 
-def prepare_match(env, *, seed, seconds, single=False, side=1):
+def prepare_match(env, *, seed, seconds, single=False, side=1, team_size=2, human=False):
     """Rebuild the same reset boundary for evaluation and input replay."""
     register_teammate_state(env)
     env.reset(seed=seed)
     if not single:
-        configure_teammates(env.data, side)
+        if team_size == 3 or human:
+            from nhl94_ai.game.multitap import prepare_multitap_save
+            prepare_multitap_save(env)
+        configure_teammates(env.data, side, team_size=team_size, human=human)
     else:
         native = env.data.lookup_all()
         if (native['defense_team1'], native['defense_team2']) != (1, 0):
@@ -72,9 +75,15 @@ def prepare_match(env, *, seed, seconds, single=False, side=1):
 
 
 def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=1,
-               seconds=300, frame_skip=4, max_frames=None, trace=None, side='home', support_options=False):
+               seconds=300, frame_skip=4, max_frames=None, trace=None, side='home', support_options=False,
+               team_size=2, human_input=None):
     """Return measured outcomes; a bounded/incomplete run never counts as a win."""
     validate_rom_seed(seed)
+    human = human_input is not None
+    if isinstance(team_size, bool) or team_size not in (2, 3):
+        raise ValueError('team_size must be 2 or 3')
+    if (team_size == 3 or human) and (side != 'home' or strategy == 'single'):
+        raise ValueError('Multitap matches require home teammates')
     if strategy not in ('single', 'independent', 'coordinated'):
         raise ValueError('Unknown teammate strategy')
     if support_options and strategy != 'coordinated':
@@ -90,17 +99,18 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
     physical_side = 1 if side == 'home' else 2
     args = SimpleNamespace(env='NHL94-Genesis-v0', action_type='FILTERED', goalie_policy='off',
                            hyperparams_dict={'frame_skip': frame_skip}, side=side,
-                           teammate_support_options=support_options)
+                           teammate_support_options=support_options, team_size=team_size,
+                           mode='team_vs_player' if human else 'team_vs_game')
     single = strategy == 'single'
     agent = ClassicAIV1Model(args) if single else TeammateCoordinator(args, strategy=strategy)
-    env = make_match_env(state, single=single)
+    env = make_match_env(state, single=single, team_size=team_size, human=human)
     started = perf_counter()
     recording = None
     resources = ExitStack()
     try:
         for name, (address, kind) in CPU_RAM.items():
             env.data.set_variable(name, {'address': address, 'type': kind})
-        info = prepare_match(env, seed=seed, seconds=seconds, single=single, side=physical_side)
+        info = prepare_match(env, seed=seed, seconds=seconds, single=single, side=physical_side, team_size=team_size, human=human)
         initial_ram_hash = hashlib.sha256(env.get_ram().tobytes()).hexdigest()
         rom_path = Path(env.pass_geometry_rom)
         starting_lineup = lineup(info, rom_path.read_bytes())
@@ -111,7 +121,7 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
         if physical_side == 2:
             state_object.Flip()
         digest, roles = hashlib.sha256(), Counter()
-        possession_frames, selected_frames = 0, [0, 0]
+        possession_frames, selected_frames = 0, [0] * (1 if single else team_size)
         period_rows = []
         started_periods = {0}
         ordered_sides = (physical_side, 3 - physical_side)
@@ -137,7 +147,8 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
             path = Path(trace).expanduser()
             path.parent.mkdir(parents=True, exist_ok=True)
             recording = resources.enter_context(path.open('w', encoding='utf-8'))
-            recording.write(json.dumps({'schema': 'nhl94-teammate-inputs-v1', 'state': state,
+            recording.write(json.dumps({'schema': 'nhl94-teammate-inputs-v2' if team_size == 3 or human else 'nhl94-teammate-inputs-v1',
+                                         **(trace_layout(team_size, human) if team_size == 3 or human else {}), 'state': state,
                                          'seed': seed, 'strategy': strategy, 'periods': periods,
                                          'seconds': seconds, 'frame_skip': frame_skip,
                                          'side': side,
@@ -174,7 +185,7 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
                 result = agent.act(info)
                 action = result.action
                 diagnostics = result.diagnostics['teammates']
-                native = teammate_controller_info(info, side=physical_side)
+                native = teammate_controller_info(info, side=physical_side, team_size=team_size, human=human)
             view_state = state_object if single else agent.states[0]
             release = receptions.shots.observe(frame, view_state, highlight=highlight)
             if not highlight:
@@ -219,12 +230,17 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
                 loose_frames += 1
             previous_owner, previous_passes = (-1 if highlight else owner), pass_count
             previous_selected = [] if highlight else selected
+            if human:
+                human_buttons = np.asarray(human_input(frame, dict(info)))
+                if human_buttons.shape != (12,) or not np.isin(human_buttons, (0, 1)).all():
+                    raise ValueError('Human input source must return 12 binary buttons')
+                action = np.concatenate((action, human_buttons))
             action = filter_menu_actions(env.data, action)
             if single:
                 previous_action = np.asarray(action, dtype=np.int8).copy()
             digest.update(np.asarray(action, dtype=np.int8).tobytes())
             if recording:
-                if not single and not highlight:
+                if not single and not highlight and team_size == 2:
                     diagnostics['opportunities'] = opportunity_diagnostics(
                         view_state, diagnostics, previous_teammate_inputs)
                     if diagnostics['opportunities'] is not None:
@@ -250,7 +266,7 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
         if not info.get('goalie_clock_flags', 0) & 0x10:
             final_view = ({**info, f'p{physical_side}_control_slot': info['defense_control1'],
                            f'p{3-physical_side}_control_slot': -1, 'time': info['teammate_clock']}
-                          if single else teammate_controller_info(info, side=physical_side))
+                          if single else teammate_controller_info(info, side=physical_side, team_size=team_size, human=human))
             view_state.BeginFrame(final_view, TeammateCoordinator._game_action(previous_action)
                                   if single else TeammateCoordinator._game_action(agent.previous[0]))
             release = receptions.shots.observe(frame + 1, view_state)
@@ -263,9 +279,10 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
         shot_counts = [decode_shot_count(info[f'p{i}_shots']) for i in ordered_sides]
         return {'schema': 'nhl94-teammate-match-v1', 'state': state, 'seed': seed,
                 'side': 'home' if physical_side == 1 else 'away', 'teams': teams,
-                'score_order': ['ai', 'cpu'],
+                'score_order': ['ai', 'human' if human else 'cpu'],
                 'lineup': starting_lineup, 'initial_ratings': ratings,
-                'strategy': strategy, 'controllers': 1 if single else 2, 'goalies': 'automatic',
+                'strategy': strategy, 'controllers': 1 if single else team_size + human,
+                'team_size': 1 if single else team_size, 'opponent': 'human' if human else 'cpu', 'goalies': 'automatic',
                 'support_options': support_options,
                 'frame_skip': frame_skip, 'requested_periods': periods, 'seconds': seconds,
                 'completed': completed, 'frames': frame, 'elapsed_seconds': perf_counter() - started,
@@ -293,17 +310,41 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
         env.close()
 
 
+def trace_layout(team_size, human):
+    """Versioned physical layout and executable provenance for input-only replay."""
+    import stable_retro
+    import stable_retro._retro as native
+    core = Path(stable_retro.core_path()) / 'genesis_plus_gx_libretro.so'
+    return {'team_size': team_size, 'opponent': 'human' if human else 'cpu',
+            'ports': list(range(team_size + human)), 'physical_capacity': 4,
+            'teams': [1] * team_size + ([2] if human else []) + [0] * (4 - team_size - human),
+            'reset_setup': 'ea-wayplay-genplus-1.7.5-v1', 'device': 1025,
+            'native_sha256': hashlib.sha256(Path(native.__file__).read_bytes()).hexdigest(),
+            'core_sha256': hashlib.sha256(core.read_bytes()).hexdigest()}
+
+
 def replay_trace(path):
     """Replay recorded native inputs from their verified reset boundary."""
     with Path(path).expanduser().open(encoding='utf-8') as recording:
         header = json.loads(next(recording))
-        if header.get('schema') != 'nhl94-teammate-inputs-v1':
+        if header.get('schema') not in ('nhl94-teammate-inputs-v1', 'nhl94-teammate-inputs-v2'):
             raise ValueError('Unsupported teammate input recording')
         single = header['strategy'] == 'single'
-        env = make_match_env(header['state'], single=single)
+        team_size, human = 2, False
+        if header['schema'] == 'nhl94-teammate-inputs-v2':
+            team_size, human = header.get('team_size'), header.get('opponent') == 'human'
+            if (single or team_size not in (2, 3) or team_size == 2 and not human
+                    or header.get('side', 'home') != 'home'):
+                raise ValueError('Invalid multitap replay layout')
+            expected = trace_layout(team_size, human)
+            if any(header.get(key) != value for key, value in expected.items()):
+                raise ValueError('Incompatible replay controller layout or dependency/core provenance')
+        elif 'team_size' in header or 'ports' in header:
+            raise ValueError('v1 traces must use their historical controller layout')
+        env = make_match_env(header['state'], single=single, team_size=team_size, human=human)
         try:
             side = 1 if header.get('side', 'home') == 'home' else 2
-            prepare_match(env, seed=header['seed'], seconds=header['seconds'], single=single, side=side)
+            prepare_match(env, seed=header['seed'], seconds=header['seconds'], single=single, side=side, team_size=team_size, human=human)
             rom_hash = hashlib.sha256(Path(env.pass_geometry_rom).read_bytes()).hexdigest()
             ram_hash = hashlib.sha256(env.get_ram().tobytes()).hexdigest()
             if (rom_hash, ram_hash) != (header['rom_sha256'], header['initial_ram_sha256']):
@@ -312,7 +353,7 @@ def replay_trace(path):
             for line in recording:
                 row = json.loads(line)
                 buttons = np.asarray(row['buttons'])
-                if (row['frame'] != frames + 1 or buttons.shape != (12 if single else 24,)
+                if (row['frame'] != frames + 1 or buttons.shape != (12 if single else 12 * (team_size + human),)
                         or not np.isin(buttons, (0, 1)).all()):
                     raise ValueError('Invalid teammate replay frame or controller buttons')
                 buttons = buttons.astype(np.int8)
@@ -340,6 +381,7 @@ def build_parser():
                         help='Named starting save or absolute path to an external gzip native save')
     parser.add_argument('--seed', type=int, default=94)
     parser.add_argument('--trials', type=int, default=1)
+    parser.add_argument('--team-size', type=int, choices=(2, 3), default=2)
     parser.add_argument('--strategy', choices=('single', 'independent', 'coordinated'), default='coordinated')
     parser.add_argument('--side', choices=('home', 'away'), default='home')
     parser.add_argument('--teammate-support-options', action='store_true',
@@ -369,7 +411,7 @@ def run(args):
     jobs = [dict(state=args.state, seed=(args.seed + index) % 2**32, strategy=args.strategy,
                  periods=args.periods, seconds=args.seconds, frame_skip=args.frame_skip,
                  max_frames=args.max_frames, trace=args.trace, side=args.side,
-                 support_options=args.teammate_support_options) for index in range(args.trials)]
+                 support_options=args.teammate_support_options, team_size=args.team_size) for index in range(args.trials)]
     matches = []
     with ExitStack() as resources:
         if args.workers > 1:

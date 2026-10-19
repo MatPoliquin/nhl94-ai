@@ -105,13 +105,15 @@ class NHL94Observation2PEnv(gym.Wrapper):
         self.target_xy = [-1, -1]
 
         self.num_players = num_players
-        self.teammates = getattr(args, 'mode', None) == 'team_vs_game'
+        self.teammates = getattr(args, 'mode', None) in ('team_vs_game', 'team_vs_player')
+        self.team_size = getattr(args, 'team_size', None) or 2
+        self.human_opponent = getattr(args, 'mode', None) == 'team_vs_player'
         if self.teammates:
             from nhl94_ai.config import EnvironmentConfig
             from nhl94_ai.game.ram import register_teammate_state
             EnvironmentConfig.from_args(args)
-            if num_players != 2:
-                raise ValueError('team_vs_game requires two emulator controllers')
+            if num_players != self.team_size + self.human_opponent:
+                raise ValueError('Teammate controller count does not match the bot/human layout')
             register_teammate_state(env)
         self.external_opponent = num_players == 2 and getattr(args, 'mode', None) in (
             'player_vs_model', 'model_vs_model')
@@ -131,13 +133,15 @@ class NHL94Observation2PEnv(gym.Wrapper):
         self.perspective = OpponentPerspective(self)
         self.action_space = self._build_action_space()
         if self.external_opponent or self.teammates:
-            self.action_space = spaces.MultiBinary(GameConsts.INPUT_MAX * 2)
+            self.action_space = spaces.MultiBinary(GameConsts.INPUT_MAX * num_players)
 
         self.ai_sys = NHL94AISystem(args, env, None)
 
         self.ram_inited = False
         self.learner_action_state = self._new_action_state()
         self.opponent_action_state = self._new_action_state()
+        self.teammate_action_states = [self.learner_action_state, self.opponent_action_state]
+        self.teammate_action_states += [self._new_action_state() for _ in range(max(0, num_players - 2))]
 
         if self.selfplay_enabled:
             self.set_selfplay_role(self.selfplay_role)
@@ -252,7 +256,10 @@ class NHL94Observation2PEnv(gym.Wrapper):
         self.init_function(self.env, self.env_name)
         if self.teammates:
             from nhl94_ai.game.ram import configure_teammates
-            configure_teammates(self.env.data)
+            if self.num_players > 2:
+                from nhl94_ai.game.multitap import prepare_multitap_save
+                prepare_multitap_save(self.env.unwrapped)
+            configure_teammates(self.env.data, team_size=self.team_size, human=self.human_opponent)
         elif self.platform.name == 'snes':
             self.platform.configure_controllers(self.env, self.play_side, self.num_players)
         elif self.play_side == 'away':
@@ -261,15 +268,15 @@ class NHL94Observation2PEnv(gym.Wrapper):
             self.target_info = self.env.data.lookup_all()
 
         reset_action = self._default_reset_action()
-        if self.num_players == 2:
-            reset_action = np.concatenate([reset_action, reset_action])
+        if self.num_players > 1:
+            reset_action = np.tile(reset_action, self.num_players)
 
         state, _, _, _, info = self.env.step(reset_action)
         info = self.platform.frame_info(self.env, info)
         info = self._model_input_info(info)
         if self.teammates:
             from nhl94_ai.game.ram import teammate_controller_info
-            info = teammate_controller_info(info)
+            info = teammate_controller_info(info, team_size=self.team_size, human=self.human_opponent)
         expected = ((2, 1) if self.external_opponent else (2, 0)) if self.play_side == 'away' else (1, 2)
         if self.play_side == 'away' and (info.get('defense_team1'), info.get('defense_team2')) != expected:
             raise ValueError('Away playback did not leave the home team under CPU control.')
@@ -282,6 +289,8 @@ class NHL94Observation2PEnv(gym.Wrapper):
         self.ram_inited = True
         self._reset_action_state(self.learner_action_state)
         self._reset_action_state(self.opponent_action_state)
+        for action_state in self.teammate_action_states[2:]:
+            self._reset_action_state(action_state)
         if self.opponent_agent is not None:
             self.opponent_agent.reset()
 
@@ -409,40 +418,49 @@ class NHL94Observation2PEnv(gym.Wrapper):
         info['target_control'] = self.target_controller.observe(self.game_state, info)
 
     def step(self, ac):
-        human_action = None
-        if self.external_opponent or self.teammates:
+        if self.teammates:
+            from nhl94_ai.env.actions import filter_menu_actions
             ac = np.asarray(ac)
             if not self.action_space.contains(ac):
-                raise ValueError('Two-controller playback requires 24 binary buttons, 12 per controller')
-            if self.teammates:
-                from nhl94_ai.env.actions import filter_menu_actions
-                ac = filter_menu_actions(self.env.data, ac)
-            ac, human_action = ac[:GameConsts.INPUT_MAX], ac[GameConsts.INPUT_MAX:]
-        learner_action, gamestate_ac = self._process_action(ac, self.learner_action_state)
-        self.input_overide(learner_action)
-        gamestate_ac = self._finalize_masked_action(learner_action, self.learner_action_state)
+                raise ValueError(f'Teammate playback requires {12 * self.num_players} binary buttons')
+            chunks = filter_menu_actions(self.env.data, ac).reshape(self.num_players, 12)
+            applied, histories = [], []
+            for chunk, history in zip(chunks, self.teammate_action_states):
+                buttons, _ = self._process_action(chunk, history)
+                histories.append(self._finalize_masked_action(buttons, history))
+                applied.append(buttons)
+            ac2, gamestate_ac = np.concatenate(applied), histories[0]
+        else:
+            human_action = None
+            if self.external_opponent:
+                ac = np.asarray(ac)
+                if not self.action_space.contains(ac):
+                    raise ValueError('Two-controller playback requires 24 binary buttons, 12 per controller')
+                ac, human_action = ac[:GameConsts.INPUT_MAX], ac[GameConsts.INPUT_MAX:]
+            learner_action, gamestate_ac = self._process_action(ac, self.learner_action_state)
+            self.input_overide(learner_action)
+            gamestate_ac = self._finalize_masked_action(learner_action, self.learner_action_state)
 
-        ac2 = learner_action
-        if self.num_players == 2:
-            if self.external_opponent or self.teammates:
-                opponent_action, _ = self._process_action(human_action, self.opponent_action_state)
-                self._finalize_masked_action(opponent_action, self.opponent_action_state)
-            elif self.selfplay_enabled:
-                opponent_action = self._compute_opponent_action()
-                opponent_action, _ = self._process_action(opponent_action, self.opponent_action_state)
-                self.opponent_input_overide(opponent_action)
-                self._finalize_masked_action(opponent_action, self.opponent_action_state)
-            else:
-                opponent_action = np.zeros_like(learner_action)
+            ac2 = learner_action
+            if self.num_players == 2:
+                if self.external_opponent:
+                    opponent_action, _ = self._process_action(human_action, self.opponent_action_state)
+                    self._finalize_masked_action(opponent_action, self.opponent_action_state)
+                elif self.selfplay_enabled:
+                    opponent_action = self._compute_opponent_action()
+                    opponent_action, _ = self._process_action(opponent_action, self.opponent_action_state)
+                    self.opponent_input_overide(opponent_action)
+                    self._finalize_masked_action(opponent_action, self.opponent_action_state)
+                else:
+                    opponent_action = np.zeros_like(learner_action)
 
-            ac2 = np.concatenate([learner_action, opponent_action])
-
+                ac2 = np.concatenate([learner_action, opponent_action])
         ob, rew, terminated, truncated, info = self.env.step(ac2)
         info = self.platform.frame_info(self.env, info)
         info = self._model_input_info(info)
         if self.teammates:
             from nhl94_ai.game.ram import teammate_controller_info
-            info = teammate_controller_info(info)
+            info = teammate_controller_info(info, team_size=self.team_size, human=self.human_opponent)
         if self.play_side == 'away' and self.platform.name == 'genesis':
             info = controller_team_info(restore_away_control(self.env.data, info))
         if 'defense_scroll_x' in self.defense_camera:
