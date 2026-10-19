@@ -1,7 +1,9 @@
 import { type Bot } from "./bot";
 import { createBot } from "./bot-factory";
 import { DEFAULT_CLASSIC_CONFIG, parseClassicConfig, type ClassicConfig } from "./classic/config";
-import { assignedTeams, controllerInputs, parseControllerSetup, type ControllerSetup, type GoalieModes } from "./controllers";
+import { TeammateCoordinator } from "./classic/teammates";
+import { assignedTeams, CONTROLLER_PORTS, controllerInputs, parseControllerSetup,
+  type ControllerInputs, type ControllerPort, type ControllerSetup, type GoalieModes } from "./controllers";
 import { Engine, type CoreFactory } from "./engine";
 import type { FramePacket, WorkerRequest, WorkerResponse } from "./protocol";
 import { MAX_CONTROLLER_EVENTS, MAX_REPLAY_FRAMES, parseReplay, type ConfigurationEvent, type Replay } from "./replay";
@@ -14,13 +16,15 @@ let wasm: Uint8Array<ArrayBuffer> | undefined;
 let rom: Uint8Array<ArrayBuffer> | undefined;
 let startState: Uint8Array<ArrayBuffer> | undefined;
 let coreBuild = "", romHash = "";
-let recording: [number, number][] = [];
+let recording: ControllerInputs[] = [];
 let playback: Replay | undefined;
 let configurationEvents: ConfigurationEvent[] = [];
 let playbackEvent = 0;
 let classicConfig = DEFAULT_CLASSIC_CONFIG;
 let defaultGoalieModes: GoalieModes = [0, 0];
-let bots: [Bot | null, Bot | null] = [null, null];
+let bots: (Bot | null)[] = [null, null, null, null];
+let teammates: TeammateCoordinator[] = [];
+let transientFrames = 0;
 let setupKey = "";
 
 async function restart(fromSave = true): Promise<void> {
@@ -41,6 +45,8 @@ async function restart(fromSave = true): Promise<void> {
   for (const bot of bots) bot?.reset();
   defaultGoalieModes = engine.goalieModes();
   setupKey = "";
+  teammates = [];
+  transientFrames = 0;
 }
 
 function configure(controllers: ControllerSetup, config: ClassicConfig = classicConfig): void {
@@ -53,31 +59,43 @@ function configure(controllers: ControllerSetup, config: ClassicConfig = classic
   }
   const teams = assignedTeams(controllers);
   const modes: [0 | 1, 0 | 1] = [...defaultGoalieModes];
-  for (const slot of [0, 1] as const) {
-    if (controllers[slot].agent === "classic") modes[controllers[slot].team - 1] = config.ai_goalie ? 0 : 1;
+  for (const slot of CONTROLLER_PORTS) {
+    if (controllers[slot].agent === "classic") {
+      const team = controllers[slot].team;
+      modes[team - 1] = config.ai_goalie && teams.filter((side) => side === team).length === 1 ? 0 : 1;
+    }
   }
   engine.assignControllers(teams);
   engine.assignGoalies(modes);
   configurationEvents.push({ frame: engine.frame, teams, goalieModes: modes });
   classicConfig = config;
-  bots = [createBot(controllers[0].agent, config), createBot(controllers[1].agent, config)];
+  bots = controllers.map((slot, port) => createBot(slot.agent, {
+    ...config, ai_goalie: config.ai_goalie && teams.filter((team) => team === slot.team).length === 1 &&
+      modes[port % 2] === 0 && modes[slot.team - 1] === 0,
+  }));
+  teammates = [1, 2].flatMap((team) => {
+    const ports = CONTROLLER_PORTS.filter((port) => controllers[port].agent === "classic" && controllers[port].team === team);
+    return ports.length >= 2 ? [new TeammateCoordinator(ports, config)] : [];
+  });
+  transientFrames = 0;
   setupKey = nextKey;
 }
 
 function applyReplayAssignments(): void {
   if (!engine || !playback || playback.format === "nhl94-browser-inputs-v1") return;
-  const events = playback.format === "nhl94-browser-inputs-v3" ? playback.configurationEvents : playback.controllerEvents;
+  const events = playback.format === "nhl94-browser-inputs-v3" || playback.format === "nhl94-browser-inputs-v4" ?
+    playback.configurationEvents : playback.controllerEvents;
   while (playbackEvent < events.length && events[playbackEvent]!.frame === engine.frame) {
     const event = events[playbackEvent]!;
     engine.assignControllers(event.teams);
-    if (playback.format === "nhl94-browser-inputs-v3") {
+    if (playback.format === "nhl94-browser-inputs-v3" || playback.format === "nhl94-browser-inputs-v4") {
       engine.assignGoalies(playback.configurationEvents[playbackEvent]!.goalieModes);
     }
     playbackEvent++;
   }
 }
 
-function packet(audio = new Float32Array(0), inputs: [number, number] = [0, 0]): FramePacket {
+function packet(audio = new Float32Array(0), inputs: ControllerInputs = [0, 0, 0, 0]): FramePacket {
   if (!engine) throw new Error("Emulator is not loaded.");
   const video = engine.video();
   return {
@@ -149,21 +167,31 @@ async function handle(request: WorkerRequest): Promise<WorkerResponse> {
       }
       if (!playback) configure(controllers, parseClassicConfig(request.classicConfig === undefined ? classicConfig : request.classicConfig));
       const samples: Float32Array<ArrayBuffer>[] = [];
-      let inputs: [number, number] = [0, 0];
+      let inputs: ControllerInputs = [0, 0, 0, 0];
       for (let index = 0; index < request.frames; index++) {
         if (playback) {
           applyReplayAssignments();
           const next = playback.inputs[engine.frame];
           if (!next) break;
-          inputs = next;
+          inputs = [next[0], next[1], next[2] ?? 0, next[3] ?? 0];
         } else {
           if (recording.length >= MAX_REPLAY_FRAMES) {
             throw new Error("Recording limit reached. Export the replay and restart.");
           }
+          const observation = engine.observe();
+          transientFrames = observation.transient ? transientFrames + 1 : 0;
+          if (transientFrames > 120) throw new Error("Native controller ownership failed to settle for 120 frames.");
           const state = controllers.some((slot) => slot.agent === "classic") ? engine.classicState() : undefined;
-          inputs = controllerInputs(controllers, engine.observe(), request.humanInputs, bots, state);
+          const coordinated = new Map<ControllerPort, number>();
+          if (state) {
+            for (const team of teammates) {
+              for (const [port, action] of team.act(observation, state)) coordinated.set(port, action);
+            }
+          }
+          inputs = controllerInputs(controllers, observation, request.humanInputs, bots, state, coordinated);
+          if (observation.transient) inputs = [0, 0, 0, 0];
         }
-        engine.step(inputs[0], inputs[1]);
+        engine.step(...inputs);
         if (!playback) recording.push(inputs);
         samples.push(engine.audio());
       }
@@ -176,7 +204,7 @@ async function handle(request: WorkerRequest): Promise<WorkerResponse> {
     case "export":
       if (!recording.length && !playback) throw new Error("Run at least one frame before exporting.");
       return { id: request.id, type: "export", text: JSON.stringify(playback ?? {
-        format: "nhl94-browser-inputs-v3", coreBuild, romHash, inputs: recording,
+        format: "nhl94-browser-inputs-v4", coreBuild, romHash, inputs: recording,
         startStateHash: DEFAULT_STATE_HASH, configurationEvents,
       } satisfies Replay) };
   }

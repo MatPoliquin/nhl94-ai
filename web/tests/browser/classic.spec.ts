@@ -32,7 +32,7 @@ test("plays Classic with live settings and replays paused goalie-mode changes ex
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect.poll(() => page.evaluate(() => window.classicFrame?.frame ?? 0)).toBeGreaterThan(90);
   await page.getByRole("radio", { name: "10 Hz", exact: true }).check();
-  await expect(page.locator("#status")).toContainText("Classic settings changed");
+  await expect(page.locator("#status")).toContainText("no ml bot settings changed");
   await expect(page.getByRole("button", { name: "Step one frame" })).toBeEnabled();
   await page.getByRole("checkbox", { name: "Consider player ratings" }).uncheck();
   await expect(page.getByRole("button", { name: "Step one frame" })).toBeEnabled();
@@ -45,10 +45,10 @@ test("plays Classic with live settings and replays paused goalie-mode changes ex
   await page.getByRole("button", { name: "Download input replay" }).click();
   const path = await (await downloadPromise).path();
   const replay = parseReplay(JSON.parse(await readFile(path!, "utf8")));
-  expect(replay.format).toBe("nhl94-browser-inputs-v3");
-  if (replay.format !== "nhl94-browser-inputs-v3") throw new Error("Expected configuration-aware replay.");
+  expect(replay.format).toBe("nhl94-browser-inputs-v4");
+  if (replay.format !== "nhl94-browser-inputs-v4") throw new Error("Expected configuration-aware replay.");
   expect(replay.configurationEvents.at(-1)).toEqual({
-    frame: replay.inputs.length, teams: [1, 2], goalieModes: [0, 1],
+    frame: replay.inputs.length, teams: [1, 2, 0, 0], goalieModes: [0, 1],
   });
   expect(replay.inputs.some((inputs) => inputs[1] !== 0)).toBe(true);
   await page.locator("#replay").setInputFiles(path!);

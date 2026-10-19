@@ -98,9 +98,9 @@ function updateControls(): void {
   romFile.disabled = busy || advancing;
   replayFile.disabled = !loaded || busy || advancing;
   botSettings.disabled = busy || replaying;
-  for (const [index, row] of controllerRows.entries()) {
-    row.agent.disabled = index >= 2 || busy || replaying;
-    row.team.disabled = index >= 2 || busy || replaying || row.agent.value === "none" || row.agent.value === "rom";
+  for (const row of controllerRows) {
+    row.agent.disabled = busy || replaying;
+    row.team.disabled = busy || replaying || row.agent.value === "none" || row.agent.value === "rom";
   }
   controllerError.hidden = true;
   if (replaying) {
@@ -109,7 +109,8 @@ function updateControls(): void {
     try {
       const setup = readControllers();
       const humans = setup.filter((slot) => slot.agent === "human").length;
-      const inputNote = humans === 2 ? "Two humans: keyboard/on-screen input goes to controller 1; the selected gamepad goes to controller 2." :
+      const humanSlots = setup.flatMap((slot, index) => slot.agent === "human" ? [index + 1] : []);
+      const inputNote = humans === 2 ? `Two humans: keyboard/on-screen input goes to controller ${humanSlots[0]}; the selected gamepad goes to controller ${humanSlots[1]}.` :
         humans === 1 ? "Keyboard, on-screen controls and the selected gamepad go to the Human slot." :
           "No Human slot: keyboard and gamepad inputs are ignored. Unassigned teams use the game's CPU.";
       controllerNote.textContent = `${inputNote} ${controllerRouting(setup, lastObservation).message}`;
@@ -331,7 +332,7 @@ for (const row of controllerRows) {
       }
       for (const input of [...botFrequencies, botGoalie, botRatings]) {
         input.addEventListener("change", () => {
-          stop("Classic settings changed. Press Play to resume.");
+          stop("no ml bot settings changed. Press Play to resume.");
           if (loaded && !replaying) {
             void perform(async () => { await requestFrame({
               type: "configure", controllers: readControllers(), classicConfig: readClassicConfig(),

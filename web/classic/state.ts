@@ -166,12 +166,13 @@ export class EngineState {
   controlled_is_shooter = 0;
   goalie_box_small = 0;
   goalie_modes: Vec2 | null = null;
-  goalie_hold_counts: Vec2 | null = null;
-  controller_teams: Vec2 | null = null;
+  goalie_hold_counts: readonly number[] | null = null;
+  controller_teams: readonly number[] | null = null;
   input_block: number | null = null;
   clock_stopped: boolean | null = null;
   camera: Vec2 | null = null;
   faceoff = false;
+  highlight = false;
 
   get native_one_timer_shot(): boolean {
     return !!(this.word_ffc2f8 & 0x0200);

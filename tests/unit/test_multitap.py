@@ -215,7 +215,8 @@ class MultitapWrapperTests(unittest.TestCase):
     def test_display_merges_only_last_slot_and_releases(self):
         import pygame
         from nhl94_ai.ui.debug import NHL94DebugDisplay
-        with patch.dict(os.environ, {'SDL_VIDEODRIVER': 'dummy', 'SDL_AUDIODRIVER': 'dummy'}):
+        with patch.dict(os.environ, {'SDL_VIDEODRIVER': 'dummy', 'SDL_AUDIODRIVER': 'dummy'}), \
+                patch('pygame.joystick.get_count', return_value=0):
             pygame.init()
             self.addCleanup(pygame.quit)
             inner = wrapper(True)
@@ -232,6 +233,13 @@ class MultitapWrapperTests(unittest.TestCase):
                 np.testing.assert_array_equal(inner.env.last_action[:36], bots)
                 self.assertEqual(inner.env.last_action[43], int(bool(pressed)))
                 self.assertEqual(inner.env.last_action[36:].sum(), int(bool(pressed)))
+            pad = [0] * 12
+            pad[8] = 1
+            with patch.object(display.gamepad, 'read', return_value=pad), \
+                    patch('pygame.key.get_pressed', return_value=defaultdict(bool)):
+                display.step([bots])
+            np.testing.assert_array_equal(inner.env.last_action[:36], bots)
+            np.testing.assert_array_equal(inner.env.last_action[36:], pad)
             pygame.event.post(pygame.event.Event(pygame.WINDOWFOCUSLOST))
             display.process_events()
             with patch('pygame.key.get_pressed', return_value=defaultdict(bool, {pygame.K_RIGHT: True})):

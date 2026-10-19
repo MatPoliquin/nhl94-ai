@@ -22,6 +22,7 @@ def human_args(**values):
         'mode': 'player_vs_model', 'env': 'NHL94-Genesis-v0', 'nn': 'ClassicAIV1',
         'num_players': 2, 'action_type': 'FILTERED', 'seq_len': 4, 'alg': 'ppo2',
         'hyperparams_dict': {},
+        'no_gamepad': True,
     }, **values))
 
 
@@ -45,6 +46,12 @@ class HumanPlayContracts(unittest.TestCase):
             with patch('nhl94_ai.evaluation.play.run') as run:
                 main(['play', '--mode', mode])
             self.assertEqual(run.call_args.args[0].num_players, 1)
+
+    def test_gamepad_is_enabled_by_default_and_can_be_disabled(self):
+        self.assertFalse(parse_cmdline([]).no_gamepad)
+        with patch('nhl94_ai.evaluation.play.run') as run:
+            main(['play', '--agent', 'classic-v1', '--no-gamepad'])
+        self.assertTrue(run.call_args.args[0].no_gamepad)
 
     def test_unsupported_human_schemas_fail_before_emulator_creation(self):
         for action in ('DISCRETE', 'MULTI_DISCRETE', 'HOCKEY_INTENT_DPAD', 'TARGET_POSITION'):
@@ -164,6 +171,30 @@ class HumanDisplayContracts(unittest.TestCase):
             human.assert_not_called()
             np.testing.assert_array_equal(step.call_args.args[0][:12], ai)
             self.assertFalse(step.call_args.args[0][12:].any())
+
+    def test_gamepad_and_keyboard_only_reach_human_controller(self):
+        import pygame
+        display, inner = self.display()
+        ai = np.zeros(12, dtype=np.int8)
+        ai[Buttons.INPUT_LEFT] = 1
+        pad = [0] * 12
+        pad[Buttons.INPUT_RIGHT] = pad[Buttons.INPUT_C] = 1
+        with patch.object(display.gamepad, 'read', side_effect=pad.copy), \
+                patch('pygame.key.get_pressed', return_value=defaultdict(bool, {pygame.K_x: True})), \
+                patch.object(inner.env, 'step', wraps=inner.env.step) as step:
+            display.step([ai])
+            sent = step.call_args.args[0]
+            np.testing.assert_array_equal(sent[:12], ai)
+            self.assertEqual({i for i, value in enumerate(sent[12:]) if value}, {0, 7, 8})
+            pygame.event.post(pygame.event.Event(pygame.WINDOWFOCUSLOST))
+            display.step([ai])
+            self.assertFalse(step.call_args.args[0][12:].any())
+            np.testing.assert_array_equal(step.call_args.args[0][:12], ai)
+            pygame.event.post(pygame.event.Event(pygame.WINDOWFOCUSGAINED))
+            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_F1))
+            display.step([ai])
+            self.assertFalse(step.call_args.args[0][12:].any())
+            np.testing.assert_array_equal(step.call_args.args[0][:12], ai)
 
     def test_invalid_ai_shape_is_not_silently_replaced(self):
         display, _ = self.display()

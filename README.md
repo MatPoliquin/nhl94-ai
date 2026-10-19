@@ -67,6 +67,15 @@ against that file's directory. Explicit CLI flags override file settings.
 `--config` accepts either hyperparameters or an options object; see
 [configuration](docs/ARCHITECTURE.md#configuration).
 
+The Python play window automatically supports the 8BitDo M30 through the
+USB receiver identified as `6B controller` (`0ca3:0024`). The D-pad moves;
+A clears/holds, B passes/switches, C shoots/checks, and Start pauses the game.
+X/Y/Z and Select/Mode map to the matching Genesis buttons. Keyboard controls
+remain available alongside the pad. F1 toggles human input; losing window focus
+or unplugging the pad releases its input. Reconnecting works without restarting.
+Use `--no-gamepad` for keyboard-only play. Other M30 connection modes have not
+been mapped.
+
 ## External opponents
 
 Install an adapter package separately, then pass its Python factory explicitly:
@@ -80,6 +89,24 @@ Each seed runs with Classic on both controller assignments. Use `--side home`
 or `--side away` for one assignment and `--watch` for a live window. Choose a
 saved roster with `--fixture`; `--periods 1 --seconds 30` runs a short smoke test.
 Reports require an explicit output path. Normal play does not load adapters.
+
+To play against an installed adapter yourself, use `--human` and select your
+side. This starts a playable window with the same keyboard and M30 controls as
+`nhl94 play`:
+
+```bash
+# You: Ducks (away/controller 2). Adapter: Sabres (home/controller 1).
+nhl94 external --adapter my_external_package.adapter:create \
+  --human --fixture sabres-ducks --side away
+```
+
+Human input and adapter callbacks run every native frame at 60 Hz, with the
+window paced at normal speed. `--frame-skip` only applies to Classic in AI
+matches. `--side home` puts you on the home team; human mode requires one side.
+Games last three five-minute regulation periods by default, with automatic
+intermission advancement. Space pauses playback, Start/Enter pauses inside the
+game, and Esc exits. Add `--no-gamepad` for keyboard only. `--watch` remains
+spectator mode when `--human` is absent.
 
 An adapter factory receives `protocol_version=1`, `side` (physical controller 1
 or 2), `seed`, and an optional `config` path. It returns an object with `reset()`,
@@ -122,7 +149,7 @@ coordinate-based policies.
 ## AI teammates
 
 `team_vs_game` runs two or three home Classic bots against the built-in CPU.
-`team_vs_player` adds one opposing human through the Python keyboard display.
+`team_vs_player` adds one opposing human through the Python keyboard/gamepad display.
 `--team-size {2,3}` defaults to 2; `--team-strategy {coordinated,independent}`
 defaults to coordinated. Bots occupy controllers 1 through N; the human occupies
 controller N+1. The coordinator gives the third bot a separate deep coverage role.
@@ -214,7 +241,7 @@ versus CPU, human versus Classic, and Classic versus Classic, with `FILTERED`
 actions and `PostPlay`. Reset configures native controller assignments from the
 supplied save; multiplayer needs no additional save. Controller 1 uses `--side`
 (home by default); controller 2 uses the other team. In `player_vs_model`, the
-keyboard controls controller 2. Manual goalies use X to take over, A to save,
+human input controls controller 2. Manual goalies use X to take over, A to save,
 Y to dive, and B to return/pass, with native feedback for catches and outlets.
 `--goalie-policy off` leaves goalie positioning to the game. ROM RNG seeding,
 training tasks, learned checkpoints, deep goalie controllers, and Genesis-only

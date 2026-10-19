@@ -1,7 +1,7 @@
 import { validMask } from "./inputs";
 import { decodeObservation, type Observation } from "./observations";
 import { decodeGameStats, type GameStats } from "./game-stats";
-import type { ControllerTeams, GoalieModes } from "./controllers";
+import type { ControllerTeam, ControllerTeams, GoalieModes } from "./controllers";
 import { ClassicDecoder } from "./classic/decoder";
 import type { GameState } from "./classic/state";
 
@@ -11,7 +11,7 @@ export interface CoreModule {
   _arena_alloc(size: number): number;
   _arena_free(pointer: number): void;
   _arena_load(pointer: number, size: number): number;
-  _arena_step(first: number, second: number): number;
+  _arena_step(first: number, second: number, third: number, fourth: number): number;
   _arena_pixels(): number;
   _arena_width(): number;
   _arena_height(): number;
@@ -23,7 +23,7 @@ export interface CoreModule {
   _arena_state_size(): number;
   _arena_save(pointer: number): number;
   _arena_restore(pointer: number): number;
-  _arena_set_controllers(first: number, second: number): number;
+  _arena_set_controllers(first: number, second: number, third: number, fourth: number): number;
   _arena_dispose(): void;
 }
 
@@ -36,6 +36,8 @@ export class Engine {
   frame = 0;
   private disposed = false;
   private classicDecoder: ClassicDecoder | undefined;
+  private teams: ControllerTeams | undefined;
+  private readonly snapshotTeams = new WeakMap<Uint8Array, ControllerTeams>();
 
   private constructor(private readonly core: CoreModule, private readonly rom: Uint8Array) {}
 
@@ -66,21 +68,22 @@ export class Engine {
     this.frame = 0;
   }
 
-  assignControllers(teams: ControllerTeams): void {
+  assignControllers(teams: ControllerTeams | readonly [ControllerTeam, ControllerTeam]): void {
     this.assertActive();
-    if (teams.length !== 2 || !teams.every((team) => Number.isInteger(team) && team >= 0 && team <= 2) ||
-        !this.core._arena_set_controllers(teams[0], teams[1])) {
+    if ((teams.length !== 2 && teams.length !== 4) || !teams.every((team) => Number.isInteger(team) && team >= 0 && team <= 2) ||
+        !this.core._arena_set_controllers(teams[0], teams[1], teams[2] ?? 0, teams[3] ?? 0)) {
       throw new Error("Unable to assign controllers in this game state. A full-team exhibition match is required.");
     }
+    this.teams = [teams[0], teams[1], teams[2] ?? 0, teams[3] ?? 0];
   }
 
   observe(): Observation {
-    return decodeObservation(this.ram(), this.frame);
+    return decodeObservation(this.ram(), this.frame, this.teams);
   }
 
   classicState(): GameState {
     this.classicDecoder ??= new ClassicDecoder(this.rom);
-    return this.classicDecoder.decode(this.ram());
+    return this.classicDecoder.decode(this.ram(), this.observe().controllers);
   }
 
   goalieModes(): GoalieModes {
@@ -113,10 +116,10 @@ export class Engine {
     return this.core.HEAPU8.subarray(pointer, pointer + 65536);
   }
 
-  step(first: number, second: number): void {
+  step(first: number, second: number, third = 0, fourth = 0): void {
     this.assertActive();
-    if (!validMask(first) || !validMask(second)) throw new Error("Invalid Genesis controller mask.");
-    if (!this.core._arena_step(first, second)) throw new Error("Emulator frame failed.");
+    if (![first, second, third, fourth].every(validMask)) throw new Error("Invalid Genesis controller mask.");
+    if (!this.core._arena_step(first, second, third, fourth)) throw new Error("Emulator frame failed.");
     this.frame++;
   }
 
@@ -144,7 +147,9 @@ export class Engine {
     if (!pointer) throw new Error("Could not allocate snapshot memory.");
     try {
       if (!this.core._arena_save(pointer)) throw new Error("Snapshot save failed.");
-      return this.core.HEAPU8.slice(pointer, pointer + size);
+      const snapshot = this.core.HEAPU8.slice(pointer, pointer + size);
+      if (this.teams) this.snapshotTeams.set(snapshot, this.teams);
+      return snapshot;
     } finally {
       this.core._arena_free(pointer);
     }
@@ -160,6 +165,7 @@ export class Engine {
       this.core.HEAPU8.set(snapshot, pointer);
       if (!this.core._arena_restore(pointer)) throw new Error("Snapshot restore failed.");
       this.frame = frame;
+      this.teams = this.snapshotTeams.get(snapshot);
     } finally {
       this.core._arena_free(pointer);
     }

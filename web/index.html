@@ -16,6 +16,7 @@
         <div class="header-actions">
           <nav class="site-nav" aria-label="Site navigation">
             <a href="./bots.html" target="_blank" rel="noopener" title="Open Bots in a new tab">Bots</a>
+            <a href="./leaderboards.html" target="_blank" rel="noopener" title="Open Leaderboards in a new tab">Leaderboards</a>
             <a href="./help.html" target="_blank" rel="noopener" title="Open Help in a new tab">Help</a>
             <a href="./about.html" target="_blank" rel="noopener" title="Open About in a new tab">About</a>
           </nav>
@@ -24,7 +25,7 @@
       </header>
       <section class="notice">
         <strong>Local AI arena.</strong>
-        Choose ROM AI for the game's built-in CPU or Classic AI for the Genesis scripted bot.
+        Choose ROM AI for the game's built-in CPU or no ml bot for the Genesis scripted bot.
       </section>
       <p id="error" role="alert" hidden></p>
       <div class="layout">
@@ -55,8 +56,9 @@
             Gamepad: select your device and check its mapping in Step 3.</p>
           <section class="panel bot-configuration" aria-labelledby="bot-configuration-title">
             <h2 id="bot-configuration-title">Bot Configuration</h2>
-            <p class="detail">Applies to Classic AI slots. Changing settings pauses the match and resets bot decisions.
-              Lower frequencies hold all inputs between decisions, including goalie inputs. Ratings-off changes the AI's view, not game physics.</p>
+            <p class="detail">Applies to no ml bot slots. Changing settings pauses the match and resets bot decisions.
+              Lower frequencies hold all inputs between decisions, including goalie inputs. Ratings-off changes the AI's view, not game physics.
+              Same-team no ml bot slots coordinate automatically and use native automatic goalies.</p>
             <fieldset id="bot-settings" class="bot-settings">
               <legend>Bot frequency</legend>
               <div class="frequency-options">
@@ -122,8 +124,8 @@
                   </label>
                 </div>
               </fieldset>
-              <fieldset class="controller-row" disabled>
-                <legend>Controller 3 <span>Coming later</span></legend>
+              <fieldset class="controller-row">
+                <legend>Controller 3</legend>
                 <div class="controller-fields">
                   <label for="controller-3-agent">Player
                     <select id="controller-3-agent" aria-label="Controller 3 player"></select>
@@ -136,8 +138,8 @@
                   </label>
                 </div>
               </fieldset>
-              <fieldset class="controller-row" disabled>
-                <legend>Controller 4 <span>Coming later</span></legend>
+              <fieldset class="controller-row">
+                <legend>Controller 4</legend>
                 <div class="controller-fields">
                   <label for="controller-4-agent">Player
                     <select id="controller-4-agent" aria-label="Controller 4 player"></select>
@@ -155,7 +157,8 @@
             <p id="controller-note" class="detail"></p>
             <p class="detail">Home/Away changes the in-game controller assignment.
               ROM AI and None release that controller; teams without an assigned controller use the game's built-in ROM AI.
-              Human vs Bot and Bot vs Bot can start directly from the loaded match.</p>
+              Assign up to three no ml bot teammates to one team against the CPU or a Human on the other team.
+              Up to two Human slots use keyboard/on-screen controls and the selected gamepad.</p>
           </section>
           <section class="panel">
             <h2>3. Input device</h2>

@@ -10,6 +10,8 @@ from nhl94_ai.game.constants import GameConsts
 from pygame import gfxdraw
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.ui.decision_panel import BACKGROUND, CYAN, GRAY, WHITE, DecisionInspector
+from nhl94_ai.ui.gamepad import GamepadInput
+from nhl94_ai.ui.human_input import KEY_ACTION_MAP, read_human_input
 from nhl94_ai.agents.decisions import catalogue_snapshot
 
 class NHL94DebugDisplay:
@@ -94,6 +96,7 @@ class NHL94DebugDisplay:
         # Input state
         self.player_actions = [0] * GameConsts.INPUT_MAX
         self.input_focused = True
+        self.gamepad = GamepadInput(enabled=not getattr(args, 'no_gamepad', False))
         self.action_probabilities = None
         self.model_params = None
         self.model_in_use = None
@@ -108,20 +111,7 @@ class NHL94DebugDisplay:
         self._last_frame = None
         self._last_render_info = [{}]
         self._last_action = None
-        self.key_action_map = {
-            pygame.K_UP: GameConsts.INPUT_UP,
-            pygame.K_DOWN: GameConsts.INPUT_DOWN,
-            pygame.K_LEFT: GameConsts.INPUT_LEFT,
-            pygame.K_RIGHT: GameConsts.INPUT_RIGHT,
-            pygame.K_z: GameConsts.INPUT_A,
-            pygame.K_x: GameConsts.INPUT_B,
-            pygame.K_c: GameConsts.INPUT_C,
-            pygame.K_a: GameConsts.INPUT_X,
-            pygame.K_s: GameConsts.INPUT_Y,
-            pygame.K_d: GameConsts.INPUT_Z,
-            pygame.K_RETURN: GameConsts.INPUT_START,
-            pygame.K_TAB: GameConsts.INPUT_MODE
-        }
+        self.key_action_map = KEY_ACTION_MAP.copy()
 
         # Control mode (AI or human)
         self.human_control = args.mode in ('player_vs_game', 'player_vs_model', 'team_vs_player')
@@ -134,9 +124,10 @@ class NHL94DebugDisplay:
             f"A/S/D: {'/'.join(self.platform.buttons[index] for index in (10, 9, 11))} Buttons",
             f"TAB: {self.platform.buttons[2].title()} Button",
             "ENTER: Start Button",
-            ("F1: AI teammates (keyboard override unavailable)" if args.mode == 'team_vs_game'
-             else f"F1: Toggle P{args.num_players} Keyboard" if args.mode == 'team_vs_player'
-             else "F1: Toggle P2 Keyboard" if args.mode == 'player_vs_model' else "F1: Toggle AI/Human Control"),
+            "M30 (6B USB receiver): Genesis button labels and D-pad; keyboard remains available",
+            ("F1: AI teammates (human override unavailable)" if args.mode == 'team_vs_game'
+             else f"F1: Toggle P{args.num_players} Human Input" if args.mode == 'team_vs_player'
+             else "F1: Toggle P2 Human Input" if args.mode == 'player_vs_model' else "F1: Toggle AI/Human Control"),
             "ESC: Quit",
             "SPACE / P: Pause or resume playback",
             "1: Toggle Passing Lanes",
@@ -257,6 +248,7 @@ class NHL94DebugDisplay:
             try:
                 self.env.close()
             finally:
+                self.gamepad.close()
                 pygame.quit()
 
     def reset(self, **kwargs):
@@ -281,6 +273,7 @@ class NHL94DebugDisplay:
 
     def process_events(self):
         for event in pygame.event.get():
+            self.gamepad.process_event(event)
             if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.close()
                 raise SystemExit("User requested exit")
@@ -312,7 +305,7 @@ class NHL94DebugDisplay:
                     print('This playback mode uses AI control only.')
                 else:
                     self.human_control = not self.human_control
-                    print(f'{"P2 keyboard" if self.args.mode == "player_vs_model" else "Human control"}: '
+                    print(f'{"P2 human input" if self.args.mode == "player_vs_model" else "Human control"}: '
                           f'{"ON" if self.human_control else "OFF"}')
             elif event.key == pygame.K_F2:
                 pygame.image.save(self.screen, "debug_screenshot.png")
@@ -348,18 +341,8 @@ class NHL94DebugDisplay:
         return was_paused
 
     def get_human_input(self):
-        """Get input from keyboard and map to game actions"""
-        pygame.event.pump()
-        if not getattr(self, 'input_focused', True):
-            return [0] * GameConsts.INPUT_MAX
-        keys = pygame.key.get_pressed()
-        actions = [0] * GameConsts.INPUT_MAX
-
-        for key, action in self.key_action_map.items():
-            if keys[key]:
-                actions[action] = 1
-
-        return actions
+        """Merge keyboard and gamepad input for the human controller."""
+        return read_human_input(self.gamepad, self.input_focused, self.key_action_map)
 
     def step(self, action=None):
         """Step the environment with either AI or human input"""
@@ -681,11 +664,11 @@ class NHL94DebugDisplay:
         info_y = self.stats_rect.y + self.HUD_PADDING
         header_text = f"NHL '94 - {'HUMAN' if self.human_control else 'AI'} CONTROL"
         if self.args.mode == 'player_vs_model':
-            header_text = "NHL '94 - P1 AI / P2 KEYBOARD"
+            header_text = "NHL '94 - P1 AI / P2 HUMAN"
         elif self.args.mode == 'model_vs_model':
-            header_text = f"NHL '94 - P1 {'KEYBOARD' if self.human_control else 'AI'} / P2 AI"
+            header_text = f"NHL '94 - P1 {'HUMAN' if self.human_control else 'AI'} / P2 AI"
         elif self.args.mode in ('team_vs_game', 'team_vs_player'):
-            opponent = f'P{self.args.num_players} KEYBOARD / AWAY' if self.args.mode == 'team_vs_player' else 'CPU'
+            opponent = f'P{self.args.num_players} HUMAN / AWAY' if self.args.mode == 'team_vs_player' else 'CPU'
             header_text = f"NHL '94 - {getattr(self.args, 'team_size', 2)} HOME BOTS / {opponent}"
         if self.paused:
             header_text += " - PAUSED"

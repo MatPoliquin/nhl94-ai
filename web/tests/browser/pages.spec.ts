@@ -72,8 +72,8 @@ test("opens the top-right information links without unloading the arena", async 
   }
   const frame = await page.locator("#frame").textContent();
   const navigation = page.getByRole("navigation", { name: "Site navigation" });
-  await expect(navigation.getByRole("link")).toHaveText(["Bots", "Help", "About"]);
-  for (const name of ["Bots", "Help", "About"]) {
+  await expect(navigation.getByRole("link")).toHaveText(["Bots", "Leaderboards", "Help", "About"]);
+  for (const name of ["Bots", "Leaderboards", "Help", "About"]) {
     const popupPromise = page.waitForEvent("popup");
     await navigation.getByRole("link", { name, exact: true }).click();
     const popup = await popupPromise;
@@ -92,25 +92,39 @@ test("lists the same available bots and descriptions as the controller catalogue
   await page.goto("/bots.html");
   const table = page.getByRole("table", { name: "Available bots" });
   await expect(table.locator("tbody th")).toHaveText(choices.slice(1, -1));
-  await expect(table.locator("tbody th")).toHaveText(["ROM AI", "Classic AI"]);
+  await expect(table.locator("tbody th")).toHaveText(["ROM AI", "no ml bot"]);
   await expect(table.locator("tbody td")).toHaveText(AVAILABLE_BOTS.map((bot) => bot.description));
-  await expect(page.getByText("Classic supports the Bot Configuration controls", { exact: false })).toBeVisible();
+  await expect(page.getByText("no ml bot supports the Bot Configuration controls", { exact: false })).toBeVisible();
+  await expect(table.locator("tbody td").last()).toContainText("no machine learning");
+  await expect(page.getByText(/Classic/)).toHaveCount(0);
   await expect(page.getByText(/diagnostic/i)).toHaveCount(0);
 });
 
 test("documents actual controls, setup, unsupported options and replay limits", async ({ page }) => {
   await page.goto("/help.html");
-  await expect(page.getByText("controller 2 to Classic AI/Away.", { exact: false })).toBeVisible();
+  await expect(page.getByText("controller 2 to no ml bot/Away.", { exact: false })).toBeVisible();
   await expect(page.getByText("ROM AI does not send scripted button inputs.", { exact: false })).toBeVisible();
   await expect(page.getByText(/diagnostic bot/i)).toHaveCount(0);
   for (const heading of [
     "1. Load your game", "2. Configure controllers", "3. Choose an input device",
     "Playback and game statistics", "4. Record and replay", "Current scope",
   ]) await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
-  await expect(page.getByText("Bot Configuration applies to Classic AI.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Bot Configuration applies to no ml bot.", { exact: true })).toBeVisible();
   await expect(page.getByText("108,000 native frames", { exact: false })).toBeVisible();
   await page.getByRole("link", { name: "Back to arena" }).click();
   await expect(page.getByRole("heading", { name: "NHL94 AI CONTEST", exact: false })).toBeVisible();
+});
+
+test("shows an honest empty state on Leaderboards without fabricated rankings", async ({ page }) => {
+  await page.goto("/leaderboards.html");
+  await expect(page).toHaveTitle("Leaderboards - NHL94 AI CONTEST");
+  await expect(page.getByRole("heading", { name: "Leaderboards", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Coming soon", exact: true })).toBeVisible();
+  await expect(page.getByText("No rankings have been published yet.", { exact: false })).toBeVisible();
+  await expect(page.getByRole("table")).toHaveCount(0);
+  await page.getByRole("link", { name: "Back to arena" }).click();
+  await expect(page.locator("#controller-2-agent")).toHaveValue("classic");
+  await expect(page.locator("#controller-2-agent option:checked")).toHaveText("no ml bot");
 });
 
 test("shows the requested About content and official resource links", async ({ page }) => {
@@ -126,12 +140,13 @@ test("shows the requested About content and official resource links", async ({ p
 });
 
 test("keeps page navigation usable without overflow at desktop and mobile widths", async ({ page }) => {
-  for (const name of ["bots", "help", "about"]) {
+  for (const name of ["bots", "leaderboards", "help", "about"]) {
     await page.goto(`/${name}.html`);
     await expect(page.locator('.site-nav [aria-current="page"]')).toHaveAttribute("href", `./${name}.html`);
     for (const width of [1280, 390]) {
       await page.setViewportSize({ width, height: 960 });
       await expect(page.getByRole("navigation", { name: "Site navigation" })).toBeVisible();
+      await expect(page.getByRole("navigation").getByRole("link")).toHaveText(["Bots", "Leaderboards", "Help", "About"]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     }
   }
@@ -153,6 +168,9 @@ test("loads all static pages and assets under a GitHub Pages-style project subpa
   await page.getByRole("navigation").getByRole("link", { name: "Bots" }).click();
   await expect(page).toHaveURL(/\/nhl94-ai\/bots\.html$/);
   await expect(page.locator("#bot-list tr")).toHaveCount(AVAILABLE_BOTS.length);
+  await page.getByRole("navigation").getByRole("link", { name: "Leaderboards" }).click();
+  await expect(page).toHaveURL(/\/nhl94-ai\/leaderboards\.html$/);
+  await expect(page.getByRole("heading", { name: "Leaderboards", exact: true })).toBeVisible();
   await page.getByRole("navigation").getByRole("link", { name: "Help" }).click();
   await expect(page).toHaveURL(/\/nhl94-ai\/help\.html$/);
   await page.getByRole("link", { name: "Back to arena" }).click();

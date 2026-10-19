@@ -138,12 +138,15 @@ def play_match(job):
     side, seed = job['side'], job['seed']
     periods = job.get('periods', 3)
     opponent = job['opponent']
+    human = job.get('human', False)
     if side not in (1, 2) or opponent not in OPPONENTS or periods not in (1, 3):
         raise ValueError('Unsupported match configuration')
+    if human and opponent != 'external':
+        raise ValueError('Human external matches require an external adapter')
     args = SimpleNamespace(action_type='FILTERED', goalie_policy='selective',
                            goalie_planner=job.get('goalie_planner'),
                            goalie_positioning=job.get('goalie_positioning'))
-    candidate = ClassicAIV1Model(args)
+    candidate = None if human else ClassicAIV1Model(args)
     other = (load_adapter(job['adapter'], side=3-side, seed=seed, config=job.get('adapter_config'))
              if opponent == 'external' else ClassicAIV1Model(
                  SimpleNamespace(action_type='FILTERED', goalie_policy='selective')))
@@ -211,9 +214,12 @@ def play_match(job):
         decisions = Counter()
         inference_ns = []
         user_quit = terminated = truncated = False
-        if job.get('watch'):
-            viewer = MatchViewer(env, side, seed, info)
-        while len(period_rows) < periods and frames < (job.get('seconds', 300)*120+6000)*periods:
+        if job.get('watch') or human:
+            viewer = MatchViewer(env, side, seed, info, human=human,
+                                 no_gamepad=job.get('no_gamepad', False),
+                                 opponent_name=other.metadata.get('name', 'External adapter')
+                                 if opponent == 'external' else 'Classic AI')
+        while len(period_rows) < periods and (human or frames < (job.get('seconds', 300)*120+6000)*periods):
             if viewer is not None and not viewer.before_frame():
                 user_quit = True
                 break
@@ -224,20 +230,22 @@ def play_match(job):
             other_buttons = (other.action(env, 'intermission' if intermission else 'play') if opponent == 'external'
                              else np.zeros(12, dtype=np.int8))
             raw_digest.update(other_buttons.tobytes())
+            candidate_buttons = (validate_action(viewer.human_action()) if human
+                                 else np.zeros(12, dtype=np.int8))
             if intermission:
                 intermission_frames += 1
-                candidate_buttons = np.zeros(12, dtype=np.int8)
             else:
                 update_state(state, info, env)
                 views = (state, away_view(state))
                 period_nets[info['period']] = [state.team1.net.y, state.team2.net.y]
-                before = candidate.scheduler.decisions
-                with scope(params):
-                    inference_started = perf_counter_ns()
-                    candidate_buttons = candidate.predict_frame(views[side-1], frame_skip=job.get('frame_skip', 4))[0]
-                    inference_ns.append(perf_counter_ns()-inference_started)
-                if candidate.scheduler.decisions != before:
-                    decisions[candidate._last_decision] += 1
+                if not human:
+                    before = candidate.scheduler.decisions
+                    with scope(params):
+                        inference_started = perf_counter_ns()
+                        candidate_buttons = candidate.predict_frame(views[side-1], frame_skip=job.get('frame_skip', 4))[0]
+                        inference_ns.append(perf_counter_ns()-inference_started)
+                    if candidate.scheduler.decisions != before:
+                        decisions[candidate._last_decision] += 1
                 if opponent == 'classic':
                     other_buttons = other.predict_frame(views[2-side], frame_skip=job.get('frame_skip', 4))[0]
             buttons = np.concatenate((candidate_buttons, other_buttons) if side == 1
@@ -272,9 +280,11 @@ def play_match(job):
         completed = len(period_rows) == periods
         if opponent == 'external' and other.frames != frames:
             raise RuntimeError('External adapter missed native callbacks')
-        candidate.end_one_timer('period-ended' if completed else 'trial-incomplete')
+        if candidate is not None:
+            candidate.end_one_timer('period-ended' if completed else 'trial-incomplete')
         return {
             'fixture': job['fixture'], 'opponent': opponent, 'side': side, 'seed': seed,
+            'local_controller': 'human' if human else 'classic',
             'periods': periods, 'completed': completed, 'user_quit': user_quit,
             'terminated': bool(terminated), 'truncated': bool(truncated), 'frames': frames, 'goals': goals, 'shots': shots,
             'goal_difference': goals[side-1] - goals[2-side],
@@ -293,17 +303,17 @@ def play_match(job):
             'teams': [initial['home_team'], initial['away_team']], 'lineup': rosters,
             'effective_attributes': attributes, 'decisions': dict(decisions),
             'goalie_metrics': {
-                'candidate': dict(candidate.goalie.metrics),
+                'candidate': dict(candidate.goalie.metrics) if candidate is not None else None,
                 'opponent': dict(other.goalie.metrics) if opponent == 'classic' else None,
             },
             'goalie_planner': job.get('goalie_planner'),
-            'goalie_positioning': resolve_goalie_positioning(args),
+            'goalie_positioning': None if human else resolve_goalie_positioning(args),
             'controller_latency_ms': latency_summary(inference_ns),
             'planner_latency_ms': ({'calls': len(candidate.goalie.planner_times_ns),
                 'p50': float(np.quantile(candidate.goalie.planner_times_ns, .5)/1e6),
                 'p99': float(np.quantile(candidate.goalie.planner_times_ns, .99)/1e6),
                 'max': max(candidate.goalie.planner_times_ns)/1e6}
-                if getattr(candidate.goalie, 'planner_times_ns', None) else None),
+                if candidate is not None and getattr(candidate.goalie, 'planner_times_ns', None) else None),
             'elapsed_seconds': perf_counter()-started,
         }
     finally:
@@ -320,26 +330,44 @@ def play_match(job):
 
 
 class MatchViewer:
-    """Display and pace emulator frames without sending human inputs to either bot."""
+    """Pace native frames, with optional human control of the local side."""
 
-    def __init__(self, env, side, seed, info):
+    def __init__(self, env, side, seed, info, *, human=False, no_gamepad=False,
+                 opponent_name='External adapter'):
         import os
         os.environ.setdefault('PYGAME_HIDE_SUPPORT_PROMPT', '1')
         import pygame
         self.pg = pygame
         pygame.display.init()
         pygame.font.init()
+        self.gamepad = None
+        self.human = human
+        self.input_focused = True
         self.frame = env.render()
         height, width = self.frame.shape[:2]
         self.screen = pygame.display.set_mode((width * 3, height * 3 + 60), pygame.RESIZABLE)
-        pygame.display.set_caption(f'External adapter vs Classic AI | seed {seed}')
+        local_name = 'You' if human else 'Classic AI'
+        pygame.display.set_caption(f'{opponent_name} vs {local_name} | seed {seed}')
         self.font = pygame.font.Font(None, 24)
         self.clock = pygame.time.Clock()
         self.fps = round(env.metadata.get('video.frames_per_second', 60))
-        self.names = ('Classic AI', 'External adapter') if side == 1 else ('External adapter', 'Classic AI')
+        self.names = (local_name, opponent_name) if side == 1 else (opponent_name, local_name)
         self.paused = False
         self.info = info
+        if human:
+            from nhl94_ai.ui.gamepad import GamepadInput
+            pygame.joystick.init()
+            self.gamepad = GamepadInput(enabled=not no_gamepad)
+            print(f'You control {"home / controller 1" if side == 1 else "away / controller 2"}. '
+                  'Keyboard: arrows move, Z clear/hold, X pass/switch, C shoot/check, Enter Start. '
+                  'M30: D-pad and matching Genesis buttons. Space pauses playback; Esc quits.')
         self._draw()
+
+    def human_action(self):
+        from nhl94_ai.ui.human_input import read_human_input
+        if not self.human:
+            raise RuntimeError('Human input is unavailable in spectator mode')
+        return read_human_input(self.gamepad, self.input_focused)
 
     def _draw(self):
         pygame = self.pg
@@ -352,6 +380,8 @@ class MatchViewer:
         title = (f'{self.names[0]} (Home)  {self.info["p1_score"]} - '
                  f'{self.info["p2_score"]}  {self.names[1]} (Away)')
         controls = ('PAUSED | ' if self.paused else '') + 'Space: pause/resume | Esc: quit'
+        if self.human:
+            controls += ' | M30 / arrows + Z X C'
         for y, text in ((8, title), (33, controls)):
             self.screen.blit(self.font.render(text, True, (235, 240, 245)), (12, y))
         pygame.display.flip()
@@ -361,9 +391,13 @@ class MatchViewer:
         pygame = self.pg
         while True:
             for event in pygame.event.get():
+                if self.gamepad is not None:
+                    self.gamepad.process_event(event)
+                if event.type in (pygame.WINDOWFOCUSLOST, pygame.WINDOWFOCUSGAINED):
+                    self.input_focused = event.type == pygame.WINDOWFOCUSGAINED
                 if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     return False
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not getattr(event, 'repeat', False):
                     self.paused = not self.paused
             if not self.paused:
                 return True
@@ -376,6 +410,9 @@ class MatchViewer:
         self.clock.tick(self.fps)
 
     def close(self):
+        if self.gamepad is not None:
+            self.gamepad.close()
+            self.pg.joystick.quit()
         self.pg.display.quit()
         self.pg.font.quit()
 
@@ -388,19 +425,24 @@ def build_parser():
     parser.add_argument('--adapter-config', help='Optional adapter configuration file')
     parser.add_argument('--fixture', choices=tuple(FIXTURES), default='ducks-campbell')
     parser.add_argument('--side', choices=('both', 'home', 'away'), default='both',
-                        help='Local agent assignment; both plays paired matches')
+                        help='Local agent or human assignment; both plays paired AI matches')
     parser.add_argument('--pairs', type=int, default=1)
     parser.add_argument('--seed', type=int, default=26534)
     parser.add_argument('--periods', type=int, choices=(1, 3), default=3)
     parser.add_argument('--seconds', type=int, default=300, help='First-period clock; regulation requires 300')
-    parser.add_argument('--frame-skip', type=int, default=4, help='Local tactical interval in native frames')
+    parser.add_argument('--frame-skip', type=int, default=4, help='Local Classic interval; human input and external adapters always run at 60 Hz')
     parser.add_argument('--goalie-positioning', choices=('classic', 'deep', 'deep-csave'))
     parser.add_argument('--watch', action='store_true')
+    parser.add_argument('--human', action='store_true',
+                        help='Play against the adapter with keyboard/M30 at 60 Hz; choose --side home or away')
+    parser.add_argument('--no-gamepad', action='store_true', help='Use keyboard only in human mode')
     parser.add_argument('--output', help='Explicit report path; no files are written by default')
     return parser
 
 
 def validate_options(args):
+    if args.human and args.side == 'both':
+        raise ValueError('Human play requires --side home or --side away')
     if args.pairs < 1 or args.frame_skip < 1 or not 1 <= args.seconds <= 300:
         raise ValueError('Use positive pairs/frame-skip and 1..300 seconds')
     if not 0 <= args.seed < 2**32 or args.seed + args.pairs > 2**32:

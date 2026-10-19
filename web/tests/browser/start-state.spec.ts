@@ -32,7 +32,7 @@ async function openMatch(page: Page): Promise<void> {
 
 async function teams(page: Page, expected: number[]): Promise<void> {
   await expect.poll(() => page.evaluate(() => window.arenaFrame?.observation.controllers.map((c) => c.team)))
-    .toEqual(expected);
+    .toEqual([...expected, 0, 0]);
   await expect(page.getByRole("button", { name: "Step one frame" })).toBeEnabled();
 }
 
@@ -89,12 +89,12 @@ test("replays the saved start and every native assignment change to the same fin
   await page.getByRole("button", { name: "Download input replay" }).click();
   const path = await (await downloadPromise).path();
   const replay = parseReplay(JSON.parse(await readFile(path!, "utf8")));
-  expect(replay.format).toBe("nhl94-browser-inputs-v3");
-  if (replay.format !== "nhl94-browser-inputs-v3") throw new Error("Expected a saved-state replay.");
+  expect(replay.format).toBe("nhl94-browser-inputs-v4");
+  if (replay.format !== "nhl94-browser-inputs-v4") throw new Error("Expected a saved-state replay.");
   expect(replay.startStateHash).toBe(DEFAULT_STATE_HASH);
   expect(replay.configurationEvents.filter((event) => event.frame === changeFrame).map((event) => event.teams))
-    .toEqual([[2, 2], [2, 1]]);
-  expect(replay.configurationEvents.at(-1)).toEqual({ frame: replay.inputs.length, teams: [0, 0], goalieModes: [0, 0] });
+    .toEqual([[2, 2, 0, 0], [2, 1, 0, 0]]);
+  expect(replay.configurationEvents.at(-1)).toEqual({ frame: replay.inputs.length, teams: [0, 0, 0, 0], goalieModes: [0, 0] });
   await page.locator("#replay").setInputFiles(path!);
   await expect(page.locator("#status")).toContainText("Replay loaded");
   await page.getByRole("button", { name: "Play", exact: true }).click();
@@ -107,7 +107,8 @@ test("replays the saved start and every native assignment change to the same fin
     name: "compatible-v2.json", mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify({
       ...replay, format: "nhl94-browser-inputs-v2",
-      controllerEvents: replay.configurationEvents.map(({ frame, teams }) => ({ frame, teams })),
+      inputs: replay.inputs.map((inputs) => inputs.slice(0, 2)),
+      controllerEvents: replay.configurationEvents.map(({ frame, teams }) => ({ frame, teams: teams.slice(0, 2) })),
     })),
   });
   await expect(page.locator("#status")).toContainText("Replay loaded");
@@ -140,9 +141,9 @@ test("hands ROM AI slots to the native CPU and replays their zero-input match ex
   await page.getByRole("button", { name: "Download input replay" }).click();
   const path = await (await downloadPromise).path();
   const replay = parseReplay(JSON.parse(await readFile(path!, "utf8")));
-  expect(replay.format).toBe("nhl94-browser-inputs-v3");
-  if (replay.format !== "nhl94-browser-inputs-v3") throw new Error("Expected a saved-state replay.");
-  expect(replay.configurationEvents[0]?.teams).toEqual([0, 0]);
+  expect(replay.format).toBe("nhl94-browser-inputs-v4");
+  if (replay.format !== "nhl94-browser-inputs-v4") throw new Error("Expected a saved-state replay.");
+  expect(replay.configurationEvents[0]?.teams).toEqual([0, 0, 0, 0]);
   expect(replay.inputs.length).toBeGreaterThan(120);
   expect(replay.inputs.every(([first, second]) => first === 0 && second === 0)).toBe(true);
   await page.locator("#replay").setInputFiles(path!);

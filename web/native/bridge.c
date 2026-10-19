@@ -15,7 +15,9 @@ static uint8_t pixels[MAX_WIDTH * MAX_HEIGHT * 4];
 static int16_t audio_samples[MAX_AUDIO_FRAMES * 2];
 static unsigned video_width, video_height, sample_frames;
 static unsigned pixel_format = RETRO_PIXEL_FORMAT_RGB565;
-static uint16_t buttons[2];
+static uint16_t buttons[4];
+static int multitap;
+extern uint8_t io_reg[0x10];
 static const struct retro_variable *variables;
 static char variable_values[MAX_VARIABLES][128];
 static struct retro_system_av_info av_info;
@@ -133,7 +135,7 @@ static void poll_input(void) {}
 static int16_t read_input(unsigned port, unsigned device, unsigned index, unsigned id)
 {
     (void)index;
-    return port < 2 && device == RETRO_DEVICE_JOYPAD && id < 16 ?
+    return port < 4 && device == RETRO_DEVICE_JOYPAD && id < 16 ?
         !!(buttons[port] & (1u << id)) : 0;
 }
 
@@ -165,14 +167,26 @@ EMSCRIPTEN_KEEPALIVE int arena_load(unsigned pointer, unsigned size)
     return 1;
 }
 
-EMSCRIPTEN_KEEPALIVE int arena_step(unsigned first, unsigned second)
+EMSCRIPTEN_KEEPALIVE int arena_step(unsigned first, unsigned second, unsigned third, unsigned fourth)
 {
-    if (!loaded || first > 0xffff || second > 0xffff) return 0;
+    if (!loaded || first > 0xffff || second > 0xffff || third > 0xffff || fourth > 0xffff) return 0;
     buttons[0] = first;
     buttons[1] = second;
+    buttons[2] = third;
+    buttons[3] = fourth;
     sample_frames = 0;
     retro_run();
     return !callback_error;
+}
+
+static void set_multitap(int enabled)
+{
+    if (multitap == enabled) return;
+    unsigned device = enabled ? RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 3) :
+        RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0);
+    retro_set_controller_port_device(0, device);
+    if (!enabled) retro_set_controller_port_device(1, RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0));
+    multitap = enabled;
 }
 
 EMSCRIPTEN_KEEPALIVE unsigned arena_pixels(void) { return (uintptr_t)pixels; }
@@ -196,7 +210,12 @@ EMSCRIPTEN_KEEPALIVE int arena_save(unsigned pointer)
 EMSCRIPTEN_KEEPALIVE int arena_restore(unsigned pointer)
 {
     const void *state = (const void *)(uintptr_t)pointer;
-    return loaded && retro_unserialize(state, retro_serialize_size());
+    if (!loaded || !retro_unserialize(state, retro_serialize_size())) return 0;
+    const uint8_t *ram = retro_get_memory_data(RETRO_MEMORY_SYSTEM_RAM);
+    uint16_t adapter;
+    memcpy(&adapter, ram + 0xd046, sizeof(adapter));
+    set_multitap(adapter != 0);
+    return 1;
 }
 
 static uint16_t ram_word(const uint8_t *ram, unsigned offset)
@@ -217,15 +236,16 @@ static int selectable(const uint8_t *ram, int slot)
         (int16_t)ram_word(ram, 0xb04a + slot * 0x80 + 0x34) > 0;
 }
 
-EMSCRIPTEN_KEEPALIVE int arena_set_controllers(unsigned first, unsigned second)
+EMSCRIPTEN_KEEPALIVE int arena_set_controllers(unsigned first, unsigned second, unsigned third, unsigned fourth)
 {
-    if (!loaded || first > 2 || second > 2) return 0;
+    if (!loaded || first > 2 || second > 2 || third > 2 || fourth > 2) return 0;
     uint8_t *ram = retro_get_memory_data(RETRO_MEMORY_SYSTEM_RAM);
     if (!ram || retro_get_memory_size(RETRO_MEMORY_SYSTEM_RAM) != 65536) return 0;
-    unsigned teams[2] = {first, second};
-    int previous[2], selected[2] = {-1, -1}, used[12] = {0};
-    int changed = 0;
-    for (unsigned port = 0; port < 2; port++) {
+    unsigned teams[4] = {first, second, third, fourth};
+    int previous[4], selected[4] = {-1, -1, -1, -1}, used[12] = {0};
+    int use_multitap = third || fourth;
+    int changed = multitap != use_multitap;
+    for (unsigned port = 0; port < 4; port++) {
         previous[port] = (int16_t)ram_word(ram, 0xc320 + port * 2);
         changed |= ram_word(ram, 0xc328 + port * 2) != teams[port];
     }
@@ -234,7 +254,7 @@ EMSCRIPTEN_KEEPALIVE int arena_set_controllers(unsigned first, unsigned second)
         ram_word(ram, 0xb04a + 5 * 0x80 + 0x34) != 0 ||
         ram_word(ram, 0xb04a + 11 * 0x80 + 0x34) != 0) return 0;
 
-    for (unsigned port = 0; port < 2; port++) {
+    for (unsigned port = 0; port < 4; port++) {
         int slot = previous[port];
         if (teams[port] && slot >= 0 && slot < 12 &&
             (unsigned)(slot / 6 + 1) == teams[port] && !used[slot]) {
@@ -242,10 +262,10 @@ EMSCRIPTEN_KEEPALIVE int arena_set_controllers(unsigned first, unsigned second)
             used[slot] = 1;
         }
     }
-    for (unsigned port = 0; port < 2; port++) {
+    for (unsigned port = 0; port < 4; port++) {
         if (!teams[port] || selected[port] >= 0) continue;
         int base = (teams[port] - 1) * 6;
-        int reference = previous[port] >= 0 ? previous[port] : previous[1 - port];
+        int reference = previous[port] >= 0 ? previous[port] : previous[0];
         int preferred = base + (reference >= 0 && reference < 12 ? reference % 6 : 2);
         if (selectable(ram, preferred) && !used[preferred]) selected[port] = preferred;
         else {
@@ -264,10 +284,15 @@ EMSCRIPTEN_KEEPALIVE int arena_set_controllers(unsigned first, unsigned second)
         ram[offset] = used[slot] ? ram[offset] | 8 : (ram[offset] & ~8) | 2;
     }
     for (unsigned port = 0; port < 4; port++) {
-        set_ram_word(ram, 0xc328 + port * 2, port < 2 ? teams[port] : 0);
-        set_ram_word(ram, 0xc320 + port * 2, port < 2 ? (uint16_t)selected[port] : 0xffff);
+        set_ram_word(ram, 0xc328 + port * 2, teams[port]);
+        set_ram_word(ram, 0xc320 + port * 2, (uint16_t)selected[port]);
     }
-    unsigned mode = first && second ? (first == second ? 3 : 4) : (first ? first : second);
+    if (multitap != use_multitap) {
+        set_multitap(use_multitap);
+        io_reg[5] = use_multitap ? 0x7f : 0x40;
+    }
+    set_ram_word(ram, 0xd046, use_multitap);
+    unsigned mode = use_multitap ? 3 : first && second ? (first == second ? 3 : 4) : (first ? first : second);
     set_ram_word(ram, 0xd04a, mode);
     return 1;
 }
@@ -277,4 +302,5 @@ EMSCRIPTEN_KEEPALIVE void arena_dispose(void)
     if (loaded) retro_unload_game();
     retro_deinit();
     loaded = 0;
+    multitap = 0;
 }

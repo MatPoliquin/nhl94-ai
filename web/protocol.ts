@@ -1,5 +1,5 @@
 import type { Observation } from "./observations";
-import type { ControllerSetup } from "./controllers";
+import type { ControllerInputs, ControllerSetup } from "./controllers";
 import type { GameStats } from "./game-stats";
 import type { ClassicConfig } from "./classic/config";
 
@@ -27,7 +27,7 @@ export interface FramePacket {
   stats: GameStats;
   fps: number;
   sampleRate: number;
-  inputs: readonly [number, number];
+  inputs: ControllerInputs;
   replaying: boolean;
   finished: boolean;
 }

@@ -6,7 +6,7 @@ test("shows supported Classic settings below the game controls with JSON default
   await page.goto("/");
   const panel = page.getByRole("region", { name: "Bot Configuration", exact: true });
   await expect(panel).toBeVisible();
-  await expect(panel.getByText("Applies to Classic AI slots.", { exact: false })).toBeVisible();
+  await expect(panel.getByText("Applies to no ml bot slots.", { exact: false })).toBeVisible();
   for (const frequency of ["60 Hz", "15 Hz", "10 Hz", "6 Hz"]) {
     const radio = panel.getByRole("radio", { name: frequency, exact: true });
     await expect(radio).toBeEnabled();
@@ -28,23 +28,25 @@ test("shows supported Classic settings below the game controls with JSON default
   }
 });
 
-test("shows four controller rows, exact occupant order, team choices and two disabled future slots", async ({ page }) => {
+test("enables all four controller rows with exact occupant order and team choices", async ({ page }) => {
   await page.goto("/");
   const defaults = ["human", "classic", "none", "none"];
   for (let number = 1; number <= 4; number++) {
     const player = page.getByRole("combobox", { name: `Controller ${number} player`, exact: true });
     const team = page.getByRole("combobox", { name: `Controller ${number} team`, exact: true });
-    await expect(player.locator("option")).toHaveText(["Human", "ROM AI", "Classic AI", "None"]);
+    await expect(player.locator("option")).toHaveText(["Human", "ROM AI", "no ml bot", "None"]);
     await expect(player).toHaveValue(defaults[number - 1]!);
     await expect(team.locator("option")).toHaveText(["Team 1 (Home)", "Team 2 (Away)"]);
     await expect(team).toHaveValue(number % 2 === 1 ? "1" : "2");
+    await expect(player).toBeEnabled();
     if (number > 2) {
-      await expect(player).toBeDisabled();
       await expect(team).toBeDisabled();
     } else {
-      await expect(player).toBeEnabled();
       await expect(team).toBeEnabled();
     }
+    await player.selectOption("classic");
+    await expect(team).toBeEnabled();
+    await player.selectOption(defaults[number - 1]!);
   }
   const controllerPanel = page.locator("section.panel").filter({
     has: page.getByRole("heading", { name: "2. Configure controllers" }),
@@ -100,7 +102,7 @@ test("pauses on configuration changes, clears None input and locks setup during 
   expect(parseReplay(JSON.parse(await readFile(replay!, "utf8"))).inputs.at(-1)?.[0]).toBe(0);
   await page.locator("#replay").setInputFiles(replay!);
   await expect(page.locator("#status")).toContainText("Replay loaded");
-  for (const number of [1, 2]) {
+  for (const number of [1, 2, 3, 4]) {
     await expect(page.locator(`#controller-${number}-agent`)).toBeDisabled();
     await expect(page.locator(`#controller-${number}-team`)).toBeDisabled();
   }

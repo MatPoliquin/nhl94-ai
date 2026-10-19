@@ -64,8 +64,8 @@ test("runs the actual WASM worker, pauses, steps and replays local inputs", asyn
   const saved = await download.path();
   expect(saved).not.toBeNull();
   const recorded = parseReplay(JSON.parse(await readFile(saved!, "utf8")));
-  expect(recorded.inputs[pressedFrame - 1]).toEqual([0, 1]);
-  expect(recorded.inputs[pressedFrame]).toEqual([0, 0]);
+  expect(recorded.inputs[pressedFrame - 1]).toEqual([0, 1, 0, 0]);
+  expect(recorded.inputs[pressedFrame]).toEqual([0, 0, 0, 0]);
   await page.getByRole("button", { name: "Restart match" }).click();
   await expect(page.locator("#frame")).toHaveText("0");
   await page.locator("#replay").setInputFiles(saved!);

@@ -224,7 +224,7 @@ export class GoalieController {
     const controllers = required(engine.controller_teams, "controller_teams").flatMap((side, index) => side === team.controller ? [index] : []);
     if (controllers.length !== 1) throw new Error("Manual goalie AI requires exactly one joystick on the controlled team");
     const controller = controllers[0]!, modes = required(engine.goalie_modes, "goalie_modes");
-    if (modes[controller] !== 0 || modes[team.controller - 1] !== 0) {
+    if (modes[controller % 2] !== 0 || modes[team.controller - 1] !== 0) {
       throw new Error("Manual goalie AI requires Manual goalie settings for joystick and team; use SabresVsMightyDucks.ManualGoalie.Start");
     }
     const fields = ["role", "selection_flags", "live_state_flags", "live_anim", "speed", "agility", "weight", "energy",

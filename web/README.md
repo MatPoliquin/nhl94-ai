@@ -1,6 +1,6 @@
 # NHL94 AI CONTEST
 
-A **local AI arena** with the game's built-in ROM AI and a TypeScript Genesis Classic bot;
+A **local AI arena** with the game's built-in ROM AI and no ml bot, a TypeScript Genesis scripted bot with no machine learning;
 not a netplay release.
 The app is TypeScript/Vite; the emulator is Genesis Plus GX compiled to
 single-threaded WebAssembly with a small C/libretro bridge.
@@ -30,10 +30,11 @@ match is preserved (hiding its tab still pauses playback):
 
 - [Bots](bots.html): available browser bots and descriptions, generated from
   the same catalogue as the controller selectors.
+- [Leaderboards](leaderboards.html): a coming-soon page; no rankings or score submission are available yet.
 - [Help](help.html): ROM loading, controllers, input setup, playback, stats and replays.
 - [About](about.html): research purpose, EA non-affiliation, contact and community links.
 
-The Vite multi-page build emits `index.html`, `bots.html`, `help.html` and
+The Vite multi-page build emits `index.html`, `bots.html`, `leaderboards.html`, `help.html` and
 `about.html`. Links and assets remain relative for GitHub Pages project subpaths;
 these pages do not require a backend or client-side router.
 
@@ -73,10 +74,10 @@ publishing them.
 
 1. Select your legally obtained, uncompressed original NHL94 Genesis ROM.
 2. Step 2 lists four controller slots. Controller 1 defaults to **Human / Team 1
-   (Home)** and controller 2 to **Classic AI / Team 2 (Away)**.
-   Each enabled slot offers **Human**, **ROM AI**, **Classic AI**, then **None**, with a
-   Home/Away team selector for Human and Classic AI. Controllers 3 and 4 are greyed out as
-   None until four-player support is implemented.
+   (Home)** and controller 2 to **no ml bot / Team 2 (Away)**.
+   Each enabled slot offers **Human**, **ROM AI**, **no ml bot**, then **None**, with a
+   Home/Away team selector for Human and no ml bot. All four slots are enabled;
+   controllers 3 and 4 default to None.
 3. In **Step 3: Input device**, use the keyboard/on-screen controls or select a
    gamepad. The same panel contains gamepad setup and live input diagnostics.
 4. Loading the ROM restores Sabres vs Mighty Ducks with manual goalies.
@@ -87,28 +88,46 @@ publishing them.
 
 Controller setup changes pause playback. With one Human slot, keyboard, on-screen
 buttons and the selected gamepad all control that slot. With two Human slots,
-keyboard/on-screen input controls slot 1 and the selected gamepad controls slot 2.
-Each Classic AI slot has its own bot instance, evaluated against the same pre-frame state.
+keyboard/on-screen input controls the first Human slot and the selected gamepad
+controls the second Human slot, in controller-number order. Up to two Human slots
+are supported, including slots 3 and 4. Each no ml bot slot has its own execution
+state, evaluated against the same pre-frame state.
+
+For **three bots vs CPU**, assign no ml bot/Home to controllers 1, 2 and 3 and
+leave controller 4 as None (or ROM AI). For **three bots vs human**, make controller
+4 Human/Away. A sole Human in slot 4 receives both keyboard/on-screen and selected
+gamepad input. Two or three same-team no ml bot slots coordinate automatically:
+one carrier/retriever, a passing or receiving option, and (with three bots) deep coverage.
+Both Home and Away teams can have coordinated no ml bot teammates.
+
+The bridge enables EA 4-Way Play whenever controller 3 or 4 is assigned. Its four
+native input channels, controller ownership and adapter polling state are configured
+together. Temporary native C3/C4 table aliases suppress live inputs until ownership
+settles; they never cause corrective gameplay RAM writes. Ownership that fails to
+settle for 120 frames stops playback with an explicit error.
 
 Home/Away choices directly update the native joystick/team/selected-skater
 assignments and player control flags, following the Python controller setup
 semantics. ROM AI and None release their controller; a team with no Human or
-Classic AI controller uses the native CPU. ROM AI sends no scripted inputs and
+no ml bot controller uses the native CPU. ROM AI sends no scripted inputs and
 ignores Bot Configuration settings. Its Home/Away selector is disabled because no
-controller is assigned. Same-team Human/Classic slots select different players. The supplied manual
-goalie options are preserved on teams without a Classic slot.
+controller is assigned. Same-team Human/no ml bot slots select different players. The supplied manual
+goalie options are preserved on teams without a no ml bot slot. no ml bot teams with
+multiple assigned controllers use native automatic goalies, as in Python teammate
+mode; selective manual goalie AI applies to a sole no ml bot controller.
 
 For Bot vs Bot, select a bot in both slots and press Play. No Human slot is needed
 to navigate menus. Replay playback ignores and disables live controller selectors
 and uses the recorded physical-port inputs and configuration events. Replay
 download/import is in Step 4.
 
-New recordings use `nhl94-browser-inputs-v3`, identifying the compressed starting
+New recordings use `nhl94-browser-inputs-v4`, recording all four physical-port
+inputs and assignments, identifying the compressed starting
 state and recording every controller/goalie-mode change with its frame number, including
 multiple changes while paused. Starting the match presents one neutral native
 initialization frame to restore video before recorded frame zero. Restart repeats
-this initialization. Compatible v2 recordings restore the saved start and
-controller events; v1 recordings still start from ROM boot. The
+this initialization. Compatible v2/v3 recordings restore the saved start and
+controller events (plus goalie changes for v3); v1 recordings still start from ROM boot. The
 existing exact ROM/core-build checks reject recordings from incompatible builds.
 
 Supported ROM SHA-256:
@@ -199,30 +218,36 @@ They are cumulative match totals, not individual player or period summaries.
 Before a ROM is loaded, values are unavailable (`-`); replay and restart use the
 emulator's corresponding totals.
 
-## Classic AI
+## no ml bot
 
-Choose **Classic AI** in either active controller slot. The browser port targets
+Choose **no ml bot** in any controller slot. This is the display name of the Classic
+implementation; the internal `classic` agent ID, source names and configuration
+remain unchanged. Renaming the bot does not change its scripted behavior or add a
+learned model. The browser port targets
 Genesis full-team Classic with filtered controller channels, default possession
 offense, passing/one-timer/shot lifecycles, native-frame defense and selective
 `deep-csave` manual goalies. Each slot owns independent controller state and reads
-the same pre-frame game state. Shared teammate coordination, optional tactical
-experiments and learned policies are not included.
+the same pre-frame game state. Two or three same-team no ml bot slots share the
+updated Python coordinator's carrier/retriever selection, passing support, deep
+coverage, serialized player switches and native-confirmed receiving commitments.
+Optional tactical experiments, experimental support planners and learned policies
+are not included.
 
 The build reads the same commented
 [`configs/classic_bot.json`](../configs/classic_bot.json) as Python playback.
 The browser's **Bot Configuration** controls override these defaults for all
-Classic slots during the current tab:
+no ml bot slots during the current tab:
 
 | Setting | Behavior |
 | --- | --- |
 | Frequency | 60 Hz retains native reactions and the four-frame tactical scheduler. 15/10/6 Hz observe and hold all buttons every 4/6/10 native frames, including goalie inputs. These are nominal rates; the core runs at approximately 59.92 Hz. |
-| AI Goalie | Selective manual goalie AI when enabled; native automatic goalies on Classic-controlled teams when disabled. Human-only teams keep the starting state's mode. |
+| AI Goalie | Selective manual goalie AI for a sole no ml bot controller when enabled. Multiple-controller no ml bot teams always use native automatic goalies, matching Python teammate mode. Human-only teams keep the starting state's mode. |
 | Consider player ratings | Uses live ratings when enabled. Disabled gives both teams neutral decision ratings without changing RAM ratings, physics, energy, handedness or motion. |
 
 Setting/controller changes pause playback, apply native ownership/goalie options
 without consuming a frame, and discard pending bot actions. Restart preserves UI
-choices. Same-team bot slots are
-independent controllers, not the Python coordinated-teammate policy.
+choices. Same-team bots keep independent action lifecycles under a shared tactical
+plan. Opposing no ml bot teams have separate coordinators.
 
 The decoder respects the core's word-swapped RAM and reconstructs signed
 fixed-point telemetry. Stick and shot geometry is decoded and cached from the
@@ -239,14 +264,15 @@ tooling only: the website requires no Python, Pyodide, model server or backend.
 If Python behavior changes, review the differences before deliberately refreshing
 the fingerprint; do not automatically regenerate it to conceal parity failures.
 
-New v3 input replays record ordered controller **and goalie-mode** events,
+New v4 input replays record four-port masks and ordered controller **and goalie-mode** events,
 including multiple changes on one paused frame or after the final input.
-Compatible v1 boot and v2 saved-start replays remain supported. Playback runs
+Compatible v1 boot, v2 saved-start and v3 goalie-aware replays remain supported
+(unused ports are neutral). Playback runs
 recorded inputs, not bots, so it does not need Classic's internal history.
 
 ## Current boundaries
 
-- Both controllers execute at native-frame cadence. The normal playback target
+- All four controllers execute at native-frame cadence. The normal playback target
   is the core-reported frame rate, approximately 59.92 Hz, not display refresh.
 - Match restart creates a fresh core instance and restores the bundled start.
   Replays identify their starting state and are tied to exact ROM/WASM hashes.

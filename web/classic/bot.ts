@@ -1,4 +1,5 @@
 import type { Bot } from "../bot";
+import type { ControllerPort } from "../controllers";
 import { Button, validMask } from "../inputs";
 import type { Observation } from "../observations";
 import { ClassicController } from "./classic";
@@ -35,7 +36,7 @@ export class ClassicBot implements Bot {
     this.held = 0;
   }
 
-  act(observation: Observation, port: 0 | 1, state?: GameState): number {
+  act(observation: Observation, port: ControllerPort, state?: GameState): number {
     if (!state) throw new Error("Classic game-state decoding is unavailable.");
     if (this.remaining === 0) {
       const view = controllerView(state, port, observation.controllers[port].slot);

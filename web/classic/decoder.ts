@@ -1,7 +1,9 @@
 import { GenesisRam } from "./ram";
 import { RomGeometry } from "./rom-geometry";
-import { EngineState, GameState, Player, Stats, Team } from "./state";
+import { EngineState, GameState, Net, Player, Stats, Team } from "./state";
 import { refreshFeatures } from "./features";
+import { CONTROLLER_PORTS, type ControllerPort, type ControllerValues } from "../controllers";
+import type { Controller } from "../observations";
 
 const VELOCITY_SCALE = 17 / 65536;
 
@@ -12,7 +14,7 @@ export class ClassicDecoder {
     this.geometry = new RomGeometry(rom);
   }
 
-  decode(bytes: Uint8Array): GameState {
+  decode(bytes: Uint8Array, controllers?: ControllerValues<Controller>): GameState {
     const ram = new GenesisRam(bytes), state = new GameState(), engine = state.engine;
     state.period = ram.u16(0xffc466) + 1;
     state.time = ram.u32(0xffc466);
@@ -47,7 +49,10 @@ export class ClassicDecoder {
     engine.camera = [-64 - ram.i16(0xffbd1e), -ram.i16(0xffbd20)];
     engine.goalie_modes = [ram.u16(0xffd05a), ram.u16(0xffd05c)];
     engine.goalie_hold_counts = [ram.u8(0xffbf06), ram.u8(0xffbf07)];
-    engine.controller_teams = [ram.u16(0xffc328), ram.u16(0xffc32a)];
+    engine.controller_teams = CONTROLLER_PORTS.map((port) => controllers?.[port].team ?? ram.u16(0xffc328 + port * 2));
+    if (!engine.controller_teams[2] && !engine.controller_teams[3]) engine.controller_teams = engine.controller_teams.slice(0, 2);
+    if (engine.controller_teams.length === 4) engine.goalie_hold_counts = CONTROLLER_PORTS.map((port) => ram.u8(0xffbf06 + port));
+    engine.highlight = !!(ram.u8(0xffc2ea) & 0x10);
     engine.shot_mode_active = Number(!!(engine.sflags & 8));
     engine.shot_taken = Number(!!(engine.sflags2 & 16));
     engine.in_close_top_shelf = Number(!!(engine.word_ffc2f6 & 16));
@@ -59,7 +64,7 @@ export class ClassicDecoder {
     state.is_shootout_active = !!(engine.ba_ps_flags & 0x400);
     const flags = ram.u8(0xffc2fc);
     const bonus = flags & 0x40 || ram.u8(0xffc2fe) & 2 ? 2 : 0;
-    const teammates = engine.controller_teams[0] !== 0 && engine.controller_teams[0] === engine.controller_teams[1];
+    const teammates = [1, 2].some((side) => engine.controller_teams!.filter((team) => team === side).length > 1);
     for (const team of [state.team1, state.team2]) {
       const stats = 0xffc6ce + (team.controller - 1) * 0x364;
       team.stats.score = ram.u16(stats + 0x0c);
@@ -78,8 +83,8 @@ export class ClassicDecoder {
       team.one_timer_attempts = ram.u16(stats + 0x35c);
       team.defense_goalie = team.goalie_scnum();
       let selected = -1;
-      for (const port of [0, 1]) {
-        if (engine.controller_teams[port] === team.controller) selected = ram.i16(0xffc320 + port * 2);
+      for (const port of CONTROLLER_PORTS) {
+        if (engine.controller_teams[port] === team.controller) selected = controllers?.[port].slot ?? ram.i16(0xffc320 + port * 2);
       }
       team.defense_control = selected;
       team.control = selected < 0 ? -1 : selected === team.goalie_scnum() ? 0 : selected - team.skater_scnum_base() + 1;
@@ -175,15 +180,33 @@ export class ClassicDecoder {
   }
 }
 
-export function controllerView(state: GameState, port: 0 | 1, slot: number): GameState {
+export function controllerView(state: GameState, port: ControllerPort, slot: number): GameState {
   const side = state.engine.controller_teams?.[port];
   if (side !== 1 && side !== 2) throw new Error("Classic requires an assigned Home or Away controller.");
   const result = Object.assign(new GameState(), state);
   const team = side === 1 ? state.team1 : state.team2;
-  result.team1 = Object.assign(new Team(team.controller), team);
-  result.team2 = side === 1 ? state.team2 : state.team1;
+  const cloneTeam = (team: Team): Team => Object.assign(new Team(team.controller), team, {
+    players: team.players.map((player) => Object.assign(new Player(), player)),
+    goalie: Object.assign(new Player(), team.goalie), net: Object.assign(new Net(), team.net),
+  });
+  result.team1 = cloneTeam(team);
+  result.team2 = cloneTeam(side === 1 ? state.team2 : state.team1);
   result.team1.defense_control = slot;
   result.team1.control = slot < 0 ? -1 : slot === team.goalie_scnum() ? 0 : slot - team.skater_scnum_base() + 1;
+  result.team1.update_controlled_relationships();
+  const selected = result.team1.get_controlled_player();
+  if (selected) {
+    result.team1.net.rel_controlled_left = result.team1.net.left - selected.x;
+    result.team1.net.rel_controlled_right = result.team1.net.right - selected.x;
+    result.team1.net.rel_controlled_y = result.team1.net.y - selected.y;
+  }
+  for (const player of [...result.team2.players, result.team2.goalie]) {
+    player.dist_to_controlled_opp = selected ? Math.hypot(player.x - selected.x, player.y - selected.y) : 0;
+  }
+  if ((result.engine.controller_teams?.filter((team) => team === side).length ?? 0) > 1) {
+    result.time = state.time & 0xffff;
+    result.last_time = result.time;
+  }
   result.engine = Object.assign(new EngineState(), state.engine);
   result.engine.controlled_is_shooter = Number(result.engine.shot_player >= 0 && result.engine.shot_player === slot);
   return result;

@@ -1,7 +1,10 @@
 """External adapters remain optional and receive every native observation."""
 from contextlib import ExitStack
+from collections import defaultdict
 import hashlib
+import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -55,7 +58,7 @@ class AdapterTests(unittest.TestCase):
 
 
 class NativeMatchTests(unittest.TestCase):
-    def match(self, side, *, quit_immediately=False, fail_step=False):
+    def match(self, side, *, quit_immediately=False, fail_step=False, human=False):
         base = dict(bench_team1=1, bench_team2=2, period=0, bench_clock=300,
                     bench_control1=2, bench_control2=8, goalie_mode_1=0, goalie_mode_2=0,
                     p1_score=0, p2_score=0, sflags=0, home_team=2, away_team=0,
@@ -99,7 +102,12 @@ class NativeMatchTests(unittest.TestCase):
         def update(state, info, _):
             sign = -1 if info['period'] % 2 == 0 else 1
             state.team1.net.y, state.team2.net.y = sign*264, -sign*264
-        viewer = SimpleNamespace(before_frame=lambda: not quit_immediately, close=Mock(), show=Mock())
+        def human_action():
+            buttons = np.zeros(12, dtype=np.int8)
+            buttons[8] = int(len(sent) % 2 == 0)
+            return buttons
+        viewer = SimpleNamespace(before_frame=lambda: not quit_immediately, close=Mock(), show=Mock(),
+                                 human_action=Mock(side_effect=human_action))
         with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
             rom = Path(directory)/'rom'
             rom.write_bytes(b'rom')
@@ -115,7 +123,7 @@ class NativeMatchTests(unittest.TestCase):
             ):
                 stack.enter_context(patch(target, **kwargs))
             job = dict(side=side, seed=123, periods=3, opponent='external',
-                       adapter='dummy:create', fixture='ducks-campbell', watch=quit_immediately)
+                       adapter='dummy:create', fixture='ducks-campbell', watch=quit_immediately, human=human)
             if fail_step:
                 with self.assertRaisesRegex(RuntimeError, 'emulator failure'):
                     external.play_match(job)
@@ -124,9 +132,36 @@ class NativeMatchTests(unittest.TestCase):
                 result = external.play_match(job)
         env.close.assert_called_once_with()
         other.close.assert_called_once_with()
-        if quit_immediately:
+        if quit_immediately or human:
             viewer.close.assert_called_once_with()
+        if human:
+            candidate.predict_frame.assert_not_called()
+            candidate.end_one_timer.assert_not_called()
+        else:
+            viewer.human_action.assert_not_called()
         return result, sent, observed
+
+    def test_human_controls_either_side_each_frame_including_intermissions(self):
+        for side in (1, 2):
+            with self.subTest(side=side):
+                result, sent, observed = self.match(side, human=True)
+                self.assertTrue(result['completed'])
+                self.assertEqual(result['local_controller'], 'human')
+                self.assertEqual(result['external_frames'], len(sent))
+                self.assertEqual(result['controller_latency_ms']['calls'], 0)
+                self.assertIsNone(result['goalie_metrics']['candidate'])
+                for frame, buttons in enumerate(sent):
+                    self.assertEqual(buttons[12*(side-1)+8], int(frame % 2 == 0))
+                    self.assertEqual(buttons[12*(2-side)+4], 1)
+                    self.assertEqual(buttons[12*(side-1)+4], 0)
+                    self.assertEqual(buttons[12*(2-side)+8], 0)
+                self.assertEqual(len(observed), 9)
+
+    def test_human_quit_and_step_failure_close_both_resources(self):
+        result, sent, _ = self.match(2, human=True, quit_immediately=True)
+        self.assertTrue(result['user_quit'])
+        self.assertEqual(sent, [])
+        self.match(2, human=True, fail_step=True)
 
     def test_native_cadence_sides_intermission_and_periods(self):
         for side in (1, 2):
@@ -158,6 +193,19 @@ class NativeMatchTests(unittest.TestCase):
 
 
 class CommandTests(unittest.TestCase):
+    def test_human_cli_selects_one_side_and_opens_playable_match(self):
+        from nhl94_ai.cli import main
+        row = dict(goals=[0, 0], frames=0, completed=False, user_quit=True, goal_difference=0)
+        with patch.object(external, 'play_match', return_value=row) as play:
+            main(['external', '--adapter', 'dummy:create', '--human', '--side', 'away',
+                  '--fixture', 'sabres-ducks', '--no-gamepad'])
+        play.assert_called_once()
+        job = play.call_args.args[0]
+        self.assertEqual(job['side'], 2)
+        self.assertEqual(job['fixture'], 'sabres-ducks')
+        self.assertTrue(job['human'])
+        self.assertTrue(job['no_gamepad'])
+
     def test_cli_registration_and_optional_adapter(self):
         from nhl94_ai.cli import main
         with patch('nhl94_ai.evaluation.external.load_adapter', side_effect=AssertionError('unexpected import')):
@@ -190,10 +238,69 @@ class CommandTests(unittest.TestCase):
 
     def test_invalid_match_options(self):
         for flags in (['--pairs', '0'], ['--seed', '-1'], ['--periods', '3', '--seconds', '30'],
-                      ['--frame-skip', '0'], ['--seed', str(2**32-1), '--pairs', '2']):
+                      ['--frame-skip', '0'], ['--seed', str(2**32-1), '--pairs', '2'], ['--human']):
             args = external.build_parser().parse_args(['--adapter', 'dummy:create', *flags])
             with self.subTest(flags=flags), self.assertRaises(ValueError):
                 external.validate_options(args)
+
+
+@unittest.skipUnless(importlib.util.find_spec('pygame'), 'optional display extra is not installed')
+class MatchViewerTests(unittest.TestCase):
+    def setUp(self):
+        variables = patch.dict(os.environ, {'SDL_VIDEODRIVER': 'dummy', 'SDL_AUDIODRIVER': 'dummy'})
+        variables.start()
+        self.addCleanup(variables.stop)
+        self.env = SimpleNamespace(render=lambda: np.zeros((224, 256, 3), dtype=np.uint8),
+                                   metadata={'video.frames_per_second': 60})
+        self.info = {'p1_score': 0, 'p2_score': 0}
+
+    def viewer(self, human=True):
+        viewer = external.MatchViewer(self.env, 2, 1, self.info, human=human, no_gamepad=True,
+                                      opponent_name='Test bot')
+        self.addCleanup(viewer.close)
+        return viewer
+
+    def test_shared_keyboard_gamepad_focus_and_releases(self):
+        import pygame
+        viewer = self.viewer()
+        self.assertEqual(viewer.names, ('Test bot', 'You'))
+        self.assertEqual(viewer.fps, 60)
+        pad = [0] * 12
+        pad[8] = 1
+        with patch.object(viewer.gamepad, 'read', side_effect=pad.copy), \
+                patch('pygame.key.get_pressed', return_value=defaultdict(bool, {pygame.K_RIGHT: True})):
+            self.assertEqual(viewer.human_action(), [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0])
+            for event, focused in ((pygame.WINDOWFOCUSLOST, False), (pygame.WINDOWFOCUSGAINED, True)):
+                with patch('pygame.event.get', return_value=[pygame.event.Event(event)]):
+                    self.assertTrue(viewer.before_frame())
+                self.assertEqual(viewer.input_focused, focused)
+                self.assertEqual(sum(viewer.human_action()), 2 if focused else 0)
+        with patch('pygame.key.get_pressed', return_value=defaultdict(bool)):
+            self.assertEqual(viewer.human_action(), [0] * 12)
+
+    def test_pause_hotplug_and_quit_are_serviced_without_returning_a_frame(self):
+        import pygame
+        viewer = self.viewer()
+        viewer.clock = Mock()
+        pause = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE)
+        repeat = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE, repeat=True)
+        added = pygame.event.Event(pygame.JOYDEVICEADDED, device_index=0)
+        quit_event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE)
+        with patch('pygame.event.get', side_effect=[[pause], [repeat, added], [quit_event]]), \
+                patch.object(viewer.gamepad, 'process_event') as process, \
+                patch.object(viewer.gamepad, 'read') as read:
+            self.assertFalse(viewer.before_frame())
+        self.assertTrue(viewer.paused)
+        self.assertEqual(viewer.clock.tick.call_count, 2)
+        self.assertIn(unittest.mock.call(added), process.call_args_list)
+        read.assert_not_called()
+
+    def test_spectator_does_not_open_or_read_a_gamepad(self):
+        with patch('nhl94_ai.ui.gamepad.GamepadInput') as pad:
+            viewer = self.viewer(human=False)
+            pad.assert_not_called()
+        with self.assertRaisesRegex(RuntimeError, 'spectator'):
+            viewer.human_action()
 
 
 if __name__ == '__main__':

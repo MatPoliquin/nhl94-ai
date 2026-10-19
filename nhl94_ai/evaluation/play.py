@@ -53,6 +53,8 @@ def build_parser():
     parser.add_argument('--display_width', type=int, default=1920)
     parser.add_argument('--display_height', type=int, default=1080)
     parser.add_argument('--fullscreen', default=False, action='store_true')
+    parser.add_argument('--no-gamepad', action='store_true',
+                       help='Disable automatic M30/6B USB controller input; use the keyboard only')
     parser.add_argument('--deterministic', default=True, action='store_true')
     parser.add_argument('--rf', type=str, default='')
     parser.add_argument('--hyperparams', type=str, default=default_config_path("default"))
@@ -444,12 +446,12 @@ def run(args):
     if args.mode in ['player_vs_model', 'player_vs_game']:
         com_print('Arrows: skate | X: pass/switch | C: shoot/check | Z: clear/hold | Enter: pause | ESC: quit')
     if args.mode == 'player_vs_model':
-        com_print('AI: controller 1 / home team. Keyboard: controller 2 / away team.')
+        com_print('AI: controller 1 / home team. Human (keyboard/gamepad): controller 2 / away team.')
     elif args.mode == 'model_vs_game':
         com_print(f"AI: controller 1 / {getattr(args, 'side', 'home')} team. Opponent: built-in CPU.")
     elif args.mode in TEAM_MODES:
         com_print(f'AI teammates: controllers 1..{args.team_size} / home; automatic goalies. '
-                  f'Opponent: {"keyboard on controller " + str(args.num_players) if args.mode == "team_vs_player" else "built-in CPU"}.')
+                  f'Opponent: {"human on controller " + str(args.num_players) if args.mode == "team_vs_player" else "built-in CPU"}.')
 
     try:
         player.play(continuous=not args.single_session, need_reset=False)
