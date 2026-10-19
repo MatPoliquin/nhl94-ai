@@ -55,8 +55,8 @@ The reader accepts `//` and `/* ... */` comments. Missing settings use the defau
 unknown keys and invalid types or values fail with an error. Installed packages
 without the checkout file use the same defaults.
 
-- `decision_hz`: `60` (default), `15`, `10`, or `6`. At 60 Hz Classic keeps native
-  reactions and its existing tactical scheduler. Lower rates observe and hold all
+- `decision_hz`: `60` (default), `15`, `10`, or `6`. At 60 Hz Classic observes,
+  runs tactical decisions, and updates inputs every native frame. Lower rates observe and hold all
   buttons every 4, 6, or 10 frames, including manual goalie inputs. This adds no
   observation delay. Existing restrictions on strict control still apply.
 - `ai_goalie`: `true` (default) enables the normal selective manual goalie default
@@ -67,16 +67,23 @@ without the checkout file use the same defaults.
   velocities, energy and handedness are still observed.
 
 Explicit `--classic-control-interval` (including `0`) and `--goalie-policy` override
-the file. These playback defaults do not change training or benchmark settings.
+the file. An explicit control interval retains the separate tactical frame-skip
+setting. These playback defaults do not change training or benchmark settings.
 
 Normal dispatch calls the agent each native emulator frame. Defense, puck
 feedback, input edges, and committed action lifecycles react at that cadence;
-tactical offense uses the configured decision interval, normally four frames.
+tactical offense uses the configured decision interval: one frame for 60 Hz
+playback, or four frames for callers without the playback rate setting. Exclusive
+actions such as goalie control and pass reception can temporarily own a frame.
+Faster tactics preserve the normal four-frame shot hold and scale decision-counted
+follow-through, setup and recovery cooldown budgets; native-frame timers stay unchanged.
 Playback speed changes display pacing without changing either interval.
 
 Standalone Python callers use `predict_frame(state, frame_skip=4)` per native
 frame. `--classic-control-interval N` explicitly samples and holds raw input
 every N frames instead. It is separate from the tactical frame-skip setting.
+For a full 60 Hz external-opponent benchmark, use `nhl94 external --frame-skip 1`;
+the external adapter receives every native frame, and Classic plans every eligible frame.
 
 ## Goalies
 

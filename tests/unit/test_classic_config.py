@@ -80,6 +80,7 @@ class ClassicConfigTests(unittest.TestCase):
         self.write({'decision_hz': 6, 'ai_goalie': False})
         args = self.play('--classic-control-interval', '0', '--goalie-policy', 'always')
         self.assertEqual(args.classic_control_interval, 0)
+        self.assertFalse(hasattr(args, 'classic_decision_interval'))
         self.assertEqual(args.goalie_policy, 'always')
         args = self.play()
         self.assertIsNone(create_scripted('classic', args).goalie)
@@ -95,6 +96,35 @@ class ClassicConfigTests(unittest.TestCase):
         args = run.call_args.args[0]
         self.assertEqual(args.classic_control_interval, 4)
         self.assertEqual(args.goalie_policy, 'off')
+
+    def test_60hz_config_runs_tactics_on_every_native_frame(self):
+        from tests.unit.test_classic_v1 import shooting_state
+        self.write({'decision_hz': 60, 'ai_goalie': False})
+        args = self.play()
+        for configured in (False, True):
+            with self.subTest(configured=configured):
+                agent = create_scripted('classic', args)
+                if configured:
+                    agent.frame_skip = 4  # Playback's outer dispatch interval.
+                for frame in range(24):
+                    agent.predict_game_state(shooting_state())
+                    self.assertEqual(agent.scheduler.decisions, frame + 1)
+                    self.assertEqual(agent.scheduler.frames, frame + 1)
+                self.assertEqual(agent.scheduler.interval, 1)
+
+    def test_lower_config_rates_keep_observations_and_tactics_at_the_selected_rate(self):
+        from tests.unit.test_classic_v1 import shooting_state
+        for hz, repeat in ((15, 4), (10, 6), (6, 10)):
+            with self.subTest(hz=hz):
+                self.write({'decision_hz': hz, 'ai_goalie': False})
+                agent = create_scripted('classic', self.play())
+                agent.frame_skip = 4
+                for frame in range(30):
+                    # Held frames must not even read a fresh game state.
+                    state = shooting_state() if frame % repeat == 0 else object()
+                    agent.predict_game_state(state)
+                    self.assertEqual(agent.scheduler.decisions, frame // repeat + 1)
+                    self.assertEqual(agent.scheduler.frames, frame + 1)
 
     def test_relative_path_in_general_options_file(self):
         from nhl94_ai.cli import main

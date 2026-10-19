@@ -93,7 +93,9 @@ def extend_hold(model, hold):
     """The default seven-decision follow-through must cover a longer C hold."""
     model.shot.extended_hold = hold > model.scheduler.interval
     if model.shot.extended_hold:
-        model.shot.until_decision = model.scheduler.decisions + max(7, math.ceil(hold/model.scheduler.interval) + 3)
+        model.shot.until_decision = model.scheduler.decisions + max(
+            model.scheduler.duration(7),
+            math.ceil(hold/model.scheduler.interval) + model.scheduler.duration(3))
 
 
 class ShotPlacement:

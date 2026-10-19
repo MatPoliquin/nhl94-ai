@@ -5,6 +5,7 @@ tactical policy runs; special actions can suspend them. A decision deadline must
 not be converted to frames by multiplying it by the configured interval.
 """
 from dataclasses import dataclass, field
+import math
 
 import numpy as np
 
@@ -34,6 +35,14 @@ class ActionScheduler:
     def cache(self, action, remaining=None):
         self.action = action
         self.remaining = self.interval if remaining is None else remaining
+
+    def duration(self, decisions):
+        """Retain four-frame tactical budgets when decisions run more often.
+
+        Deadlines still count decisions and pause during exclusive actions.
+        Existing cadences of four frames or longer keep their original budgets.
+        """
+        return math.ceil(decisions * 4 / min(self.interval, 4))
 
 
 @dataclass

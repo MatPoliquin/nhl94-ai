@@ -245,6 +245,8 @@ class ClassicAIV1Model:
         return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
 
     def predict_game_state(self, state, deterministic=True):
+        if getattr(self.args, 'classic_decision_interval', None) is not None:
+            return self.predict_frame(state, deterministic=deterministic)
         state = decision_state(state, getattr(self.args, 'player_ratings_consideration', True))
         if self._observe_actions(state, self.scheduler.elapsed):
             return self._neutral('transition')
@@ -592,6 +594,7 @@ class ClassicAIV1Model:
         self.scheduler.elapsed = self.scheduler.interval
 
     def predict_frame(self, state, frame_skip=4, deterministic=True):
+        frame_skip = getattr(self.args, 'classic_decision_interval', frame_skip)
         state = decision_state(state, getattr(self.args, 'player_ratings_consideration', True))
         retention = getattr(self, 'retention_filter', None)
         if retention is None:
@@ -954,9 +957,9 @@ class ClassicAIV1Model:
         self.offense_diagnostics['shot_release_model'] = (
             'native-animation-envelope' if player.shot_offsets_y is not None else 'conservative-animation-envelope')
         normal_finish, early_finish = ordinary_shot_conditions(
-            state, player, self.scheduler.interval, escape)
+            state, player, self.offense.shot_hold_frames, escape)
         target = None if valued else self._one_timer_target(team, opponents, attack, state=state)
-        finish = evaluate_finish(state, player, self.scheduler.interval) if (
+        finish = evaluate_finish(state, player, self.offense.shot_hold_frames) if (
             'finishing' in self.refinements and (normal_finish or early_finish)) else None
         one_timer_finish_option = (one_timer_finish(state, self.one_timer.option)
                                    if 'finishing' in self.refinements else None)
@@ -1065,7 +1068,8 @@ class ClassicAIV1Model:
             self._last_target = self.shot.side * 13, opponents.net.y
             self.offense_diagnostics.update(desired_slot=actual, receiver=None,
                                             reason='moving crossing is ready for an immediate finish')
-            self.shot.start(state, self.scheduler.decisions, self.scheduler.frames, hold)
+            self.shot.start(state, self.scheduler.decisions, self.scheduler.frames, hold,
+                            follow_through_decisions=self.scheduler.duration(7))
             self.shot.crossing = True
             extend_hold(self, hold)
             release_frames = self.crossing_finish.diagnostics['release_frames']
@@ -1087,16 +1091,16 @@ class ClassicAIV1Model:
             self.shot.aim(action)
             if self.buttons.c_down:  # A shot needs a new press, even after a checking burst.
                 return action, HOCKEY_INTENT_NOOP
-            hold = finish.hold_frames if finish is not None else self.scheduler.interval
+            hold = finish.hold_frames if finish is not None else self.offense.shot_hold_frames
             if self.shot_placement is not None:
-                self.shot.side, hold = self.shot_placement.choose(state, self.scheduler.interval)
+                self.shot.side, hold = self.shot_placement.choose(state, self.offense.shot_hold_frames)
                 self._last_target = self.shot.side * 13, opponents.net.y
                 self.offense_diagnostics['shot_placement'] = self.shot_placement.diagnostics
                 action[4:9] = 0
                 self.shot.aim(action)
             self.shot.start(state, self.scheduler.decisions, self.scheduler.frames,
-                            hold)
-            if self.shot_placement is not None:
+                            hold, follow_through_decisions=self.scheduler.duration(7))
+            if self.shot_placement is not None or self.scheduler.interval < 4:
                 extend_hold(self, hold)
             action[Buttons.INPUT_C] = 1
             return action, HOCKEY_INTENT_NORMAL_SHOOT
@@ -1131,8 +1135,8 @@ class ClassicAIV1Model:
             target = self._one_timer_target(team, opponents, attack, prepare=True)
             if target is not None:
                 self.setup.slot = target[1]
-                self.setup.until_decision = self.scheduler.decisions + 8
-                self.setup.retry_at_decision = self.scheduler.decisions + 48
+                self.setup.until_decision = self.scheduler.decisions + self.scheduler.duration(8)
+                self.setup.retry_at_decision = self.scheduler.decisions + self.scheduler.duration(48)
         if self.scheduler.decisions < self.setup.until_decision:
             receiver = team.get_player_by_scnum(self.setup.slot)
             if receiver is not None and not receiver.is_falling:
@@ -1154,7 +1158,7 @@ class ClassicAIV1Model:
         closest = min(math.hypot(puck.x - p.x, puck.y - p.y) for p in team.players)
         if self.scheduler.decisions >= self.recovery_switch_at_decision and (not team.control or closest + 20 < distance):
             self._last_decision = 'switch'
-            self.recovery_switch_at_decision = self.scheduler.decisions + 6
+            self.recovery_switch_at_decision = self.scheduler.decisions + self.scheduler.duration(6)
             action[Buttons.INPUT_B] = 1
             return action, HOCKEY_INTENT_CHANGE_PLAYER
 
@@ -1162,5 +1166,6 @@ class ClassicAIV1Model:
         x = max(-112, min(112, puck.x + puck.vx * lead))
         y = max(-246, min(246, puck.y + puck.vy * lead))
         self._steer(action, player, x, y, state)
-        action[Buttons.INPUT_C] = int(self.scheduler.decisions % 2 == 0 and self._last_decision != 'goalie-avoid')
+        burst_phase = 1 + (self.scheduler.decisions - 1) // self.scheduler.duration(1)
+        action[Buttons.INPUT_C] = int(burst_phase % 2 == 0 and self._last_decision != 'goalie-avoid')
         return action, HOCKEY_INTENT_NOOP

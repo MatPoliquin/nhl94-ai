@@ -6,6 +6,7 @@ import unittest
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.lifecycle import PassLifecycle, PassState, ReceptionCorrection
 from nhl94_ai.evaluation.lifecycle_history import cache_input, copy_history
+from nhl94_ai.evaluation.benchmark import away_view
 from nhl94_ai.game.constants import GameConsts as Buttons
 from tests.unit.test_classic_offense import offense_state
 from tests.unit.test_classic_reception import reception_state, waiting_model
@@ -13,6 +14,33 @@ from tests.unit.test_classic_v1 import shooting_state
 
 
 class LifecycleContracts(unittest.TestCase):
+    def test_faster_tactics_preserve_shot_hold_and_follow_through_at_both_ends(self):
+        for away in (False, True):
+            for interval in (1, 4):
+                with self.subTest(away=away, interval=interval):
+                    state, model = shooting_state(), ClassicAIV1Model()
+                    if away:
+                        state.engine.puck_owner = 6
+                        state = away_view(state)
+                    buttons = [int(model.predict_frame(state, interval)[0, Buttons.INPUT_C])
+                               for _ in range(32)]
+                    self.assertEqual(buttons, [1] * 4 + [0] * 24 + [1] * 4)
+                    self.assertEqual(model.scheduler.decisions, 32 // interval)
+
+    def test_faster_tactics_preserve_recovery_switch_cooldown(self):
+        for interval in (1, 4):
+            with self.subTest(interval=interval):
+                state, model = shooting_state(), ClassicAIV1Model()
+                state.engine.puck_owner = 1  # Teammate owns puck; selected skater should switch.
+                state.puck.x = state.puck.y = 0
+                presses, previous = [], False
+                for frame in range(50):
+                    pressed = bool(model.predict_frame(state, interval)[0, Buttons.INPUT_B])
+                    if pressed and not previous:
+                        presses.append(frame)
+                    previous = pressed
+                self.assertEqual(presses, [0, 24, 48])
+
     def test_same_shooter_recovery_preserves_existing_follow_through(self):
         # Characterize the known behavior; changing it requires a separate fix.
         state, model = shooting_state(), ClassicAIV1Model()

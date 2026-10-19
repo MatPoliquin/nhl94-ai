@@ -370,6 +370,11 @@ class OffenseController:
     def movement_interval(self):
         return self.decision_interval if self.carry_motion else None
 
+    @property
+    def shot_hold_frames(self):
+        """Faster planning must not shorten the normal four-frame C press."""
+        return max(4, self.decision_interval)
+
     def clear_carry(self, state, player, target):
         return carry_clear(state, player, target, decision_interval=self.movement_interval)
 
@@ -407,11 +412,11 @@ class OffenseController:
     def _finish_value(self, state, player, *, carry_frames=0, pressure_state=None, pressure_delay=0):
         escape = goalie_avoidance(
             state, player, self.carry_target(state, player), decision_interval=self.decision_interval)
-        normal, early = ordinary_shot_conditions(state, player, self.decision_interval, escape)
+        normal, early = ordinary_shot_conditions(state, player, self.shot_hold_frames, escape)
         # An early shot can lose live priority to a one-timer or its setup.
         if not normal and not (early and not self.one_timers):
             return 0.0, 0
-        release = normal_shot_release_frames(player, self.decision_interval)
+        release = normal_shot_release_frames(player, self.shot_hold_frames)
         path = carry_path(player, None, release)
         xs = player.shot_projection_offsets_x or (-20, 20)
         ys = player.shot_projection_offsets_y or (-20, 20)
@@ -890,7 +895,7 @@ class OffenseController:
         params = tuning()
         finish_depth = params.normal_shot_depth - 20 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * params.shot_accuracy_depth_scale
         if (player.y * sign > finish_depth and abs(player.x) < params.normal_shot_half_width
-                and shot_release_in_front(state, player, self.decision_interval)
+                and shot_release_in_front(state, player, self.shot_hold_frames)
                 and pressure_margin(state.team2, (player.x, player.y), 8) >= 3):
             self.feint_target = None
             self.diagnostics['status'] = 'close-to-finish'

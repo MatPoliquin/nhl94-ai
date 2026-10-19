@@ -49,8 +49,9 @@ def apply_play_config(args):
     if classic:
         config = load_classic_config(getattr(args, 'classic_config', None))
         if getattr(args, 'classic_control_interval', None) is None:
-            # 60 Hz retains native reactions and the existing tactical scheduler.
+            # Playback's outer frame skip must not throttle a 60 Hz policy.
             args.classic_control_interval = 0 if config['decision_hz'] == 60 else 60 // config['decision_hz']
+            args.classic_decision_interval = 1 if config['decision_hz'] == 60 else 4
         if not config['ai_goalie'] and getattr(args, 'goalie_policy', None) is None:
             args.goalie_policy = 'off'
         args.player_ratings_consideration = config['player_ratings_consideration']

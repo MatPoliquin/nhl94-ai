@@ -118,7 +118,7 @@ class PossessionOffenseController(OffenseController):
         params = tuning()
         finish_depth = params.normal_shot_depth - 20 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * params.shot_accuracy_depth_scale
         if (player.y * sign > finish_depth and abs(player.x) < params.normal_shot_half_width
-                and shot_release_in_front(state, player, self.decision_interval)
+                and shot_release_in_front(state, player, self.shot_hold_frames)
                 and pressure_margin(state.team2, (player.x, player.y), 8) >= 3):
             self.feint_target = None
             self.diagnostics['status'] = 'close-to-finish'

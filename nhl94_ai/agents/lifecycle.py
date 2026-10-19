@@ -77,11 +77,11 @@ class ShotLifecycle:
             return 'idle'
         return 'holding' if frame < self.hold_until_frame else 'follow-through'
 
-    def start(self, state, decision, frame, hold_frames):
+    def start(self, state, decision, frame, hold_frames, *, follow_through_decisions=7):
         self.extended_hold = False
         self.crossing = False
         self.release_observed = False
-        self.until_decision = decision + 7
+        self.until_decision = decision + follow_through_decisions
         self.hold_until_frame = frame + hold_frames
         self.shots_before = state.team1.stats.shots
         self.slot = state.engine.puck_owner
