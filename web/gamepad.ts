@@ -2,6 +2,7 @@ import {
   Button, GAMEPAD_ACTIONS, gamepadMask, newlyPressedInput,
   type GamepadAction, type GamepadBinding, type GamepadBindings, type GamepadReading,
 } from "./inputs";
+import { automaticGamepadProfile, GamepadProfiles } from "./gamepad-profiles";
 
 interface GamepadElements {
   device: HTMLSelectElement;
@@ -30,7 +31,7 @@ function bindingLabel(binding: GamepadBinding): string {
 }
 
 export class GamepadInput {
-  private readonly profiles = new Map<string, GamepadBindings>();
+  private readonly profiles = new GamepadProfiles();
   private selected = "";
   private selectedLabel = "";
   private autoSelect = true;
@@ -65,8 +66,11 @@ export class GamepadInput {
       this.refresh();
     });
     ui.reset.addEventListener("click", () => {
-      this.profiles.delete(this.selected);
+      const pad = this.refresh();
+      if (!pad) return;
+      this.profiles.delete(pad);
       this.configuring = null;
+      this.pause("Gamepad mapping reset. Press Play to resume.");
       this.refresh();
     });
     this.refresh();
@@ -75,7 +79,7 @@ export class GamepadInput {
 
   mask(): number {
     const pad = this.refresh();
-    return pad && !this.configuring ? gamepadMask(pad, this.profiles.get(this.selected)) : 0;
+    return pad && !this.configuring ? gamepadMask(pad, this.bindings(pad)) : 0;
   }
 
   dispose(): void { clearInterval(this.timer); }
@@ -121,7 +125,7 @@ export class GamepadInput {
     }
     this.ui.device.disabled = !pads || (!pads.length && !this.selected);
     this.ui.setup.disabled = !pad;
-    this.ui.reset.disabled = !pad || !this.profiles.has(this.selected);
+    this.ui.reset.disabled = !pad || !this.profiles.get(pad) && !this.profiles.error;
 
     if (!pad) {
       if (this.connected) this.pause("Selected gamepad disconnected or became unavailable. Keyboard controls still work.");
@@ -152,24 +156,27 @@ export class GamepadInput {
           setup.bindings[GAMEPAD_ACTIONS[setup.step]!].push(binding);
           setup.step++;
           if (setup.step === GAMEPAD_ACTIONS.length) {
-            this.profiles.set(this.selected, setup.bindings);
+            this.profiles.set(pad, setup.bindings);
             this.configuring = null;
+            this.pause("Gamepad setup complete. Press Play to resume.");
           }
         }
       }
     }
-    const profile = this.profiles.get(this.selected);
+    const profile = this.profiles.get(pad);
+    const automatic = automaticGamepadProfile(pad);
+    const bindings = profile ?? automatic?.bindings;
     this.ui.setup.textContent = this.configuring ? "Cancel setup" : "Set up buttons / D-pad";
-    this.ui.reset.disabled = !profile || !!this.configuring;
+    this.ui.reset.disabled = (!profile && !this.profiles.error) || !!this.configuring;
     this.status(this.configuring ?
       `Set ${GAMEPAD_ACTIONS[this.configuring.step]}: release the controls, then press that direction/button. Use a different input for each action.` :
-      `${pad.id}: ${profile ? "custom mapping ready" : pad.mapping === "standard" ? "standard mapping ready" :
+      `${pad.id}: ${profile ? "custom mapping ready" : automatic ? `${automatic.label} mapping ready` :
         "non-standard mapping; use Set up buttons / D-pad before playing"}.`,
-    this.configuring ? "info" : profile || pad.mapping === "standard" ? "ready" : "warning");
-    const mask = this.configuring ? 0 : gamepadMask(pad, profile);
+    this.configuring ? "info" : bindings ? "ready" : "warning");
+    const mask = this.configuring ? 0 : gamepadMask(pad, bindings);
     const pressed = pad.buttons.flatMap((button, index) => button.pressed ? [index] : []);
-    const mapped = profile ? GAMEPAD_ACTIONS.map((action) =>
-      `${action}: ${profile[action].map(bindingLabel).join(" / ")}`).join("\n") : "";
+    const mapped = bindings ? GAMEPAD_ACTIONS.map((action) =>
+      `${action}: ${bindings[action].map(bindingLabel).join(" / ")}`).join("\n") : "";
     this.text(this.ui.live, [
       `Browser mapping: ${pad.mapping || "non-standard"}`,
       `Buttons (${pad.buttons.length}) pressed: ${pressed.join(", ") || "none"}`,
@@ -180,11 +187,19 @@ export class GamepadInput {
     return pad;
   }
 
+  private bindings(pad: Gamepad): GamepadBindings | undefined {
+    return this.profiles.get(pad) ?? automaticGamepadProfile(pad)?.bindings;
+  }
+
   private text(element: HTMLElement, text: string): void {
     if (element.textContent !== text) element.textContent = text;
   }
 
   private status(text: string, state: "ready" | "warning" | "info" | "error"): void {
+    if (this.profiles.error) {
+      text += ` Storage warning: ${this.profiles.error}. Use setup/reset to retry.`;
+      if (state !== "error") state = "warning";
+    }
     if (this.ui.status.dataset.state !== state) this.ui.status.dataset.state = state;
     this.text(this.ui.status, text);
   }

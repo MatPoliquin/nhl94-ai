@@ -9,6 +9,7 @@ from dataclasses import asdict
 import numpy as np
 
 from nhl94_ai.agents.scheduling import ActionScheduler, ButtonState
+from nhl94_ai.agents.classic_config import decision_state
 from nhl94_ai.agents.lifecycle import (
     ActionEnd, OneTimerLifecycle, ShotLifecycle, SetupState,
     ONE_TIMER_TIMEOUT_FRAMES, ONE_TIMER_CONTACT_GRACE,
@@ -244,6 +245,7 @@ class ClassicAIV1Model:
         return self._encode(np.zeros(Buttons.INPUT_MAX, dtype=np.int8), HOCKEY_INTENT_NOOP)
 
     def predict_game_state(self, state, deterministic=True):
+        state = decision_state(state, getattr(self.args, 'player_ratings_consideration', True))
         if self._observe_actions(state, self.scheduler.elapsed):
             return self._neutral('transition')
         goalie_action = self._goalie_frame(state)
@@ -590,6 +592,7 @@ class ClassicAIV1Model:
         self.scheduler.elapsed = self.scheduler.interval
 
     def predict_frame(self, state, frame_skip=4, deterministic=True):
+        state = decision_state(state, getattr(self.args, 'player_ratings_consideration', True))
         retention = getattr(self, 'retention_filter', None)
         if retention is None:
             return self._predict_native_frame(state, frame_skip, deterministic)

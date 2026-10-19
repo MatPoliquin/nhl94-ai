@@ -1,12 +1,17 @@
 import type { Observation } from "./observations";
 import type { ControllerSetup } from "./controllers";
 import type { GameStats } from "./game-stats";
+import type { ClassicConfig } from "./classic/config";
 
+interface SetupCommand {
+  controllers: ControllerSetup;
+  classicConfig?: ClassicConfig;
+}
 export type WorkerCommand =
-  | { type: "load"; rom: ArrayBuffer; coreBase: string; controllers: ControllerSetup }
-  | { type: "restart"; controllers: ControllerSetup }
-  | { type: "configure"; controllers: ControllerSetup }
-  | { type: "advance"; frames: number; humanInputs: readonly [number, number]; controllers: ControllerSetup }
+  | ({ type: "load"; rom: ArrayBuffer; coreBase: string } & SetupCommand)
+  | ({ type: "restart" } & SetupCommand)
+  | ({ type: "configure" } & SetupCommand)
+  | ({ type: "advance"; frames: number; humanInputs: readonly [number, number] } & SetupCommand)
   | { type: "export" }
   | { type: "replay"; value: unknown };
 

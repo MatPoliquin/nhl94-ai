@@ -6,6 +6,7 @@ import numpy as np
 
 from nhl94_ai.agents.base import AgentOutput
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
+from nhl94_ai.agents.classic_config import decision_state
 from nhl94_ai.agents.defense import defensive_steering, eligible
 from nhl94_ai.agents.motion import arrival_time, velocity
 from nhl94_ai.agents.teammate_receiving import SharedReceiving
@@ -154,6 +155,7 @@ class TeammateCoordinator:
             return AgentOutput(actions.reshape(24).copy(), self.last_diagnostics)
         for i, state in enumerate(self.states):
             state.BeginFrame(views[i], self._game_action(self.previous[i]))
+            self.states[i] = decision_state(state, getattr(self.args, 'player_ratings_consideration', True))
         state = self.states[0]
         self.frames += 1
         slots = [view[f'p{self.side}_control_slot'] for view in views]
@@ -221,7 +223,10 @@ class TeammateCoordinator:
                     elif not self.previous[i, Buttons.INPUT_B]:
                         self.switch_at = self.frames + 8
             else:
-                actions[i], target = self._steer(player, target)
+                if self.support_options and self.support[i].coast:
+                    actions[i] = np.zeros(12, dtype=np.int8)
+                else:
+                    actions[i], target = self._steer(player, target)
             controller = self.controllers[i]
             if controller.scheduler.frames < self.frames:
                 if role in ('intermission', 'unavailable', 'faceoff', 'faceoff-support'):

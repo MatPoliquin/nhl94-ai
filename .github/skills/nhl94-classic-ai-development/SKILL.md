@@ -19,6 +19,11 @@ separate stable-retro/runtime repositories unless explicitly requested.
 
 For PPO, rewards, randomized resets and save initialization, use
 [nhl94-task-development](../nhl94-task-development/SKILL.md).
+For browser bot integration, TypeScript parity, gamepad/controller routing or
+browser rendering, use
+[nhl94-browser-arena-development](../nhl94-browser-arena-development/SKILL.md).
+The Python package placement and CLI workflows here apply to Python changes,
+not the independent application in `web/`.
 Read the relevant portions of [Classic](../../../docs/CLASSIC.md) and
 [Architecture](../../../docs/ARCHITECTURE.md). RAM decoding is in
 `nhl94_ai/game/ram.py` and `nhl94_ai/game/state.py`; start with those sources

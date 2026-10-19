@@ -1,0 +1,10 @@
+{
+  // Options: 60, 15, 10, 6 Hz. Skater and manual goalie decisions; hold inputs between decisions.
+  "decision_hz": 60,
+
+  // Options: true, false. Enable manual goalie AI; false leaves goalie control to the game.
+  "ai_goalie": true,
+
+  // Options: true, false. Consider player ratings across all decisions; does not change in-game ratings.
+  "player_ratings_consideration": true
+}

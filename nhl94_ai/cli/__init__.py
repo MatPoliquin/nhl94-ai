@@ -82,6 +82,7 @@ def main(argv=None):
             args.num_players = 1
         elif args.mode in ('player_vs_model', 'model_vs_model', 'team_vs_game'):
             args.num_players = 2
+        module.resolve_play_goalie_defaults(args)
     if command == 'train':
         from nhl94_ai.training.service import train
         train(args)

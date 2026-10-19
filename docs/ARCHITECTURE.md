@@ -121,7 +121,13 @@ decision. A shared pass commitment records native release, actual receiver,
 interception point, expiry and reception/shot phase. Controlled receivers reserve
 input ownership; one-timer cues require estimated contact with the native shot
 pose. `--teammate-support-options` opts into bounded reachable support options
-and goal-side recovery coverage in playback or teammate benchmarks.
+and goal-side recovery coverage in playback or teammate benchmarks. Support
+forecasts advance the receiver, carrier, teammates, defenders, goalies and puck
+to a common estimated release time before evaluating the pass flight. The
+receiver follows the same turning/braking steering used in execution; forecasts
+of other actors hold observed steering and do not predict new CPU decisions.
+Staying and coasting are explicit options, with bounded target persistence and
+immediate invalidation when possession or receiver availability changes.
 These tactics remain confined to the opt-in teammate mode. Benchmark `--state`
 also accepts an absolute path to an externally prepared, gzip native save; its
 initial state and RAM hashes are included in the report.

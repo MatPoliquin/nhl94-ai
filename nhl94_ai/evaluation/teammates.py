@@ -24,7 +24,9 @@ from nhl94_ai.game.specs import get_game
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, lineup
 from nhl94_ai.evaluation.offense_metrics import OffenseMetrics
+from nhl94_ai.tasks.cross_crease_setup import crossing_touch_player
 from nhl94_ai.evaluation.teammate_metrics import ReceptionOutcomes
+from nhl94_ai.evaluation.teammate_opportunities import opportunity_diagnostics
 
 
 DEFAULT_STATE = 'SabresVsMightyDucks.ManualGoalie.Start'
@@ -168,6 +170,7 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
                                                   'role': 'highlight' if highlight else agent._last_decision}]}
                 state_object.EndFrame()
             else:
+                previous_teammate_inputs = agent.previous.copy() if recording else None
                 result = agent.act(info)
                 action = result.action
                 diagnostics = result.diagnostics['teammates']
@@ -221,6 +224,11 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
                 previous_action = np.asarray(action, dtype=np.int8).copy()
             digest.update(np.asarray(action, dtype=np.int8).tobytes())
             if recording:
+                if not single and not highlight:
+                    diagnostics['opportunities'] = opportunity_diagnostics(
+                        view_state, diagnostics, previous_teammate_inputs)
+                    if diagnostics['opportunities'] is not None:
+                        diagnostics['opportunities']['native_touch'] = crossing_touch_player(env)
                 recording.write(json.dumps({'frame': frame, 'period': info['period'] + 1,
                                              'clock': info['teammate_clock'], 'owner': info['puck_owner'],
                                              'buttons': action.tolist(), 'diagnostics': diagnostics}) + '\n')

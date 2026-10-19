@@ -89,12 +89,12 @@ test("replays the saved start and every native assignment change to the same fin
   await page.getByRole("button", { name: "Download input replay" }).click();
   const path = await (await downloadPromise).path();
   const replay = parseReplay(JSON.parse(await readFile(path!, "utf8")));
-  expect(replay.format).toBe("nhl94-browser-inputs-v2");
-  if (replay.format !== "nhl94-browser-inputs-v2") throw new Error("Expected a saved-state replay.");
+  expect(replay.format).toBe("nhl94-browser-inputs-v3");
+  if (replay.format !== "nhl94-browser-inputs-v3") throw new Error("Expected a saved-state replay.");
   expect(replay.startStateHash).toBe(DEFAULT_STATE_HASH);
-  expect(replay.controllerEvents.filter((event) => event.frame === changeFrame).map((event) => event.teams))
+  expect(replay.configurationEvents.filter((event) => event.frame === changeFrame).map((event) => event.teams))
     .toEqual([[2, 2], [2, 1]]);
-  expect(replay.controllerEvents.at(-1)).toEqual({ frame: replay.inputs.length, teams: [0, 0] });
+  expect(replay.configurationEvents.at(-1)).toEqual({ frame: replay.inputs.length, teams: [0, 0], goalieModes: [0, 0] });
   await page.locator("#replay").setInputFiles(path!);
   await expect(page.locator("#status")).toContainText("Replay loaded");
   await page.getByRole("button", { name: "Play", exact: true }).click();
@@ -103,9 +103,56 @@ test("replays the saved start and every native assignment change to the same fin
   expect(replayed?.frame).toBe(final?.frame);
   expect(replayed?.observation).toEqual(final?.observation);
   expect(replayed?.stats).toEqual(final?.stats);
+  await page.locator("#replay").setInputFiles({
+    name: "compatible-v2.json", mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify({
+      ...replay, format: "nhl94-browser-inputs-v2",
+      controllerEvents: replay.configurationEvents.map(({ frame, teams }) => ({ frame, teams })),
+    })),
+  });
+  await expect(page.locator("#status")).toContainText("Replay loaded");
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(page.locator("#status")).toContainText("Replay finished", { timeout: 15000 });
+  expect((await page.evaluate(() => window.arenaFrame))?.observation).toEqual(final?.observation);
   await page.getByRole("button", { name: "Restart match" }).click();
   await expect(page.locator("#frame")).toHaveText("0");
   expect(await page.evaluate(() => window.arenaFrame?.observation.seconds)).toBe(300);
+});
+
+test("hands ROM AI slots to the native CPU and replays their zero-input match exactly", async ({ page }) => {
+  test.skip(!process.env.NHL94_ROM, "Requires a legally supplied local ROM.");
+  await openMatch(page);
+  await page.locator("#controller-2-agent").selectOption("rom");
+  await teams(page, [1, 0]);
+  expect(await page.evaluate(() => window.arenaFrame?.observation.controllers[1].slot)).toBe(-1);
+  await page.locator("#controller-1-agent").selectOption("rom");
+  await teams(page, [0, 0]);
+  await expect(page.locator("#controller-note")).not.toContainText("Team assignments will be applied");
+  await page.getByRole("button", { name: "Step one frame" }).click();
+  await expect(page.locator("#frame")).toHaveText("1");
+  await page.getByRole("button", { name: "Restart match" }).click();
+  await teams(page, [0, 0]);
+  await expect(page.locator("#controller-1-agent")).toHaveValue("rom");
+  await expect(page.locator("#controller-2-agent")).toHaveValue("rom");
+  await pauseAfter(page, 120);
+  const final = await page.evaluate(() => window.arenaFrame);
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download input replay" }).click();
+  const path = await (await downloadPromise).path();
+  const replay = parseReplay(JSON.parse(await readFile(path!, "utf8")));
+  expect(replay.format).toBe("nhl94-browser-inputs-v3");
+  if (replay.format !== "nhl94-browser-inputs-v3") throw new Error("Expected a saved-state replay.");
+  expect(replay.configurationEvents[0]?.teams).toEqual([0, 0]);
+  expect(replay.inputs.length).toBeGreaterThan(120);
+  expect(replay.inputs.every(([first, second]) => first === 0 && second === 0)).toBe(true);
+  await page.locator("#replay").setInputFiles(path!);
+  await expect(page.locator("#status")).toContainText("Replay loaded");
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(page.locator("#status")).toContainText("Replay finished", { timeout: 15000 });
+  const replayed = await page.evaluate(() => window.arenaFrame);
+  expect(replayed?.observation).toEqual(final?.observation);
+  expect(replayed?.stats).toEqual(final?.stats);
+  await expect(page.locator("#error")).toBeHidden();
 });
 
 test("supports compatible boot replays and rejects a mismatched saved start explicitly", async ({ page }) => {

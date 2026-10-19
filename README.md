@@ -158,6 +158,11 @@ Evaluation defaults to one complete first period; `--periods 3` runs regulation.
 four processes. Playback remains home-only. Top-level scores and shots are
 ordered AI first, CPU second; period scoreboards retain home/visitor order.
 Reports retain physical team IDs and live lineups.
+`--teammate-support-options` opts into estimated support positions that consider
+ordinary passes, one-timers, staying, braking and coasting. It remains experimental.
+Explicit input traces include sampled pass candidates and rejection reasons, live
+contact estimates, native touch attribution and applied C edges. These forecasts
+describe heuristic opportunities; native counters determine completed shots.
 Reports include completion status, native-frame counts, scores, shots, pass and
 one-timer attempts, observed controlled-teammate receptions, skater turnovers,
 roles, input hashes and ROM/source provenance. Incomplete runs remain explicitly

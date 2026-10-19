@@ -1,7 +1,9 @@
 import { validMask } from "./inputs";
 import { decodeObservation, type Observation } from "./observations";
 import { decodeGameStats, type GameStats } from "./game-stats";
-import type { ControllerTeams } from "./controllers";
+import type { ControllerTeams, GoalieModes } from "./controllers";
+import { ClassicDecoder } from "./classic/decoder";
+import type { GameState } from "./classic/state";
 
 export interface CoreModule {
   HEAPU8: Uint8Array<ArrayBuffer>;
@@ -33,8 +35,9 @@ export type CoreFactory = (options: {
 export class Engine {
   frame = 0;
   private disposed = false;
+  private classicDecoder: ClassicDecoder | undefined;
 
-  private constructor(private readonly core: CoreModule) {}
+  private constructor(private readonly core: CoreModule, private readonly rom: Uint8Array) {}
 
   static async create(factory: CoreFactory, wasm: Uint8Array<ArrayBuffer>,
     rom: Uint8Array<ArrayBuffer>): Promise<Engine> {
@@ -50,7 +53,7 @@ export class Engine {
     } finally {
       core._arena_free(pointer);
     }
-    return new Engine(core);
+    return new Engine(core, rom);
   }
 
   get fps(): number { return this.core._arena_fps(); }
@@ -73,6 +76,30 @@ export class Engine {
 
   observe(): Observation {
     return decodeObservation(this.ram(), this.frame);
+  }
+
+  classicState(): GameState {
+    this.classicDecoder ??= new ClassicDecoder(this.rom);
+    return this.classicDecoder.decode(this.ram());
+  }
+
+  goalieModes(): GoalieModes {
+    const ram = this.ram(), view = new DataView(ram.buffer, ram.byteOffset, ram.byteLength);
+    const first = view.getUint16(0xd05a, true), second = view.getUint16(0xd05c, true);
+    if ((first !== 0 && first !== 1) || (second !== 0 && second !== 1)) {
+      throw new Error("Unsupported native goalie configuration.");
+    }
+    return [first, second];
+  }
+
+  assignGoalies(modes: GoalieModes): void {
+    if (modes.length !== 2 || !modes.every((mode) => mode === 0 || mode === 1)) {
+      throw new Error("Goalie modes must select manual or automatic control for both teams.");
+    }
+    const ram = this.ram(), view = new DataView(ram.buffer, ram.byteOffset, ram.byteLength);
+    if (view.getUint16(0xd048, true) !== 0) throw new Error("Goalie configuration requires an exhibition match.");
+    view.setUint16(0xd05a, modes[0], true);
+    view.setUint16(0xd05c, modes[1], true);
   }
 
   stats(): GameStats {

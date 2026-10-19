@@ -18,8 +18,18 @@ applyTo: "web/**"
   validated. Make intentional incompatibility visible rather than guessing.
 - Surface worker, bot, file and audio failures in the UI. Keep cancellation and
   recovery responsive; do not silently replace invalid input or failed bots.
-- The diagnostic bot is not Classic. Classic, online play and TensorFlow.js
-  must not be presented as implemented until their runtime paths are verified.
+- The diagnostic bot is not Classic. The Genesis Classic baseline is implemented
+  in `web/classic/`;
+  optional Python experiments, coordinated teammates, online play and TensorFlow.js
+  must not be presented as supported without verified runtime paths.
+- Bot integration must wire the catalogue, worker factory, per-slot state,
+  controller/team view, configuration and replay behavior, not only the UI.
+  Use the browser skill's Classic parity gate for behavior changes.
+- For controller or missing-HUD issues, follow the browser skill's
+  [troubleshooting reference](../skills/nhl94-browser-arena-development/references/controller-troubleshooting.md).
+  Verify browser signals through native input/player response, preserve guarded
+  presets and saved overrides, and test complete canvas bounds at native video
+  sizes rather than treating device detection or a nonempty image as success.
 - Keep ROMs, credentials, dependencies, caches and generated build outputs out
   of commits. Preserve license notices and corresponding source distribution.
 - Keep the baseline compatible with static Pages hosting and repository-subpath

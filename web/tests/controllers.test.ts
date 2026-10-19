@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { DiagnosticBot, type Bot } from "../bot";
+import { AVAILABLE_BOTS, DiagnosticBot, type Bot } from "../bot";
+import { createBot } from "../bot-factory";
+import { ClassicBot } from "../classic/bot";
+import { DEFAULT_CLASSIC_CONFIG } from "../classic/config";
 import {
-  controllerInputs, controllerRouting, DEFAULT_CONTROLLERS, parseControllerSetup,
+  assignedTeams, controllerInputs, controllerRouting, DEFAULT_CONTROLLERS, parseControllerSetup,
   type ControllerSetup,
 } from "../controllers";
 import { Button } from "../inputs";
@@ -29,9 +32,20 @@ class ProbeBot implements Bot {
 }
 
 describe("four-slot controller configuration", () => {
-  it("defaults to Human/Home, Bot/Away and two unsupported None slots", () => {
+  it("offers ROM AI before Classic AI in the bot catalogue", () => {
+    expect(AVAILABLE_BOTS.map((bot) => bot.id)).toEqual(["rom", "classic"]);
+  });
+
+  it("only constructs a scripted bot for Classic AI", () => {
+    expect(createBot("classic", DEFAULT_CLASSIC_CONFIG)).toBeInstanceOf(ClassicBot);
+    for (const agent of ["human", "rom", "none"] as const) {
+      expect(createBot(agent, DEFAULT_CLASSIC_CONFIG)).toBeNull();
+    }
+  });
+
+  it("defaults to Human/Home, Classic/Away and two unsupported None slots", () => {
     expect(parseControllerSetup(DEFAULT_CONTROLLERS)).toEqual([
-      { agent: "human", team: 1 }, { agent: "diagnostic", team: 2 },
+      { agent: "human", team: 1 }, { agent: "classic", team: 2 },
       { agent: "none", team: 1 }, { agent: "none", team: 2 },
     ]);
   });
@@ -39,7 +53,8 @@ describe("four-slot controller configuration", () => {
   it("rejects invalid agents, teams, shapes and active future controllers", () => {
     for (const value of [
       null, [], DEFAULT_CONTROLLERS.slice(0, 2),
-      [{ agent: "classic", team: 1 }, ...DEFAULT_CONTROLLERS.slice(1)],
+      [{ agent: "unsupported", team: 1 }, ...DEFAULT_CONTROLLERS.slice(1)],
+      [{ agent: "diagnostic", team: 1 }, ...DEFAULT_CONTROLLERS.slice(1)],
       [{ agent: "human", team: "1" }, ...DEFAULT_CONTROLLERS.slice(1)],
       [DEFAULT_CONTROLLERS[0], DEFAULT_CONTROLLERS[1], { agent: "human", team: 1 }, DEFAULT_CONTROLLERS[3]],
     ]) expect(() => parseControllerSetup(value)).toThrow();
@@ -62,7 +77,7 @@ describe("four-slot controller configuration", () => {
 
   it("applies a swapped team selection to human and bot inputs", () => {
     const setup: ControllerSetup = [
-      { agent: "human", team: 2 }, { agent: "diagnostic", team: 1 },
+      { agent: "human", team: 2 }, { agent: "classic", team: 1 },
       DEFAULT_CONTROLLERS[2], DEFAULT_CONTROLLERS[3],
     ];
     expect(controllerInputs(setup, observation(), [Button.START, 0],
@@ -71,7 +86,7 @@ describe("four-slot controller configuration", () => {
 
   it("keeps two bot instances separate and gives both the same pre-frame observation", () => {
     const setup: ControllerSetup = [
-      { agent: "diagnostic", team: 1 }, { agent: "diagnostic", team: 2 },
+      { agent: "classic", team: 1 }, { agent: "classic", team: 2 },
       DEFAULT_CONTROLLERS[2], DEFAULT_CONTROLLERS[3],
     ];
     const state = observation(), bots = [new ProbeBot(Button.B), new ProbeBot(Button.C)] as const;
@@ -100,6 +115,36 @@ describe("four-slot controller configuration", () => {
       [new DiagnosticBot(), new DiagnosticBot()])).toEqual([0, Button.A | Button.B]);
   });
 
+  it("releases ROM AI ownership without reserving a port or running a scripted bot", () => {
+    const setup: ControllerSetup = [
+      { agent: "rom", team: 1 }, { agent: "human", team: 2 },
+      DEFAULT_CONTROLLERS[2], DEFAULT_CONTROLLERS[3],
+    ];
+    const state = { ...observation(), controllers: [
+      { team: 0, slot: -1, player: null }, observation().controllers[1],
+    ] as const };
+    expect(parseControllerSetup(setup)).toEqual(setup);
+    expect(assignedTeams(setup)).toEqual([0, 2]);
+    expect(controllerRouting(setup, state)).toEqual({ ports: [0, 1], message: "" });
+    const bots = [new ProbeBot(Button.C), new ProbeBot(Button.C)] as const;
+    expect(controllerInputs(setup, state, [Button.A, Button.B], bots)).toEqual([0, Button.A | Button.B]);
+    expect(bots.map((bot) => bot.calls)).toEqual([[], []]);
+  });
+
+  it("supports Classic against ROM AI and neutral inputs for ROM AI against ROM AI", () => {
+    const setup: ControllerSetup = [
+      { agent: "classic", team: 1 }, { agent: "rom", team: 2 },
+      DEFAULT_CONTROLLERS[2], DEFAULT_CONTROLLERS[3],
+    ];
+    const bot = new ProbeBot(Button.C);
+    expect(assignedTeams(setup)).toEqual([1, 0]);
+    expect(controllerInputs(setup, observation(), [Button.A, Button.B], [bot, null])).toEqual([Button.C, 0]);
+    const allRom: ControllerSetup = [{ agent: "rom", team: 1 }, setup[1], setup[2], setup[3]];
+    expect(assignedTeams(allRom)).toEqual([0, 0]);
+    expect(controllerRouting(allRom, observation()).message).toBe("");
+    expect(controllerInputs(allRom, observation(), [Button.A, Button.B], [null, null])).toEqual([0, 0]);
+  });
+
   it("keeps assignment initialization explicit before a match is loaded", () => {
     const empty = { ...observation(), seconds: 0, controllers: [
       { team: 0, slot: -1, player: null }, { team: 0, slot: -1, player: null },
@@ -111,7 +156,7 @@ describe("four-slot controller configuration", () => {
 
   it("supports two same-team assignments only when the game has assigned both ports", () => {
     const setup: ControllerSetup = [
-      { agent: "human", team: 1 }, { agent: "diagnostic", team: 1 },
+      { agent: "human", team: 1 }, { agent: "classic", team: 1 },
       DEFAULT_CONTROLLERS[2], DEFAULT_CONTROLLERS[3],
     ];
     expect(controllerRouting(setup, observation()).message).toContain("applied to the loaded match");
@@ -125,5 +170,7 @@ describe("four-slot controller configuration", () => {
       [new DiagnosticBot(), new DiagnosticBot()])).toThrow("human");
     expect(() => controllerInputs(DEFAULT_CONTROLLERS, observation(), [0, 0],
       [new ProbeBot(0), new ProbeBot(2)])).toThrow("Bot on controller 2");
+    expect(() => controllerInputs(DEFAULT_CONTROLLERS, observation(), [0, 0],
+      [null, null])).toThrow("Bot on controller 2 is not initialized");
   });
 });

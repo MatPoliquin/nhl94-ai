@@ -1,6 +1,6 @@
 ---
 name: nhl94-browser-arena-development
-description: "Develop and debug the NHL94 browser arena in web/. Use for Genesis Plus GX WASM builds, the C/libretro bridge, TypeScript emulator workers, RAM observations, keyboard/gamepad mapping including 8BitDo M30, native-frame timing, input replay determinism, Python Classic-to-TypeScript parity, WebRTC bot-versus-bot lockstep, TensorFlow.js adapters or GitHub Pages asset loading. Distinguish implemented smoke-test features from planned capabilities."
+description: "Develop and debug the NHL94 browser arena in web/. Use for integrating bots, Classic TypeScript/Python parity, classic_bot.json settings, native-frame timing, Genesis Plus GX WASM/RAM, controller ownership, gamepad detection or buttons not working, 8BitDo M30 presets, persistent mappings, clipped canvas/HUD, input replays, WebRTC lockstep, TensorFlow.js adapters or GitHub Pages assets. Distinguish implemented Genesis Classic from unsupported experiments, learned policies and online play."
 ---
 
 # NHL94 browser arena development
@@ -10,6 +10,8 @@ follow [web instructions](../../instructions/web.instructions.md) without the
 full emulator workflow. For Python-only training or tactical changes, use the
 existing [task](../nhl94-task-development/SKILL.md) or
 [Classic](../nhl94-classic-ai-development/SKILL.md) skill instead.
+For device detection, mapping, inputs not reaching a player or a missing score/timer,
+follow [controller and display troubleshooting](./references/controller-troubleshooting.md).
 
 ## 1. Establish the affected contract
 
@@ -27,14 +29,18 @@ describe the current checkout.
 | Trusted default save, native team ownership and replay initialization | [start state](../../../web/start-state.ts), [native bridge](../../../web/native/bridge.c), [startup tests](../../../web/tests/start-state.test.ts), [browser replay parity](../../../web/tests/browser/start-state.spec.ts) |
 | Browser observations, native team stats and ROM assumptions | [observations](../../../web/observations.ts), [game stats](../../../web/game-stats.ts), [ROM validation](../../../web/rom.ts) |
 | Python Genesis reference semantics | [platform backend](../../../nhl94_ai/game/platforms/genesis.py), [RAM declarations](../../../nhl94_ai/game/ram.py), [game state](../../../nhl94_ai/game/state.py) |
-| Controller masks, keyboard, gamepad detection and setup | [inputs](../../../web/inputs.ts), [gamepad panel](../../../web/gamepad.ts) |
-| Bot boundary, controller slots/team routing and replay validation | [bot](../../../web/bot.ts), [controllers](../../../web/controllers.ts), [replay](../../../web/replay.ts) |
+| Controller masks, keyboard, gamepad detection and setup | [inputs](../../../web/inputs.ts), [gamepad panel](../../../web/gamepad.ts), [automatic/saved profiles](../../../web/gamepad-profiles.ts) |
+| Bot catalogue, construction and controller routing | [bot](../../../web/bot.ts), [factory](../../../web/bot-factory.ts), [controllers](../../../web/controllers.ts), [worker](../../../web/emulator.worker.ts) |
+| Classic runtime, configuration and state decoding | [adapter](../../../web/classic/bot.ts), [controller](../../../web/classic/classic.ts), [config](../../../web/classic/config.ts), [shared defaults](../../../configs/classic_bot.json), [decoder](../../../web/classic/decoder.ts), [ROM geometry](../../../web/classic/rom-geometry.ts) |
+| Frozen Python reference and native input parity | [fingerprint](../../../web/classic/reference.json), [offline oracle](../../../web/scripts/classic-reference.py), [parity tests](../../../web/tests/classic-parity.test.ts) |
+| Replay compatibility and native goalie modes | [replay](../../../web/replay.ts), [engine](../../../web/engine.ts), [browser replay tests](../../../web/tests/browser/start-state.spec.ts) |
 | Focused checks | [contract tests](../../../web/tests/contracts.test.ts), [WASM tests](../../../web/tests/core.test.ts), [browser tests](../../../web/tests/browser/smoke.spec.ts), [browser config](../../../web/playwright.config.ts) |
 
-At initial creation this app is a local smoke test with a diagnostic bot.
-Classic, online play and TensorFlow.js are not implemented. Verify current
-sources before changing that description; never relabel the diagnostic bot as
-Classic or treat future design as tested behavior.
+The app includes a diagnostic bot and a TypeScript Genesis Classic baseline.
+The diagnostic bot is not Classic. The browser port does not include all optional
+Python experiments, coordinated teammate strategies, learned models or online
+matches. Verify current sources before changing these boundaries; do not infer
+support from Python flags or label a simplified replacement as a faithful port.
 
 For a runtime defect, capture a focused failing case first. Record only the
 necessary ROM/core identifiers, controller assignment, frame/input sequence,
@@ -66,6 +72,10 @@ the repository; keep reusable tests with their implementation.
   Keep the state hash, one-frame startup initialization and recorded controller
   events consistent across restart and replay; do not silently replay save-based
   recordings from ROM boot or ignore ownership changes made while paused.
+- Preserve v1 ROM-boot, v2 saved-start/controller-event and v3 saved-start/
+  controller-and-goalie-event replay semantics. Native writes made while paused
+  still need ordered events, including multiple changes on the same frame and
+  changes at the final input count. Apply final events before the final packet.
 - RAM checksums are diagnostic, not complete-state digests. Matching checksums
   or two Node WASM instances do not prove cross-browser gameplay determinism
   or honest bot execution.
@@ -106,12 +116,12 @@ for the changed behavior; boot/menu traces alone do not cover full gameplay,
 goalies, both teams or stoppages.
 
 For UI changes, use browser tools to exercise the affected controls and failure
-states. For gamepad changes, inspect `navigator.getGamepads()` after user input
-and distinguish no browser-exposed device from an unconfigured non-standard
-mapping. Use the live gamepad panel and explicit button/D-pad setup for raw
-devices; an M30's label/mode is not evidence that its buttons match the default
-layout. Test press/release and disconnect; report
-hardware testing as unavailable when no physical controller is exposed.
+states. For controller or clipped-video defects, use the
+[troubleshooting workflow](./references/controller-troubleshooting.md).
+Distinguish browser exposure, automatic/custom mapping, human-slot routing and
+native player response. A device name, ready indicator or correct mock input
+does not prove that physical controls work. Test holds, releases, disconnects,
+profile persistence and the full native image, not only the initial page layout.
 
 If starting a local dev server, verify the chosen port is responsive. Reuse an
 existing task server rather than replacing an unrelated process. Keep long-lived
@@ -119,7 +129,7 @@ servers only when needed for user iteration; clean up temporary test servers.
 
 ## 4. Apply the feature-specific gate
 
-### Classic TypeScript port
+### Bot integration and Classic parity
 
 Use the [Python agent interface](../../../nhl94_ai/agents/base.py) and
 [Classic behavior guide](../../../docs/CLASSIC.md). Freeze/fingerprint the Python
@@ -132,6 +142,44 @@ every native-frame button output, including both sides, reset, held-input edges,
 goalies and interruptions. Then compare integrated emulator traces. Explain
 mismatches before changing the reference. Similar scores do not establish parity.
 Do not change Python tactics while debugging a structural port.
+
+When adding or changing a browser bot:
+
+1. Wire the shared catalogue, controller parsing, worker factory and actual
+   execution path. A dropdown entry alone is not an integration. Keep heavy
+   bot execution in the worker, not the catalogue imported by informational pages.
+2. Give each active slot its own bot history. Decode the shared pre-frame state,
+   then derive controller/team-specific views without mutating it. Apply both
+   physical-port inputs to the same native frame. Reset pending actions on restart
+   and configuration/assignment changes; replay runs recorded inputs, not bots.
+3. Validate observation and action contracts at their boundary. Classic converts
+   twelve Python control channels to supported libretro masks explicitly; do not
+   confuse a channel index, browser button number, mask bit and physical port.
+4. Keep defaults and UI/worker validation aligned with the commented
+   [Classic JSON](../../../configs/classic_bot.json). At nominal 60 Hz, Classic
+   retains native reactions and its normally four-frame offensive scheduler.
+   15/10/6 Hz sample and hold all raw inputs every 4/6/10 native frames, including
+   goalie inputs, while advancing held-frame clocks. Display pacing is separate.
+5. Ratings-off uses a neutral decision view of both teams, not RAM edits to
+   player ratings, energy, handedness or motion. AI Goalie changes native modes
+   on Classic-controlled teams; preserve those writes in v3 replays.
+
+Run the [offline oracle](../../../web/scripts/classic-reference.py) with an
+existing Python development interpreter that can import the reference
+dependencies. Python is test tooling, not a browser runtime:
+
+```bash
+NHL94_PYTHON=/absolute/path/to/python NHL94_ROM=/absolute/path/to/nhl94.bin \
+  npm test -- tests/classic-parity.test.ts
+```
+
+The [reference fingerprint](../../../web/classic/reference.json) includes
+working-tree source and config hashes, not just a Git revision. Treat a mismatch
+as a changed reference to investigate, not a reason to regenerate the file until
+tests pass. Preserve Python rounding/modulo, fixed-point arithmetic, tie ordering
+and the fixed passing scenario values. Verify native masks over contiguous
+sequences, both sides, reset, strict-rate holds and goalie transitions. Full-period
+parity does not by itself certify every game mode or long-match transition.
 
 ### Remote bot input exchange
 

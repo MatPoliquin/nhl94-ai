@@ -23,8 +23,8 @@
         </div>
       </header>
       <section class="notice">
-        <strong>This is the emulator test, not Classic AI.</strong>
-        The diagnostic bot only chases the puck. A faithful TypeScript Classic port is the next milestone.
+        <strong>Local AI arena.</strong>
+        Choose ROM AI for the game's built-in CPU or Classic AI for the Genesis scripted bot.
       </section>
       <p id="error" role="alert" hidden></p>
       <div class="layout">
@@ -54,9 +54,10 @@
           <p class="hint">Arrows: skate/menu &middot; Z: A &middot; X: B &middot; C: C &middot; Enter: Start.
             Gamepad: select your device and check its mapping in Step 3.</p>
           <section class="panel bot-configuration" aria-labelledby="bot-configuration-title">
-            <h2 id="bot-configuration-title">Bot Configuration <span class="badge">Coming later</span></h2>
-            <p class="detail">Preview only. These settings are not supported yet and do not change bot execution.</p>
-            <fieldset class="bot-settings" disabled>
+            <h2 id="bot-configuration-title">Bot Configuration</h2>
+            <p class="detail">Applies to Classic AI slots. Changing settings pauses the match and resets bot decisions.
+              Lower frequencies hold all inputs between decisions, including goalie inputs. Ratings-off changes the AI's view, not game physics.</p>
+            <fieldset id="bot-settings" class="bot-settings">
               <legend>Bot frequency</legend>
               <div class="frequency-options">
                 <label><input type="radio" name="bot-frequency" value="60" checked /> 60 Hz</label>
@@ -64,8 +65,8 @@
                 <label><input type="radio" name="bot-frequency" value="10" /> 10 Hz</label>
                 <label><input type="radio" name="bot-frequency" value="6" /> 6 Hz</label>
               </div>
-              <label class="check"><input id="bot-goalie" type="checkbox" /> AI Goalie</label>
-              <label class="check"><input id="bot-ratings" type="checkbox" /> Consider player ratings</label>
+              <label class="check"><input id="bot-goalie" type="checkbox" checked /> AI Goalie</label>
+              <label class="check"><input id="bot-ratings" type="checkbox" checked /> Consider player ratings</label>
             </fieldset>
           </section>
           <section class="panel game-stats" aria-labelledby="game-stats-title">
@@ -153,7 +154,7 @@
             <p id="controller-error" role="alert" hidden></p>
             <p id="controller-note" class="detail"></p>
             <p class="detail">Home/Away changes the in-game controller assignment.
-              None releases that controller; teams without an assigned controller use the game's CPU.
+              ROM AI and None release that controller; teams without an assigned controller use the game's built-in ROM AI.
               Human vs Bot and Bot vs Bot can start directly from the loaded match.</p>
           </section>
           <section class="panel">
@@ -169,8 +170,9 @@
               <summary>Gamepad setup and live inputs</summary>
               <button id="gamepad-setup" disabled>Set up buttons / D-pad</button>
               <button id="gamepad-reset" disabled>Reset mapping</button>
-              <p class="detail">For an M30 or any non-standard receiver, follow the eight setup prompts.
-                Custom mappings last for this tab and can also override standard mappings.</p>
+              <p class="detail">Standard gamepads and the M30 / 6B receiver (0ca3:0024, 10 buttons / 3 axes) work automatically.
+                Use setup to override the defaults or configure another layout. Custom mappings are saved in this browser.
+                Reset mapping restores the automatic preset when available.</p>
               <pre id="gamepad-live" aria-label="Live gamepad inputs">No selected gamepad input.</pre>
               <p class="detail">If no device appears, click the page and press a gamepad button.
                 In Firefox, check that gamepad support is enabled and try a regular browser

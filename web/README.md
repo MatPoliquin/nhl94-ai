@@ -1,6 +1,7 @@
 # NHL94 AI CONTEST
 
-A **local emulator smoke test**, not the Classic AI port and not a netplay release.
+A **local AI arena** with the game's built-in ROM AI and a TypeScript Genesis Classic bot;
+not a netplay release.
 The app is TypeScript/Vite; the emulator is Genesis Plus GX compiled to
 single-threaded WebAssembly with a small C/libretro bridge.
 
@@ -72,9 +73,9 @@ publishing them.
 
 1. Select your legally obtained, uncompressed original NHL94 Genesis ROM.
 2. Step 2 lists four controller slots. Controller 1 defaults to **Human / Team 1
-   (Home)** and controller 2 to **Diagnostic bot / Team 2 (Away)**.
-   Each enabled slot offers **Human**, the available bots, then **None**, with a
-   Home/Away team selector alongside it. Controllers 3 and 4 are greyed out as
+   (Home)** and controller 2 to **Classic AI / Team 2 (Away)**.
+   Each enabled slot offers **Human**, **ROM AI**, **Classic AI**, then **None**, with a
+   Home/Away team selector for Human and Classic AI. Controllers 3 and 4 are greyed out as
    None until four-player support is implemented.
 3. In **Step 3: Input device**, use the keyboard/on-screen controls or select a
    gamepad. The same panel contains gamepad setup and live input diagnostics.
@@ -87,24 +88,27 @@ publishing them.
 Controller setup changes pause playback. With one Human slot, keyboard, on-screen
 buttons and the selected gamepad all control that slot. With two Human slots,
 keyboard/on-screen input controls slot 1 and the selected gamepad controls slot 2.
-Each bot slot has its own bot instance, evaluated against the same pre-frame state.
+Each Classic AI slot has its own bot instance, evaluated against the same pre-frame state.
 
 Home/Away choices directly update the native joystick/team/selected-skater
 assignments and player control flags, following the Python controller setup
-semantics. None releases its controller; a team with no assigned controller uses
-the native CPU. Same-team slots select different players. The supplied manual
-goalie options are preserved.
+semantics. ROM AI and None release their controller; a team with no Human or
+Classic AI controller uses the native CPU. ROM AI sends no scripted inputs and
+ignores Bot Configuration settings. Its Home/Away selector is disabled because no
+controller is assigned. Same-team Human/Classic slots select different players. The supplied manual
+goalie options are preserved on teams without a Classic slot.
 
 For Bot vs Bot, select a bot in both slots and press Play. No Human slot is needed
 to navigate menus. Replay playback ignores and disables live controller selectors
-and uses the recorded physical-port inputs and assignment events. Replay
+and uses the recorded physical-port inputs and configuration events. Replay
 download/import is in Step 4.
 
-New recordings use `nhl94-browser-inputs-v2`, identifying the compressed starting
-state and recording every controller change with its frame number, including
+New recordings use `nhl94-browser-inputs-v3`, identifying the compressed starting
+state and recording every controller/goalie-mode change with its frame number, including
 multiple changes while paused. Starting the match presents one neutral native
 initialization frame to restore video before recorded frame zero. Restart repeats
-this initialization. Compatible v1 recordings still start from ROM boot; the
+this initialization. Compatible v2 recordings restore the saved start and
+controller events; v1 recordings still start from ROM boot. The
 existing exact ROM/core-build checks reject recordings from incompatible builds.
 
 Supported ROM SHA-256:
@@ -134,8 +138,16 @@ resume it.
 ### Gamepads and 8BitDo M30 receivers
 
 The Step 3 input-device panel detects all gamepads exposed by the browser, even before a
-ROM is loaded. Standard-mapped pads use the defaults above. Non-standard pads,
-including receivers that expose a raw layout, must be configured explicitly:
+ROM is loaded. Browser-standard pads use the defaults above. The M30 / 6B receiver
+with USB ID `0ca3:0024`, 10 buttons and 3 axes also has an automatic raw-layout
+preset: D-pad on axes 0/1, physical A/B/C on buttons 0/1/5, Start on button 9.
+The identity/layout guard deliberately avoids applying this preset to other M30
+modes or platforms with different raw layouts. This M30 preset was checked on
+the attached receiver: the C-button event reports index 5, and Start 9 was
+confirmed separately. Other controllers sharing this USB identity can have
+different face-button assignments; use a saved custom override for those.
+
+Use the wizard only for another raw layout or to override automatic mappings:
 
 1. Click the page and press a controller button so the browser can expose it.
 2. Select it under **Gamepad device**.
@@ -144,8 +156,17 @@ including receivers that expose a raw layout, must be configured explicitly:
 4. Click **Set up buttons / D-pad** and follow the eight prompts: Up, Down,
    Left, Right, A, B, C, Start. Release between presses. D-pad buttons or
    positive/negative axis directions can be learned.
-5. Check the decoded **Genesis input** and then play. Custom mappings last for
-   the current tab and can also override standard mappings.
+5. Check the decoded **Genesis input** and press Play to resume after setup.
+   Custom overrides take priority over both automatic presets and standard
+   mappings.
+
+Custom mappings are saved in this browser's local storage, scoped to the site's
+origin. Profiles match the device ID, browser mapping mode and button/axis counts,
+not the temporary gamepad index, so they survive reloads and reconnects without
+being applied to different layouts. Reset mapping removes the saved override and
+restores the automatic mapping when available. Corrupt or blocked storage produces
+a visible warning; input can still use automatic mappings or a current-tab custom
+mapping. Clearing site data removes saved profiles.
 
 Disconnecting the selected pad releases its inputs and pauses live playback;
 the app does not silently switch to another connected device. Keyboard and
@@ -178,12 +199,53 @@ They are cumulative match totals, not individual player or period summaries.
 Before a ROM is loaded, values are unavailable (`-`); replay and restart use the
 emulator's corresponding totals.
 
+## Classic AI
+
+Choose **Classic AI** in either active controller slot. The browser port targets
+Genesis full-team Classic with filtered controller channels, default possession
+offense, passing/one-timer/shot lifecycles, native-frame defense and selective
+`deep-csave` manual goalies. Each slot owns independent controller state and reads
+the same pre-frame game state. Shared teammate coordination, optional tactical
+experiments and learned policies are not included.
+
+The build reads the same commented
+[`configs/classic_bot.json`](../configs/classic_bot.json) as Python playback.
+The browser's **Bot Configuration** controls override these defaults for all
+Classic slots during the current tab:
+
+| Setting | Behavior |
+| --- | --- |
+| Frequency | 60 Hz retains native reactions and the four-frame tactical scheduler. 15/10/6 Hz observe and hold all buttons every 4/6/10 native frames, including goalie inputs. These are nominal rates; the core runs at approximately 59.92 Hz. |
+| AI Goalie | Selective manual goalie AI when enabled; native automatic goalies on Classic-controlled teams when disabled. Human-only teams keep the starting state's mode. |
+| Consider player ratings | Uses live ratings when enabled. Disabled gives both teams neutral decision ratings without changing RAM ratings, physics, energy, handedness or motion. |
+
+Setting/controller changes pause playback, apply native ownership/goalie options
+without consuming a frame, and discard pending bot actions. Restart preserves UI
+choices. Same-team bot slots are
+independent controllers, not the Python coordinated-teammate policy.
+
+The decoder respects the core's word-swapped RAM and reconstructs signed
+fixed-point telemetry. Stick and shot geometry is decoded and cached from the
+locally selected ROM; no ROM tables are shipped with the port. Its internal
+legacy fields match Python aliases; the visible Game Stats table continues to
+use the separately verified native counters.
+
+[`classic/reference.json`](classic/reference.json) fingerprints the Python
+controller, dependencies and JSON configuration used as the reference, including
+working-tree changes at port time. The offline
+[`scripts/classic-reference.py`](scripts/classic-reference.py) oracle compares
+decoded state and every input on identical native RAM traces. Python is test
+tooling only: the website requires no Python, Pyodide, model server or backend.
+If Python behavior changes, review the differences before deliberately refreshing
+the fingerprint; do not automatically regenerate it to conceal parity failures.
+
+New v3 input replays record ordered controller **and goalie-mode** events,
+including multiple changes on one paused frame or after the final input.
+Compatible v1 boot and v2 saved-start replays remain supported. Playback runs
+recorded inputs, not bots, so it does not need Classic's internal history.
+
 ## Current boundaries
 
-- The diagnostic bot chases the puck and pulses C. **It is not Classic.**
-- **Bot Configuration**, below the on-screen controls, previews 60/15/10/6 Hz
-  frequency choices, AI Goalie and Consider player ratings. These controls are
-  disabled placeholders and do not affect bot execution.
 - Both controllers execute at native-frame cadence. The normal playback target
   is the core-reported frame rate, approximately 59.92 Hz, not display refresh.
 - Match restart creates a fresh core instance and restores the bundled start.
@@ -201,6 +263,11 @@ emulator's corresponding totals.
 ```bash
 npm test
 npm run build
+
+# Optional exact Python/TypeScript Classic parity, using your existing Python
+# development interpreter and the same legally supplied ROM:
+NHL94_PYTHON=/absolute/path/to/python NHL94_ROM=/absolute/path/to/nhl94.bin \
+  npm test -- tests/classic-parity.test.ts
 
 # ROM-dependent WASM replay/snapshot tests:
 NHL94_ROM=/absolute/path/to/your/nhl94.bin npm test

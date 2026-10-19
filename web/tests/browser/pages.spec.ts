@@ -87,21 +87,27 @@ test("opens the top-right information links without unloading the arena", async 
 
 test("lists the same available bots and descriptions as the controller catalogue", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByText(/diagnostic bot/i)).toHaveCount(0);
   const choices = await page.locator("#controller-1-agent option").allTextContents();
   await page.goto("/bots.html");
   const table = page.getByRole("table", { name: "Available bots" });
   await expect(table.locator("tbody th")).toHaveText(choices.slice(1, -1));
+  await expect(table.locator("tbody th")).toHaveText(["ROM AI", "Classic AI"]);
   await expect(table.locator("tbody td")).toHaveText(AVAILABLE_BOTS.map((bot) => bot.description));
-  await expect(page.getByText("Classic and learned policies are not available", { exact: false })).toBeVisible();
+  await expect(page.getByText("Classic supports the Bot Configuration controls", { exact: false })).toBeVisible();
+  await expect(page.getByText(/diagnostic/i)).toHaveCount(0);
 });
 
 test("documents actual controls, setup, unsupported options and replay limits", async ({ page }) => {
   await page.goto("/help.html");
+  await expect(page.getByText("controller 2 to Classic AI/Away.", { exact: false })).toBeVisible();
+  await expect(page.getByText("ROM AI does not send scripted button inputs.", { exact: false })).toBeVisible();
+  await expect(page.getByText(/diagnostic bot/i)).toHaveCount(0);
   for (const heading of [
     "1. Load your game", "2. Configure controllers", "3. Choose an input device",
     "Playback and game statistics", "4. Record and replay", "Current scope",
   ]) await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
-  await expect(page.getByText("Bot Configuration is a preview only.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Bot Configuration applies to Classic AI.", { exact: true })).toBeVisible();
   await expect(page.getByText("108,000 native frames", { exact: false })).toBeVisible();
   await page.getByRole("link", { name: "Back to arena" }).click();
   await expect(page.getByRole("heading", { name: "NHL94 AI CONTEST", exact: false })).toBeVisible();

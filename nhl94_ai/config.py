@@ -375,6 +375,7 @@ def resolve_sticky_action_settings(
 
 
 PATH_OPTIONS = frozenset({
+    'classic_config',
     'hyperparams', 'output_basedir', 'output', 'output_dir', 'output_model',
     'model', 'model_1', 'model_2', 'load_model', 'load_p1_model', 'load_p2_model',
     'load_opponent_model', 'src', 'dest', 'video_path', 'datasets', 'base_datasets',

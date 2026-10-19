@@ -10,6 +10,7 @@ import type { Observation } from "./observations";
 import type { FramePacket, WorkerCommand } from "./protocol";
 import { MAX_REPLAY_BYTES } from "./replay";
 import { identifyRom, MAX_ROM_BYTES } from "./rom";
+import { DEFAULT_CLASSIC_CONFIG, parseClassicConfig, type ClassicConfig } from "./classic/config";
 
 function element<T extends HTMLElement>(id: string, kind: new (...args: never[]) => T): T {
   const value = document.getElementById(id);
@@ -28,6 +29,13 @@ const stepButton = element("step", HTMLButtonElement);
 const restartButton = element("restart", HTMLButtonElement);
 const exportButton = element("export", HTMLButtonElement);
 const sound = element("sound", HTMLInputElement);
+const botSettings = element("bot-settings", HTMLFieldSetElement);
+const botGoalie = element("bot-goalie", HTMLInputElement);
+const botRatings = element("bot-ratings", HTMLInputElement);
+const botFrequencies = [...document.querySelectorAll<HTMLInputElement>('input[name="bot-frequency"]')];
+botGoalie.checked = DEFAULT_CLASSIC_CONFIG.ai_goalie;
+botRatings.checked = DEFAULT_CLASSIC_CONFIG.player_ratings_consideration;
+for (const radio of botFrequencies) radio.checked = Number(radio.value) === DEFAULT_CLASSIC_CONFIG.decision_hz;
 const controllerRows = [1, 2, 3, 4].map((number) => ({
   agent: element(`controller-${number}-agent`, HTMLSelectElement),
   team: element(`controller-${number}-team`, HTMLSelectElement),
@@ -75,6 +83,13 @@ function readControllers(): ControllerSetup {
   })));
 }
 
+function readClassicConfig(): ClassicConfig {
+  return parseClassicConfig({
+    decision_hz: Number(botFrequencies.find((radio) => radio.checked)?.value),
+    ai_goalie: botGoalie.checked, player_ratings_consideration: botRatings.checked,
+  });
+}
+
 function updateControls(): void {
   playButton.disabled = !loaded || busy || finished;
   stepButton.disabled = !loaded || busy || advancing || running || finished;
@@ -82,9 +97,10 @@ function updateControls(): void {
   exportButton.disabled = !loaded || busy || advancing || Number(frameOutput.value) === 0;
   romFile.disabled = busy || advancing;
   replayFile.disabled = !loaded || busy || advancing;
+  botSettings.disabled = busy || replaying;
   for (const [index, row] of controllerRows.entries()) {
     row.agent.disabled = index >= 2 || busy || replaying;
-    row.team.disabled = index >= 2 || busy || replaying || row.agent.value === "none";
+    row.team.disabled = index >= 2 || busy || replaying || row.agent.value === "none" || row.agent.value === "rom";
   }
   controllerError.hidden = true;
   if (replaying) {
@@ -186,10 +202,11 @@ async function perform(action: () => Promise<void>): Promise<void> {
   finally { busy = false; updateControls(); }
 }
 
-function controls(): { humanInputs: readonly [number, number]; controllers: ControllerSetup } {
+function controls(): { humanInputs: readonly [number, number]; controllers: ControllerSetup; classicConfig: ClassicConfig } {
   return {
     humanInputs: [keyboardMask(keys) | keyboardMask(pointerKeys), gamepads.mask()],
     controllers: replaying ? DEFAULT_CONTROLLERS : readControllers(),
+    classicConfig: readClassicConfig(),
   };
 }
 
@@ -224,6 +241,7 @@ romFile.addEventListener("change", () => {
       type: "load", rom: bytes.buffer,
       coreBase: new URL(`${import.meta.env.BASE_URL}core/`, location.href).href,
       controllers: readControllers(),
+      classicConfig: readClassicConfig(),
     }, [bytes.buffer]);
     loaded = true;
     romInfo.textContent = `${identity.title} | SHA-256 ${identity.hash}`;
@@ -237,7 +255,7 @@ playButton.addEventListener("click", () => {
     if (sound.checked) await audio.enable(sampleRate);
     running = true;
     lastTime = 0;
-    status.textContent = replaying ? "Playing recorded inputs." : "Running locally. Diagnostic bot is not Classic.";
+    status.textContent = replaying ? "Playing recorded inputs." : "Running locally.";
     animation = requestAnimationFrame((time) => { void tick(time); });
     canvas.focus();
   });
@@ -253,7 +271,7 @@ stepButton.addEventListener("click", () => {
 restartButton.addEventListener("click", () => {
   void perform(async () => {
     stop("Restoring the default match...");
-    await requestFrame({ type: "restart", controllers: readControllers() });
+    await requestFrame({ type: "restart", controllers: readControllers(), classicConfig: readClassicConfig() });
     status.textContent = "Restarted the default Sabres vs Mighty Ducks match.";
   });
 });
@@ -307,7 +325,19 @@ for (const row of controllerRows) {
     select.addEventListener("change", () => {
       stop("Controller setup changed. Press Play to resume.");
       if (loaded && !replaying) {
-        void perform(async () => { await requestFrame({ type: "configure", controllers: readControllers() }); });
+        void perform(async () => { await requestFrame({
+          type: "configure", controllers: readControllers(), classicConfig: readClassicConfig(),
+        }); });
+      }
+      for (const input of [...botFrequencies, botGoalie, botRatings]) {
+        input.addEventListener("change", () => {
+          stop("Classic settings changed. Press Play to resume.");
+          if (loaded && !replaying) {
+            void perform(async () => { await requestFrame({
+              type: "configure", controllers: readControllers(), classicConfig: readClassicConfig(),
+            }); });
+          }
+        });
       }
     });
   }

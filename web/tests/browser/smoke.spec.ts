@@ -2,14 +2,36 @@ import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { parseReplay } from "../../replay";
 
-test("shows the honest smoke-test scope and rejects invalid local files", async ({ page }) => {
+test("shows the local arena scope and rejects invalid local files", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("This is the emulator test, not Classic AI.")).toBeVisible();
+  await expect(page.getByText("Local AI arena.", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Play", exact: true })).toBeDisabled();
   await page.locator("#rom").setInputFiles({
     name: "invalid.bin", mimeType: "application/octet-stream", buffer: Buffer.from("not a ROM"),
   });
   await expect(page.getByRole("alert")).toContainText("between 512 bytes and 4 MiB");
+});
+
+test("keeps the complete native frame inside its screen container at every video size", async ({ page }) => {
+  await page.goto("/");
+  for (const width of [1280, 1043, 850, 390]) {
+    await page.setViewportSize({ width, height: 960 });
+    for (const [nativeWidth, nativeHeight] of [[256, 224], [320, 224], [320, 240]]) {
+      const bounds = await page.locator("#screen").evaluate((canvas: HTMLCanvasElement, size) => {
+        canvas.width = size[0]!;
+        canvas.height = size[1]!;
+        const frame = canvas.getBoundingClientRect(), container = canvas.parentElement!.getBoundingClientRect();
+        return { top: frame.top, bottom: frame.bottom, left: frame.left, right: frame.right,
+          containerTop: container.top, containerBottom: container.bottom,
+          containerLeft: container.left, containerRight: container.right };
+      }, [nativeWidth!, nativeHeight!]);
+      expect(bounds.top).toBeGreaterThanOrEqual(bounds.containerTop);
+      expect(bounds.bottom, `${width}px viewport, ${nativeWidth}x${nativeHeight} native frame`).toBeLessThanOrEqual(bounds.containerBottom);
+      expect(bounds.left).toBeGreaterThanOrEqual(bounds.containerLeft);
+      expect(bounds.right).toBeLessThanOrEqual(bounds.containerRight);
+      await expect(page.locator("#screen")).toHaveCSS("object-fit", "contain");
+    }
+  }
 });
 
 test("runs the actual WASM worker, pauses, steps and replays local inputs", async ({ page }) => {

@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 import { Engine, type CoreFactory } from "../engine";
+import { assignedTeams, DEFAULT_CONTROLLERS } from "../controllers";
 import { Button } from "../inputs";
 import {
   decodeDefaultState, DEFAULT_STATE_BYTES, DEFAULT_STATE_FILE, DEFAULT_STATE_HASH,
@@ -107,6 +108,50 @@ describe.skipIf(!process.env.NHL94_ROM)("default match and native controller ass
       const skating = engine.observe();
       expect(skating.controllers[0].team).toBe(2);
       expect(skating.controllers[0].player).not.toEqual(neutral.controllers[0].player);
+    } finally { engine.dispose(); }
+  }, 120000);
+
+  it("lets both ROM AI teams skate autonomously with no controller inputs", async () => {
+    const { engine, flag } = await match();
+    try {
+      engine.assignControllers([1, 2]);
+      engine.assignControllers(assignedTeams([
+        { agent: "rom", team: 1 }, { agent: "rom", team: 2 },
+        DEFAULT_CONTROLLERS[2], DEFAULT_CONTROLLERS[3],
+      ]));
+      expect(engine.observe().controllers.map((controller) => [controller.team, controller.slot]))
+        .toEqual([[0, -1], [0, -1]]);
+      for (let slot = 0; slot < 12; slot++) expect(flag(slot) & 8).toBe(0);
+      const before = engine.classicState();
+      const positions = [before.team1, before.team2].map((team) => team.players.map((player) => [player.x, player.y]));
+      for (let frame = 0; frame < 600; frame++) engine.step(0, 0);
+      const after = engine.classicState();
+      for (const [index, team] of [after.team1, after.team2].entries()) {
+        expect(team.players.map((player) => [player.x, player.y])).not.toEqual(positions[index]);
+      }
+      expect(engine.observe().seconds).toBeLessThan(300);
+      expect(engine.observe().controllers.map((controller) => controller.team)).toEqual([0, 0]);
+    } finally { engine.dispose(); }
+  }, 120000);
+
+  it("changes native goalie modes without advancing time or changing player ratings", async () => {
+    const { engine, word, core } = await match();
+    try {
+      engine.assignControllers([1, 2]);
+      const ram = () => core.HEAPU8.slice(core._arena_ram(), core._arena_ram() + 65536);
+      const before = ram();
+      expect(engine.goalieModes()).toEqual([0, 0]);
+      engine.assignGoalies([0, 1]);
+      expect(engine.frame).toBe(0);
+      expect([word(0xffd05a), word(0xffd05c)]).toEqual([0, 1]);
+      const after = ram();
+      const changes = [...after.keys()].filter((index) => before[index] !== after[index]);
+      expect(changes).toEqual([0xd05c]);
+      engine.assignGoalies([1, 0]);
+      expect(engine.goalieModes()).toEqual([1, 0]);
+      for (let frame = 0; frame < 120; frame++) engine.step(0, 0);
+      expect(engine.goalieModes()).toEqual([1, 0]);
+      expect(engine.observe().controllers.map((controller) => controller.team)).toEqual([1, 2]);
     } finally { engine.dispose(); }
   }, 120000);
 });

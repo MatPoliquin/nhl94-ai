@@ -2,20 +2,20 @@ import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { parseReplay } from "../../replay";
 
-test("shows unsupported bot configuration below the game controls", async ({ page }) => {
+test("shows supported Classic settings below the game controls with JSON defaults", async ({ page }) => {
   await page.goto("/");
-  const panel = page.getByRole("region", { name: "Bot Configuration Coming later" });
+  const panel = page.getByRole("region", { name: "Bot Configuration", exact: true });
   await expect(panel).toBeVisible();
-  await expect(panel.getByText("Preview only.", { exact: false })).toBeVisible();
+  await expect(panel.getByText("Applies to Classic AI slots.", { exact: false })).toBeVisible();
   for (const frequency of ["60 Hz", "15 Hz", "10 Hz", "6 Hz"]) {
     const radio = panel.getByRole("radio", { name: frequency, exact: true });
-    await expect(radio).toBeDisabled();
+    await expect(radio).toBeEnabled();
     if (frequency === "60 Hz") await expect(radio).toBeChecked();
     else await expect(radio).not.toBeChecked();
   }
   for (const label of ["AI Goalie", "Consider player ratings"]) {
-    await expect(panel.getByRole("checkbox", { name: label, exact: true })).toBeDisabled();
-    await expect(panel.getByRole("checkbox", { name: label, exact: true })).not.toBeChecked();
+    await expect(panel.getByRole("checkbox", { name: label, exact: true })).toBeEnabled();
+    await expect(panel.getByRole("checkbox", { name: label, exact: true })).toBeChecked();
   }
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 960 });
@@ -30,11 +30,11 @@ test("shows unsupported bot configuration below the game controls", async ({ pag
 
 test("shows four controller rows, exact occupant order, team choices and two disabled future slots", async ({ page }) => {
   await page.goto("/");
-  const defaults = ["human", "diagnostic", "none", "none"];
+  const defaults = ["human", "classic", "none", "none"];
   for (let number = 1; number <= 4; number++) {
     const player = page.getByRole("combobox", { name: `Controller ${number} player`, exact: true });
     const team = page.getByRole("combobox", { name: `Controller ${number} team`, exact: true });
-    await expect(player.locator("option")).toHaveText(["Human", "Diagnostic bot", "None"]);
+    await expect(player.locator("option")).toHaveText(["Human", "ROM AI", "Classic AI", "None"]);
     await expect(player).toHaveValue(defaults[number - 1]!);
     await expect(team.locator("option")).toHaveText(["Team 1 (Home)", "Team 2 (Away)"]);
     await expect(team).toHaveValue(number % 2 === 1 ? "1" : "2");
@@ -63,7 +63,10 @@ test("supports None and bot-vs-bot choices without pretending a Human owns the i
   await page.locator("#controller-1-agent").selectOption("none");
   await expect(page.locator("#controller-1-team")).toBeDisabled();
   await expect(page.locator("#controller-note")).toContainText("No Human slot");
-  await page.locator("#controller-1-agent").selectOption("diagnostic");
+  await page.locator("#controller-1-agent").selectOption("rom");
+  await expect(page.locator("#controller-1-team")).toBeDisabled();
+  await expect(page.locator("#controller-note")).toContainText("No Human slot");
+  await page.locator("#controller-1-agent").selectOption("classic");
   await expect(page.locator("#controller-1-team")).toBeEnabled();
   await expect(page.locator("#controller-note")).toContainText("No Human slot");
   await page.locator("#controller-1-agent").selectOption("human");

@@ -46,6 +46,26 @@ where SNES ratings, animation timing, or receiver selection are not mapped.
 
 ## Decision timing
 
+Classic playback automatically reads [`configs/classic_bot.json`](../configs/classic_bot.json).
+Edit it before starting a game, or select another file with `--classic-config PATH`.
+The reader accepts `//` and `/* ... */` comments. Missing settings use the defaults;
+unknown keys and invalid types or values fail with an error. Installed packages
+without the checkout file use the same defaults.
+
+- `decision_hz`: `60` (default), `15`, `10`, or `6`. At 60 Hz Classic keeps native
+  reactions and its existing tactical scheduler. Lower rates observe and hold all
+  buttons every 4, 6, or 10 frames, including manual goalie inputs. This adds no
+  observation delay. Existing restrictions on strict control still apply.
+- `ai_goalie`: `true` (default) enables the normal selective manual goalie default
+  for supported modes/saves; `false` leaves goalie control to the game.
+- `player_ratings_consideration`: `true` (default) uses live ratings. `false` uses
+  neutral ratings for both teams across offense, defense, goalie and teammate
+  decisions. Actual game ratings and physics remain unchanged; positions,
+  velocities, energy and handedness are still observed.
+
+Explicit `--classic-control-interval` (including `0`) and `--goalie-policy` override
+the file. These playback defaults do not change training or benchmark settings.
+
 Normal dispatch calls the agent each native emulator frame. Defense, puck
 feedback, input edges, and committed action lifecycles react at that cadence;
 tactical offense uses the configured decision interval, normally four frames.

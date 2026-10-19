@@ -148,6 +148,19 @@ class NativeTeammateTests(unittest.TestCase):
             self.assertTrue(any('passing-option' in role for role in first['roles']))
             self.assertTrue(any('coverage' in role for role in first['roles']))
 
+    def test_support_options_trace_is_observational_on_both_sides(self):
+        for side in ('home', 'away'):
+            with self.subTest(side=side), TemporaryDirectory(prefix='nhl94-support-') as directory:
+                trace = str(Path(directory) / 'inputs.jsonl')
+                first = play_match(seed=2026101800, seconds=30, side=side,
+                                   support_options=True, trace=trace)
+                second = play_match(seed=2026101800, seconds=30, side=side, support_options=True)
+                replay = replay_trace(trace)
+                self.assertTrue(first['completed'])
+                for key in ('frames', 'actions_sha256', 'final_ram_sha256'):
+                    self.assertEqual(first[key], second[key], key)
+                    self.assertEqual(first[key], replay[key], key)
+
     def test_all_three_regulation_periods_complete(self):
         result = play_match(seed=94, periods=3)
         self.assertTrue(result['completed'], result)

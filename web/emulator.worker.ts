@@ -1,8 +1,10 @@
-import { DiagnosticBot } from "./bot";
-import { assignedTeams, controllerInputs, parseControllerSetup, type ControllerSetup } from "./controllers";
+import { type Bot } from "./bot";
+import { createBot } from "./bot-factory";
+import { DEFAULT_CLASSIC_CONFIG, parseClassicConfig, type ClassicConfig } from "./classic/config";
+import { assignedTeams, controllerInputs, parseControllerSetup, type ControllerSetup, type GoalieModes } from "./controllers";
 import { Engine, type CoreFactory } from "./engine";
 import type { FramePacket, WorkerRequest, WorkerResponse } from "./protocol";
-import { MAX_CONTROLLER_EVENTS, MAX_REPLAY_FRAMES, parseReplay, type ControllerEvent, type Replay } from "./replay";
+import { MAX_CONTROLLER_EVENTS, MAX_REPLAY_FRAMES, parseReplay, type ConfigurationEvent, type Replay } from "./replay";
 import { identifyRom, sha256 } from "./rom";
 import { decodeDefaultState, DEFAULT_STATE_FILE, DEFAULT_STATE_HASH } from "./start-state";
 
@@ -14,9 +16,11 @@ let startState: Uint8Array<ArrayBuffer> | undefined;
 let coreBuild = "", romHash = "";
 let recording: [number, number][] = [];
 let playback: Replay | undefined;
-let controllerEvents: ControllerEvent[] = [];
+let configurationEvents: ConfigurationEvent[] = [];
 let playbackEvent = 0;
-const bots = [new DiagnosticBot(), new DiagnosticBot()] as const;
+let classicConfig = DEFAULT_CLASSIC_CONFIG;
+let defaultGoalieModes: GoalieModes = [0, 0];
+let bots: [Bot | null, Bot | null] = [null, null];
 let setupKey = "";
 
 async function restart(fromSave = true): Promise<void> {
@@ -32,32 +36,43 @@ async function restart(fromSave = true): Promise<void> {
     throw error;
   }
   recording = [];
-  controllerEvents = [];
+  configurationEvents = [];
   playbackEvent = 0;
-  for (const bot of bots) bot.reset();
+  for (const bot of bots) bot?.reset();
+  defaultGoalieModes = engine.goalieModes();
   setupKey = "";
 }
 
-function configure(controllers: ControllerSetup): void {
+function configure(controllers: ControllerSetup, config: ClassicConfig = classicConfig): void {
   if (!engine) throw new Error("Load a local ROM first.");
   if (playback) throw new Error("Live controller setup is disabled during replay.");
-  const nextKey = JSON.stringify(controllers);
+  const nextKey = JSON.stringify([controllers, config]);
   if (nextKey === setupKey) return;
-  if (controllerEvents.length >= MAX_CONTROLLER_EVENTS) {
+  if (configurationEvents.length >= MAX_CONTROLLER_EVENTS) {
     throw new Error("Controller change limit reached. Export the replay and restart.");
   }
   const teams = assignedTeams(controllers);
+  const modes: [0 | 1, 0 | 1] = [...defaultGoalieModes];
+  for (const slot of [0, 1] as const) {
+    if (controllers[slot].agent === "classic") modes[controllers[slot].team - 1] = config.ai_goalie ? 0 : 1;
+  }
   engine.assignControllers(teams);
-  controllerEvents.push({ frame: engine.frame, teams });
-  for (const bot of bots) bot.reset();
+  engine.assignGoalies(modes);
+  configurationEvents.push({ frame: engine.frame, teams, goalieModes: modes });
+  classicConfig = config;
+  bots = [createBot(controllers[0].agent, config), createBot(controllers[1].agent, config)];
   setupKey = nextKey;
 }
 
 function applyReplayAssignments(): void {
-  if (!engine || playback?.format !== "nhl94-browser-inputs-v2") return;
-  while (playbackEvent < playback.controllerEvents.length &&
-         playback.controllerEvents[playbackEvent]!.frame === engine.frame) {
-    engine.assignControllers(playback.controllerEvents[playbackEvent]!.teams);
+  if (!engine || !playback || playback.format === "nhl94-browser-inputs-v1") return;
+  const events = playback.format === "nhl94-browser-inputs-v3" ? playback.configurationEvents : playback.controllerEvents;
+  while (playbackEvent < events.length && events[playbackEvent]!.frame === engine.frame) {
+    const event = events[playbackEvent]!;
+    engine.assignControllers(event.teams);
+    if (playback.format === "nhl94-browser-inputs-v3") {
+      engine.assignGoalies(playback.configurationEvents[playbackEvent]!.goalieModes);
+    }
     playbackEvent++;
   }
 }
@@ -97,28 +112,28 @@ async function handle(request: WorkerRequest): Promise<WorkerResponse> {
       coreBuild = await sha256(binary);
       playback = undefined;
       await restart();
-      configure(controllers);
+      configure(controllers, parseClassicConfig(request.classicConfig === undefined ? classicConfig : request.classicConfig));
       return { id: request.id, type: "frame", packet: packet() };
     }
     case "restart": {
       const controllers = parseControllerSetup(request.controllers);
       playback = undefined;
       await restart();
-      configure(controllers);
+      configure(controllers, parseClassicConfig(request.classicConfig === undefined ? classicConfig : request.classicConfig));
       return { id: request.id, type: "frame", packet: packet() };
     }
     case "configure":
-      configure(parseControllerSetup(request.controllers));
+      configure(parseControllerSetup(request.controllers), parseClassicConfig(request.classicConfig === undefined ? classicConfig : request.classicConfig));
       return { id: request.id, type: "frame", packet: packet() };
     case "replay": {
       const replay = parseReplay(request.value);
       if (replay.romHash !== romHash || replay.coreBuild !== coreBuild) {
         throw new Error("Replay ROM/core build differs from the loaded game.");
       }
-      if (replay.format === "nhl94-browser-inputs-v2" && replay.startStateHash !== DEFAULT_STATE_HASH) {
+      if (replay.format !== "nhl94-browser-inputs-v1" && replay.startStateHash !== DEFAULT_STATE_HASH) {
         throw new Error("Replay starting state differs from the bundled match.");
       }
-      await restart(replay.format === "nhl94-browser-inputs-v2");
+      await restart(replay.format !== "nhl94-browser-inputs-v1");
       playback = replay;
       applyReplayAssignments();
       return { id: request.id, type: "frame", packet: packet() };
@@ -132,7 +147,7 @@ async function handle(request: WorkerRequest): Promise<WorkerResponse> {
       if (!Array.isArray(request.humanInputs) || request.humanInputs.length !== 2) {
         throw new Error("Two human input sources are required.");
       }
-      if (!playback) configure(controllers);
+      if (!playback) configure(controllers, parseClassicConfig(request.classicConfig === undefined ? classicConfig : request.classicConfig));
       const samples: Float32Array<ArrayBuffer>[] = [];
       let inputs: [number, number] = [0, 0];
       for (let index = 0; index < request.frames; index++) {
@@ -145,7 +160,8 @@ async function handle(request: WorkerRequest): Promise<WorkerResponse> {
           if (recording.length >= MAX_REPLAY_FRAMES) {
             throw new Error("Recording limit reached. Export the replay and restart.");
           }
-          inputs = controllerInputs(controllers, engine.observe(), request.humanInputs, bots);
+          const state = controllers.some((slot) => slot.agent === "classic") ? engine.classicState() : undefined;
+          inputs = controllerInputs(controllers, engine.observe(), request.humanInputs, bots, state);
         }
         engine.step(inputs[0], inputs[1]);
         if (!playback) recording.push(inputs);
@@ -160,8 +176,8 @@ async function handle(request: WorkerRequest): Promise<WorkerResponse> {
     case "export":
       if (!recording.length && !playback) throw new Error("Run at least one frame before exporting.");
       return { id: request.id, type: "export", text: JSON.stringify(playback ?? {
-        format: "nhl94-browser-inputs-v2", coreBuild, romHash, inputs: recording,
-        startStateHash: DEFAULT_STATE_HASH, controllerEvents,
+        format: "nhl94-browser-inputs-v3", coreBuild, romHash, inputs: recording,
+        startStateHash: DEFAULT_STATE_HASH, configurationEvents,
       } satisfies Replay) };
   }
 }

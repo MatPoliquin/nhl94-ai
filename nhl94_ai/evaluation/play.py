@@ -43,6 +43,8 @@ def build_parser():
                        help='Classic team versus CPU; SNES multiplayer also assigns controller 1 to this team')
     parser.add_argument('--goalie-policy', choices=['off', 'selective', 'always'],
                         help='Classic manual goalie AI (default: selective for supported full-team Classic play; off disables it)')
+    parser.add_argument('--classic-config', metavar='PATH',
+                        help='Classic bot JSON with comments (default: configs/classic_bot.json in the checkout)')
     parser.add_argument('--num_players', type=int, default=2)
     parser.add_argument('--num_env', type=int, default=1)
     parser.add_argument('--output_basedir', type=str, default='~/OUTPUT')
@@ -80,7 +82,10 @@ def build_parser():
                        choices=['FILTERED', 'DISCRETE', 'MULTI_DISCRETE', 'HOCKEY_INTENT_DPAD', 'TARGET_POSITION'],
                        help='Buttons, hockey intents, or target-only positioning')
 
-    return add_classic_arguments(add_model_input_arguments(parser))
+    add_classic_arguments(add_model_input_arguments(parser))
+    # None distinguishes an omitted override from an explicit native interval 0.
+    parser.set_defaults(classic_control_interval=None)
+    return parser
 
 
 def parse_cmdline(argv):
@@ -97,6 +102,8 @@ def parse_cmdline(argv):
 
 def resolve_play_goalie_defaults(args):
     """Enable the improved goalie for ordinary full-team Classic playback."""
+    from nhl94_ai.agents.classic_config import apply_play_config
+    apply_play_config(args)
     if getattr(args, 'goalie_policy', None) is None:
         state = getattr(args, 'state', None)
         supported = (args.nn in CONTROLLERS and get_game(args.env).skaters_per_team == 5

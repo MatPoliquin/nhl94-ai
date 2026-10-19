@@ -1,15 +1,20 @@
 import { Button } from "./inputs";
 import type { Observation } from "./observations";
+import type { GameState } from "./classic/state";
 
 export const AVAILABLE_BOTS = [{
-  id: "diagnostic",
-  label: "Diagnostic bot",
-  description: "Chases the puck with the selected player and briefly pulses C to shoot, boost or check. A simple emulator test bot, not Classic AI. It does not navigate game menus.",
+  id: "rom",
+  label: "ROM AI",
+  description: "The game's built-in CPU AI. Releases this controller so teams without a Human or Classic AI controller use the original ROM AI. Does not use the Bot Configuration settings.",
+}, {
+  id: "classic",
+  label: "Classic AI",
+  description: "TypeScript port of Genesis Classic: possession, passing, one-timers, defense and selective manual goalies. Supports the Classic frequency, goalie and player-ratings settings. Experimental Python policies and coordinated teammates are not included.",
 }] as const;
 
 export interface Bot {
   reset(): void;
-  act(observation: Observation, port: 0 | 1): number;
+  act(observation: Observation, port: 0 | 1, state?: GameState): number;
 }
 
 export class DiagnosticBot implements Bot {
