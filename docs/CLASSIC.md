@@ -9,6 +9,7 @@ filtered buttons and a compatible Genesis or SNES save.
 ```bash
 nhl94 play --agent classic-v1 --env NHL94-Genesis-v0
 nhl94 play --agent classic-v1 --mode player_vs_model --env NHL94-Genesis-v0
+nhl94 play --agent classic-v1 --mode team_vs_game --env NHL94-Genesis-v0
 nhl94 play --agent classic-v1 --env NHL94-Snes-v0
 nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --side away
 nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --mode player_vs_model
@@ -20,6 +21,13 @@ In human-versus-agent mode Classic uses controller 1; the human uses controller
 See [gameplay examples](NHL94-README.md) for keyboard controls. The SNES keyboard
 uses S for X (select goalie), C for A (shoot/save), Z for Y (clear/dive), and X
 for B (pass/switch/return).
+
+In `team_vs_game`, a shared coordinator controls two home teammates against the
+built-in CPU. Classic handles the carrier and pursuer; the other controller
+positions for a pass or covers the middle. The debug display lists both roles,
+native selections and targets. This Genesis-only scripted mode uses automatic
+goalies and three regulation periods. See [AI teammates](../README.md#ai-teammates)
+for supported saves, evaluation and input replay.
 
 SNES uses the shared offense, defense, scheduling, and pass/shot lifecycle with
 a console backend. It supports either side versus CPU and two controllers for

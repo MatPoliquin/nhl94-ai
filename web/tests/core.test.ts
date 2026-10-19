@@ -23,7 +23,10 @@ describe.skipIf(!romPath)("real Genesis Plus GX WASM (local ROM only)", () => {
         const b = frame % 80 < 20 ? Button.LEFT | Button.C : 0;
         first.step(a, b);
         second.step(a, b);
-        if (frame % 1000 === 999) expect(first.observe()).toEqual(second.observe());
+        if (frame % 1000 === 999) {
+          expect(first.observe()).toEqual(second.observe());
+          expect(first.stats()).toEqual(second.stats());
+        }
       }
       expect(first.frame).toBe(10000);
       expect([256, 320]).toContain(first.video().width);
@@ -35,11 +38,12 @@ describe.skipIf(!romPath)("real Genesis Plus GX WASM (local ROM only)", () => {
       expect(first.fps).toBeLessThan(61);
       const snapshot = first.save(), savedFrame = first.frame;
       for (let index = 0; index < 30; index++) first.step(Button.RIGHT, Button.B);
-      const observation = first.observe(), image = first.video().pixels;
+      const observation = first.observe(), image = first.video().pixels, stats = first.stats();
       first.restore(snapshot, savedFrame);
       for (let index = 0; index < 30; index++) first.step(Button.RIGHT, Button.B);
       expect(first.observe()).toEqual(observation);
       expect(first.video().pixels).toEqual(image);
+      expect(first.stats()).toEqual(stats);
     } finally {
       first.dispose(); second.dispose();
     }

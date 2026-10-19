@@ -91,6 +91,73 @@ def controller_team_info(info):
     return corrected
 
 
+def register_teammate_state(env):
+    """Keep the native clock separate from the legacy composite time alias."""
+    env.data.set_variable('teammate_clock', {'address': 0xFFC468, 'type': '>u2'})
+
+
+def configure_teammates(data, side=1):
+    """Apply the native Two-Teammates assignment to a full-team exhibition save.
+
+    Only reset writes live here. Skating, switching and possession subsequently
+    belong to the ROM. No integration files or saved states are modified.
+    """
+    if side not in (1, 2):
+        raise ValueError('Teammate side must be home (1) or away (2)')
+    memory = data.memory
+    read = memory.extract
+    roles = [read(0xFFB04A + slot * 0x80 + 0x34, '>i2') for slot in range(12)]
+    if (read(0xFFD048, '>u2') != 0 or roles[5] != 0 or roles[11] != 0
+            or any(role <= 0 for slot, role in enumerate(roles) if slot % 6 != 5)):
+        raise ValueError('team_vs_game requires a full-team exhibition save with five active skaters per team')
+    first = read(0xFFC320, '>i2')
+    if not 0 <= first < 5:
+        raise ValueError('team_vs_game requires an initially selected home skater')
+    second = read(0xFFC322, '>i2')
+    if not 0 <= second < 5 or second == first:
+        second = next(slot for slot in range(5) if slot != first)
+    first += (side - 1) * 6
+    second += (side - 1) * 6
+    writes = {
+        0xFFD04A: 3,  # OptNOP: native Two - Teammates.
+        0xFFD052: 1, 0xFFD05A: 1, 0xFFD05C: 1,  # 1 = automatic; 0 = manual.
+        0xFFC328: side, 0xFFC32A: side, 0xFFC32C: 0, 0xFFC32E: 0,
+        0xFFC320: first, 0xFFC322: second, 0xFFC324: -1, 0xFFC326: -1,
+    }
+    for address, value in writes.items():
+        memory.assign(address, '>i2', value)
+    for slot in range(12):
+        address = 0xFFB04A + slot * 0x80 + 0x62
+        flags = read(address, '|u1')
+        memory.assign(address, '|u1', flags | 8 if slot in (first, second) else (flags & ~8) | 2)
+    data.update_ram()
+    return first, second
+
+
+def teammate_controller_info(info, controller=1, side=1):
+    """A controller-specific view with physical team identities preserved."""
+    if controller not in (1, 2):
+        raise ValueError('Teammate controller must be 1 or 2')
+    if side not in (1, 2):
+        raise ValueError('Teammate side must be home (1) or away (2)')
+    # gmode bit 4 is the ROM's intermission highlight game. It temporarily
+    # replaces teams, counters, clock and assignments, restoring them on exit.
+    if info.get('goalie_clock_flags', 0) & 0x10:
+        return {**info, 'p1_control_slot': -1, 'p2_control_slot': -1,
+                'time': info['teammate_clock'], 'teammate_highlight': True}
+    if tuple(info.get(f'defense_team{i}') for i in (1, 2)) != (side, side):
+        raise ValueError('team_vs_game requires both controllers on the AI team and its opponent under CPU control')
+    slots = tuple(info[f'defense_control{i}'] for i in (1, 2))
+    base = (side - 1) * 6
+    invalid_slot = any(slot >= 0 and not base <= slot < base + 6 for slot in slots)
+    if invalid_slot or slots[0] >= 0 and slots[0] == slots[1]:
+        raise ValueError(f'Invalid teammate controller selections: {slots}')
+    if any(info.get(f'goalie_mode_{i}') != 1 for i in (1, 2)):
+        raise ValueError('team_vs_game requires automatic goalies')
+    return {**info, f'p{side}_control_slot': slots[controller - 1], f'p{3-side}_control_slot': -1,
+            'time': info['teammate_clock'], 'teammate_highlight': False}
+
+
 def restore_away_control(data, info, *, controller_prefix='defense', player_prefix='defense', slots=5):
     """Keep scoped away playback on its team after a cross-team ROM reassignment."""
     if (info[f'{controller_prefix}_team1'], info[f'{controller_prefix}_team2']) != (2, 0):
@@ -203,6 +270,24 @@ def _shot_animations(game, rom_path=None):
     return tuple(directions)
 
 
+@lru_cache(maxsize=3)
+def _one_timer_hotspots(game, rom_path=None):
+    """Contact poses at SPAnum 24 for either native one-timer animation."""
+    hot = _stick_hotspots(game, rom_path)
+    result = []
+    for direction in range(8):
+        offsets = []
+        for animation in (0x7FC, 0x92E):
+            frames = _animation_frames(game, animation, rom_path)[direction]
+            if len(frames) < 7:
+                raise ValueError(f'Truncated one-timer animation in {game}.')
+            sprite = frames[6][0]
+            offsets.append(tuple(int.from_bytes(hot[sprite * 2 + axis:sprite * 2 + axis + 1],
+                                                'big', signed=True) for axis in (0, 1)))
+        result.append(tuple(offsets))
+    return tuple(result)
+
+
 def pass_geometry_info(env, info):
     """Decode read-only sprite stick offsets without altering neural observations."""
     game = getattr(env.unwrapped, 'gamename', None)
@@ -212,6 +297,8 @@ def pass_geometry_info(env, info):
     skaters = get_game(game).skaters_per_team
     table = _stick_hotspots(game, getattr(env.unwrapped, 'pass_geometry_rom', None))
     shots = _shot_animations(game, getattr(env.unwrapped, 'pass_geometry_rom', None))
+    teammates = info.get('defense_team1') in (1, 2) and info.get('defense_team1') == info.get('defense_team2')
+    one_timers = _one_timer_hotspots(game, getattr(env.unwrapped, 'pass_geometry_rom', None)) if teammates else None
     projection_x = max(abs(sx) for _, offsets in shots for sx, _ in offsets)
     projection_y = max(abs(sy) for _, offsets in shots for _, sy in offsets)
     projection_durations = tuple(max(values) for values in zip(*(durations for durations, _ in shots)))
@@ -239,6 +326,12 @@ def pass_geometry_info(env, info):
             direction = memory.extract(base + 0x54, '>u2')
             direction = (direction - (2 if info.get('sflags', 0) & 0x8000 else 0)) % 8
             direction = -direction % 8 if flags & 8 else direction
+            if one_timers is not None:
+                contact_offsets = []
+                for sx, sy in one_timers[direction]:
+                    sx, sy = (-sx if flags & 8 else sx), (sy if flags & 16 else -sy)
+                    contact_offsets.append((sy, -sx) if info.get('sflags', 0) & 0x8000 else (sx, sy))
+                corrected[f'offense_{slot}_one_timer_offsets'] = tuple(contact_offsets)
             durations, offsets = shots[direction]
             previous = _animation_frames(game, memory.extract(base + 0x58, '>u2'),
                                          getattr(env.unwrapped, 'pass_geometry_rom', None))[direction]

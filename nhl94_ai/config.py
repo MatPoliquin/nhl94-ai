@@ -55,6 +55,22 @@ class EnvironmentConfig:
         from nhl94_ai.agents.registry import CONTROLLERS, ALIASES
         if config.nn not in MODEL_BUILDERS and config.nn not in CONTROLLERS:
             raise ValueError(f'Unknown policy or agent: {config.nn}')
+        if getattr(args, 'teammate_support_options', False) and getattr(args, 'mode', None) != 'team_vs_game':
+            raise ValueError('--teammate-support-options requires team_vs_game')
+        if getattr(args, 'mode', None) == 'team_vs_game':
+            supported = (config.env == 'NHL94-Genesis-v0', config.num_players == 2,
+                         config.nn == 'ClassicAIV1', config.action_type == 'FILTERED',
+                         not config.selfplay, getattr(args, 'rf', 'PostPlay') in ('', 'PostPlay'),
+                         getattr(args, 'side', 'home') == 'home',
+                         getattr(args, 'goalie_policy', 'off') in (None, 'off'))
+            if not all(supported):
+                raise ValueError('team_vs_game requires full-team Genesis Classic, two home controllers, '
+                                 'FILTERED PostPlay, automatic goalies and no self-play')
+            # These experiments own controller selection or frame dispatch and
+            # have no same-team execution contract yet.
+            from nhl94_ai.agents.registry import TEAM_INCOMPATIBLE
+            if any(getattr(args, name, False) for name in TEAM_INCOMPATIBLE):
+                raise ValueError('team_vs_game requires default Classic tactics without models or optional experiments')
         from nhl94_ai.agents.control_rate import control_interval
         if control_interval(args) and (getattr(args, 'model', '') or (
                 config.nn not in CONTROLLERS and getattr(args, 'agent', None) not in (*CONTROLLERS, *ALIASES))):

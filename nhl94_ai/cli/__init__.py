@@ -11,6 +11,7 @@ COMMANDS = {
     'export': 'export', 'evaluate': 'evaluation.runner',
     'benchmark': 'evaluation.benchmark',
     'benchmark-cpu': 'evaluation.cpu_benchmark',
+    'benchmark-teammates': 'evaluation.teammates',
     'external': 'evaluation.external',
     'offense': 'training.offense',
     'goalie': 'training.goalie',
@@ -79,7 +80,7 @@ def main(argv=None):
             args.nn = ALIASES[args.agent]
         if args.mode in ('model_vs_game', 'player_vs_game'):
             args.num_players = 1
-        elif args.mode in ('player_vs_model', 'model_vs_model'):
+        elif args.mode in ('player_vs_model', 'model_vs_model', 'team_vs_game'):
             args.num_players = 2
     if command == 'train':
         from nhl94_ai.training.service import train

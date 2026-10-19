@@ -1,5 +1,6 @@
 """Live correction of ordinary receptions after native pass selection."""
 import math
+from copy import copy
 
 from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, puck_path, velocity
 
@@ -53,3 +54,32 @@ def reception_target(state, receiver, *, stick_only=False):
     if not path:
         return None
     return next((point for time, point in path if arrival_time(receiver, point) <= time), path[-1][1])
+
+
+def reachable_reception(state, receiver):
+    """First reachable live stick interception; no far-path fallback target."""
+    offset = (receiver.stick_x or 0, receiver.stick_y or 0)
+    for time, point, height in puck_path(state.puck, 48, sample_interval=1):
+        target = point[0] - offset[0], point[1] - offset[1]
+        if height <= 5 and arrival_time(receiver, target) <= time:
+            return {'point': target, 'frames': time}
+    return None
+
+
+def one_timer_reception(state, receiver):
+    """Conservative contact estimate after C changes the stick animation.
+
+    A body reception or today's stick pose does not certify the shot pose. Both
+    native animation variants must admit contact before committing the C edge.
+    """
+    if not receiver.one_timer_offsets:
+        return None
+    forecasts = []
+    for offset in receiver.one_timer_offsets:
+        shooter = copy(receiver)
+        shooter.stick_x, shooter.stick_y = offset
+        forecast = passive_reception(state, shooter, stick_only=True)
+        if forecast is None:
+            return None
+        forecasts.append(forecast)
+    return max(forecasts, key=lambda item: item['gap'])

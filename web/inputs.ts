@@ -28,17 +28,49 @@ export function keyboardMask(keys: Iterable<string>): number {
   return result;
 }
 
-export function gamepadMask(gamepad: Gamepad | null): number {
-  if (!gamepad || gamepad.mapping !== "standard") return 0;
-  const pressed = (index: number) => gamepad.buttons[index]?.pressed ?? false;
+export const GAMEPAD_ACTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "A", "B", "C", "START"] as const;
+export type GamepadAction = typeof GAMEPAD_ACTIONS[number];
+export type GamepadReading = Pick<Gamepad, "connected" | "mapping" | "buttons" | "axes">;
+export type GamepadBinding =
+  | { readonly kind: "button"; readonly index: number }
+  | { readonly kind: "axis"; readonly index: number; readonly direction: -1 | 1 };
+export type GamepadBindings = Readonly<Record<GamepadAction, readonly GamepadBinding[]>>;
+
+export const STANDARD_BINDINGS: GamepadBindings = {
+  UP: [{ kind: "button", index: 12 }, { kind: "axis", index: 1, direction: -1 }],
+  DOWN: [{ kind: "button", index: 13 }, { kind: "axis", index: 1, direction: 1 }],
+  LEFT: [{ kind: "button", index: 14 }, { kind: "axis", index: 0, direction: -1 }],
+  RIGHT: [{ kind: "button", index: 15 }, { kind: "axis", index: 0, direction: 1 }],
+  A: [{ kind: "button", index: 2 }], B: [{ kind: "button", index: 0 }],
+  C: [{ kind: "button", index: 1 }], START: [{ kind: "button", index: 9 }],
+};
+
+export function gamepadMask(gamepad: GamepadReading | null, bindings?: GamepadBindings): number {
+  if (!gamepad?.connected) return 0;
+  const mapping = bindings ?? (gamepad.mapping === "standard" ? STANDARD_BINDINGS : undefined);
+  if (!mapping) return 0;
   let mask = 0;
-  if (pressed(0)) mask |= Button.B;
-  if (pressed(1)) mask |= Button.C;
-  if (pressed(2)) mask |= Button.A;
-  if (pressed(9)) mask |= Button.START;
-  if (pressed(12) || (gamepad.axes[1] ?? 0) < -0.4) mask |= Button.UP;
-  if (pressed(13) || (gamepad.axes[1] ?? 0) > 0.4) mask |= Button.DOWN;
-  if (pressed(14) || (gamepad.axes[0] ?? 0) < -0.4) mask |= Button.LEFT;
-  if (pressed(15) || (gamepad.axes[0] ?? 0) > 0.4) mask |= Button.RIGHT;
+  for (const action of GAMEPAD_ACTIONS) {
+    if (mapping[action].some((binding) => binding.kind === "button"
+      ? gamepad.buttons[binding.index]?.pressed
+      : (gamepad.axes[binding.index] ?? 0) * binding.direction > 0.4)) mask |= Button[action];
+  }
   return mask;
+}
+
+export function newlyPressedInput(previous: GamepadReading, current: GamepadReading): GamepadBinding | null {
+  for (let index = 0; index < current.buttons.length; index++) {
+    if (current.buttons[index]?.pressed && !previous.buttons[index]?.pressed) {
+      return { kind: "button", index };
+    }
+  }
+  for (let index = 0; index < current.axes.length; index++) {
+    const value = current.axes[index]!, before = previous.axes[index] ?? value;
+    if (!Number.isFinite(value) || Math.abs(value) > 1) continue;
+    const direction = value < 0 ? -1 : 1;
+    if (value * direction > 0.7 && before * direction < 0.4) {
+      return { kind: "axis", index, direction };
+    }
+  }
+  return null;
 }

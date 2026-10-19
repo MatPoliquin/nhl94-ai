@@ -118,6 +118,7 @@ class Player:
     input_state_known: bool = False
     platform: str = 'genesis'
     native_state_flags: int | None = None
+    one_timer_offsets: tuple[tuple[int, int], ...] | None = None
 
     def debug_print(self, prefix="Player"):
         print(f"{prefix} - x: {self.x}, y: {self.y}, vx: {self.vx}, vy: {self.vy}, "

@@ -133,7 +133,8 @@ class NHL94DebugDisplay:
             f"A/S/D: {'/'.join(self.platform.buttons[index] for index in (10, 9, 11))} Buttons",
             f"TAB: {self.platform.buttons[2].title()} Button",
             "ENTER: Start Button",
-            "F1: Toggle P2 Keyboard" if args.mode == 'player_vs_model' else "F1: Toggle AI/Human Control",
+            ("F1: AI teammates (keyboard override unavailable)" if args.mode == 'team_vs_game'
+             else "F1: Toggle P2 Keyboard" if args.mode == 'player_vs_model' else "F1: Toggle AI/Human Control"),
             "ESC: Quit",
             "SPACE / P: Pause or resume playback",
             "1: Toggle Passing Lanes",
@@ -173,6 +174,7 @@ class NHL94DebugDisplay:
         self.classic_defense = getattr(ai_sys, 'last_diagnostics', {}).get('classic_defense', {})
         self.classic_offense = getattr(ai_sys, 'last_diagnostics', {}).get('classic_offense', {})
         self.classic_goalie = getattr(ai_sys, 'last_diagnostics', {}).get('classic_goalie', {})
+        self.teammates = getattr(ai_sys, 'last_diagnostics', {}).get('teammates', {})
         snapshot = getattr(ai_sys, 'last_diagnostics', {}).get('decision_inspector')
         if snapshot is None:
             team = self.game_state.team2 if getattr(self.args, 'side', 'home') == 'away' else self.game_state.team1
@@ -196,7 +198,7 @@ class NHL94DebugDisplay:
                 values = values[0]
             return [validate_target(values).tolist()]
         expected_action_size = 6 if getattr(self.args, 'action_type', '').upper() == 'HOCKEY_INTENT_DPAD' else GameConsts.INPUT_MAX
-        if getattr(self.args, 'mode', None) == 'model_vs_model':
+        if getattr(self.args, 'mode', None) in ('model_vs_model', 'team_vs_game'):
             expected_action_size *= 2
 
         if action is None:
@@ -267,6 +269,7 @@ class NHL94DebugDisplay:
         self.classic_defense = {}
         self.classic_offense = {}
         self.classic_goalie = {}
+        self.teammates = {}
         self.score_evaluation = None
         self.score_evaluation_frame = 0
         self.playback_frames = 0
@@ -296,8 +299,9 @@ class NHL94DebugDisplay:
                     self.inspector.set_paused(self.paused)
                     print('Playback paused.' if self.paused else 'Playback resumed.')
             elif event.key == pygame.K_F1:
-                if getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION':
-                    print('TARGET_POSITION playback is AI-only; human button override is not supported.')
+                if (getattr(self.args, 'action_type', '').upper() == 'TARGET_POSITION'
+                        or self.args.mode == 'team_vs_game'):
+                    print('This playback mode uses AI control only.')
                 else:
                     self.human_control = not self.human_control
                     print(f'{"P2 keyboard" if self.args.mode == "player_vs_model" else "Human control"}: '
@@ -360,7 +364,7 @@ class NHL94DebugDisplay:
                 raise ValueError('player_vs_model expects one 12-button AI action')
             self.player_actions = self.get_human_input() if self.human_control else [0] * GameConsts.INPUT_MAX
             env_action = [np.concatenate((ai_action, self.player_actions)).astype(np.int8)]
-        elif self.args.mode == 'model_vs_model':
+        elif self.args.mode in ('model_vs_model', 'team_vs_game'):
             env_action = self._normalize_env_action(action)
             if self.human_control:
                 env_action[0][:GameConsts.INPUT_MAX] = self.get_human_input()
@@ -387,7 +391,7 @@ class NHL94DebugDisplay:
         self._last_frame = np.array(framebuffer, copy=True)
         self._last_render_info = deepcopy(render_info)
         applied = (env_action[0][:GameConsts.INPUT_MAX]
-                   if human_vs_model or self.args.mode == 'model_vs_model' else env_action[0])
+                   if human_vs_model or self.args.mode in ('model_vs_model', 'team_vs_game') else env_action[0])
         self._last_action = deepcopy(applied)
         self.draw_frame(self._last_frame, self._last_render_info, applied)
         self.process_events()
@@ -668,6 +672,8 @@ class NHL94DebugDisplay:
             header_text = "NHL '94 - P1 AI / P2 KEYBOARD"
         elif self.args.mode == 'model_vs_model':
             header_text = f"NHL '94 - P1 {'KEYBOARD' if self.human_control else 'AI'} / P2 AI"
+        elif self.args.mode == 'team_vs_game':
+            header_text = "NHL '94 - TWO AI TEAMMATES / CPU"
         if self.paused:
             header_text += " - PAUSED"
         self.screen.blit(self.big_font.render(header_text, True, WHITE), (info_x, info_y))
@@ -703,6 +709,11 @@ class NHL94DebugDisplay:
             for index, text in enumerate(score_text):
                 self.screen.blit(self.font.render(text, True, GRAY if historical else CYAN),
                                  (info_x + 510, stats_y + index * self.HUD_LINE_HEIGHT))
+        for index, row in enumerate(getattr(self, 'teammates', {}).get('controllers', ())):
+            x, y = row['target']
+            text = f"P{row['controller']} slot {row['slot']}: {row['role']} -> ({x:.0f}, {y:.0f})"
+            self.screen.blit(self.font.render(text, True, CYAN),
+                             (info_x + 510, stats_y + index * self.HUD_LINE_HEIGHT))
 
     def _scores_historical(self):
         return (self.score_evaluation['evaluation_frame'] != self.classic_offense.get('evaluation_frame')

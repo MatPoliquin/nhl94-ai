@@ -1,6 +1,12 @@
 import { Button } from "./inputs";
 import type { Observation } from "./observations";
 
+export const AVAILABLE_BOTS = [{
+  id: "diagnostic",
+  label: "Diagnostic bot",
+  description: "Chases the puck with the selected player and briefly pulses C to shoot, boost or check. A simple emulator test bot, not Classic AI. It does not navigate game menus.",
+}] as const;
+
 export interface Bot {
   reset(): void;
   act(observation: Observation, port: 0 | 1): number;

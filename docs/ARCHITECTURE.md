@@ -100,6 +100,36 @@ the frame-skip wrapper for evaluation and collection. Demonstrations record
 the actual substeps; learned button policies retain their configured interval.
 Reset clears controller history, pending actions, and recurrent policy state.
 
+`team_vs_game` extends the two-controller button path to native Genesis
+Two-Teammates play. `game.ram.configure_teammates` owns scoped reset assignments
+and automatic-goalie settings. `teammate_controller_info` supplies an authoritative
+selection for one controller without changing physical team identities or the
+other controller's fields. The legacy composite clock is replaced only in these
+views by its native low-word clock. Existing neural input layouts are unchanged.
+
+`agents.teammates.TeammateCoordinator` observes the same RAM snapshot through two
+independent game states, keeps controller execution histories separate, assigns
+pursuit/support roles and emits 24 buttons before the next native frame. Native
+pass feedback reserves a controlled receiver; input requests are distinct from
+completed passes and native one-timer attempts. Gameplay selection changes use
+controller buttons. `evaluation.teammates` runs bounded seeded CPU comparisons
+and records/replays optional per-frame input traces from a verified reset boundary.
+
+Executors persist across role changes. Support frames observe fresh feedback and
+commit the buttons actually applied, without generating a discarded Classic
+decision. A shared pass commitment records native release, actual receiver,
+interception point, expiry and reception/shot phase. Controlled receivers reserve
+input ownership; one-timer cues require estimated contact with the native shot
+pose. `--teammate-support-options` opts into bounded reachable support options
+and goal-side recovery coverage in playback or teammate benchmarks.
+These tactics remain confined to the opt-in teammate mode. Benchmark `--state`
+also accepts an absolute path to an externally prepared, gzip native save; its
+initial state and RAM hashes are included in the report.
+Reception-to-shot evaluation retains observed possession through a bounded carry
+window and allows delayed shot counters to settle. Normal releases use native
+animation, ownership and puck-motion evidence; one-timers use native attempt
+counters. Confirmed shot follow-through is excluded from ordinary turnovers.
+
 RAM decoding belongs in `game/ram.py` and `game/state.py`. Task reset helpers
 belong in `tasks/setup.py` and the relevant task initializer. Changes to ordered
 observations or action semantics require matching schema version changes.

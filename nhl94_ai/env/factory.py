@@ -72,6 +72,7 @@ def make_retro(
     max_episode_steps=4500,
     action_type='FILTERED',
     goalie_policy='off',
+    allow_menu_buttons=False,
     inttype=retro.data.Integrations.ALL,
     **kwargs,
 ):
@@ -96,6 +97,10 @@ def make_retro(
             raise ValueError('Manual goalie buttons require full-team FILTERED controls')
         # The integration's FILTERED button group omits A (dives and clears).
         # ALL has the same 12 binary fields; the opt-in controller owns button edges.
+        action_enum = retro.Actions.ALL
+    if allow_menu_buttons:
+        # FILTERED strips Start. The caller retains gameplay filtering through
+        # filter_menu_actions and permits Start only for native menu navigation.
         action_enum = retro.Actions.ALL
     state = resolve_retro_state_name(game, state, num_players, inttype)
 
@@ -151,6 +156,7 @@ def build_single_nhl94_env(
         state=args.state,
         num_players=num_players,
         goalie_policy=getattr(args, 'goalie_policy', 'off'),
+        allow_menu_buttons=getattr(args, 'mode', None) == 'team_vs_game',
     )
     if episode_rom_seed is not None:
         env = EpisodeROMSeed(env, episode_rom_seed)

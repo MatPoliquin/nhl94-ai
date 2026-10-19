@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { DiagnosticBot } from "../bot";
-import { Button, gamepadMask, keyboardMask, validMask } from "../inputs";
+import {
+  Button, gamepadMask, keyboardMask, newlyPressedInput, validMask, type GamepadReading,
+} from "../inputs";
 import { decodeObservation, ramDigest } from "../observations";
-import { MAX_REPLAY_FRAMES, parseReplay } from "../replay";
+import { MAX_CONTROLLER_EVENTS, MAX_REPLAY_FRAMES, parseReplay } from "../replay";
 import { inspectRom } from "../rom";
 
 function gameRam(): Uint8Array<ArrayBuffer> {
@@ -29,6 +31,47 @@ describe("Genesis controller contract", () => {
     for (const value of [-1, 2, 1024, 65536, 1.5, NaN, "1", null]) expect(validMask(value)).toBe(false);
     expect(validMask(Button.A | Button.C)).toBe(true);
     expect(gamepadMask(null)).toBe(0);
+  });
+  it("accepts an explicitly mapped non-standard receiver instead of silently ignoring it", () => {
+    const gamepad = {
+      connected: true, mapping: "" as const, axes: [0, 0],
+      buttons: [{ pressed: true, touched: true, value: 1 }],
+    };
+    const bindings = {
+      UP: [], DOWN: [], LEFT: [], RIGHT: [],
+      A: [{ kind: "button" as const, index: 0 }], B: [], C: [], START: [],
+    };
+    expect(gamepadMask(gamepad, bindings)).toBe(Button.A);
+    expect(gamepadMask(gamepad)).toBe(0);
+    expect(gamepadMask({ ...gamepad, connected: false }, bindings)).toBe(0);
+  });
+  it("preserves standard gamepad actions, axes, deadzone and released inputs", () => {
+    const gamepad: GamepadReading = {
+      connected: true, mapping: "standard", axes: [-1, 1],
+      buttons: Array.from({ length: 16 }, (_, index) => ({
+        pressed: [0, 1, 2, 9].includes(index), touched: false, value: 0,
+      })),
+    };
+    expect(gamepadMask(gamepad)).toBe(Button.A | Button.B | Button.C | Button.START | Button.LEFT | Button.DOWN);
+    expect(gamepadMask({ ...gamepad, axes: [-0.3, 0.2], buttons: [] })).toBe(0);
+    expect(gamepadMask({ ...gamepad, connected: false })).toBe(0);
+  });
+  it("learns only fresh presses and axis directions, including opposite directions", () => {
+    const neutral: GamepadReading = {
+      connected: true, mapping: "", axes: [0, 0],
+      buttons: [{ pressed: false, touched: false, value: 0 }],
+    };
+    const pressed = { ...neutral, buttons: [{ pressed: true, touched: true, value: 1 }] };
+    expect(newlyPressedInput(neutral, pressed)).toEqual({ kind: "button", index: 0 });
+    expect(newlyPressedInput(pressed, pressed)).toBeNull();
+    expect(newlyPressedInput(pressed, neutral)).toBeNull();
+    expect(newlyPressedInput(neutral, { ...neutral, axes: [0, -1] }))
+      .toEqual({ kind: "axis", index: 1, direction: -1 });
+    expect(newlyPressedInput({ ...neutral, axes: [0, -1] }, { ...neutral, axes: [0, 1] }))
+      .toEqual({ kind: "axis", index: 1, direction: 1 });
+    for (const value of [0.2, 3.28, NaN]) {
+      expect(newlyPressedInput(neutral, { ...neutral, axes: [value, 0] })).toBeNull();
+    }
   });
 });
 
@@ -82,6 +125,33 @@ describe("local input replays", () => {
       null, {}, { ...replay, coreBuild: "wrong" }, { ...replay, inputs: [] },
       { ...replay, inputs: [[2, 0]] }, { ...replay, inputs: [[0, 0, 0]] },
       { ...replay, inputs: new Array(MAX_REPLAY_FRAMES + 1).fill([0, 0]) },
+    ]) expect(() => parseReplay(value)).toThrow();
+  });
+  it("preserves a saved-state replay and ordered controller changes, including paused and final changes", () => {
+    const match = {
+      ...replay, format: "nhl94-browser-inputs-v2", startStateHash: "c".repeat(64),
+      controllerEvents: [
+        { frame: 0, teams: [1, 2] }, { frame: 1, teams: [2, 2] },
+        { frame: 1, teams: [2, 1] }, { frame: 2, teams: [0, 1] },
+      ],
+    };
+    expect(parseReplay(JSON.parse(JSON.stringify(match)))).toEqual(match);
+  });
+  it("rejects unknown starts, invalid assignments and out-of-order controller events", () => {
+    const match = {
+      ...replay, format: "nhl94-browser-inputs-v2", startStateHash: "c".repeat(64),
+      controllerEvents: [{ frame: 0, teams: [1, 2] }],
+    };
+    for (const value of [
+      { ...match, startStateHash: "not-a-hash" }, { ...match, controllerEvents: [] },
+      { ...match, controllerEvents: [{ frame: 1, teams: [1, 2] }] },
+      { ...match, controllerEvents: [{ frame: -1, teams: [1, 2] }] },
+      { ...match, controllerEvents: [{ frame: 0, teams: [true, 2] }] },
+      { ...match, controllerEvents: [{ frame: 0, teams: [1, 3] }] },
+      { ...match, controllerEvents: [{ frame: 0, teams: [1] }] },
+      { ...match, controllerEvents: [{ frame: 0, teams: [1, 2] }, { frame: 3, teams: [0, 0] }] },
+      { ...match, controllerEvents: [{ frame: 0, teams: [1, 2] }, { frame: 2, teams: [0, 0] }, { frame: 1, teams: [1, 2] }] },
+      { ...match, controllerEvents: new Array(MAX_CONTROLLER_EVENTS + 1).fill({ frame: 0, teams: [1, 2] }) },
     ]) expect(() => parseReplay(value)).toThrow();
   });
 });

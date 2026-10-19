@@ -31,8 +31,8 @@ def build_parser():
 
     # Mode selection
     parser.add_argument('--mode', type=str, default='player_vs_model',
-                       choices=['player_vs_model', 'model_vs_model', 'model_vs_game', 'player_vs_game'],
-                       help='Game mode: player_vs_model, model_vs_model, model_vs_game, or player_vs_game')
+                       choices=['player_vs_model', 'model_vs_model', 'model_vs_game', 'player_vs_game', 'team_vs_game'],
+                       help='Human, AI opponents, or two coordinated Classic teammates versus the CPU')
 
     # Common arguments
     parser.add_argument('--env', type=str, default='NHL941on1-Genesis-v0')
@@ -89,7 +89,7 @@ def parse_cmdline(argv):
     # Set default num_players based on mode
     if args.mode == 'model_vs_game' or args.mode == 'player_vs_game':
         args.num_players = 1
-    elif args.mode in ('player_vs_model', 'model_vs_model'):
+    elif args.mode in ('player_vs_model', 'model_vs_model', 'team_vs_game'):
         args.num_players = 2
 
     return resolve_play_goalie_defaults(args)
@@ -115,12 +115,12 @@ def resolve_play_goalie_defaults(args):
 class NHL94Player:
     def __init__(self, args, logger, need_display=True):
         self.args = args
-        if args.mode == 'player_vs_model':
+        if args.mode in ('player_vs_model', 'team_vs_game'):
             args.num_players = 2
         self.logger = logger
         self.need_display = need_display
         self.scripted_match = args.mode == 'model_vs_model' and args.nn in CONTROLLERS
-        if get_game(args.env).platform == 'snes':
+        if get_game(args.env).platform == 'snes' or args.mode == 'team_vs_game':
             EnvironmentConfig.from_args(args)
         record_mp4 = getattr(args, 'record_mp4', None)
         if record_mp4 and (not need_display or args.mode == 'model_vs_model' and not self.scripted_match):
@@ -156,6 +156,8 @@ class NHL94Player:
 
         if getattr(args, 'action_type', 'FILTERED').upper() == 'TARGET_POSITION':
             self.init_target_mode()
+        elif args.mode == 'team_vs_game':
+            self.init_teammate_mode()
         elif self.scripted_match:
             self.init_scripted_match()
         elif args.mode == 'model_vs_model':
@@ -271,6 +273,12 @@ class NHL94Player:
             system.SetModels(['', ''])
             system.models[1].frame_skip = 4
 
+    def init_teammate_mode(self):
+        from nhl94_ai.agents.teammates import TeammateCoordinator
+        self.display_env = init_play_env(self.args, 2, self.args.hyperparams_dict,
+                                         False, self.need_display, False)
+        self.ai_sys = TeammateCoordinator(self.args)
+
     def _ai_actions(self, state, info):
         first = self.ai_sys.predict(state, info=info, deterministic=self.args.deterministic)[0]
         if getattr(self, 'scripted_match', False):
@@ -375,9 +383,12 @@ class NHL94Player:
                     total_rewards += reward
                     self._throttle_display_frame()
                 if scripted and np.any(done):
-                    for model in self.ai_sys.models:
-                        if model is not None:
-                            model.reset()
+                    if self.args.mode == 'team_vs_game':
+                        self.ai_sys.reset()
+                    else:
+                        for model in self.ai_sys.models:
+                            if model is not None:
+                                model.reset()
                     if getattr(self, 'scripted_match', False):
                         self.opponent_ai_sys.models[1].reset()
                     self.ai_sys.last_diagnostics = {}
@@ -428,6 +439,8 @@ def run(args):
         com_print('AI: controller 1 / home team. Keyboard: controller 2 / away team.')
     elif args.mode == 'model_vs_game':
         com_print(f"AI: controller 1 / {getattr(args, 'side', 'home')} team. Opponent: built-in CPU.")
+    elif args.mode == 'team_vs_game':
+        com_print('AI teammates: controllers 1 and 2 / home team. Opponent: built-in CPU; automatic goalies.')
 
     try:
         player.play(continuous=not args.single_session, need_reset=False)

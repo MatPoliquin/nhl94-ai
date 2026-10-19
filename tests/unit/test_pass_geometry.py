@@ -76,6 +76,7 @@ class SpriteHotspotTests(unittest.TestCase):
         info = json.loads((Path(__file__).resolve().parents[1] /
                            'fixtures/NHL94-Genesis-v0.json').read_text(encoding='utf-8'))
         info.update(defense_control1=0, defense_team1=1, defense_team2=0,
+                    offense_0_one_timer_offsets=((6, 12), (-6, 12)),
                     offense_0_stick_x=-24, offense_0_stick_y=4,
                     offense_0_shot_durations=(4,) * 8, offense_0_shot_offsets_y=(12, 20),
                     offense_0_shot_offsets_x=(-18, 24),
@@ -93,6 +94,9 @@ class SpriteHotspotTests(unittest.TestCase):
         self.assertEqual((state.team1.players[0].stick_x, state.team1.players[0].stick_y), (-24, 4))
         self.assertIsNone(state.team2.players[0].stick_x)
         self.assertIsNone(state.team1.nz_players[0].stick_x)
+        self.assertEqual(state.team1.players[0].one_timer_offsets, ((6, 12), (-6, 12)))
+        self.assertIsNone(state.team1.nz_players[0].one_timer_offsets)
+
         self.assertEqual(state.team1.players[0].shot_offsets_y, (12, 20))
         self.assertEqual(state.team1.players[0].shot_offsets_x, (-18, 24))
         self.assertIsNone(state.team1.nz_players[0].shot_offsets_x)
@@ -116,6 +120,14 @@ class SpriteHotspotTests(unittest.TestCase):
         state.BeginFrame(info, [0] * 6)
         self.assertIsNone(state.team1.goalie.decision_timer)
         self.assertIsNone(state.team1.goalie.cpu_tracking_active)
+
+    def test_one_timer_contact_poses_are_only_added_for_native_teammates(self):
+        with patch('nhl94_ai.game.ram._stick_hotspots', return_value=self.table), \
+             patch('nhl94_ai.game.ram._one_timer_hotspots', return_value=(((6, 12), (4, 10)),) * 8):
+            ordinary = pass_geometry_info(self.env, {'defense_team1': 1, 'defense_team2': 0})
+            teammates = pass_geometry_info(self.env, {'defense_team1': 1, 'defense_team2': 1})
+        self.assertNotIn('offense_0_one_timer_offsets', ordinary)
+        self.assertEqual(teammates['offense_0_one_timer_offsets'], ((6, -12), (4, -10)))
 
     def test_release_x_envelope_includes_old_sprite_and_respects_flips_and_rotation(self):
         shots = tuple(((4,) * 8, ((-2, -3), (5, 6))) for _ in range(8))

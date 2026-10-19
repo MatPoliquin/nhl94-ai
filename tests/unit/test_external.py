@@ -177,7 +177,7 @@ class CommandTests(unittest.TestCase):
                     external.run(args)
             self.assertEqual([(c.args[0]['seed'], c.args[0]['side']) for c in play.call_args_list],
                              [(10, 1), (10, 2), (11, 1), (11, 2)])
-            report = json.loads(Path(args.output).read_text())
+            report = json.loads(Path(args.output).read_text(encoding='utf-8'))
             self.assertEqual(report['summary'], dict(completed=2, incomplete=2, local_wins=2, draws=0, external_wins=0))
 
     def test_config_resolves_adapter_configuration(self):

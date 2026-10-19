@@ -12,6 +12,20 @@ SHOT_SETTLE_FRAMES = 24
 NORMAL_SHOT_ANIMATIONS = (0x7FC, 0x92E)
 
 
+def normal_shot_released(state, last_owner, last_motion, last_animation):
+    """Fresh animation/ownership/impulse evidence, shared by native observers."""
+    player = state.team1.get_player_by_scnum(last_owner)
+    current_animation = player.live_anim if player is not None else None
+    current_index = player.live_anim_frame if player is not None else None
+    animation, index = last_animation
+    return (animation in NORMAL_SHOT_ANIMATIONS
+            and max(index or 0, current_index or 0) >= 0x1C
+            and current_animation in NORMAL_SHOT_ANIMATIONS
+            and state.team1.owns_scnum(last_owner)
+            and state.engine.shot_player == last_owner and state.engine.puck_owner < 0
+            and math.dist(velocity(state.puck), last_motion) > 0.25)
+
+
 class CarryOutcomes:
     def __init__(self, state, goals, touch):
         if state.engine.clock_stopped is None:
@@ -100,14 +114,7 @@ class CarryOutcomes:
         shots, attempts = state.team1.stats.shots, state.team1.one_timer_attempts
         if shots < self.last_shots or attempts is None or attempts < self.last_attempts:
             raise ValueError('Native shot counters decreased or disappeared within a replay.')
-        animation, index = self.last_animation
-        current_animation, current_index = self._animation(state, self.last_owner)
-        normal = (animation in NORMAL_SHOT_ANIMATIONS
-                  and max(index or 0, current_index or 0) >= 0x1C
-                  and current_animation in NORMAL_SHOT_ANIMATIONS
-                  and state.team1.owns_scnum(self.last_owner)
-                  and state.engine.shot_player == self.last_owner and owner < 0
-                  and math.dist(velocity(state.puck), self.last_motion) > 0.25)
+        normal = normal_shot_released(state, self.last_owner, self.last_motion, self.last_animation)
         if attempts > self.last_attempts and state.team1.owns_scnum(state.engine.shot_player):
             self._release(frame, state, 'native-one-timer-counter-and-shooter')
         elif normal:

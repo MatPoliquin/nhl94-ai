@@ -15,6 +15,19 @@ HOCKEY_CATCH_PLAYER_SPEED_ESTIMATE = 7.2
 HOCKEY_CATCH_BURST_DISTANCE = 22.0
 
 
+def filter_menu_actions(data, buttons):
+    """Preserve native Start pulses while retaining FILTERED gameplay buttons."""
+    values = np.asarray(buttons)
+    if values.shape not in ((12,), (24,)) or not np.isin(values, (0, 1)).all():
+        raise ValueError('Menu-capable input requires 12 or 24 binary buttons')
+    result = []
+    for chunk in values.reshape(-1, 12):
+        raw = sum(int(value) << index for index, value in enumerate(chunk))
+        filtered = data.filter_action(raw) | (raw & (1 << 3))
+        result.extend((filtered >> index) & 1 for index in range(12))
+    return np.asarray(result, dtype=np.int8)
+
+
 class HockeyActionController:
     """Extracted behavior with an explicit environment-state context."""
 

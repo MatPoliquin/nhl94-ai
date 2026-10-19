@@ -23,6 +23,9 @@ python -m pip install -e '.[display,vision,export]'
 # Watch Classic with selective deep-csave goalie control; requires the display extra.
 nhl94 play --agent classic-v1 --env NHL94-Genesis-v0
 
+# Watch two coordinated AI teammates against the built-in CPU (automatic goalies).
+nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --mode team_vs_game --max_playback_speed 1
+
 # Watch the shared Classic agent on SNES against the CPU.
 nhl94 play --agent classic-v1 --env NHL94-Snes-v0
 
@@ -116,6 +119,52 @@ See [artifact formats](docs/ARTIFACTS.md) for schema compatibility and
 [target-position control](docs/ARCHITECTURE.md#target-position-control) for
 coordinate-based policies.
 
+## AI teammates
+
+`team_vs_game` uses the native **Two - Teammates** mode: controllers 1 and 2
+share the home team against the built-in CPU. A shared scripted coordinator uses
+Classic for puck handling and pursuit, while the other controller provides a
+passing option or defensive coverage. Both controllers observe each native frame
+with their own selected-skater view and input history. The display shows each
+controller's selected slot, role and target.
+
+This mode supports original full-team Genesis exhibition saves with five active
+skaters per side, home control, `FILTERED` buttons and automatic goalies. It
+configures the existing save in memory at reset; no new ROM, multitap or saved
+state installation is needed. Matches run through three regulation periods,
+including intermission navigation; overtime is outside this mode. Optional
+Classic experiments and learned checkpoints are unsupported in teammate mode.
+
+Seeded evaluation supports `coordinated`, `independent` (two Classic controllers),
+and `single` strategies. The default evaluation save is
+`SabresVsMightyDucks.ManualGoalie.Start`; goalies are set to automatic for all
+three strategies. Use a home-versus-CPU save for the single-controller baseline.
+
+```bash
+nhl94 benchmark-teammates --strategy coordinated --trials 3 --seed 94 \
+  --output /tmp/teammates.json
+
+# Record native inputs and decisions for a short first period.
+nhl94 benchmark-teammates --seconds 30 --trace /tmp/teammates-inputs.jsonl \
+  --output /tmp/teammates-short.json
+
+# Replay those inputs from the verified reset boundary.
+nhl94 benchmark-teammates --replay /tmp/teammates-inputs.jsonl \
+  --output /tmp/teammates-replay.json
+```
+
+Evaluation defaults to one complete first period; `--periods 3` runs regulation.
+`--side away` evaluates the visitor and `--workers 4` runs independent trials in
+four processes. Playback remains home-only. Top-level scores and shots are
+ordered AI first, CPU second; period scoreboards retain home/visitor order.
+Reports retain physical team IDs and live lineups.
+Reports include completion status, native-frame counts, scores, shots, pass and
+one-timer attempts, observed controlled-teammate receptions, skater turnovers,
+roles, input hashes and ROM/source provenance. Incomplete runs remain explicitly
+incomplete. Input traces are local JSONL recordings for debugging, not learned
+policy training datasets. This scripted prototype has no established strength
+advantage over the single-controller agent.
+
 ## Classic
 
 `classic-v1` (also `classic`) is the scripted gameplay agent. Full-team playback
@@ -155,6 +204,7 @@ python -m build --wheel
 python tests/integration/smoke.py
 python tests/integration/workflows.py
 python -m tests.integration.snes
+python -m tests.integration.teammates
 ```
 
 Unit tests run without ROM files. Emulator checks in `tests/integration/` run

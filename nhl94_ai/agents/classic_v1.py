@@ -480,6 +480,75 @@ class ClassicAIV1Model:
         if self.goalie is not None:
             self.goalie.frames += 1
 
+    def has_committed_action(self):
+        """Whether an executor must retain input ownership across a role handoff."""
+        return (self.offense.pass_action.pending is not None or self.one_timer.pending is not None
+                or self.shot.active(self.scheduler.decisions))
+
+    def pass_intention(self):
+        """Expose a request, distinct from native confirmation of its release."""
+        request = self.offense.pass_action.pending
+        if request is not None:
+            return {**request.snapshot(), 'purpose': request.purpose}
+        request = self.one_timer.pending
+        if request is None:
+            return None
+        return {'passer': request.passer, 'receiver': request.receiver,
+                'frame': request.started, 'deadline': request.deadline,
+                'purpose': 'one-timer', 'point': self._last_target}
+
+    def delegate_reception(self, state=None, reason='teammate-receiver'):
+        """Release a confirmed pass to a receiver owned by another controller."""
+        if state is None:
+            self.offense.cancel()
+        else:
+            self.offense.pass_action.finish(state, self.scheduler.frames, reason)
+        self.end_one_timer(reason)
+        self.scheduler.interrupt()
+
+    def cancel_actions(self, reason):
+        """Invalidate execution without replacing clocks, retry history or input edges."""
+        self.offense.cancel()
+        self.end_one_timer(reason)
+        self.shot.cancel()
+        self.setup.until_decision = 0
+        self.defense.idle(frame=self.scheduler.frames)
+        self.scheduler.interrupt()
+        self.scheduler.was_defending = False
+
+    def accept_applied_action(self, action):
+        """Commit actual Genesis buttons after a coordinating caller arbitrates input.
+
+        This does not choose or advance an action. In particular, a suppressed
+        switch must not become the executor's previous B input.
+        """
+        action = np.asarray(action, dtype=np.int8).reshape(1, self._size).copy()
+        self.scheduler.action = action
+        self.buttons.b_down = bool(action[0, Buttons.INPUT_B])
+        self.buttons.c_down = bool(action[0, Buttons.INPUT_C])
+        self.defense.b_down, self.defense.c_down = self.buttons.b_down, self.buttons.c_down
+        self._last_action_preferences = action.astype(np.float32)
+
+    def observe_external_frame(self, state, action, *, frame_skip=4):
+        """Observe feedback while another policy owns this frame's outgoing input.
+
+        No tactical proposal is generated or discarded. The next tactical owner
+        replans using the applied B/C edges and a fresh decision clock.
+        """
+        self.scheduler.configure(frame_skip)
+        self.offense.decision_interval = frame_skip
+        if state.engine.clock_stopped:
+            self.cancel_actions('stoppage')
+        else:
+            self._observe_actions(state, 1, native=True)
+            self._observe_ordinary_pass(state)
+        self._idle(1)
+        self.scheduler.interrupt()
+        self.scheduler.elapsed = 1
+        self.scheduler.was_defending = False
+        self.input_owner = 'external'
+        self.accept_applied_action(action)
+
     def _idle(self, elapsed):
         """Advance the shared clock while releasing defensive action state."""
         self.defense.idle(frame=self.scheduler.advance(elapsed))

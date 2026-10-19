@@ -24,10 +24,11 @@ describe the current checkout.
 | Worker requests, failures and ownership | [client](../../../web/client.ts), [protocol](../../../web/protocol.ts), [worker](../../../web/emulator.worker.ts) |
 | Frame stepping, snapshots, memory and native callbacks | [engine](../../../web/engine.ts), [C bridge](../../../web/native/bridge.c) |
 | Pinned core, Emscripten and source distribution | [core build](../../../web/scripts/build-core.mjs), [core patch](../../../web/native/core-globals.patch), [artifact check](../../../web/scripts/check-core.mjs) |
-| Browser observations and ROM assumptions | [observations](../../../web/observations.ts), [ROM validation](../../../web/rom.ts) |
+| Trusted default save, native team ownership and replay initialization | [start state](../../../web/start-state.ts), [native bridge](../../../web/native/bridge.c), [startup tests](../../../web/tests/start-state.test.ts), [browser replay parity](../../../web/tests/browser/start-state.spec.ts) |
+| Browser observations, native team stats and ROM assumptions | [observations](../../../web/observations.ts), [game stats](../../../web/game-stats.ts), [ROM validation](../../../web/rom.ts) |
 | Python Genesis reference semantics | [platform backend](../../../nhl94_ai/game/platforms/genesis.py), [RAM declarations](../../../nhl94_ai/game/ram.py), [game state](../../../nhl94_ai/game/state.py) |
-| Controller masks, keyboard and gamepad | [inputs](../../../web/inputs.ts) |
-| Bot boundary and replay validation | [bot](../../../web/bot.ts), [replay](../../../web/replay.ts) |
+| Controller masks, keyboard, gamepad detection and setup | [inputs](../../../web/inputs.ts), [gamepad panel](../../../web/gamepad.ts) |
+| Bot boundary, controller slots/team routing and replay validation | [bot](../../../web/bot.ts), [controllers](../../../web/controllers.ts), [replay](../../../web/replay.ts) |
 | Focused checks | [contract tests](../../../web/tests/contracts.test.ts), [WASM tests](../../../web/tests/core.test.ts), [browser tests](../../../web/tests/browser/smoke.spec.ts), [browser config](../../../web/playwright.config.ts) |
 
 At initial creation this app is a local smoke test with a diagnostic bot.
@@ -60,6 +61,11 @@ the repository; keep reusable tests with their implementation.
 - Treat native/browser save compatibility as unproven until tested. Restore bot
   history/RNG/recurrent state too when adding match continuation; an emulator
   snapshot alone is not a complete bot snapshot.
+- The bundled Sabres/Ducks save requires the native LP64 record layout. The build
+  uses `MEMORY64=2` to preserve it while lowering to 32-bit browser memory.
+  Keep the state hash, one-frame startup initialization and recorded controller
+  events consistent across restart and replay; do not silently replay save-based
+  recordings from ROM boot or ignore ownership changes made while paused.
 - RAM checksums are diagnostic, not complete-state digests. Matching checksums
   or two Node WASM instances do not prove cross-browser gameplay determinism
   or honest bot execution.
@@ -101,9 +107,10 @@ goalies, both teams or stoppages.
 
 For UI changes, use browser tools to exercise the affected controls and failure
 states. For gamepad changes, inspect `navigator.getGamepads()` after user input
-and distinguish no detected device from unsupported mapping. Current support
-requires `mapping: "standard"`; an M30's label/mode is not evidence that its
-buttons match the default layout. Test press/release and disconnect; report
+and distinguish no browser-exposed device from an unconfigured non-standard
+mapping. Use the live gamepad panel and explicit button/D-pad setup for raw
+devices; an M30's label/mode is not evidence that its buttons match the default
+layout. Test press/release and disconnect; report
 hardware testing as unavailable when no physical controller is exposed.
 
 If starting a local dev server, verify the chosen port is responsive. Reuse an

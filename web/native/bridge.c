@@ -137,11 +137,13 @@ static int16_t read_input(unsigned port, unsigned device, unsigned index, unsign
         !!(buttons[port] & (1u << id)) : 0;
 }
 
-EMSCRIPTEN_KEEPALIVE void *arena_alloc(unsigned size) { return malloc(size); }
-EMSCRIPTEN_KEEPALIVE void arena_free(void *pointer) { free(pointer); }
+/* Keep the browser ABI numeric while the core uses the native LP64 save layout. */
+EMSCRIPTEN_KEEPALIVE unsigned arena_alloc(unsigned size) { return (uintptr_t)malloc(size); }
+EMSCRIPTEN_KEEPALIVE void arena_free(unsigned pointer) { free((void *)(uintptr_t)pointer); }
 
-EMSCRIPTEN_KEEPALIVE int arena_load(const uint8_t *rom, unsigned size)
+EMSCRIPTEN_KEEPALIVE int arena_load(unsigned pointer, unsigned size)
 {
+    const uint8_t *rom = (const uint8_t *)(uintptr_t)pointer;
     if (loaded || size < 512 || size > 4 * 1024 * 1024) return 0;
     FILE *file = fopen("/game.md", "wb");
     if (!file) return 0;
@@ -185,15 +187,91 @@ EMSCRIPTEN_KEEPALIVE unsigned arena_ram(void)
     return (uintptr_t)retro_get_memory_data(RETRO_MEMORY_SYSTEM_RAM);
 }
 EMSCRIPTEN_KEEPALIVE unsigned arena_state_size(void) { return retro_serialize_size(); }
-EMSCRIPTEN_KEEPALIVE int arena_save(void *state)
+EMSCRIPTEN_KEEPALIVE int arena_save(unsigned pointer)
 {
+    void *state = (void *)(uintptr_t)pointer;
     memset(state, 0, retro_serialize_size());
     return loaded && retro_serialize(state, retro_serialize_size());
 }
-EMSCRIPTEN_KEEPALIVE int arena_restore(const void *state)
+EMSCRIPTEN_KEEPALIVE int arena_restore(unsigned pointer)
 {
+    const void *state = (const void *)(uintptr_t)pointer;
     return loaded && retro_unserialize(state, retro_serialize_size());
 }
+
+static uint16_t ram_word(const uint8_t *ram, unsigned offset)
+{
+    uint16_t value;
+    memcpy(&value, ram + offset, sizeof(value));
+    return value;
+}
+
+static void set_ram_word(uint8_t *ram, unsigned offset, uint16_t value)
+{
+    memcpy(ram + offset, &value, sizeof(value));
+}
+
+static int selectable(const uint8_t *ram, int slot)
+{
+    return slot >= 0 && slot < 12 && slot % 6 != 5 &&
+        (int16_t)ram_word(ram, 0xb04a + slot * 0x80 + 0x34) > 0;
+}
+
+EMSCRIPTEN_KEEPALIVE int arena_set_controllers(unsigned first, unsigned second)
+{
+    if (!loaded || first > 2 || second > 2) return 0;
+    uint8_t *ram = retro_get_memory_data(RETRO_MEMORY_SYSTEM_RAM);
+    if (!ram || retro_get_memory_size(RETRO_MEMORY_SYSTEM_RAM) != 65536) return 0;
+    unsigned teams[2] = {first, second};
+    int previous[2], selected[2] = {-1, -1}, used[12] = {0};
+    int changed = 0;
+    for (unsigned port = 0; port < 2; port++) {
+        previous[port] = (int16_t)ram_word(ram, 0xc320 + port * 2);
+        changed |= ram_word(ram, 0xc328 + port * 2) != teams[port];
+    }
+    if (!changed) return 1;
+    if (ram_word(ram, 0xd048) != 0 ||
+        ram_word(ram, 0xb04a + 5 * 0x80 + 0x34) != 0 ||
+        ram_word(ram, 0xb04a + 11 * 0x80 + 0x34) != 0) return 0;
+
+    for (unsigned port = 0; port < 2; port++) {
+        int slot = previous[port];
+        if (teams[port] && slot >= 0 && slot < 12 &&
+            (unsigned)(slot / 6 + 1) == teams[port] && !used[slot]) {
+            selected[port] = slot;
+            used[slot] = 1;
+        }
+    }
+    for (unsigned port = 0; port < 2; port++) {
+        if (!teams[port] || selected[port] >= 0) continue;
+        int base = (teams[port] - 1) * 6;
+        int reference = previous[port] >= 0 ? previous[port] : previous[1 - port];
+        int preferred = base + (reference >= 0 && reference < 12 ? reference % 6 : 2);
+        if (selectable(ram, preferred) && !used[preferred]) selected[port] = preferred;
+        else {
+            for (int slot = base; slot < base + 5; slot++) {
+                if (selectable(ram, slot) && !used[slot]) {
+                    selected[port] = slot;
+                    break;
+                }
+            }
+        }
+        if (selected[port] < 0) return 0;
+        used[selected[port]] = 1;
+    }
+    for (unsigned slot = 0; slot < 12; slot++) {
+        unsigned offset = (0xb04a + slot * 0x80 + 0x62) ^ 1;
+        ram[offset] = used[slot] ? ram[offset] | 8 : (ram[offset] & ~8) | 2;
+    }
+    for (unsigned port = 0; port < 4; port++) {
+        set_ram_word(ram, 0xc328 + port * 2, port < 2 ? teams[port] : 0);
+        set_ram_word(ram, 0xc320 + port * 2, port < 2 ? (uint16_t)selected[port] : 0xffff);
+    }
+    unsigned mode = first && second ? (first == second ? 3 : 4) : (first ? first : second);
+    set_ram_word(ram, 0xd04a, mode);
+    return 1;
+}
+
 EMSCRIPTEN_KEEPALIVE void arena_dispose(void)
 {
     if (loaded) retro_unload_game();

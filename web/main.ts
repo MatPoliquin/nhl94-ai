@@ -1,7 +1,12 @@
 import "./style.css";
 import { AudioOutput } from "./audio";
 import { EmulatorClient } from "./client";
-import { gamepadMask, KEY_BUTTONS, keyboardMask } from "./inputs";
+import { KEY_BUTTONS, keyboardMask } from "./inputs";
+import { GamepadInput } from "./gamepad";
+import { GAME_STAT_ROWS } from "./game-stats";
+import { AVAILABLE_BOTS } from "./bot";
+import { controllerRouting, DEFAULT_CONTROLLERS, parseControllerSetup, type ControllerSetup } from "./controllers";
+import type { Observation } from "./observations";
 import type { FramePacket, WorkerCommand } from "./protocol";
 import { MAX_REPLAY_BYTES } from "./replay";
 import { identifyRom, MAX_ROM_BYTES } from "./rom";
@@ -23,11 +28,37 @@ const stepButton = element("step", HTMLButtonElement);
 const restartButton = element("restart", HTMLButtonElement);
 const exportButton = element("export", HTMLButtonElement);
 const sound = element("sound", HTMLInputElement);
-const bot = element("bot", HTMLInputElement);
-const port = element("port", HTMLSelectElement);
+const controllerRows = [1, 2, 3, 4].map((number) => ({
+  agent: element(`controller-${number}-agent`, HTMLSelectElement),
+  team: element(`controller-${number}-team`, HTMLSelectElement),
+}));
+const controllerNote = element("controller-note", HTMLParagraphElement);
+const controllerError = element("controller-error", HTMLParagraphElement);
+for (const [index, row] of controllerRows.entries()) {
+  row.agent.replaceChildren(
+    new Option("Human", "human"),
+    ...AVAILABLE_BOTS.map((bot) => new Option(bot.label, bot.id)),
+    new Option("None", "none"),
+  );
+  row.agent.value = DEFAULT_CONTROLLERS[index]!.agent;
+  row.team.value = String(DEFAULT_CONTROLLERS[index]!.team);
+}
 const status = element("status", HTMLParagraphElement);
 const errorBox = element("error", HTMLParagraphElement);
-const observations = element("observations", HTMLPreElement);
+const statsBody = element("game-stats-body", HTMLTableSectionElement);
+const statsStatus = element("game-stats-status", HTMLParagraphElement);
+const statsCells = GAME_STAT_ROWS.map((definition) => {
+  const row = document.createElement("tr");
+  row.dataset.stat = definition.id;
+  const label = document.createElement("th");
+  label.scope = "row";
+  label.textContent = definition.label;
+  const home = document.createElement("td"), away = document.createElement("td");
+  home.textContent = away.textContent = "-";
+  row.append(label, home, away);
+  statsBody.append(row);
+  return { definition, home, away };
+});
 const frameOutput = element("frame", HTMLOutputElement);
 const placeholder = element("placeholder", HTMLParagraphElement);
 const romInfo = element("rom-info", HTMLParagraphElement);
@@ -36,6 +67,13 @@ const keys = new Set<string>();
 const pointerKeys = new Set<string>();
 let loaded = false, busy = false, advancing = false, running = false, replaying = false, finished = false;
 let lastTime = 0, accumulated = 0, animation = 0, fps = 60, sampleRate = 44100;
+let lastObservation: Observation | undefined;
+
+function readControllers(): ControllerSetup {
+  return parseControllerSetup(controllerRows.map((row) => ({
+    agent: row.agent.value, team: Number(row.team.value),
+  })));
+}
 
 function updateControls(): void {
   playButton.disabled = !loaded || busy || finished;
@@ -44,8 +82,28 @@ function updateControls(): void {
   exportButton.disabled = !loaded || busy || advancing || Number(frameOutput.value) === 0;
   romFile.disabled = busy || advancing;
   replayFile.disabled = !loaded || busy || advancing;
-  port.disabled = busy || replaying;
-  bot.disabled = busy || replaying;
+  for (const [index, row] of controllerRows.entries()) {
+    row.agent.disabled = index >= 2 || busy || replaying;
+    row.team.disabled = index >= 2 || busy || replaying || row.agent.value === "none";
+  }
+  controllerError.hidden = true;
+  if (replaying) {
+    controllerNote.textContent = "Replay uses recorded controller inputs. Live controller setup is ignored.";
+  } else {
+    try {
+      const setup = readControllers();
+      const humans = setup.filter((slot) => slot.agent === "human").length;
+      const inputNote = humans === 2 ? "Two humans: keyboard/on-screen input goes to controller 1; the selected gamepad goes to controller 2." :
+        humans === 1 ? "Keyboard, on-screen controls and the selected gamepad go to the Human slot." :
+          "No Human slot: keyboard and gamepad inputs are ignored. Unassigned teams use the game's CPU.";
+      controllerNote.textContent = `${inputNote} ${controllerRouting(setup, lastObservation).message}`;
+    } catch (error) {
+      controllerError.textContent = error instanceof Error ? error.message : "Invalid controller setup.";
+      controllerError.hidden = false;
+      playButton.disabled = true;
+      stepButton.disabled = true;
+    }
+  }
   playButton.textContent = running ? "Pause" : "Play";
 }
 
@@ -68,6 +126,14 @@ function report(error: unknown): void {
   errorBox.hidden = false;
 }
 
+const gamepads = new GamepadInput({
+  device: element("gamepad", HTMLSelectElement),
+  setup: element("gamepad-setup", HTMLButtonElement),
+  reset: element("gamepad-reset", HTMLButtonElement),
+  status: element("gamepad-status", HTMLParagraphElement),
+  live: element("gamepad-live", HTMLPreElement),
+}, stop);
+
 const client = new EmulatorClient((error) => {
   loaded = false;
   busy = false;
@@ -79,6 +145,7 @@ function render(packet: FramePacket): void {
   sampleRate = packet.sampleRate;
   replaying = packet.replaying;
   finished = packet.finished;
+  lastObservation = packet.observation;
   frameOutput.value = String(packet.frame);
   if (packet.width && packet.height) {
     if (canvas.width !== packet.width || canvas.height !== packet.height) {
@@ -92,12 +159,14 @@ function render(packet: FramePacket): void {
     placeholder.hidden = false;
     placeholder.textContent = "ROM loaded. Press Play or Step one frame.";
   }
-  observations.textContent = JSON.stringify({
-    ...packet.observation, lastInputs: packet.inputs,
-    nativeFps: Number(packet.fps.toFixed(4)), mode: replaying ? "input replay" : "live local",
-  }, null, 2);
+  for (const { definition, home, away } of statsCells) {
+    const homeValue = definition.format(packet.stats[0]), awayValue = definition.format(packet.stats[1]);
+    if (home.textContent !== homeValue) home.textContent = homeValue;
+    if (away.textContent !== awayValue) away.textContent = awayValue;
+  }
+  statsStatus.textContent = replaying ? "Recorded match statistics." : "Live match statistics.";
   if (sound.checked && running) audio.play(new Float32Array(packet.audio), sampleRate);
-  if (finished) stop("Replay finished. Restart ROM to return to live controls.");
+  if (finished) stop("Replay finished. Restart match to return to live controls.");
   updateControls();
 }
 
@@ -117,11 +186,10 @@ async function perform(action: () => Promise<void>): Promise<void> {
   finally { busy = false; updateControls(); }
 }
 
-function controls(): { mask: number; port: 0 | 1; bot: boolean } {
-  const gamepad = Array.from(navigator.getGamepads()).find((value) => value?.mapping === "standard") ?? null;
+function controls(): { humanInputs: readonly [number, number]; controllers: ControllerSetup } {
   return {
-    mask: keyboardMask(keys) | keyboardMask(pointerKeys) | gamepadMask(gamepad),
-    port: port.value === "0" ? 0 : 1, bot: bot.checked,
+    humanInputs: [keyboardMask(keys) | keyboardMask(pointerKeys), gamepads.mask()],
+    controllers: replaying ? DEFAULT_CONTROLLERS : readControllers(),
   };
 }
 
@@ -155,10 +223,11 @@ romFile.addEventListener("change", () => {
     await requestFrame({
       type: "load", rom: bytes.buffer,
       coreBase: new URL(`${import.meta.env.BASE_URL}core/`, location.href).href,
+      controllers: readControllers(),
     }, [bytes.buffer]);
     loaded = true;
     romInfo.textContent = `${identity.title} | SHA-256 ${identity.hash}`;
-    status.textContent = "ROM loaded locally. Press Play; use the normal game menus.";
+    status.textContent = "ROM loaded locally. Sabres vs Mighty Ducks is ready. Press Play.";
   });
 });
 
@@ -183,9 +252,9 @@ stepButton.addEventListener("click", () => {
 
 restartButton.addEventListener("click", () => {
   void perform(async () => {
-    stop("Restarting from ROM boot...");
-    await requestFrame({ type: "restart" });
-    status.textContent = "Restarted. Recording begins again from ROM boot.";
+    stop("Restoring the default match...");
+    await requestFrame({ type: "restart", controllers: readControllers() });
+    status.textContent = "Restarted the default Sabres vs Mighty Ducks match.";
   });
 });
 
@@ -217,7 +286,7 @@ replayFile.addEventListener("change", () => {
     if (file.size > MAX_REPLAY_BYTES) throw new Error("Replay exceeds the 4 MiB limit.");
     const value: unknown = JSON.parse(await file.text());
     await requestFrame({ type: "replay", value });
-    status.textContent = "Replay loaded at ROM boot. Press Play.";
+    status.textContent = "Replay loaded at its recorded starting state. Press Play.";
     replayFile.value = "";
   });
 });
@@ -233,8 +302,17 @@ window.addEventListener("blur", () => { keys.clear(); pointerKeys.clear(); });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && running) stop("Paused because the tab was hidden.");
 });
-port.addEventListener("change", () => { keys.clear(); pointerKeys.clear(); });
-window.addEventListener("pagehide", () => { audio.clear(); client.terminate(); });
+for (const row of controllerRows) {
+  for (const select of [row.agent, row.team]) {
+    select.addEventListener("change", () => {
+      stop("Controller setup changed. Press Play to resume.");
+      if (loaded && !replaying) {
+        void perform(async () => { await requestFrame({ type: "configure", controllers: readControllers() }); });
+      }
+    });
+  }
+}
+window.addEventListener("pagehide", () => { audio.clear(); gamepads.dispose(); client.terminate(); });
 
 for (const button of document.querySelectorAll<HTMLButtonElement>("[data-code]")) {
   button.addEventListener("pointerdown", (event) => {
@@ -247,3 +325,5 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-code]")
   button.addEventListener("pointercancel", release);
   button.addEventListener("lostpointercapture", release);
 }
+
+updateControls();

@@ -68,7 +68,7 @@ run("make", [
   "--silent", "--always-make", "-f", "Makefile.libretro", `-j${Math.min(availableParallelism(), 8)}`,
   "platform=emscripten", "CC=emcc", "AR=emar", "HAVE_CHD=0",
   "TARGET=genesis.a",
-  "HAVE_SYS_PARAM=1", "CPPFLAGS=-sUSE_ZLIB=1 -fno-common", `GIT_VERSION= ${revision.slice(0, 12)}`,
+  "HAVE_SYS_PARAM=1", "CPPFLAGS=-sUSE_ZLIB=1 -fno-common -sMEMORY64=2", `GIT_VERSION= ${revision.slice(0, 12)}`,
 ], source);
 
 run("emcc", [
@@ -77,7 +77,7 @@ run("emcc", [
   join(source, "libretro/libretro-common/streams/file_stream_transforms.c"),
   `-I${join(source, "libretro")}`, `-I${join(source, "libretro/libretro-common/include")}`,
   "-O2", "--no-entry",
-  "-sUSE_ZLIB=1", "-sMODULARIZE=1", "-sEXPORT_ES6=1",
+  "-sUSE_ZLIB=1", "-sMEMORY64=2", "-sMODULARIZE=1", "-sEXPORT_ES6=1",
   "-sENVIRONMENT=web,worker,node", "-sALLOW_MEMORY_GROWTH=1",
   "-sINITIAL_MEMORY=33554432", "-sMAXIMUM_MEMORY=134217728", "-sSTACK_SIZE=1048576",
   "-sFILESYSTEM=1", "-o", join(output, "genesis.js"),
@@ -88,6 +88,7 @@ const bridgeHash = createHash("sha256")
   .update(await readFile(join(root, "native/bridge.c"))).digest("hex");
 await writeFile(join(output, "build.json"), JSON.stringify({
   core: "Genesis Plus GX", revision, emscripten: sdkVersion, bridgeHash, patchHash,
+  stateAbi: "little-endian-lp64", browserMemory: "wasm32-lowered",
   scope: "local smoke test; not Classic; not verified netplay",
 }, null, 2) + "\n");
 

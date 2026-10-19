@@ -1,9 +1,12 @@
 import type { Observation } from "./observations";
+import type { ControllerSetup } from "./controllers";
+import type { GameStats } from "./game-stats";
 
 export type WorkerCommand =
-  | { type: "load"; rom: ArrayBuffer; coreBase: string }
-  | { type: "restart" }
-  | { type: "advance"; frames: number; mask: number; port: 0 | 1; bot: boolean }
+  | { type: "load"; rom: ArrayBuffer; coreBase: string; controllers: ControllerSetup }
+  | { type: "restart"; controllers: ControllerSetup }
+  | { type: "configure"; controllers: ControllerSetup }
+  | { type: "advance"; frames: number; humanInputs: readonly [number, number]; controllers: ControllerSetup }
   | { type: "export" }
   | { type: "replay"; value: unknown };
 
@@ -16,6 +19,7 @@ export interface FramePacket {
   pixels: ArrayBuffer;
   audio: ArrayBuffer;
   observation: Observation;
+  stats: GameStats;
   fps: number;
   sampleRate: number;
   inputs: readonly [number, number];

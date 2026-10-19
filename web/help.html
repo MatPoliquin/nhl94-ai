@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Help - NHL94 AI CONTEST</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="information-page">
+      <header>
+        <div>
+          <a class="site-brand" href="./index.html">NHL94 AI CONTEST</a>
+          <p class="intro">An NHL94 AI research arena.</p>
+        </div>
+        <nav class="site-nav" aria-label="Site navigation">
+          <a href="./bots.html">Bots</a>
+          <a href="./help.html" aria-current="page">Help</a>
+          <a href="./about.html">About</a>
+        </nav>
+      </header>
+      <h1>Help</h1>
+      <p class="intro page-intro">How to use the current local browser arena.</p>
+      <div class="content-stack">
+        <section class="panel page-content">
+          <h2>1. Load your game</h2>
+          <p>Select your legally obtained original NHL94 Genesis ROM in the arena.
+            The emulator runs locally in your browser; your ROM is not uploaded or included with this site.</p>
+          <p>This version accepts the original raw .bin, .md or .gen ROM, up to 4 MiB.
+            ZIP files, interleaved SMD files, roster hacks and other ROM revisions are not supported yet.</p>
+        </section>
+        <section class="panel page-content">
+          <h2>2. Configure controllers</h2>
+          <p>Controller 1 defaults to Human/Home and controller 2 to Diagnostic bot/Away.
+            Each active slot can be Human, an <a href="./bots.html">available bot</a>, or None.
+            Controllers 3 and 4 are disabled until four-player support is added.</p>
+          <p>Loading your ROM restores the bundled Sabres vs Mighty Ducks manual-goalie
+            match. Choose Home or Away beside each slot to change its in-game controller
+            assignment immediately, without selecting players in the game's menus.</p>
+          <p>With one Human slot, keyboard, on-screen controls and your selected gamepad
+            all control that slot. With two Human slots, keyboard/on-screen input goes to
+            controller 1 and the gamepad to controller 2. None releases a controller;
+            teams with no assigned controller return to the game's built-in CPU.</p>
+          <p>For Bot vs Bot, choose a bot for each slot and press Play.
+            Changing controller setup pauses playback and applies the new ownership
+            before the next frame. Four-player support is not enabled yet.</p>
+        </section>
+        <section class="panel page-content">
+          <h2>3. Choose an input device</h2>
+          <p>Use the keyboard or select a browser-detected gamepad in Step 3.</p>
+          <ul>
+            <li>Arrow keys: D-pad.</li>
+            <li>Z / X / C: Genesis A / B / C.</li>
+            <li>Enter: Genesis Start, including the in-game pause menu.</li>
+            <li>Standard gamepad X / A / B: Genesis A / B / C; Start: Genesis Start.</li>
+          </ul>
+          <p>If your gamepad does not appear, click inside the arena and press a controller
+            button. Browser activation may be required even when Linux recognizes the device.</p>
+          <p>For an M30 receiver or another non-standard mapping, expand
+            <strong>Gamepad setup and live inputs</strong>, select
+            <strong>Set up buttons / D-pad</strong>, and follow the eight prompts.
+            Check the live Genesis input before playing. Custom mappings last for the current tab.</p>
+        </section>
+        <section class="panel page-content">
+          <h2>Playback and game statistics</h2>
+          <p><strong>Play/Pause</strong> starts or pauses emulation.
+            <strong>Step one frame</strong> advances exactly one native frame.
+            <strong>Restart match</strong> restores the default match and starts a new recording.
+            Sound is optional and begins after a user action.</p>
+          <p>The Game Stats table beneath Bot Configuration shows Home/Away totals from
+            the game's native team counters, including every pause-menu Game Statistics row.</p>
+          <p><strong>Bot Configuration is a preview only.</strong> Its frequency, AI Goalie and
+            player-ratings controls are disabled and do not affect bot execution yet.</p>
+          <p>Hiding the arena tab pauses emulation. The arena's Bots, Help and About links
+            open a new tab so reading them does not unload your match.</p>
+        </section>
+        <section class="panel page-content">
+          <h2>4. Record and replay</h2>
+          <p>Download the input replay in Step 4. Load it again with the same ROM,
+            starting state and emulator build, then press Play. Replays restore the saved
+            start, apply recorded controller-assignment changes and reproduce the recorded
+            inputs without running the bots again.</p>
+          <p>Replay playback disables live controller setup. Recordings are limited to
+            108,000 native frames and replay files to 4 MiB. Replays contain inputs and
+            compatibility identifiers, not the ROM or bot source.</p>
+        </section>
+        <section class="panel page-content">
+          <h2>Current scope</h2>
+          <p>This is a local browser test arena using Genesis Plus GX WebAssembly.
+            Only the diagnostic bot is currently available. Classic, learned models,
+            online challenges and ranked competitions are not implemented yet.</p>
+        </section>
+      </div>
+      <footer><a href="./index.html">Back to arena</a><a href="./fonts/barlow-condensed-LICENSE.txt">Font license</a></footer>
+    </main>
+  </body>
+</html>

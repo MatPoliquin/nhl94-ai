@@ -1,5 +1,7 @@
 import { validMask } from "./inputs";
 import { decodeObservation, type Observation } from "./observations";
+import { decodeGameStats, type GameStats } from "./game-stats";
+import type { ControllerTeams } from "./controllers";
 
 export interface CoreModule {
   HEAPU8: Uint8Array<ArrayBuffer>;
@@ -19,6 +21,7 @@ export interface CoreModule {
   _arena_state_size(): number;
   _arena_save(pointer: number): number;
   _arena_restore(pointer: number): number;
+  _arena_set_controllers(first: number, second: number): number;
   _arena_dispose(): void;
 }
 
@@ -53,11 +56,34 @@ export class Engine {
   get fps(): number { return this.core._arena_fps(); }
   get sampleRate(): number { return this.core._arena_sample_rate(); }
 
+  start(snapshot: Uint8Array<ArrayBuffer>): void {
+    this.restore(snapshot, 0);
+    // Native saves do not include the frontend framebuffer; initialize it before recording.
+    this.step(0, 0);
+    this.frame = 0;
+  }
+
+  assignControllers(teams: ControllerTeams): void {
+    this.assertActive();
+    if (teams.length !== 2 || !teams.every((team) => Number.isInteger(team) && team >= 0 && team <= 2) ||
+        !this.core._arena_set_controllers(teams[0], teams[1])) {
+      throw new Error("Unable to assign controllers in this game state. A full-team exhibition match is required.");
+    }
+  }
+
   observe(): Observation {
+    return decodeObservation(this.ram(), this.frame);
+  }
+
+  stats(): GameStats {
+    return decodeGameStats(this.ram());
+  }
+
+  private ram(): Uint8Array<ArrayBuffer> {
     this.assertActive();
     const pointer = this.core._arena_ram();
     if (!pointer) throw new Error("Genesis work RAM is unavailable.");
-    return decodeObservation(this.core.HEAPU8.subarray(pointer, pointer + 65536), this.frame);
+    return this.core.HEAPU8.subarray(pointer, pointer + 65536);
   }
 
   step(first: number, second: number): void {

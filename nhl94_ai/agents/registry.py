@@ -7,6 +7,14 @@ CONTROLLERS = {
 }
 ALIASES = {'classic': 'ClassicAIV1', 'classic-v1': 'ClassicAIV1'}
 
+TEAM_INCOMPATIBLE = (
+    'model_1', 'model_2', 'classic_control_interval', 'cross_crease', 'deke',
+    'opportunistic_cross_crease', 'rebound_recovery', 'one_timer_execution',
+    'reception_control', 'shot_placement', 'receiver_selection', 'possession_ablation',
+    'possession_value', 'uncertain_carry', 'chance_creation', 'offense_lookahead',
+    'classic_refinements', 'retention_model', 'goalie_model', 'goalie_planner',
+)
+
 
 def resolve_goalie_positioning(args):
     """Use the improved manual goalie unless another controller is requested."""
@@ -23,6 +31,8 @@ def resolve_goalie_positioning(args):
 
 
 def add_classic_arguments(parser):
+    parser.add_argument('--teammate-support-options', action='store_true',
+                        help='Experiment with scored reachable support positions in team_vs_game')
     parser.add_argument('--goalie-positioning', choices=('classic', 'deep', 'deep-csave'),
                         help='Manual goalie controller (default: deep-csave on Genesis, classic on SNES)')
     parser.add_argument('--goalie-planner', choices=('physics', 'search-12', 'search-24', 'search-48', 'outcome-24'),

@@ -58,6 +58,9 @@ class GenesisBackend(PlatformBackend):
         for controller in (1, 2):
             if info.get(f'defense_team{controller}') == team.controller:
                 team.defense_control = max(-1, info[f'defense_control{controller}'])
+        # Same-team controllers each receive their own authoritative view.
+        if team.defense_control is not None and f'p{team.controller}_control_slot' in info:
+            team.defense_control = max(-1, info[f'p{team.controller}_control_slot'])
         flags = info.get('defense_energy_override', 0)
         bonus = 2 if flags & 0x40 or info.get('defense_skill_boost', 0) & 2 else 0
         for index, player in enumerate(team.players):
@@ -66,6 +69,7 @@ class GenesisBackend(PlatformBackend):
                                         if 'defense_energy_override' in info else None)
             player.stick_x = info.get(f'offense_{team.skater_scnum_base() + index}_stick_x')
             player.stick_y = info.get(f'offense_{team.skater_scnum_base() + index}_stick_y')
+            player.one_timer_offsets = info.get(f'offense_{team.skater_scnum_base() + index}_one_timer_offsets')
             player.shot_durations = info.get(f'offense_{team.skater_scnum_base() + index}_shot_durations')
             player.shot_offsets_y = info.get(f'offense_{team.skater_scnum_base() + index}_shot_offsets_y')
             player.shot_offsets_x = info.get(f'offense_{team.skater_scnum_base() + index}_shot_offsets_x')
