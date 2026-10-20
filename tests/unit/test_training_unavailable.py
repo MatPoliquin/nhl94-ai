@@ -125,7 +125,7 @@ class TrainingUnavailableTests(unittest.TestCase):
         import numpy as np
         from nhl94_ai.models.decision_ppo import DecisionPPO, DecisionRolloutBuffer
         from nhl94_ai.models.offense import OffensePolicy, save_offense_model, load_offense_model
-        from tests.unit.test_offense_decisions import TickEnv
+        from tests.support.learned_offense import TickEnv
         env = TickEnv()
         model = DecisionPPO(OffensePolicy, env, n_steps=2, batch_size=2, device='cpu')
         observation, _ = env.reset()

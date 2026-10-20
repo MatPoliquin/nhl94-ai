@@ -17,9 +17,8 @@ from nhl94_ai.evaluation.play import NHL94Player, parse_cmdline
 from nhl94_ai.evaluation.teammates import play_match, replay_trace, trace_layout
 from nhl94_ai.game.multitap import controller_snapshot
 from nhl94_ai.game.ram import configure_teammates, teammate_controller_info
-from tests.unit.test_multitap import MultitapFixture
-from tests.unit.test_teammates import team_args
-from tests.unit.test_teammate_pressure import pressure_state
+from tests.support.defense import pressure_state
+from tests.support.teammates import MultitapFixture, team_args
 
 
 def layout(side, size, human):

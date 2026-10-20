@@ -19,7 +19,8 @@ from nhl94_ai.env.offense import OffenseEnv, score_reward
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.models.offense import OffensePolicy, ReceiverOrderedExtractor
 from nhl94_ai.models.offense import load_offense_model, save_offense_model
-from tests.unit.test_classic_offense import live_one_timer_state
+from tests.support.learned_offense import DelayedOutcomeEnv, make_offense_env
+from tests.support.offense import live_one_timer_state
 
 
 class OffenseControllerTests(unittest.TestCase):
@@ -224,56 +225,9 @@ class OffenseLearningTests(unittest.TestCase):
             np.testing.assert_allclose(model.rollout_buffer.rewards, expected, atol=1e-6)
 
 
-class DelayedOutcomeEnv(gym.Env):
-    """A decision followed by delegated execution; no emulator needed."""
-    def __init__(self, cutoff=3, truncation=False):
-        super().__init__()
-        self.cutoff, self.truncation, self.ticks = cutoff, truncation, 0
-        self.observation_space = gym.spaces.Box(-1, 1, (16, len(OBSERVATION_FIELDS)), np.float32)
-        self.action_space = gym.spaces.Discrete(N_ACTIONS)
-
-    def observation(self):
-        obs = np.zeros(self.observation_space.shape, np.float32)
-        obs[-1, -N_ACTIONS:] = 1 if self.ticks == 0 else 0
-        obs[-1, -N_ACTIONS] = 1
-        return obs
-
-    def reset(self, *, seed=None, options=None):
-        super().reset(seed=seed)
-        self.ticks = 0
-        return self.observation(), {}
-
-    def step(self, action):
-        self.ticks += 1
-        end = self.ticks >= self.cutoff
-        return self.observation(), float(end and self.cutoff == 3), end and not self.truncation, end and self.truncation, {}
-
-    def render(self):
-        return None
-
-
 class OffenseTransitionTests(unittest.TestCase):
     def make_env(self, scores, *, budget=None):
-        env = OffenseEnv(max_frames=budget)
-        env.side, env.opponent, env.state_name, env.episode_seed = 1, 'cpu', 'fake', 0
-        env.frames, env.finished = 1, False
-        env.start_score = env.previous_score = (0, 0)
-        env.info = dict(p1_score=0, p2_score=0, period=0, bench_clock=300,
-                        bench_shots1=0, bench_shots2=0, bench_one_timers1=0, bench_one_timers2=0)
-        controller = SimpleNamespace(begin_step=lambda *_: False, frame=lambda *_: np.zeros(12, np.int8),
-                                     teacher_command=None, command_used=False)
-        env.controllers, env.views = [controller, controller], [None, None]
-        import hashlib
-        env.digest = hashlib.sha256()
-        env.choices = np.zeros(N_ACTIONS, dtype=int)
-        env._refresh = lambda: None
-        env._append_history = lambda **_kwargs: None
-        env._observation = lambda: np.zeros(env.observation_space.shape, np.float32)
-        def native_step(_):
-            a, b = next(scores)
-            return None, 0, False, False, dict(env.info, p1_score=a, p2_score=b)
-        env.emulator = SimpleNamespace(step=native_step)
-        return env
+        return make_offense_env(scores, budget=budget)
 
     def test_reward_survives_classic_handoff_without_ending_episode(self):
         env = self.make_env(iter([(0, 0), (1, 0), (1, 0), (1, 0),

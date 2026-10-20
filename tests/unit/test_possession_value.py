@@ -20,31 +20,7 @@ from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.cli import main
 from nhl94_ai.config import EnvironmentConfig
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import live_one_timer_state, offense_state
-from tests.unit.test_cross_crease import crossing_state
-from tests.unit.test_deke import deke_state
-
-
-def chain_state():
-    state = offense_state()
-    for player in (*state.team1.players[3:], *state.team2.players):
-        player.x, player.y = 100, -180
-    for player, point in zip(state.team1.players, ((-80, 180), (70, 150), (-30, 220))):
-        player.x, player.y = point
-    state.puck.x, state.puck.y = -80, 190
-    state.team2.goalie.x = 30
-    return state
-
-
-def finish_state():
-    state = offense_state()
-    for player in (*state.team1.players[1:], *state.team2.players):
-        player.x, player.y = 100, -150
-    state.team1.players[0].x, state.team1.players[0].y = 0, 225
-    state.team1.players[0].motion_y = 1
-    state.puck.x, state.puck.y = 0, 230
-    state.team2.goalie.x = 40
-    return state
+from tests.support.offense import chain_state, crossing_state, deke_state, finish_state, live_one_timer_state, offense_state
 
 
 class PossessionValueTests(unittest.TestCase):

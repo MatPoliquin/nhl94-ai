@@ -9,7 +9,7 @@ from nhl94_ai.agents.teammate_support import SupportPlanner, support_forecast
 from nhl94_ai.evaluation.teammate_opportunities import opportunity_diagnostics
 from nhl94_ai.game.ram import teammate_controller_info
 from nhl94_ai.game.state import NHL94GameState
-from tests.unit.test_teammates import team_args, team_info
+from tests.support.teammates import team_args, team_info
 
 
 class SupportForecastTests(unittest.TestCase):

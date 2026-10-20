@@ -15,7 +15,7 @@ from nhl94_ai.agents.goalie_csave import CSaveGoalie
 from nhl94_ai.agents.registry import add_classic_arguments
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.agents.motion import velocity
-from tests.unit.test_manual_goalie import goalie_state
+from tests.support.defense import goalie_state
 
 
 class ReferenceGoalie(GoalieController):

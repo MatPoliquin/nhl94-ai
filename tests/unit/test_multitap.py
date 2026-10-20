@@ -21,33 +21,7 @@ from nhl94_ai.evaluation.play import build_parser, parse_cmdline, NHL94Player
 from nhl94_ai.evaluation.teammates import replay_trace
 from nhl94_ai.game.multitap import controller_snapshot, require_multitap
 from nhl94_ai.game.ram import configure_teammates, teammate_controller_info
-from tests.unit.test_teammates import TeammateFixture, team_args, team_info, FixtureData
-
-
-def three_info(human=False, **values):
-    info = team_info(defense_team3=1, defense_team4=2 if human else 0,
-                     defense_control3=2, defense_control4=6 if human else -1)
-    for slot in range(12):
-        info[f'defense_{slot}_flags'] = (8 if slot in (0, 1, 2) or human and slot == 6 else 0) | (64 if slot >= 6 else 0)
-    info.update(values)
-    return info
-
-
-def three_args(human=False, **values):
-    return team_args(team_size=3, num_players=4 if human else 3,
-                     mode='team_vs_player' if human else 'team_vs_game', **values)
-
-
-class MultitapFixture(TeammateFixture):
-    def reset(self, **kwargs):
-        super().reset(**kwargs)
-        for port in (3, 4):
-            for kind, base, dtype in (('team', 0xFFC328, '>u2'), ('control', 0xFFC320, '>i2')):
-                self.data.set_variable(f'defense_{kind}{port}', {'address': base + (port - 1) * 2, 'type': dtype})
-        for slot in range(12):
-            self.data.set_variable(f'defense_{slot}_flags',
-                                   {'address': 0xFFB04A + slot * 128 + 0x62, 'type': '|u1'})
-        return self.render(), self.data.lookup_all()
+from tests.support.teammates import FixtureData, MultitapFixture, team_info, three_args, three_info
 
 
 def wrapper(human=False, side='home'):

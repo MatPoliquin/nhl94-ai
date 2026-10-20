@@ -12,7 +12,7 @@ from nhl94_ai.agents.teammates import TeammateCoordinator
 from nhl94_ai.evaluation.teammates import DEFAULT_STATE, make_match_env, prepare_match, play_match, replay_trace
 from nhl94_ai.game.multitap import controller_snapshot
 from tests.integration.multitap import scripted_human
-from tests.unit.test_teammates import team_args
+from tests.support.teammates import team_args
 
 
 class AwayNativeTests(unittest.TestCase):

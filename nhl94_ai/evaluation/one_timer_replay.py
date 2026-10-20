@@ -8,10 +8,8 @@ from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 from copy import deepcopy
 from dataclasses import asdict
-import gzip
 import hashlib
 import json
-from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -19,9 +17,10 @@ import numpy as np
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
 from nhl94_ai.env.factory import make_retro
-from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, MATCHUPS, select_side
-from nhl94_ai.evaluation.possession_ablation_replay import observation, source_hashes as agent_hashes
-from nhl94_ai.evaluation.refinement_replay import advance, read_view, restore
+from nhl94_ai.evaluation.cpu_benchmark import MATCHUPS
+from nhl94_ai.evaluation.replay_support import (
+    advance, observation, prepare_period, read_view, replay_source_hashes, restore, write_replay_report,
+)
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.tasks.cross_crease_setup import crossing_touch_player
@@ -121,10 +120,7 @@ def fork_timer(env, snapshot, digest, state, side, history, variant, horizon):
 
 
 def source_hashes():
-    sources = agent_hashes()
-    root, path = Path(__file__).resolve().parents[2], Path(__file__)
-    sources[str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
-    return sources
+    return replay_source_hashes('evaluation/one_timer_replay.py')
 
 
 def run_job(job):
@@ -133,14 +129,7 @@ def run_job(job):
     env = make_retro(game='NHL94-Genesis-v0', state=save, num_players=1, goalie_policy='selective')
     cases = []
     try:
-        for name, (address, kind) in CPU_RAM.items():
-            env.data.set_variable(name, {'address': address, 'type': kind})
-        env.reset(seed=seed)
-        env.data.update_ram()
-        select_side(env.data, env.data.lookup_all(), side)
-        env.data.set_value('bench_rng', seed)
-        env.data.set_value('bench_clock', 300)
-        env.step(np.zeros(12, dtype=np.int8))
+        prepare_period(env, seed, side)
         model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED', goalie_policy='selective'))
         state, frame, digest = NHL94GameState(5), 1, hashlib.sha256()
         while frame < 42000:
@@ -210,10 +199,7 @@ def main():
                               'Only initial sequence execution changes; later play uses Classic.',
                               'Activation/first_attempt refer only to the initial pending sequence and requested receiver.',
                               'Bounded continuation goals include rebounds/later attacks; overlapping cases are correlated.']}
-    path = Path(args.output)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    data = (json.dumps(report, separators=(',', ':'), allow_nan=False)+'\n').encode()
-    path.write_bytes(gzip.compress(data, mtime=0) if path.suffix == '.gz' else data)
+    write_replay_report(args.output, report)
     print(json.dumps(totals))
 
 

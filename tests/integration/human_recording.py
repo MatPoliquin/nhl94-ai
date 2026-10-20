@@ -9,28 +9,15 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
-from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
 from nhl94_ai.evaluation.human_session import build_parser, run
 from nhl94_ai.evaluation.human_replay import replay
+from tests.support.recording import scripted_viewer
 
 
 class NativeHumanRecording(unittest.TestCase):
-    def viewer(self, *, quit_after=None):
-        count = 0
-        def action():
-            nonlocal count
-            count += 1
-            buttons = [0] * 12
-            buttons[4 + count // 20 % 4] = 1
-            buttons[8] = int(count % 17 < 3)
-            buttons[0] = int(count % 31 == 0)
-            return buttons
-        return SimpleNamespace(before_frame=lambda: quit_after is None or count < quit_after,
-                               human_action=action, show=lambda *_: None, close=lambda: None)
-
     def test_multiple_periods_both_sides_and_cross_process_seek(self):
         for side in ('home', 'away'):
             with self.subTest(side=side), tempfile.TemporaryDirectory() as directory:
@@ -38,7 +25,7 @@ class NativeHumanRecording(unittest.TestCase):
                 args = build_parser().parse_args(['--output', str(path), '--side', side,
                                                   '--periods', '2', '--seconds', '5',
                                                   '--snapshot-interval', '60'])
-                with patch('nhl94_ai.evaluation.external.MatchViewer', side_effect=lambda *_a, **_k: self.viewer()):
+                with patch('nhl94_ai.evaluation.external.MatchViewer', side_effect=lambda *_a, **_k: scripted_viewer()):
                     report = run(args)
                 self.assertEqual(report['summary']['completed_periods'], 2)
                 self.assertEqual([row['seed'] for row in report['matches']], [94, 95])
@@ -65,7 +52,7 @@ class NativeHumanRecording(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'session'
             args = build_parser().parse_args(['--output', str(path), '--periods', '10'])
-            with patch('nhl94_ai.evaluation.external.MatchViewer', return_value=self.viewer(quit_after=75)):
+            with patch('nhl94_ai.evaluation.external.MatchViewer', return_value=scripted_viewer(quit_after=75)):
                 report = run(args)
             self.assertEqual(len(report['matches']), 1)
             self.assertEqual(report['summary']['completed_periods'], 0)
@@ -82,7 +69,7 @@ class NativeHumanRecording(unittest.TestCase):
             config.write_text(json.dumps({'decision_hz': 10, 'ai_goalie': False}))
             args = build_parser().parse_args(['--output', str(path), '--periods', '1', '--seconds', '1',
                                               '--classic-config', str(config)])
-            with patch('nhl94_ai.evaluation.external.MatchViewer', return_value=self.viewer()):
+            with patch('nhl94_ai.evaluation.external.MatchViewer', return_value=scripted_viewer()):
                 report = run(args)
             self.assertEqual(report['summary']['completed_periods'], 1)
             self.assertIsNone(report['matches'][0]['goalie_metrics']['opponent'])

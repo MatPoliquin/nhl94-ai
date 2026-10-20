@@ -18,8 +18,7 @@ from nhl94_ai.evaluation.shot_direction_replay import fork_direction
 from nhl94_ai.evaluation.shot_direction_benchmark import run_job
 from nhl94_ai.evaluation import cpu_benchmark
 from nhl94_ai.evaluation.shot_direction_model import evaluate, read_cases, selected_index
-from tests.unit.test_classic_offense import live_one_timer_state, offense_state
-from tests.unit.test_possession_value import finish_state
+from tests.support.offense import finish_state, live_one_timer_state, offense_state
 
 
 class ShotDirectionTests(TestCase):

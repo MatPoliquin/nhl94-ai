@@ -13,8 +13,7 @@ from stable_baselines3.common.logger import configure
 from nhl94_ai.artifacts import load_policy, read_metadata, run_metadata, save_checkpoint
 from nhl94_ai.models.factory import build_MlpPolicy, init_model
 from nhl94_ai.models.mlp import SquashedGaussianDistribution, SquashedMlpPolicy
-from tests.unit.test_target_control import target_env
-from tests.unit.test_target_interfaces import target_args
+from tests.support.environments import target_args, target_env
 
 
 class SquashedDistributionTests(unittest.TestCase):

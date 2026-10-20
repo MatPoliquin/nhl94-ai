@@ -13,8 +13,7 @@ from nhl94_ai.agents.possession_ablation import LegacyValueRanker, PROFILES
 from nhl94_ai.cli import main
 from nhl94_ai.config import EnvironmentConfig
 from nhl94_ai.evaluation.possession_ablation_replay import common_continuation, configured, signatures, summarize
-from tests.unit.test_classic_offense import live_one_timer_state, offense_state
-from tests.unit.test_possession_value import chain_state, finish_state
+from tests.support.offense import chain_state, finish_state, live_one_timer_state, offense_state
 
 
 class LegacyProposalTests(unittest.TestCase):

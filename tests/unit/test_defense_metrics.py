@@ -6,7 +6,7 @@ import numpy as np
 
 from nhl94_ai.evaluation.defense_metrics import CarrierDefenseMetrics, GoalieDefenseMetrics
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_defense import defense_state
+from tests.support.defense import defense_state
 
 
 class CarrierDefenseMetricsTests(unittest.TestCase):

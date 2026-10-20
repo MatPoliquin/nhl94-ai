@@ -18,9 +18,10 @@ from nhl94_ai.agents.defense import controlled_slot, eligible
 from nhl94_ai.agents.passing import PassOption, pad_direction, selected_receiver
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.env.intents import HOCKEY_INTENT_NOOP
-from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, cpu_view, select_side
+from nhl94_ai.game.genesis_match import cpu_view
 from nhl94_ai.evaluation.carry_outcomes import CarryOutcomes
 from nhl94_ai.evaluation.lifecycle_history import cache_input, copy_history
+from nhl94_ai.evaluation.replay_support import prepare_period
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
 from nhl94_ai.game.ram import pass_geometry_info, restore_away_control
@@ -160,14 +161,7 @@ def replay_seed(seed, reference_class, *, search_frames, horizon, min_depth,
                 outcome_ended=False, strata=('general',)):
     env = make_retro(game='NHL94-Genesis-v0', state='SabresVsMightyDucks.ManualGoalie.Start', num_players=1)
     try:
-        for name, (address, kind) in CPU_RAM.items():
-            env.data.set_variable(name, {'address': address, 'type': kind})
-        env.reset(seed=seed)
-        env.data.update_ram()
-        select_side(env.data, env.data.lookup_all(), 2)
-        env.data.set_value('bench_rng', seed)
-        env.data.set_value('bench_clock', 300)
-        env.step(np.zeros(12, dtype=np.int8))
+        prepare_period(env, seed, 2)
         default = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED', uncertain_carry=False))
         state = NHL94GameState(5)
         rows, covered = [], set()
@@ -325,8 +319,8 @@ def source_hashes(runtime=None):
     result = {f'nhl94_ai/agents/{name}.py': hashlib.sha256(
         (root / 'agents' / f'{name}.py').read_bytes()).hexdigest() for name in names}
     if runtime is None:
-        for name in ('evaluation/carry_replay.py', 'evaluation/lifecycle_history.py', 'evaluation/carry_outcomes.py', 'evaluation/benchmark.py',
-                     'evaluation/cpu_benchmark.py', 'game/ram.py', 'game/state.py', 'tasks/cross_crease_setup.py',
+        for name in ('evaluation/carry_replay.py', 'evaluation/lifecycle_history.py', 'evaluation/carry_outcomes.py', 'evaluation/benchmark.py', 'game/genesis_match.py',
+                     'evaluation/cpu_benchmark.py', 'evaluation/replay_support.py', 'game/ram.py', 'game/state.py', 'tasks/cross_crease_setup.py',
                      'agents/base.py', 'agents/registry.py', 'agents/defense.py', 'agents/motion.py',
                      'env/factory.py', 'env/target_control.py'):
             result[f'nhl94_ai/{name}'] = hashlib.sha256((root / name).read_bytes()).hexdigest()

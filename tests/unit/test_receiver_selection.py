@@ -13,8 +13,7 @@ from nhl94_ai.agents.receiver_selection import INCOMPATIBLE, ReceiverSelector
 from nhl94_ai.cli import main
 from nhl94_ai.config import EnvironmentConfig
 from nhl94_ai.evaluation.receiver_replay import configured, common_continuation
-from tests.unit.test_classic_offense import offense_state, live_one_timer_state
-from tests.unit.test_possession_value import chain_state, finish_state
+from tests.support.offense import chain_state, finish_state, live_one_timer_state, offense_state
 
 
 def receivers_state():

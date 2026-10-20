@@ -4,50 +4,14 @@ from pathlib import Path
 from types import SimpleNamespace
 import unittest
 
-import gymnasium as gym
-import numpy as np
 import torch
 from stable_baselines3.common.callbacks import BaseCallback
 
-from nhl94_ai.agents.learned_offense import N_ACTIONS, OBSERVATION_FIELDS
 from nhl94_ai.env.offense_decisions import DecisionEnv
 from nhl94_ai.models.offense import OffensePolicy, load_offense_model, save_offense_model
 from nhl94_ai.models.decision_ppo import DecisionPPO, DecisionRolloutBuffer
-from tests.unit.test_classic_offense import live_one_timer_state
-from tests.unit import test_learned_offense as offense_tests
-
-
-class TickEnv(gym.Env):
-    """Decisions at ticks zero and three; a delayed goal at tick five."""
-    def __init__(self, cutoff=5, truncated=False):
-        super().__init__()
-        self.observation_space = gym.spaces.Box(-1, 1, (16, len(OBSERVATION_FIELDS)), np.float32)
-        self.action_space = gym.spaces.Discrete(N_ACTIONS)
-        self.cutoff, self.truncated, self.ticks = cutoff, truncated, 0
-        self.actions = []
-
-    def observation(self):
-        obs = np.zeros(self.observation_space.shape, np.float32)
-        obs[-1, -N_ACTIONS:] = int(self.ticks in (0, 3))
-        obs[-1, -N_ACTIONS] = 1
-        return obs
-
-    def reset(self, *, seed=None, options=None):
-        super().reset(seed=seed)
-        self.ticks = 0
-        return self.observation(), {}
-
-    def step(self, action):
-        active = self.ticks in (0, 3)
-        self.actions.append(int(action))
-        self.ticks += 1
-        done = self.ticks == self.cutoff
-        return (self.observation(), float(done and not self.truncated),
-                done and not self.truncated, done and self.truncated,
-                dict(native_frames=4, actor_active=active, command_used=active))
-
-    def render(self):
-        return None
+from tests.support.learned_offense import TickEnv, make_offense_env
+from tests.support.offense import live_one_timer_state
 
 
 class DecisionLearningTests(unittest.TestCase):
@@ -96,7 +60,7 @@ class DecisionLearningTests(unittest.TestCase):
 
 class AttackBoundaryTests(unittest.TestCase):
     def env(self, scores):
-        env = offense_tests.OffenseTransitionTests().make_env(iter(scores))
+        env = make_offense_env(iter(scores))
         env.task, env.attack_start, env.attack_frames, env.snapshot = 'attack', 1, 600, 'test'
         state = live_one_timer_state()
         env.views = [state, state]

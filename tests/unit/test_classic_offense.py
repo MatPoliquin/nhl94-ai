@@ -20,57 +20,7 @@ from nhl94_ai.evaluation.benchmark import away_view
 from nhl94_ai.evaluation.offense_metrics import OffenseMetrics
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.ram import register_defense_state
-from nhl94_ai.game.state import NHL94GameState
-
-
-def offense_state():
-    state = NHL94GameState(5)
-    state.team1.net.y, state.team2.net.y = -264, 264
-    state.team1.control, state.team1.defense_control = 1, 0
-    state.engine.puck_owner, state.engine.puck_owner_known = 0, True
-    state.engine.offsides_enabled = False
-    state.team1.pass_attempts = 0
-    for team in (state.team1, state.team2):
-        for player in (*team.players, team.goalie):
-            player.motion_x = player.motion_y = 0
-            player.speed, player.agility, player.weight = 20, 20, 64
-            player.passing, player.energy, player.stick = 20, 4096, 20
-            player.burst_full_energy = False
-            player.role, player.facing, player.selection_flags = 4, 0, 0
-            player.shot_accuracy = 20
-        team.goalie.role = 0
-    for player, point in zip(state.team1.players, ((0, -130), (-80, -30), (100, -210), (110, -240), (70, -220))):
-        player.x, player.y = point
-    for player, point in zip(state.team2.players, ((40, -75), (110, 80), (110, 140), (90, 180), (100, 220))):
-        player.x, player.y = point
-    state.team1.players[0].selection_flags = 8
-    state.team1.goalie.y, state.team2.goalie.y = -250, 250
-    state.puck.x, state.puck.y = 0, -120
-    state.puck.motion_x = state.puck.motion_y = 0
-    state.puck.height = 0
-    return state
-
-
-def live_one_timer_state(*, away=False):
-    state = offense_state()
-    passer, receiver = state.team1.players[:2]
-    passer.x, passer.y, passer.facing = -50, 180, 1
-    receiver.x, receiver.y, receiver.motion_y = 35, 160, 0.7
-    state.puck.x, state.puck.y = -50, 190
-    for other in (*state.team1.players[2:], *state.team2.players):
-        other.x, other.y = 100, -180
-    if away:
-        for team in (state.team1, state.team2):
-            team.controller = 3 - team.controller
-            team.defense_control = team.skater_scnum_base()
-            team.net.y = -team.net.y
-            for player in (*team.players, team.goalie):
-                player.x, player.y = -player.x, -player.y
-                player.motion_x, player.motion_y = -player.motion_x, -player.motion_y
-                player.facing = (player.facing + 4) % 8
-        state.engine.puck_owner = 6
-        state.puck.x, state.puck.y = -state.puck.x, -state.puck.y
-    return state
+from tests.support.offense import live_one_timer_state, offense_state
 
 
 class PassEstimateTests(unittest.TestCase):

@@ -9,8 +9,7 @@ from nhl94_ai.agents.skating import grounded_step
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.evaluation.play import parse_cmdline
 from nhl94_ai.evaluation.runner import build_parser as evaluation_parser, run as evaluate
-from tests.unit.test_carry_continuations import wing_reception_state
-from tests.unit.test_classic_offense import offense_state
+from tests.support.offense import offense_state, wing_reception_state
 
 
 class UncertainCarryTests(unittest.TestCase):

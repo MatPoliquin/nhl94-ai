@@ -19,29 +19,9 @@ from nhl94_ai.env.intents import HOCKEY_INTENT_CHANGE_PLAYER, HOCKEY_INTENT_NOOP
 from nhl94_ai.env.wrappers import StochasticFrameSkip
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.ram import register_defense_state
-from nhl94_ai.game.state import NHL94GameState, Player
-from tests.unit.test_environment_contracts import wrapped
-
-
-def defense_state():
-    state = NHL94GameState(5)
-    state.team1.net.y, state.team2.net.y = -264, 264
-    state.team1.control = state.team2.control = 1
-    state.team1.defense_control, state.team2.defense_control = 0, 6
-    state.engine.puck_owner = 6
-    for team, y in ((state.team1, -215), (state.team2, 70)):
-        for index, player in enumerate(team.players):
-            player.x, player.y = -90 + index * 40, y
-            player.motion_x = player.motion_y = 0
-            player.speed = player.agility = player.stick = 20
-            player.weight, player.energy, player.checking = 64, 4096, 20
-            player.role, player.facing = 4, 0
-    state.team1.players[0].x = 0
-    state.team2.players[0].x, state.team2.players[0].y = 0, -150
-    state.puck.x, state.puck.y = 0, -150
-    state.puck.motion_x = state.puck.motion_y = 0
-    state.puck.height, state.puck.motion_z = 0, 0
-    return state
+from nhl94_ai.game.state import Player
+from tests.support.defense import defense_state
+from tests.support.environments import wrapped
 
 
 class DefenseMotionTests(unittest.TestCase):
@@ -752,7 +732,7 @@ class DefensiveCadenceTests(unittest.TestCase):
         self.assertEqual(model.scheduler.frames, 40)
 
     def test_offensive_actions_keep_the_original_four_frame_interval(self):
-        from tests.unit.test_v1_one_timers import cross_slot_state
+        from tests.support.offense import cross_slot_state
         for schema in ('FILTERED', 'HOCKEY_INTENT_DPAD'):
             args = SimpleNamespace(action_type=schema)
             decision_model, frame_model = ClassicAIV1Model(args), ClassicAIV1Model(args)

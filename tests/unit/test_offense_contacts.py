@@ -3,7 +3,7 @@ from copy import deepcopy
 import unittest
 
 from nhl94_ai.evaluation.offense_metrics import OffenseMetrics
-from tests.unit.test_classic_offense import offense_state
+from tests.support.offense import offense_state
 
 
 class OffenseContactTests(unittest.TestCase):

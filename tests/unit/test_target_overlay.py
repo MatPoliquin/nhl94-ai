@@ -7,9 +7,7 @@ import unittest
 from unittest.mock import patch
 
 import numpy as np
-
-from tests.unit.test_target_control import target_env
-from tests.unit.test_target_interfaces import target_args
+from tests.support.environments import target_args, target_env
 
 
 class TargetCameraTests(unittest.TestCase):
@@ -55,7 +53,7 @@ class TargetOverlayTests(unittest.TestCase):
         import pygame
         from nhl94_ai.agents.goalie import GoalieController
         from nhl94_ai.ui.targets import CYAN, TARGET_GREEN, draw_game_target, select_target
-        from tests.unit.test_manual_goalie import goalie_state
+        from tests.support.defense import goalie_state
         manager = GoalieController('selective')
         manager.step(goalie_state(True))
         surface = pygame.Surface((256, 224))
@@ -72,7 +70,7 @@ class TargetOverlayTests(unittest.TestCase):
     def test_world_view_overlays_mark_the_away_skater_not_home(self):
         import pygame
         from nhl94_ai.ui.targets import CYAN, GREEN, draw_offense_overlay, draw_target_overlay
-        from tests.unit.test_classic_defense import defense_state
+        from tests.support.defense import defense_state
         state = defense_state()
         details = dict(target=(0, 200), destination=(0, 200), waypoint=(0, 200),
                        actual_slot=6, desired_slot=7, mode='tracking')
@@ -94,7 +92,7 @@ class TargetOverlayTests(unittest.TestCase):
     def test_teammate_labels_show_scores_continuations_rejections_and_away_slots(self):
         import pygame
         from nhl94_ai.ui.targets import draw_teammate_scores
-        from tests.unit.test_classic_defense import defense_state
+        from tests.support.defense import defense_state
         state = defense_state()
         details = dict(actual_slot=6, desired_slot=7, teammate_scores=[
             {'slot': 7, 'selected': True, 'pass': {
@@ -122,7 +120,7 @@ class TargetOverlayTests(unittest.TestCase):
     def test_selected_one_timer_and_unknown_carry_do_not_show_a_fake_pass_choice(self):
         import pygame
         from nhl94_ai.ui.targets import draw_teammate_scores
-        from tests.unit.test_classic_defense import defense_state
+        from tests.support.defense import defense_state
         state = defense_state()
         details = dict(actual_slot=6, desired_slot=7, mode='one-timer-pass', teammate_scores=[
             {'slot': 7, 'selected': True, 'pass': {
@@ -229,8 +227,8 @@ class TargetOverlayTests(unittest.TestCase):
         from nhl94_ai.agents.defense import DefenseController
         from nhl94_ai.ui.debug import NHL94DebugDisplay
         from nhl94_ai.ui.targets import TARGET_GREEN
-        from tests.unit.test_environment_contracts import wrapped
-        from tests.unit.test_classic_defense import defense_state
+        from tests.support.environments import wrapped
+        from tests.support.defense import defense_state
         for terminal in (False, True):
             with self.subTest(terminal=terminal):
                 inner = wrapped()
@@ -254,7 +252,7 @@ class TargetOverlayTests(unittest.TestCase):
         import pygame
         from nhl94_ai.agents.defense import DefenseController
         from nhl94_ai.ui.targets import CYAN, GREEN, PURPLE, draw_target_overlay
-        from tests.unit.test_classic_defense import defense_state
+        from tests.support.defense import defense_state
         state = defense_state()
         planner = DefenseController()
         planner.step(state)
@@ -275,7 +273,7 @@ class TargetOverlayTests(unittest.TestCase):
         import pygame
         from nhl94_ai.agents.defense import DefenseController
         from nhl94_ai.ui.targets import draw_target_overlay
-        from tests.unit.test_classic_defense import defense_state
+        from tests.support.defense import defense_state
         planner = DefenseController()
         state = defense_state()
         planner.step(state)
@@ -295,8 +293,8 @@ class TargetOverlayTests(unittest.TestCase):
         from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
         from nhl94_ai.ui.debug import NHL94DebugDisplay
         from nhl94_ai.ui.targets import OFFENSE_AMBER, TARGET_GREEN
-        from tests.unit.test_environment_contracts import wrapped
-        from tests.unit.test_classic_offense import offense_state
+        from tests.support.environments import wrapped
+        from tests.support.offense import offense_state
         for terminal in (False, True):
             with self.subTest(terminal=terminal):
                 inner = wrapped()

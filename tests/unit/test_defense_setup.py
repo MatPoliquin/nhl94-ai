@@ -9,7 +9,7 @@ from unittest.mock import patch
 import numpy as np
 
 from nhl94_ai.tasks.defense_setup import _sample_formation, _rebuild_object_order, init_full_team_defense
-from tests.ram_fixture import FixtureMemory
+from tests.support.memory import FixtureMemory
 
 
 def reset_env(seed):

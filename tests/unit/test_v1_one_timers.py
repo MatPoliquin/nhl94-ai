@@ -8,24 +8,7 @@ from nhl94_ai.agents.registry import create_scripted
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.evaluation.benchmark import away_view
 from nhl94_ai.game.constants import GameConsts as Buttons
-from nhl94_ai.game.state import NHL94GameState
-
-
-def cross_slot_state():
-    state = NHL94GameState(5)
-    state.team1.net.y, state.team2.net.y = -264, 264
-    state.team1.control = 1
-    state.engine.puck_owner = 0
-    state.team1.player_haspuck = True
-    for player in state.team1.players:
-        player.x, player.y = 80, -180
-    for player in state.team2.players:
-        player.x, player.y = 90, 0
-    state.team1.players[0].x, state.team1.players[0].y = -50, 190
-    state.team1.players[0].orientation = 1  # UP+RIGHT, toward this receiver.
-    state.team1.players[1].x, state.team1.players[1].y = 35, 210
-    state.puck.x, state.puck.y = -48, 190
-    return state
+from tests.support.offense import cross_slot_state
 
 
 def converted_buttons(model, processor, action_state):

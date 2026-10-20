@@ -12,8 +12,8 @@ from nhl94_ai.agents.offense import OffenseController, carry_clearance, projecte
 from nhl94_ai.agents.passing import pass_launch_view, selected_receiver
 from nhl94_ai.env.intents import HOCKEY_INTENT_NOOP, HOCKEY_INTENT_PASS_START
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import offense_state
-from tests.unit.test_classic_defense import defense_state
+from tests.support.defense import defense_state
+from tests.support.offense import offense_state
 
 
 def outlet_state():

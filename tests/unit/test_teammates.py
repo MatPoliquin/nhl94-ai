@@ -2,11 +2,9 @@
 from copy import deepcopy
 import importlib.util
 import os
-from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-import gymnasium as gym
 import numpy as np
 
 from nhl94_ai.agents.teammates import TeammateCoordinator
@@ -20,75 +18,7 @@ from nhl94_ai.evaluation.teammate_metrics import ReceptionOutcomes
 from nhl94_ai.evaluation.play import parse_cmdline
 from nhl94_ai.game.ram import configure_teammates, teammate_controller_info
 from nhl94_ai.game.state import NHL94GameState
-from tests.ram_fixture import FixtureMemory
-from tests.unit.test_environment_contracts import FixtureEnv
-
-
-def team_args(**values):
-    return SimpleNamespace(**dict({'mode': 'team_vs_game', 'env': 'NHL94-Genesis-v0',
-                                   'nn': 'ClassicAIV1', 'num_players': 2, 'rf': 'PostPlay',
-                                   'action_type': 'FILTERED', 'goalie_policy': 'off',
-                                   'hyperparams_dict': {'frame_skip': 4}}, **values))
-
-
-def team_info(**values):
-    info = FixtureEnv().info
-    info.update(defense_team1=1, defense_team2=1, defense_control1=0, defense_control2=1,
-                teammate_clock=274, goalie_mode_1=1, goalie_mode_2=1,
-                goalie_clock_flags=0, goalie_input_block=0, puck_owner=0,
-                p1_pass_attempts=0, pass_target=1)
-    info.update(values)
-    return info
-
-
-class FixtureData:
-    def __init__(self, info):
-        self.memory = FixtureMemory(info)
-        for name, address, kind in (
-                ('defense_team1', 0xFFC328, '>u2'), ('defense_team2', 0xFFC32A, '>u2'),
-                ('defense_control1', 0xFFC320, '>i2'), ('defense_control2', 0xFFC322, '>i2'),
-                ('teammate_clock', 0xFFC468, '>u2'), ('goalie_mode_1', 0xFFD05A, '>u2'),
-                ('goalie_mode_2', 0xFFD05C, '>u2')):
-            self.memory.fields[name] = address, kind
-            if name in info:
-                self.memory.assign(address, kind, info[name])
-
-    def set_variable(self, name, spec):
-        self.memory.fields[name] = spec['address'], spec['type']
-
-    @staticmethod
-    def filter_action(buttons):
-        return buttons & ~sum(1 << index for index in (1, 2, 3, 9, 10, 11))
-
-    def update_ram(self):
-        for name, (address, kind) in self.memory.fields.items():
-            self.memory.info[name] = self.memory.extract(address, kind)
-
-    def lookup_all(self):
-        self.update_ram()
-        return deepcopy(self.memory.info)
-
-
-class TeammateFixture(FixtureEnv):
-    def __init__(self):
-        super().__init__()
-        self.initial = team_info(defense_team2=0, defense_control1=2, defense_control2=-1)
-        self.info = deepcopy(self.initial)
-        self.data = FixtureData(self.info)
-        self.action_space = gym.spaces.MultiBinary(24)
-        self.render_mode = 'rgb_array'
-
-    def reset(self, **kwargs):
-        gym.Env.reset(self, seed=kwargs.get('seed'))
-        self.info = deepcopy(self.initial)
-        self.data = FixtureData(self.info)
-        self.steps = 0
-        return self.render(), self.data.lookup_all()
-
-    def step(self, action):
-        self.steps += 1
-        self.last_action = np.asarray(action).copy()
-        return self.render(), 0.0, False, False, self.data.lookup_all()
+from tests.support.teammates import TeammateFixture, team_args, team_info
 
 
 class TeammateSetupTests(unittest.TestCase):

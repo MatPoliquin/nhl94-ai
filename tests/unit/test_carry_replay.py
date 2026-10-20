@@ -10,7 +10,7 @@ from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.evaluation.carry_replay import (
     build_parser, frame_action, forced_policy, load_reference, policy_from_history, sampling_strata,
 )
-from tests.unit.test_classic_offense import offense_state
+from tests.support.offense import offense_state
 
 
 class CarryReplayTests(unittest.TestCase):

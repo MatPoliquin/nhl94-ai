@@ -1,7 +1,6 @@
 """Quiet debug defaults, persistent evaluations and true playback pause."""
 from copy import deepcopy
 import importlib.util
-import os
 from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
@@ -10,8 +9,8 @@ import numpy as np
 
 from nhl94_ai.evaluation.play import NHL94Player, parse_cmdline
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_environment_contracts import wrapped
-from tests.unit.test_target_interfaces import target_args
+from tests.support.display import debug_display, initialize_pygame
+from tests.support.environments import target_args
 
 
 def evaluation(frame=4, value=42.5):
@@ -31,25 +30,10 @@ def evaluation(frame=4, value=42.5):
 @unittest.skipUnless(importlib.util.find_spec('pygame'), 'optional display extra is not installed')
 class DebugPlaybackTests(unittest.TestCase):
     def setUp(self):
-        variables = patch.dict(os.environ, {'SDL_VIDEODRIVER': 'dummy', 'SDL_AUDIODRIVER': 'dummy'})
-        variables.start()
-        self.addCleanup(variables.stop)
-        import pygame
-        pygame.init()
-        pygame.event.clear()
-        self.addCleanup(pygame.quit)
+        initialize_pygame(self)
 
     def display(self, *, terminal=False):
-        from stable_baselines3.common.vec_env import DummyVecEnv
-        from nhl94_ai.ui.debug import NHL94DebugDisplay
-        inner = wrapped()
-        inner.unwrapped.render_mode = 'rgb_array'
-        inner.env.truncate = terminal
-        vector = DummyVecEnv([lambda: inner])
-        self.addCleanup(vector.close)
-        vector.reset()
-        args = target_args(nn='ClassicAIV1', action_type='FILTERED', mode='model_vs_game')
-        return NHL94DebugDisplay(vector, args, 0, 'ClassicAIV1', []), inner
+        return debug_display(self, terminal=terminal)
 
     def test_controls_are_printed_in_console_and_compact_stats_stay_in_bottom_card(self):
         import pygame
@@ -282,7 +266,7 @@ class DebugPlaybackTests(unittest.TestCase):
         import pygame
         from stable_baselines3.common.vec_env import DummyVecEnv
         from nhl94_ai.ui.debug import NHL94DebugDisplay
-        from tests.unit.test_target_control import target_env
+        from tests.support.environments import target_env
         inner = target_env()
         inner.unwrapped.render_mode = 'rgb_array'
         inner.unwrapped.truncate = True

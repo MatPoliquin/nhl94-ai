@@ -8,9 +8,7 @@ from nhl94_ai.agents.lifecycle import PassLifecycle, PassState, ReceptionCorrect
 from nhl94_ai.evaluation.lifecycle_history import cache_input, copy_history
 from nhl94_ai.evaluation.benchmark import away_view
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import offense_state
-from tests.unit.test_classic_reception import reception_state, waiting_model
-from tests.unit.test_classic_v1 import shooting_state
+from tests.support.offense import offense_state, reception_state, shooting_state, waiting_model
 
 
 class LifecycleContracts(unittest.TestCase):

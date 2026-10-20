@@ -2,7 +2,6 @@
 from copy import deepcopy
 from dataclasses import replace
 import importlib.util
-import os
 import pickle
 from types import SimpleNamespace
 import unittest
@@ -19,8 +18,8 @@ from nhl94_ai.agents.decisions import (
 from nhl94_ai.agents.multi_model import NHL94AISystem
 from nhl94_ai.game.constants import GameConsts
 from nhl94_ai.evaluation.benchmark import away_view
-from tests.unit.test_classic_offense import offense_state
-from tests.unit import test_debug_playback
+from tests.support.display import debug_display, initialize_pygame
+from tests.support.offense import offense_state
 
 
 def neural_snapshot():
@@ -197,13 +196,7 @@ class DecisionContractTests(unittest.TestCase):
 @unittest.skipUnless(importlib.util.find_spec('pygame'), 'optional display extra is not installed')
 class InspectorDisplayTests(unittest.TestCase):
     def setUp(self):
-        variables = patch.dict(os.environ, {'SDL_VIDEODRIVER': 'dummy', 'SDL_AUDIODRIVER': 'dummy'})
-        variables.start()
-        self.addCleanup(variables.stop)
-        import pygame
-        pygame.init()
-        pygame.event.clear()
-        self.addCleanup(pygame.quit)
+        initialize_pygame(self)
 
     def test_old_scores_are_gray_but_never_restore_an_old_selected_action(self):
         from nhl94_ai.ui.decision_panel import DecisionInspector
@@ -262,9 +255,7 @@ class InspectorDisplayTests(unittest.TestCase):
 
     def test_logical_canvas_is_1080p_and_window_resizes_without_changing_game_geometry(self):
         import pygame
-        helper = test_debug_playback.DebugPlaybackTests()
-        self.addCleanup(helper.doCleanups)
-        display, _ = helper.display()
+        display, _ = debug_display(self)
         self.assertEqual(display.screen.get_size(), (1920, 1080))
         self.assertEqual(display.debug_surf.get_size(), (164, 300))
         self.assertEqual(display.game_surf.get_size(), (1040, 780))
@@ -353,9 +344,7 @@ class InspectorDisplayTests(unittest.TestCase):
 
     def test_resized_tab_clicks_and_resume_do_not_send_game_input(self):
         import pygame
-        helper = test_debug_playback.DebugPlaybackTests()
-        self.addCleanup(helper.doCleanups)
-        display, _ = helper.display()
+        display, _ = debug_display(self)
         for mode, frame in (('offense', 4), ('defense', 8)):
             display.set_ai_sys_info(SimpleNamespace(last_diagnostics={'decision_inspector': mode_snapshot(mode, frame)}))
         pygame.event.post(pygame.event.Event(pygame.VIDEORESIZE, w=960, h=600))

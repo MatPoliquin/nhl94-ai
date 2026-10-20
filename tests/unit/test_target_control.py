@@ -1,72 +1,15 @@
 """Target execution and opt-in wrapper contracts, without a ROM."""
 import copy
 import math
-from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
 import numpy as np
 
-from nhl94_ai.env.observation import NHL94Observation2PEnv
-from nhl94_ai.env.target_control import (
-    CONTROLLER_FIELDS, SETTINGS, TargetPositionController,
-    _clear_segment, project_target, route_waypoint, validate_target,
-)
+from nhl94_ai.env.target_control import CONTROLLER_FIELDS, SETTINGS, _clear_segment, project_target, route_waypoint, validate_target
 from nhl94_ai.env.wrappers import StochasticFrameSkip
 from nhl94_ai.game.constants import GameConsts as Buttons
-from nhl94_ai.game.ram import register_target_state
-from tests.unit.test_environment_contracts import FixtureEnv, wrapped
-
-
-class TargetFixtureEnv(FixtureEnv):
-    def __init__(self):
-        super().__init__()
-        self.info.update(puck_owner=6, period=0, time=274)
-        self.actions = []
-
-    def _register(self, name, definition):
-        memory = self.data.memory
-        memory.fields[name] = definition['address'], definition['type']
-        self.info[name] = memory.extract(definition['address'], definition['type'])
-
-    def reset(self, **kwargs):
-        result = super().reset(**kwargs)
-        self.data.set_variable = self._register
-        self.data.lookup_all = self.info.copy
-        register_target_state(self)
-        self.actions = []
-        return result
-
-    def step(self, action):
-        self.actions.append(np.asarray(action).copy())
-        return super().step(action)
-
-
-def target_env(task_name='DefenseZone'):
-    args = SimpleNamespace(env='NHL94-Genesis-v0', nn='MlpPolicy', rf=task_name,
-                           action_type='TARGET_POSITION', seq_len=16, alg='ppo2', num_players=1,
-                           hyperparams_dict={})
-    return NHL94Observation2PEnv(TargetFixtureEnv(), args, 1, task_name)
-
-
-def control_frame():
-    env = target_env()
-    env.reset(seed=0)
-    state, info = env.game_state, env.target_info
-    for index, player in enumerate(state.team1.players):
-        player.x, player.y = -100 + index * 40, 180
-        player.motion_x = player.motion_y = 0.0
-        player.is_falling = 0.0
-        info[f'target_flags_{index}'] = 0
-        info[f'target_unavailable_{index}'] = 0
-        info[f'target_facing_{index}'] = 0
-    state.team1.players[1].x = state.team1.players[1].y = 0
-    state.puck.x, state.puck.y = 100, -100
-    state.action = [0] * 6
-    # Mechanics tests use unrestricted ice; wrapper tests retain DefenseZone bounds.
-    env.target_controller = TargetPositionController()
-    env.target_controller.observe(state, info)
-    return env, state, info
+from tests.support.environments import control_frame, target_env, wrapped
 
 
 class TargetGeometryTests(unittest.TestCase):

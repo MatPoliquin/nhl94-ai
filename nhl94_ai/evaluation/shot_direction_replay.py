@@ -8,10 +8,7 @@ import argparse
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 from copy import deepcopy
-import gzip
 import hashlib
-import json
-from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -19,9 +16,10 @@ import numpy as np
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.evaluation.carry_outcomes import CarryOutcomes
-from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, MATCHUPS, select_side
-from nhl94_ai.evaluation.possession_ablation_replay import observation, source_hashes as agent_hashes
-from nhl94_ai.evaluation.refinement_replay import advance, read_view, restore
+from nhl94_ai.evaluation.cpu_benchmark import MATCHUPS
+from nhl94_ai.evaluation.replay_support import (
+    advance, observation, prepare_period, read_view, replay_source_hashes, restore, write_replay_report,
+)
 from nhl94_ai.evaluation.shot_direction import PADS, direction_features, legacy_pad, placed
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.state import NHL94GameState
@@ -96,14 +94,11 @@ def fork_direction(env, snapshot, digest, state, side, history, pad, horizon):
 
 
 def source_hashes():
-    sources = agent_hashes()
-    root = Path(__file__).resolve().parents[2]
-    for name in ('shot_direction.py', 'shot_direction_replay.py', 'carry_outcomes.py'):
-        path = Path(__file__).with_name(name)
-        sources[str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
-    path = root/'nhl94_ai/training/shot_placement.py'
-    sources[str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
-    return sources
+    return replay_source_hashes(
+        'evaluation/shot_direction.py',
+        'evaluation/shot_direction_replay.py',
+        'evaluation/carry_outcomes.py',
+        'training/shot_placement.py')
 
 
 def run_job(job):
@@ -112,14 +107,7 @@ def run_job(job):
     env = make_retro(game='NHL94-Genesis-v0', state=save, num_players=1, goalie_policy='selective')
     cases, counts = [], Counter()
     try:
-        for name, (address, kind) in CPU_RAM.items():
-            env.data.set_variable(name, {'address': address, 'type': kind})
-        env.reset(seed=seed)
-        env.data.update_ram()
-        select_side(env.data, env.data.lookup_all(), side)
-        env.data.set_value('bench_rng', seed)
-        env.data.set_value('bench_clock', 300)
-        env.step(np.zeros(12, dtype=np.int8))
+        prepare_period(env, seed, side)
         model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED', goalie_policy='selective'))
         state, frame, digest = NHL94GameState(5), 1, hashlib.sha256()
         while frame < 42000:
@@ -191,10 +179,7 @@ def main():
                               'Primary goal separately attributed; attack goal includes rebounds and subsequent finishes.',
                               'Attack ends at goal, four opponent-ownership or stopped-clock frames, period end, or horizon.',
                               'Overlapping cases are correlated; split complete seeds and both assignments together.']}
-    path = Path(args.output)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    data = (json.dumps(report, separators=(',', ':'), allow_nan=False)+'\n').encode()
-    path.write_bytes(gzip.compress(data, mtime=0) if path.suffix == '.gz' else data)
+    write_replay_report(args.output, report)
     print('Collected', sum(len(row['cases']) for row in rows), 'normal-shot starts')
 
 

@@ -13,8 +13,7 @@ from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.shot_placement import CONTROL_VERSION, INCOMPATIBLE, MODEL_VERSION, ShotPlacement, shot_actions, shot_features
 from nhl94_ai.evaluation.shot_placement_replay import placed
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import offense_state, live_one_timer_state
-from tests.unit.test_possession_value import finish_state
+from tests.support.offense import finish_state, live_one_timer_state, offense_state
 
 
 def forced(side, hold):

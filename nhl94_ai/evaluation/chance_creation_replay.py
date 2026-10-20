@@ -21,7 +21,8 @@ from nhl94_ai.evaluation.carry_outcomes import CarryOutcomes
 from nhl94_ai.evaluation.benchmark import away_view
 from nhl94_ai.evaluation.carry_replay import DECISION_INTERVAL, forced_policy, frame_action
 from nhl94_ai.evaluation.carry_replay_gate import validate_benchmark, validate_sources
-from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, cpu_view, select_side
+from nhl94_ai.evaluation.replay_support import prepare_period
+from nhl94_ai.game.genesis_match import cpu_view
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
 from nhl94_ai.game.ram import pass_geometry_info, restore_away_control
@@ -363,14 +364,7 @@ def replay_period(job):
     side, seed, expected, fresh_limit, horizon, pass_horizon = job
     env = make_retro(game='NHL94-Genesis-v0', state=SAVE, num_players=1)
     try:
-        for name, (address, kind) in CPU_RAM.items():
-            env.data.set_variable(name, {'address': address, 'type': kind})
-        env.reset(seed=seed)
-        env.data.update_ram()
-        select_side(env.data, env.data.lookup_all(), side)
-        env.data.set_value('bench_rng', seed)
-        env.data.set_value('bench_clock', 300)
-        *_, info = env.step(np.zeros(12, dtype=np.int8))
+        info = prepare_period(env, seed, side)
         state = NHL94GameState(5)
         model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED', chance_creation=True))
         observed = {}
@@ -499,7 +493,7 @@ def run(args):
         raise ValueError('This investigation requires the recorded four selected decisions.')
     jobs.extend((side, seed, None, args.samples_per_period, args.horizon, args.pass_horizon)
                 for seed in fresh_seeds for side in (1, 2))
-    names = ('evaluation/chance_creation_replay.py', 'evaluation/carry_replay.py',
+    names = ('evaluation/chance_creation_replay.py', 'evaluation/carry_replay.py', 'evaluation/replay_support.py',
              'evaluation/carry_outcomes.py', 'tasks/cross_crease_setup.py')
     sources = {**candidate['sources'], **gate['sources'],
                **{f'nhl94_ai/{name}': hashlib.sha256((root / 'nhl94_ai' / name).read_bytes()).hexdigest()

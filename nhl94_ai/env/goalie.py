@@ -12,7 +12,7 @@ from nhl94_ai.agents.learned_goalie import (
     N_ACTIONS, TOKEN_COUNT, TOKEN_WIDTH, CommandGoalie, SampledGoalie,
     action_mask, decision_available, observation, replace_goalie,
 )
-from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, cpu_view
+from nhl94_ai.game.genesis_match import CPU_RAM, cpu_view
 from nhl94_ai.evaluation.goalie import load_start
 from nhl94_ai.game.ram import pass_geometry_info, restore_away_control
 

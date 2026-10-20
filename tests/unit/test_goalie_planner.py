@@ -11,7 +11,7 @@ from nhl94_ai.agents.goalie import GoalieController, goalie_target
 from nhl94_ai.agents.goalie_physics import KeeperMotion, PuckFlight, contact_margin
 from nhl94_ai.agents.goalie_planner import MAX_STEPS, MODES, PlanningGoalie, search
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_manual_goalie import goalie_state
+from tests.support.defense import goalie_state
 
 
 class PhysicsTests(unittest.TestCase):

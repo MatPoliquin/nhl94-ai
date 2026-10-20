@@ -11,8 +11,7 @@ from nhl94_ai.env.observation import NHL94Observation2PEnv
 from nhl94_ai.env.wrappers import EpisodeROMSeed
 from nhl94_ai.evaluation.play import NHL94Player, parse_cmdline
 from nhl94_ai.game.ram import ROM_RNG_ADDRESS
-from tests.unit.test_away_play import AwayFixture, away_args
-from tests.unit.test_environment_contracts import FixtureEnv
+from tests.support.environments import AwayFixture, FixtureEnv, away_args
 
 
 class SeedFixture(FixtureEnv):

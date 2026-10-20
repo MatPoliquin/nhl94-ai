@@ -10,8 +10,7 @@ from nhl94_ai.env.target_control import (
     validate_target_bounds,
 )
 from nhl94_ai.tasks.registry import TASKS, get_task, register_task
-from tests.unit.test_target_control import control_frame, target_env
-from tests.unit.test_target_interfaces import target_args
+from tests.support.environments import control_frame, target_args, target_env
 
 
 class TargetBoundsTests(unittest.TestCase):

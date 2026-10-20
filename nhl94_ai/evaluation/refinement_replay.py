@@ -30,8 +30,10 @@ from nhl94_ai.env.factory import make_retro
 from nhl94_ai.evaluation.carry_replay import source_hashes
 from nhl94_ai.evaluation.carry_outcomes import CarryOutcomes
 from nhl94_ai.evaluation.pass_outcomes import PassOutcomes
-from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, MATCHUPS, cpu_view, select_side
-from nhl94_ai.game.ram import pass_geometry_info, restore_away_control
+from nhl94_ai.evaluation.cpu_benchmark import MATCHUPS
+from nhl94_ai.evaluation.replay_support import (
+    advance, prepare_period, read_view, restore,
+)
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.tasks.cross_crease_setup import crossing_touch_player
 
@@ -46,24 +48,6 @@ def configured(history, refinement):
     model.offense.carry_motion = refinement == 'carry-motion'
     model.defense.verify_interceptions = refinement == 'interceptions'
     return model
-
-
-def read_view(env, state, side):
-    env.data.update_ram()
-    info = pass_geometry_info(env, env.data.lookup_all())
-    return cpu_view(state, info, side), info
-
-
-def advance(env, action, side):
-    *_, info = env.step(action)
-    if side == 2:
-        restore_away_control(env.data, info, controller_prefix='bench', player_prefix='cpu', slots=6)
-
-
-def restore(env, snapshot, digest):
-    env.em.set_state(snapshot)
-    env.data.update_ram()
-    assert hashlib.sha256(env.get_ram().tobytes()).hexdigest() == digest
 
 
 def policy_details(model):
@@ -173,14 +157,7 @@ def run_job(job):
     counts, sampled, last_sample = Counter(), Counter(), Counter()
     cases, passes, shots = [], [], []
     try:
-        for name, (address, kind) in CPU_RAM.items():
-            env.data.set_variable(name, {'address': address, 'type': kind})
-        env.reset(seed=seed)
-        env.data.update_ram()
-        select_side(env.data, env.data.lookup_all(), side)
-        env.data.set_value('bench_rng', seed)
-        env.data.set_value('bench_clock', 300)
-        env.step(np.zeros(12, dtype=np.int8))
+        prepare_period(env, seed, side)
         model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED'))
         state, frame, digest = NHL94GameState(5), 1, hashlib.sha256()
         while frame < 42000:

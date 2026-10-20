@@ -12,7 +12,7 @@ from nhl94_ai.agents.possession import PossessionOffenseController
 from nhl94_ai.evaluation.play import parse_cmdline
 from nhl94_ai.evaluation.runner import build_parser, run
 from nhl94_ai.game.state import NHL94GameState, Player
-from tests.unit.test_classic_offense import offense_state
+from tests.support.offense import offense_state
 
 
 def retreat_state():

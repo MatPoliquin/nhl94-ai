@@ -7,7 +7,7 @@ import torch
 from nhl94_ai.agents.learned_offense import N_ACTIONS
 from stable_baselines3 import PPO
 from nhl94_ai.models.offense import OffensePolicy
-from tests.unit.test_offense_decisions import TickEnv
+from tests.support.learned_offense import TickEnv
 
 
 class OffenseTemporalTests(unittest.TestCase):

@@ -9,7 +9,7 @@ import numpy as np
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.retention_filter import RetentionFilter, SCHEMA
 from nhl94_ai.agents.retention_features import features, movement_action, movement_id
-from tests.unit.test_classic_offense import offense_state
+from tests.support.offense import offense_state
 
 
 def artifact():

@@ -13,8 +13,7 @@ from nhl94_ai.evaluation.chance_selection_replay import configured, fork_chance
 from nhl94_ai.evaluation.chance_selection_benchmark import run_job
 from nhl94_ai.evaluation import cpu_benchmark
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import live_one_timer_state, offense_state
-from tests.unit.test_possession_value import finish_state
+from tests.support.offense import finish_state, live_one_timer_state, offense_state
 
 
 class ChanceSelectionTests(TestCase):

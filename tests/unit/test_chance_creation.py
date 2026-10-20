@@ -13,24 +13,8 @@ from nhl94_ai.evaluation.play import parse_cmdline
 from nhl94_ai.evaluation.runner import build_parser, run
 from nhl94_ai.evaluation.chance_creation_probe import response_comparison
 from nhl94_ai.game.ram import register_defense_state
-from tests.ram_fixture import FixtureMemory
-from tests.unit.test_classic_offense import offense_state
-
-
-def response_state():
-    state = offense_state()
-    carrier, receiver = state.team1.players[:2]
-    carrier.x, carrier.y, carrier.facing = -50, 160, 0
-    receiver.x, receiver.y, receiver.facing = 0, 190, 0
-    state.puck.x, state.puck.y = -50, 170
-    receiver.assignment, receiver.cpu_target = 6, (0, 170)
-    receiver.steering, receiver.steering_timer = 8, 0
-    receiver.cpu_response_available, receiver.support_zone = True, 16
-    for team in (state.team1, state.team2):
-        for player in team.players:
-            if player not in (carrier, receiver):
-                player.role = -1
-    return state
+from tests.support.memory import FixtureMemory
+from tests.support.offense import offense_state, response_state
 
 
 class ChanceCreationTests(unittest.TestCase):

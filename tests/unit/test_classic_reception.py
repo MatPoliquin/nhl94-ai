@@ -1,40 +1,16 @@
 """Receiver correction must preserve possession, selection and button ownership."""
 from copy import deepcopy
-import json
-from pathlib import Path
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
-from nhl94_ai.agents.lifecycle import PassState, OneTimerState
+from nhl94_ai.agents.lifecycle import OneTimerState
 from nhl94_ai.agents.motion import puck_path
 from nhl94_ai.agents.receiving import INCOMPATIBLE, passive_reception, reception_target
 from nhl94_ai.env.intents import HOCKEY_INTENT_CHANGE_PLAYER, HOCKEY_INTENT_NOOP
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import offense_state
-
-
-def reception_state():
-    fixture = json.loads((Path(__file__).parents[1] / 'fixtures/classic-missed-reception.json').read_text())
-    state = offense_state()
-    for name, value in fixture['receiver_feedback'].items():
-        setattr(state.team1.players[0], name, value)
-    for name, value in fixture['puck_feedback'].items():
-        setattr(state.puck, name, value)
-    state.team1.defense_control = 3
-    state.engine.puck_owner = -247
-    return state
-
-
-def waiting_model(schema='FILTERED'):
-    model = ClassicAIV1Model(SimpleNamespace(action_type=schema))
-    model.scheduler.frames = 5
-    model.offense.pass_action.pending = PassState(**{'passer': 3, 'receiver': 0, 'actual_receiver': 0,
-                             'launched': True, 'flight_observed': True, 'frame': 0,
-                             'deadline': 50, 'purpose': 'advance-pass', 'point': (-94, -136),
-                             'passes_before': 0})
-    return model
+from tests.support.offense import reception_state, waiting_model
 
 
 class ReceptionTests(unittest.TestCase):

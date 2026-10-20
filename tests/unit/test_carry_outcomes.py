@@ -2,7 +2,7 @@
 import unittest
 
 from nhl94_ai.evaluation.carry_outcomes import CarryOutcomes
-from tests.unit.test_classic_offense import offense_state
+from tests.support.offense import offense_state
 
 
 class CarryOutcomeTests(unittest.TestCase):

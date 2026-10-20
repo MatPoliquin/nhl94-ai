@@ -10,8 +10,7 @@ from nhl94_ai.evaluation.chance_creation_replay import (
     build_parser, clone_policy, confusion, dangerous_reception, forecasts, gate_reason, natural_branch, request_pass,
     sampling_strata, summarize,
 )
-from tests.unit.test_chance_creation import response_state
-from tests.unit.test_classic_offense import offense_state
+from tests.support.offense import offense_state, response_state
 
 
 class ChanceReplayTests(unittest.TestCase):

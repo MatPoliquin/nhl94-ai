@@ -275,7 +275,7 @@ def run(args):
                             root / 'nhl94_ai/agents/offense.py', root / 'nhl94_ai/agents/motion.py',
                             root / 'nhl94_ai/agents/passing.py', root / 'nhl94_ai/agents/defense.py',
                             root / 'nhl94_ai/env/factory.py', root / 'nhl94_ai/env/target_control.py',
-                            root / 'nhl94_ai/evaluation/benchmark.py')}
+                            root / 'nhl94_ai/evaluation/benchmark.py', root / 'nhl94_ai/game/genesis_match.py')}
     report = {'protocol': 'isolated-cross-crease-v1', 'settings': vars(args), 'sources': sources,
               'limitations': ['Prepared starts and two isolated from-rest approaches, not match strength.',
                               'Other ten player objects are inactive; goalie remains ordinary ROM CPU.',

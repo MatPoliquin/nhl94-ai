@@ -21,8 +21,8 @@ from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.model_inputs import default_model_input_path, load_model_input
 from nhl94_ai.tasks.registry import get_task, resolve_task_model_input as resolve_model_input
 from nhl94_ai.run_options import build_parser, prepare_args
-from tests.unit.test_environment_contracts import FixtureEnv
 from nhl94_ai.env.observation import NHL94Observation2PEnv
+from tests.support.environments import FixtureEnv
 
 
 def input_state(skaters=5):

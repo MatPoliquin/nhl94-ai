@@ -15,26 +15,7 @@ from nhl94_ai.agents.cross_crease import (
 from nhl94_ai.agents.registry import create_scripted
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import offense_state
-
-
-def crossing_state(*, direction=1, attack=1):
-    state = offense_state()
-    player = state.team1.players[0]
-    player.x, player.y = -direction * 35, attack * 212
-    player.motion_x, player.motion_y = direction * 1.65, 0
-    player.shot_power, player.handedness = 30, 0
-    player.live_anim, player.live_anim_frame, player.animation_timer = 0, 0, 0
-    player.facing = 2 if direction > 0 else 6
-    for other in (*state.team1.players[1:], *state.team2.players):
-        other.x, other.y = 110, -attack * 180
-    state.team1.net.y, state.team2.net.y = -attack * 264, attack * 264
-    state.team1.goalie.y = -attack * 250
-    state.team2.goalie.x, state.team2.goalie.y = -direction * 12, attack * 250
-    state.team2.goalie.live_anim = 2
-    state.puck.x, state.puck.y = player.x + direction * 10, player.y
-    state.engine.shot_player = -1
-    return state
+from tests.support.offense import crossing_state
 
 
 class CrossCreaseEvaluationTests(unittest.TestCase):

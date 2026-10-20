@@ -8,7 +8,6 @@ to every controller, without changing its tactics or the installed integration.
 import argparse
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
-from copy import copy
 import hashlib
 import inspect
 import json
@@ -20,20 +19,10 @@ import numpy as np
 
 from nhl94_ai.agents.registry import ALIASES, create_scripted
 from nhl94_ai.game.state import NHL94GameState
-from nhl94_ai.game.ram import ROM_RNG_ADDRESS
+# Re-export historical helper imports for existing scripts.
+from nhl94_ai.game.genesis_match import RAM, away_view, update_state
 from nhl94_ai.evaluation.pass_outcomes import PassOutcomes
 
-
-# NHL94 Genesis RAM symbols: random, SCnum[], teamselect[], clock, shots.
-RAM = {
-    'bench_rng': (ROM_RNG_ADDRESS, '>u4'),
-    'bench_control1': (0xFFC320, '>i2'), 'bench_control2': (0xFFC322, '>i2'),
-    'bench_team1': (0xFFC328, '>u2'), 'bench_team2': (0xFFC32A, '>u2'),
-    'bench_clock': (0xFFC468, '>u2'),
-    'bench_shots1': (0xFFC6CE, '>u2'), 'bench_shots2': (0xFFCA32, '>u2'),
-    'bench_one_timers1': (0xFFCA2A, '>u2'), 'bench_one_timers2': (0xFFCD8E, '>u2'),
-    'bench_one_timer_goals1': (0xFFCA2C, '>u2'), 'bench_one_timer_goals2': (0xFFCD90, '>u2'),
-}
 
 # Benchmark-only ablation of the same controller, without the pass/one-timer branch.
 AGENTS = [*ALIASES, 'classic-v1-direct', 'classic-v1-cross-crease', 'classic-v1-deke']
@@ -44,47 +33,6 @@ def make_agent(name):
                            cross_crease=name == 'classic-v1-cross-crease', deke=name == 'classic-v1-deke')
     return create_scripted('classic-v1' if name in (
         'classic-v1-direct', 'classic-v1-cross-crease', 'classic-v1-deke') else name, args)
-
-
-def _position(info, side, slot):
-    index = slot - (side - 1) * 6
-    if not 0 <= index <= 5:
-        return 9999, 9999
-    prefix = f'g{side}_' if index == 5 else f'p{side}_' + (f'{index + 1}_' if index else '')
-    return info[prefix + 'x'], info[prefix + 'y']
-
-
-def update_state(state, info, env=None):
-    """Resolve both teams' possession/control from slots, not misaddressed stars."""
-    if env is not None:
-        from nhl94_ai.game.ram import pass_geometry_info
-        info = pass_geometry_info(env, info)
-    info = dict(info)
-    owner = info['puck_owner']
-    for side, team in enumerate((state.team1, state.team2), 1):
-        full = 'fullstar_' if side == 1 else 'p2_fullstar_'
-        info[full + 'x'], info[full + 'y'] = _position(info, side, owner)
-        empty = f'p{side}_emptystar_'
-        slot = info[f'bench_control{side}']
-        info[empty + 'x'], info[empty + 'y'] = _position(info, side, slot)
-        if team.owns_scnum(slot):
-            team.control = 0 if slot == team.goalie_scnum() else slot - team.skater_scnum_base() + 1
-        info[f'p{side}_shots'] = info[f'bench_shots{side}']
-    state.BeginFrame(info, [0] * 6)
-    # Avoid ambiguous stars when two players happen to occupy the same point.
-    for side, team in enumerate((state.team1, state.team2), 1):
-        slot = info[f'bench_control{side}']
-        if team.owns_scnum(slot):
-            team.control = 0 if slot == team.goalie_scnum() else slot - team.skater_scnum_base() + 1
-        team.goalie_haspuck = owner == team.goalie_scnum()
-        team.player_haspuck = team.owns_scnum(owner) and not team.goalie_haspuck
-
-
-def away_view(state):
-    """Swap team references while retaining physical coordinates and goal ends."""
-    view = copy(state)
-    view.team1, view.team2 = state.team2, state.team1
-    return view
 
 
 def match(fixture):
@@ -227,7 +175,7 @@ def run(args):
             sources[path.name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
                                   'lines': len(path.read_text(encoding='utf-8').splitlines())}
     root = Path(__file__).resolve().parents[1]
-    for name in ('game/state.py', 'game/ram.py', 'game/geometry.py', 'env/factory.py',
+    for name in ('game/genesis_match.py', 'game/state.py', 'game/ram.py', 'game/geometry.py', 'env/factory.py',
                  'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/offense.py',
                  'agents/passing.py', 'agents/receiving.py', 'evaluation/pass_outcomes.py'):
         path = root / name

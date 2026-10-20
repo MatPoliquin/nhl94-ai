@@ -5,7 +5,7 @@ import unittest
 from nhl94_ai.agents.motion import VELOCITY_SCALE
 from nhl94_ai.evaluation.cross_crease_velocity import build_parser, safe_summary, summarize_grid, validate_grid
 from nhl94_ai.tasks.cross_crease_setup import OBJECT_BASE, OBJECT_STRIDE, set_crossing_velocity
-from tests.ram_fixture import FixtureMemory
+from tests.support.memory import FixtureMemory
 
 
 class MomentumEncodingTests(unittest.TestCase):

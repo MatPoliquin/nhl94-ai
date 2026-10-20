@@ -24,30 +24,7 @@ from nhl94_ai.evaluation.play import parse_cmdline
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.ram import register_goalie_control
 from nhl94_ai.game.state import NHL94GameState
-from tests.unit.test_classic_defense import defense_state
-
-
-def goalie_state(selected=False):
-    state = defense_state()
-    state.team1.defense_goalie, state.team2.defense_goalie = 5, 11
-    state.engine.goalie_modes, state.engine.goalie_hold_counts = (0, 0), (17, 17)
-    state.engine.controller_teams = (1, 0)
-    state.engine.input_block, state.engine.clock_stopped = 0, False
-    state.engine.camera = (0, -200)
-    goalie = state.team1.goalie
-    goalie.x, goalie.y = 0, -246
-    goalie.motion_x = goalie.motion_y = 0
-    goalie.role, goalie.facing, goalie.assignment = 0, 0, 14
-    goalie.speed, goalie.agility, goalie.weight, goalie.energy = 20, 20, 64, 4096
-    goalie.stick, goalie.passing = 8, 6
-    goalie.live_anim, goalie.live_state_flags, goalie.selection_flags = 2, 0, 0x80
-    state.puck.x, state.puck.y = 10, -120
-    state.puck.motion_x, state.puck.motion_y = 0, -1.3
-    state.team1.players[0].x, state.team1.players[0].y = -110, 40
-    if selected:
-        state.team1.defense_control = 5
-        goalie.selection_flags |= 8
-    return state
+from tests.support.defense import defense_state, goalie_state
 
 
 class GoalieContractTests(unittest.TestCase):

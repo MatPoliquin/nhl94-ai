@@ -11,7 +11,7 @@ from nhl94_ai.agents.passing import evaluate_pass
 from nhl94_ai.evaluation.one_timer_admission import AdmissionModel, configured, rejection_audit
 from nhl94_ai.evaluation.one_timer_admission_replay import fork_admission
 from nhl94_ai.evaluation.one_timer_admission_model import candidate, evaluate, reward, select
-from tests.unit.test_classic_offense import live_one_timer_state, offense_state
+from tests.support.offense import live_one_timer_state, offense_state
 
 
 def rejected_state(gate):

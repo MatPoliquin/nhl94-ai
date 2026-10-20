@@ -6,7 +6,7 @@ from unittest.mock import patch
 from nhl94_ai.agents import goalie
 from nhl94_ai.game.constants import GameConsts as Buttons
 from tests.integration.goalie_prepass import component_controller, summarize_comparison
-from tests.unit.test_manual_goalie import goalie_state
+from tests.support.defense import goalie_state
 
 
 class ComponentExperimentsTests(unittest.TestCase):

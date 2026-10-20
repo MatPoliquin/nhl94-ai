@@ -14,7 +14,7 @@ from nhl94_ai.config import EnvironmentConfig
 from nhl94_ai.env.observation import NHL94Observation2PEnv
 from nhl94_ai.evaluation.play import parse_cmdline
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_environment_contracts import FixtureEnv
+from tests.support.environments import FixtureEnv
 
 
 def human_args(**values):
@@ -208,7 +208,7 @@ class HumanDisplayContracts(unittest.TestCase):
         import pygame
         from nhl94_ai.agents.defense import DefenseController
         from nhl94_ai.ui.targets import TARGET_GREEN
-        from tests.unit.test_classic_defense import defense_state
+        from tests.support.defense import defense_state
         for terminal in (False, True):
             with self.subTest(terminal=terminal):
                 display, _ = self.display(truncate=terminal)

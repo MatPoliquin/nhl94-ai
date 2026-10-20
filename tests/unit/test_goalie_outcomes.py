@@ -11,7 +11,7 @@ from nhl94_ai.agents.goalie_outcome_planner import (
 )
 from nhl94_ai.agents.goalie_planner import SAVE
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
-from tests.unit.test_manual_goalie import goalie_state
+from tests.support.defense import goalie_state
 
 
 class ContactOutcomeTests(unittest.TestCase):

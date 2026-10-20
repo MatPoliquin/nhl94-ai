@@ -107,7 +107,7 @@ def _sources():
     root = Path(__file__).resolve().parents[2]
     names = (
         'evaluation/cross_crease_velocity.py', 'evaluation/cross_crease_probe.py',
-        'evaluation/benchmark.py', 'tasks/cross_crease_setup.py', 'tasks/defense_setup.py',
+        'evaluation/benchmark.py', 'game/genesis_match.py', 'tasks/cross_crease_setup.py', 'tasks/defense_setup.py',
         'game/ram.py', 'game/state.py', 'agents/classic_v1.py', 'agents/cross_crease.py',
         'agents/goalie.py', 'agents/offense.py', 'agents/motion.py', 'agents/defense.py',
         'agents/passing.py', 'env/factory.py', 'env/target_control.py',

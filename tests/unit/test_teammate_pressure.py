@@ -11,28 +11,8 @@ from nhl94_ai.agents.teammates import TeammateCoordinator
 from nhl94_ai.evaluation.pressure_metrics import PressureMetrics
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_defense import defense_state
-from tests.unit.test_teammates import team_args
-
-
-def pressure_state():
-    state = defense_state()
-    state.time = 300
-    state.engine.clock_stopped = False
-    state.engine.puck_owner_known = True
-    state.team1.goalie.x, state.team1.goalie.y = 0, -264
-    state.team2.goalie.x, state.team2.goalie.y = 0, 264
-    for team in (state.team1, state.team2):
-        for player in team.players:
-            player.role = -1
-            player.selection_flags = 8
-    for i, (x, y, facing) in enumerate(((-24, -24, 1), (24, 24, 5), (0, -72, 0))):
-        player = state.team1.players[i]
-        player.x, player.y, player.facing, player.role = x, y, facing, 1
-    carrier = state.team2.players[0]
-    carrier.x = carrier.y = state.puck.x = state.puck.y = 0
-    carrier.role, carrier.facing, carrier.selection_flags = 1, 4, 0x40
-    return state
+from tests.support.defense import pressure_state
+from tests.support.teammates import team_args
 
 
 class SharedPressureTests(unittest.TestCase):

@@ -20,11 +20,13 @@ import numpy as np
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.defense import controlled_slot
 from nhl94_ai.agents.possession_ablation import LegacyValueRanker, PROFILES
-from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, MATCHUPS
-from nhl94_ai.evaluation.refinement_replay import advance, fork, read_view, restore
+from nhl94_ai.evaluation.cpu_benchmark import MATCHUPS
+from nhl94_ai.evaluation.refinement_replay import fork
+from nhl94_ai.evaluation.replay_support import (
+    advance, observation, prepare_period, read_view, replay_source_hashes, restore,
+)
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.game.state import NHL94GameState
-from nhl94_ai.evaluation.cpu_benchmark import select_side
 
 
 def configured(history, profile):
@@ -44,17 +46,6 @@ def common_continuation(policy):
     return model
 
 
-def observation(view):
-    fields = ('x', 'y', 'precise_x', 'precise_y', 'motion_x', 'motion_y', 'facing',
-              'role', 'speed', 'agility', 'weight', 'energy', 'passing', 'stick',
-              'shot_power', 'shot_accuracy', 'stick_x', 'stick_y', 'live_anim')
-    return {'owner': view.engine.puck_owner, 'controlled': controlled_slot(view.team1),
-            'net_y': view.team2.net.y,
-            'puck': {name: getattr(view.puck, name) for name in ('x', 'y', 'motion_x', 'motion_y', 'height')},
-            'teams': [[{name: getattr(player, name) for name in fields}
-                       for player in (*team.players, team.goalie)] for team in (view.team1, view.team2)]}
-
-
 def signatures(details):
     return [(row['proposal'], row['kind'], row['target'], row['slot'])
             for row in details.get('possession_candidates', ())]
@@ -66,14 +57,7 @@ def run_job(job):
     env = make_retro(game='NHL94-Genesis-v0', state=save, num_players=1, goalie_policy=goalie_policy)
     cases, counts, last_sample = [], Counter(), -spacing
     try:
-        for name, (address, kind) in CPU_RAM.items():
-            env.data.set_variable(name, {'address': address, 'type': kind})
-        env.reset(seed=seed)
-        env.data.update_ram()
-        select_side(env.data, env.data.lookup_all(), side)
-        env.data.set_value('bench_rng', seed)
-        env.data.set_value('bench_clock', 300)
-        env.step(np.zeros(12, dtype=np.int8))
+        prepare_period(env, seed, side)
         model = ClassicAIV1Model(SimpleNamespace(
             action_type='FILTERED', goalie_policy=goalie_policy, possession_ablation='legacy'))
         state, frame, digest = NHL94GameState(5), 1, hashlib.sha256()
@@ -138,13 +122,7 @@ def run_job(job):
 
 
 def source_hashes():
-    root = Path(__file__).resolve().parents[2]
-    paths = {path for directory in ('agents', 'env', 'game', 'tasks')
-             for path in (root / 'nhl94_ai' / directory).glob('*.py')}
-    paths.update(root / 'nhl94_ai/evaluation' / name for name in (
-        'possession_ablation_replay.py', 'refinement_replay.py', 'cpu_benchmark.py',
-        'benchmark.py', 'carry_outcomes.py', 'carry_replay.py'))
-    return {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(paths)}
+    return replay_source_hashes()
 
 
 def summarize(rows):

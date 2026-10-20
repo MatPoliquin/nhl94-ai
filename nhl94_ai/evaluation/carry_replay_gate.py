@@ -12,7 +12,7 @@ REQUIRED_SOURCES = {
     f'nhl94_ai/{name}' for name in (
         'agents/base.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/classic_v1.py', 'agents/carry.py', 'agents/offense.py', 'agents/possession.py',
         'agents/passing.py', 'agents/receiving.py', 'agents/skating.py', 'agents/finishing.py', 'env/actions.py', 'env/factory.py',
-        'evaluation/benchmark.py', 'evaluation/cpu_benchmark.py', 'game/state.py', 'game/ram.py',
+        'evaluation/benchmark.py', 'game/genesis_match.py', 'evaluation/cpu_benchmark.py', 'game/state.py', 'game/ram.py',
     )
 }
 MATCHUPS = {1: 'sabres-ducks-manual', 2: 'ducks-sabres-manual'}

@@ -1,54 +1,16 @@
 """State, action, and reset contracts without an emulator or ROM."""
 import copy
-import json
 from pathlib import Path
-from types import SimpleNamespace
 import sys
 import unittest
 
-import gymnasium as gym
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 from nhl94_ai.env.wrappers import StochasticFrameSkip
 from nhl94_ai.game.state import NHL94GameState
-from nhl94_ai.env.observation import NHL94Observation2PEnv
 from nhl94_ai.tasks.legacy import register_functions
-from tests.ram_fixture import FixtureMemory
-
-
-class FixtureEnv(gym.Env):
-    def __init__(self, game='NHL94-Genesis-v0', truncate=False):
-        self.info = json.loads((ROOT / f'tests/fixtures/{game}.json').read_text(encoding='utf-8'))
-        self.observation_space = gym.spaces.Box(0, 255, (224, 256, 3), dtype=np.uint8)
-        self.action_space = gym.spaces.MultiBinary(12)
-        self.steps = 0
-        self.truncate = truncate
-
-    def reset(self, **kwargs):
-        super().reset(seed=kwargs.get('seed'))
-        self.steps = 0
-        self.data = SimpleNamespace(memory=FixtureMemory(self.info))
-        return np.zeros(self.observation_space.shape, dtype=np.uint8), copy.deepcopy(self.info)
-
-    def render(self):
-        return np.zeros(self.observation_space.shape, dtype=np.uint8)
-
-    def set_value(self, name, value):
-        self.info[name] = value
-
-    def step(self, action):
-        self.steps += 1
-        return np.zeros(self.observation_space.shape, dtype=np.uint8), 0.0, False, self.truncate, copy.deepcopy(self.info)
-
-
-def wrapped(nn='MlpPolicy', action_type='FILTERED', rf='PostPlay'):
-    args = SimpleNamespace(env='NHL94-Genesis-v0', nn=nn, action_type=action_type,
-                           seq_len=4, alg='ppo2', hyperparams_dict={})
-    base = FixtureEnv()
-    if rf in ('DefenseZone', 'SelfPlayDefenseFinetune'):
-        base.info.update(puck_owner=6, period=0, time=274)
-    return NHL94Observation2PEnv(base, args, 1, rf)
+from tests.support.environments import FixtureEnv, wrapped
 
 
 class EnvironmentContracts(unittest.TestCase):

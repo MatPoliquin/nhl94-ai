@@ -10,7 +10,7 @@ from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.lifecycle import ShotLifecycle, ONE_TIMER_EXECUTION_INCOMPATIBLE
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.evaluation.rebound_replay import fork_rebound
-from tests.unit.test_classic_v1 import shooting_state as base_shooting_state
+from tests.support.offense import shooting_state as base_shooting_state
 
 
 def shooting_state():

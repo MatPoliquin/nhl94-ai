@@ -14,9 +14,10 @@ import numpy as np
 from nhl94_ai.agents.registry import ALIASES, add_classic_arguments, create_scripted, resolve_goalie_positioning
 from nhl94_ai.agents.control_rate import control_interval
 from nhl94_ai.env.actions import HockeyActionController
-from nhl94_ai.evaluation.benchmark import RAM, away_view, update_state
+# Re-export historical helper imports for existing scripts.
+from nhl94_ai.game.genesis_match import RAM, CPU_RAM, away_view, update_state, select_side, lineup, cpu_view
 from nhl94_ai.game.state import NHL94GameState
-from nhl94_ai.game.ram import pass_geometry_info, restore_away_control, select_cpu_side
+from nhl94_ai.game.ram import pass_geometry_info, restore_away_control
 from nhl94_ai.evaluation.pass_outcomes import PassOutcomes
 from nhl94_ai.evaluation.offense_metrics import OffenseMetrics
 from nhl94_ai.evaluation.defense_metrics import CarrierDefenseMetrics, GoalieDefenseMetrics
@@ -34,52 +35,6 @@ MATCHUPS.update({
     'ducks-campbell-manual': ('MightyDucksVsAllStarCampbell.ManualGoalie.Start', 1),
     'campbell-ducks-manual': ('MightyDucksVsAllStarCampbell.ManualGoalie.Start', 2),
 })
-CPU_RAM = {
-    **RAM,
-    'home_team': (0xFFC330, '>u2'), 'away_team': (0xFFC332, '>u2'),
-    'home_roster': (0xFFC6EC, '>u4'), 'away_roster': (0xFFCA50, '>u4'),
-    **{f'cpu_{slot}_{field}': (0xFFB04A + slot * 0x80 + offset, '|u1')
-       for slot in range(12)
-       for field, offset in (('flags', 0x62), ('roster', 0x66), ('accuracy', 0x6D))},
-}
-
-
-def select_side(data, info, side):
-    """Transfer the single joystick; the other team must run the game's CPU.
-
-    Mirrors restorep1's pfjoycon/pfna flag changes. Leaving a second human
-    controller assigned with zero input would not test the built-in opponent.
-    """
-    if (info['bench_team1'], info['bench_team2'], info['period']) != (1, 0, 0):
-        raise ValueError('CPU benchmark requires a first-period, home-only joystick save.')
-    select_cpu_side(data, info, side, controller_prefix='bench', player_prefix='cpu', slots=6)
-
-
-def lineup(info, rom):
-    """Resolve names from live roster indices, not save-state filenames."""
-    players = []
-    for slot in range(12):
-        address = info['home_roster' if slot < 6 else 'away_roster']
-        address += int.from_bytes(rom[address:address + 2], 'big')
-        for _ in range(info[f'cpu_{slot}_roster']):
-            address += int.from_bytes(rom[address:address + 2], 'big') + 8
-        size = int.from_bytes(rom[address:address + 2], 'big')
-        if not 2 < size < 64 or address + size >= len(rom):
-            raise ValueError('Invalid ROM roster pointer/name.')
-        name = rom[address + 2:address + size].rstrip(b'\0').decode('ascii')
-        players.append({'slot': slot, 'name': name,
-                        'shot_accuracy': info[f'cpu_{slot}_accuracy'] if slot % 6 != 5 else None})
-    return players
-
-
-def cpu_view(state, info, side):
-    if side == 1:
-        # Same inference used in normal play, including any stale star readings.
-        state.BeginFrame(info, [0] * 6)
-        return state
-    corrected = dict(info, bench_control1=-1, bench_control2=info['bench_control1'])
-    update_state(state, corrected)
-    return away_view(state)
 
 
 def cpu_match(fixture, *, classic_control_interval=0, goalie_planner=None, goalie_positioning=None):
@@ -467,7 +422,7 @@ def run(args):
     files.update(Path(inspect.getfile(cls)) for cls in type(controller).__mro__ if cls is not object)
     root = Path(__file__).resolve().parents[2]
     files.update(root / 'nhl94_ai' / name for name in (
-        'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
+        'evaluation/benchmark.py', 'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
         'agents/base.py', 'agents/control_rate.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
         'agents/offense.py', 'agents/possession.py', 'agents/possession_value.py', 'agents/possession_ablation.py',
         'agents/receiver_selection.py', 'agents/shot_placement.py',

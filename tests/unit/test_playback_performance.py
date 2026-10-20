@@ -15,8 +15,8 @@ from nhl94_ai.agents.carry import (
 )
 from nhl94_ai.env.target_control import SETTINGS, project_target
 from nhl94_ai.evaluation.playback_profile import timing_summary
-from tests.unit.test_classic_offense import offense_state
-from tests.unit import test_debug_playback
+from tests.support.display import debug_display
+from tests.support.offense import offense_state
 
 
 class CarryPerformanceParityTests(unittest.TestCase):
@@ -165,9 +165,7 @@ class DisplayPerformanceParityTests(unittest.TestCase):
 
     def test_reused_scaling_buffers_match_original_pixels_and_reallocate_on_resize(self):
         import pygame
-        helper = test_debug_playback.DebugPlaybackTests()
-        self.addCleanup(helper.doCleanups)
-        display, _ = helper.display()
+        display, _ = debug_display(self)
         frame = np.random.default_rng(94).integers(0, 256, (224, 256, 3), dtype=np.uint8)
         display.draw_frame(frame, [{}])
         raw = pygame.surfarray.make_surface(np.transpose(frame, (1, 0, 2)))

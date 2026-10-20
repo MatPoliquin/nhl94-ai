@@ -11,8 +11,7 @@ from nhl94_ai.agents.crossing_finish import CrossingFinishSelector
 from nhl94_ai.agents.lifecycle import PassState
 from nhl94_ai.evaluation.cpu_benchmark import MATCHUPS, build_parser, run
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import offense_state, live_one_timer_state
-from tests.unit.test_cross_crease import crossing_state
+from tests.support.offense import crossing_state, live_one_timer_state, offense_state
 
 
 def ready_state(direction=1, attack=1, away=False):

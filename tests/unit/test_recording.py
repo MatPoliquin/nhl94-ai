@@ -13,7 +13,7 @@ import numpy as np
 
 from nhl94_ai.cli import main, parse_configured
 from nhl94_ai.evaluation.play import NHL94Player, build_parser, parse_cmdline
-from tests.unit import test_debug_playback
+from tests.support.display import debug_display
 
 
 class RecordingArgumentsTests(unittest.TestCase):
@@ -111,9 +111,7 @@ class RecordingTests(unittest.TestCase):
 
     def test_full_canvas_mp4_survives_resize_pause_reset_and_escape(self):
         import pygame
-        helper = test_debug_playback.DebugPlaybackTests()
-        self.addCleanup(helper.doCleanups)
-        display, _ = helper.display()
+        display, _ = debug_display(self)
         self.addCleanup(display.close)
         path = Path(self.directory.name) / 'new-directory/full-window.mp4'
         now = [0.0]

@@ -17,22 +17,10 @@ from unittest.mock import patch
 from nhl94_ai.evaluation.snes_recording import SnesRecording
 from nhl94_ai.evaluation.snes_replay import replay
 from nhl94_ai.evaluation.snes_session import build_parser, classic_options, play_snes_period, run
+from tests.support.recording import scripted_viewer
 
 
 class NativeSnesRecording(unittest.TestCase):
-    def viewer(self, *, quit_after):
-        count = 0
-        def action():
-            nonlocal count
-            count += 1
-            buttons = [0] * 12
-            buttons[4 + count // 20 % 4] = 1
-            buttons[8] = int(count % 17 < 3)
-            buttons[0] = int(count % 31 == 0)
-            return buttons
-        return SimpleNamespace(before_frame=lambda: count < quit_after,
-                               human_action=action, show=lambda *_: None, close=lambda: None)
-
     def test_human_quit_retains_verified_partial_periods_on_both_sides(self):
         for side in ('home', 'away'):
             with self.subTest(side=side), tempfile.TemporaryDirectory() as directory:
@@ -40,7 +28,7 @@ class NativeSnesRecording(unittest.TestCase):
                 args = build_parser().parse_args(['--output', str(path), '--side', side, '--human',
                                                   '--periods', '3', '--snapshot-interval', '60'])
                 with patch('nhl94_ai.evaluation.external.MatchViewer',
-                           side_effect=lambda *_a, **_k: self.viewer(quit_after=240)):
+                           side_effect=lambda *_a, **_k: scripted_viewer(quit_after=240)):
                     report = run(args)
                 self.assertEqual(report['status'], 'stopped')
                 self.assertEqual(report['summary']['incomplete_periods'], 1)

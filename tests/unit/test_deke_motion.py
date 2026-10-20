@@ -3,7 +3,7 @@ import unittest
 
 from nhl94_ai.agents.motion import VELOCITY_SCALE, skating
 from nhl94_ai.agents.skating import grounded_step
-from tests.unit.test_deke import deke_state
+from tests.support.offense import deke_state
 
 
 class NativeCarrierMotionTests(unittest.TestCase):

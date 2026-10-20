@@ -15,26 +15,7 @@ from nhl94_ai.agents.deke import (
 from nhl94_ai.agents.registry import create_scripted
 from nhl94_ai.config import EnvironmentConfig
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_cross_crease import crossing_state
-
-
-def deke_state():
-    state = crossing_state()
-    player = state.team1.players[0]
-    player.x, player.y, player.motion_x, player.motion_y, player.facing = 0, 180, 0, 0.2, 0
-    state.puck.x, state.puck.y = 0, 188
-    state.team2.goalie.x = 0
-    for team in (state.team1, state.team2):
-        for other in (*team.players, team.goalie):
-            other.precise_x, other.precise_y = float(other.x), float(other.y)
-            other.facing_phase, other.sprite_flipped_x = float(other.facing), False
-    player.shot_projection_offsets_x, player.shot_projection_offsets_y = (-24, 24), (-24, 24)
-    player.shot_offsets_x, player.shot_offsets_y = (-6, 6), (12, 20)
-    player.shot_durations = player.shot_projection_durations = (4,) * 8
-    goalie = state.team2.goalie
-    goalie.decision_timer, goalie.decision_interval, goalie.steering = 0, 2, 8
-    goalie.cpu_tracking_active = True
-    return state
+from tests.support.offense import crossing_state, deke_state
 
 
 def controller(state):

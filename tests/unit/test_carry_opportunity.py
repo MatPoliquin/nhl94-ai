@@ -14,8 +14,8 @@ from nhl94_ai.agents.learned_offense import PossessionController
 from nhl94_ai.env.offense import OffenseEnv
 from nhl94_ai.env.opportunity import OpportunityReward, REWARD_SPEC, classic_opportunity
 from nhl94_ai.models.offense import OffensePolicy, load_offense_model, save_offense_model
-from tests.unit.test_classic_offense import live_one_timer_state
-from tests.unit import test_learned_offense as offense_tests
+from tests.support.learned_offense import make_offense_env
+from tests.support.offense import live_one_timer_state
 
 
 class CarryControlTests(unittest.TestCase):
@@ -142,7 +142,7 @@ class OpportunityRewardTests(unittest.TestCase):
 
 class OpportunityNativeBoundaryTests(unittest.TestCase):
     def env(self, scores):
-        env = offense_tests.OffenseTransitionTests().make_env(iter(scores))
+        env = make_offense_env(iter(scores))
         env.task, env.attack_start, env.attack_frames, env.snapshot = 'opportunity', 1, 600, 'test'
         state = live_one_timer_state()
         state.engine.puck_owner = -1

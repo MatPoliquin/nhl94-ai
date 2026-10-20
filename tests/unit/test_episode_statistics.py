@@ -14,35 +14,7 @@ from nhl94_ai.evaluation.metrics import LiveTeamTotals, evaluate_policy_with_tot
 from nhl94_ai.game.state import NHL94GameState, Stats
 from nhl94_ai.game.specs import GAMES
 from nhl94_ai.tasks.defensezone import isdone_defensezone, rf_defensezone
-
-
-def saved_info():
-    path = Path(__file__).resolve().parents[1] / 'fixtures/NHL94-Genesis-v0.json'
-    info = json.loads(path.read_text(encoding='utf-8'))
-    for team in (1, 2):
-        info.update({f'p{team}_score': 3, f'p{team}_passing': 19,
-                     f'p{team}_bodychecks': 7, f'p{team}_shots': (123 << 16) | 12,
-                     f'p{team}_onetimer': (321 << 16) | 4})
-    return info
-
-
-class StatisticsEnv:
-    def __init__(self, events=None, terminal=True):
-        self.events = events or {}
-        self.terminal = terminal
-        self.reset_infos = []
-
-    def reset(self):
-        self.reset_infos = [saved_info()]
-        return np.zeros((1, 310), dtype=np.float32)
-
-    def step(self, action):
-        info = saved_info()
-        for key, value in self.events.items():
-            info[key] += value
-        # A VecEnv replaces reset_infos before returning a terminal transition.
-        self.reset_infos = [{key: 0 for key in info}]
-        return np.zeros((1, 310)), np.array([1.0]), np.array([self.terminal]), [info]
+from tests.support.environments import StatisticsEnv, saved_info
 
 
 class EpisodeStatisticsTests(unittest.TestCase):
@@ -79,7 +51,7 @@ class EpisodeStatisticsTests(unittest.TestCase):
 
     def test_frame_stacking_does_not_hide_reset_counter_baselines(self):
         from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack
-        from tests.unit.test_environment_contracts import wrapped
+        from tests.support.environments import wrapped
         env = wrapped()
         env.unwrapped.render_mode = 'rgb_array'
         env.unwrapped.info.update(saved_info())
@@ -138,7 +110,7 @@ class ShotDecodingTests(unittest.TestCase):
                 self.assertEqual(state.team2.stats.shots, 13)
 
     def test_neighbor_changes_leave_observations_and_defense_outcomes_unchanged(self):
-        from tests.unit.test_environment_contracts import wrapped
+        from tests.support.environments import wrapped
         for task in ('DefenseZone', 'SelfPlayDefenseFinetune'):
             with self.subTest(task=task):
                 env = wrapped(rf=task)

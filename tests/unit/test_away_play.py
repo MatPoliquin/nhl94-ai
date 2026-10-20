@@ -1,5 +1,4 @@
 """Away Classic playback keeps the opposing team under the real CPU."""
-from copy import deepcopy
 import unittest
 from unittest.mock import Mock, patch
 
@@ -9,30 +8,9 @@ from nhl94_ai.agents.base import AgentOutput
 from nhl94_ai.agents.multi_model import NHL94AISystem
 from nhl94_ai.cli import main
 from nhl94_ai.env.observation import NHL94Observation2PEnv
-from nhl94_ai.evaluation.play import NHL94Player, parse_cmdline
+from nhl94_ai.evaluation.play import NHL94Player
 from nhl94_ai.game.ram import restore_away_control, select_cpu_side
-from tests.unit.test_environment_contracts import FixtureEnv
-
-
-def away_args(*flags):
-    return parse_cmdline(['--mode=model_vs_game', '--nn=ClassicAIV1',
-                          '--env=NHL94-Genesis-v0', '--rf=PostPlay', '--side=away', *flags])
-
-
-class AwayFixture(FixtureEnv):
-    def __init__(self):
-        super().__init__()
-        self.info.update(defense_team1=1, defense_team2=0, defense_control1=2,
-                         defense_control2=-1, defense_2_flags=0x88, defense_8_flags=0x40)
-        self.saved_info = deepcopy(self.info)
-
-    def reset(self, **kwargs):
-        self.info = deepcopy(self.saved_info)
-        result = super().reset(**kwargs)
-        self.data.lookup_all = lambda: dict(self.info)
-        self.data.set_value = self.set_value
-        self.data.update_ram = Mock()
-        return result
+from tests.support.environments import AwayFixture, away_args
 
 
 class AwayPlayContracts(unittest.TestCase):

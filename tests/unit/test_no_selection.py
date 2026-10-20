@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from nhl94_ai.env.wrappers import StochasticFrameSkip
-from tests.unit.test_target_control import control_frame, target_env
+from tests.support.environments import control_frame, target_env
 
 
 class NoSelectionContracts(unittest.TestCase):

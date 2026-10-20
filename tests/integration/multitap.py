@@ -16,7 +16,7 @@ from nhl94_ai.evaluation.play import NHL94Player, parse_cmdline
 from nhl94_ai.evaluation.teammates import DEFAULT_STATE, play_match, prepare_match, replay_trace
 from nhl94_ai.game.multitap import prepare_multitap_save, controller_snapshot
 from nhl94_ai.game.ram import configure_teammates
-from tests.unit.test_multitap import three_args
+from tests.support.teammates import three_args
 
 
 def scripted_human(frame, _info):

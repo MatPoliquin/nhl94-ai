@@ -21,8 +21,8 @@ from nhl94_ai.tasks.pvg_setup import (
 )
 from nhl94_ai.tasks.registry import get_task
 from nhl94_ai.run_options import build_parser, prepare_args
-from tests.ram_fixture import FixtureMemory
-from tests.unit.test_environment_contracts import FixtureEnv
+from tests.support.memory import FixtureMemory
+from tests.support.environments import FixtureEnv
 
 
 class ShootoutData:

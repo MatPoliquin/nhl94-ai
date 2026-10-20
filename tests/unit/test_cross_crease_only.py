@@ -7,7 +7,7 @@ import numpy as np
 from nhl94_ai.agents.cross_crease_only import CrossCreaseOnly, CrossingSettings
 from nhl94_ai.evaluation.cross_crease_only import summary
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_cross_crease import crossing_state
+from tests.support.offense import crossing_state
 
 
 class CrossCreaseOnlyTests(unittest.TestCase):

@@ -17,7 +17,7 @@ from nhl94_ai.tasks.cross_crease_setup import (
     CrossingTraffic, NATIVE_TOUCH_PLAYER, OBJECT_BASE, OBJECT_STRIDE, keep_traffic_idle,
     crossing_traffic_position, place_crossing_traffic, set_crossing_velocity,
 )
-from tests.ram_fixture import FixtureMemory
+from tests.support.memory import FixtureMemory
 
 
 def environment():

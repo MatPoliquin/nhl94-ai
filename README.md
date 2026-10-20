@@ -157,6 +157,11 @@ nhl94 benchmark-teammates --replay /tmp/teammates-inputs.jsonl \
   --output /tmp/teammates-replay.json
 ```
 
+The [evaluation package guide](nhl94_ai/evaluation/README.md) maps gameplay,
+benchmarks, recordings, replay experiments, and their shared helpers.
+The [test guide](tests/README.md) covers unit tests, native integration checks,
+and reusable fixtures.
+
 ## Citations
 @misc{nhl94-ai,
   author = {Poliquin, Mathieu},

@@ -10,7 +10,7 @@ from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.lifecycle import ONE_TIMER_EXECUTION_INCOMPATIBLE
 from nhl94_ai.evaluation.one_timer_replay import configured, fork_timer
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import live_one_timer_state
+from tests.support.offense import live_one_timer_state
 
 
 def started():

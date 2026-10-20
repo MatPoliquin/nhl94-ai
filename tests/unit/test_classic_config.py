@@ -17,7 +17,7 @@ from nhl94_ai.agents.classic_config import (
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.registry import create_scripted
 from nhl94_ai.evaluation.play import parse_cmdline
-from tests.unit.test_manual_goalie import goalie_state
+from tests.support.defense import goalie_state
 
 
 class ClassicConfigTests(unittest.TestCase):
@@ -98,7 +98,7 @@ class ClassicConfigTests(unittest.TestCase):
         self.assertEqual(args.goalie_policy, 'off')
 
     def test_60hz_config_runs_tactics_on_every_native_frame(self):
-        from tests.unit.test_classic_v1 import shooting_state
+        from tests.support.offense import shooting_state
         self.write({'decision_hz': 60, 'ai_goalie': False})
         args = self.play()
         for configured in (False, True):
@@ -113,7 +113,7 @@ class ClassicConfigTests(unittest.TestCase):
                 self.assertEqual(agent.scheduler.interval, 1)
 
     def test_lower_config_rates_keep_observations_and_tactics_at_the_selected_rate(self):
-        from tests.unit.test_classic_v1 import shooting_state
+        from tests.support.offense import shooting_state
         for hz, repeat in ((15, 4), (10, 6), (6, 10)):
             with self.subTest(hz=hz):
                 self.write({'decision_hz': hz, 'ai_goalie': False})
@@ -148,7 +148,7 @@ class ClassicConfigTests(unittest.TestCase):
 class RatingsTests(unittest.TestCase):
     def test_teammate_coordination_uses_neutral_ratings_before_selecting_roles(self):
         from nhl94_ai.agents.teammates import TeammateCoordinator
-        from tests.unit.test_teammates import team_args, team_info
+        from tests.support.teammates import team_args, team_info
         coordinator = TeammateCoordinator(team_args(player_ratings_consideration=False))
         info = team_info(defense_0_speed=30, defense_0_agility=28,
                          defense_6_speed=2, defense_6_agility=4)

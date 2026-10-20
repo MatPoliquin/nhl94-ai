@@ -4,10 +4,7 @@ from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 from copy import deepcopy
 from dataclasses import asdict
-import gzip
 import hashlib
-import json
-from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -15,11 +12,12 @@ import numpy as np
 from nhl94_ai.agents.defense import controlled_slot
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.evaluation.carry_outcomes import CarryOutcomes
-from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, MATCHUPS, select_side
+from nhl94_ai.evaluation.cpu_benchmark import MATCHUPS
 from nhl94_ai.evaluation.one_timer_admission import AdmissionModel, GATES, configured, original_controller
 from nhl94_ai.evaluation.pass_outcomes import PassOutcomes
-from nhl94_ai.evaluation.possession_ablation_replay import observation, source_hashes as agent_hashes
-from nhl94_ai.evaluation.refinement_replay import advance, read_view, restore
+from nhl94_ai.evaluation.replay_support import (
+    advance, observation, prepare_period, read_view, replay_source_hashes, restore, write_replay_report,
+)
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.tasks.cross_crease_setup import crossing_touch_player
 
@@ -88,14 +86,12 @@ def fork_admission(env, snapshot, digest, state, side, history, action, horizon)
 
 
 def source_hashes():
-    result = agent_hashes()
-    root = Path(__file__).resolve().parents[2]
-    for name in ('one_timer_admission.py', 'one_timer_admission_replay.py', 'pass_outcomes.py', 'chance_selection.py'):
-        path = root/'nhl94_ai/evaluation'/name
-        result[str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
-    path = root/'nhl94_ai/training/shot_placement.py'
-    result[str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
-    return result
+    return replay_source_hashes(
+        'evaluation/one_timer_admission.py',
+        'evaluation/one_timer_admission_replay.py',
+        'evaluation/pass_outcomes.py',
+        'evaluation/chance_selection.py',
+        'training/shot_placement.py')
 
 
 def run_job(job):
@@ -105,14 +101,7 @@ def run_job(job):
     cases, counts, sampled = [], Counter(), Counter()
     last_sample = dict.fromkeys(GATES, -spacing)
     try:
-        for name, (address, kind) in CPU_RAM.items():
-            env.data.set_variable(name, {'address': address, 'type': kind})
-        env.reset(seed=seed)
-        env.data.update_ram()
-        select_side(env.data, env.data.lookup_all(), side)
-        env.data.set_value('bench_rng', seed)
-        env.data.set_value('bench_clock', 300)
-        env.step(np.zeros(12, dtype=np.int8))
+        prepare_period(env, seed, side)
         model = AdmissionModel(SimpleNamespace(action_type='FILTERED', goalie_policy='selective'))
         state, frame, actions = NHL94GameState(5), 1, hashlib.sha256()
         while frame < 42000:
@@ -204,10 +193,7 @@ def main():
                               'Attack credit stops at four consecutive opponent or stopped-clock frames; continuation runs to horizon, period end or first goal.',
                               'Counterattack goals conceded count even after losing the initial attack.',
                               'Cases can overlap and are correlated; split complete seeds and both assignments together.']}
-    path = Path(args.output)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    data = (json.dumps(report, separators=(',', ':'), allow_nan=False)+'\n').encode()
-    path.write_bytes(gzip.compress(data, mtime=0) if path.suffix == '.gz' else data)
+    write_replay_report(args.output, report)
     print('Collected', sum(len(m['cases']) for m in matches), 'one-timer admission cases')
 
 

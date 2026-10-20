@@ -18,24 +18,7 @@ from nhl94_ai.agents.passing import evaluate_pass
 from nhl94_ai.agents.skating import grounded_step
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import offense_state
-
-
-def wing_reception_state(*, carrier_x=80, receiver_x=105):
-    state = offense_state()
-    passer, receiver = state.team1.players[:2]
-    passer.x, passer.y, passer.facing = carrier_x, 145, 0
-    state.puck.x, state.puck.y = carrier_x, 155
-    receiver.x, receiver.y, receiver.facing = receiver_x, 180, 6
-    receiver.motion_x, receiver.motion_y = -1.5, 0
-    for team in (state.team1, state.team2):
-        for player in team.players:
-            if player is not passer and player is not receiver:
-                player.role = -1
-    defender = state.team2.players[0]
-    defender.role, defender.x, defender.y, defender.motion_x = 4, 0, 230, -2
-    state.team2.goalie.x = -15
-    return state
+from tests.support.offense import offense_state, wing_reception_state
 
 
 class CarryForecastTests(unittest.TestCase):
@@ -235,7 +218,7 @@ class ReceiverContinuationTests(unittest.TestCase):
         self.assertEqual(release, 6)
 
     def test_early_shot_credit_does_not_assume_priority_over_one_timer_preparation(self):
-        from tests.unit.test_goalie_avoidance import approach_state
+        from tests.support.offense import approach_state
         state = approach_state()
         player = state.team1.players[0]
         player.motion_y = 0
@@ -334,7 +317,7 @@ class ReceiverContinuationTests(unittest.TestCase):
         self.assertEqual(details, {'continuation_status': 'no-modeled-reception-contact'})
 
     def test_one_timer_score_does_not_gain_a_carry_continuation(self):
-        from tests.unit.test_classic_offense import live_one_timer_state
+        from tests.support.offense import live_one_timer_state
         choices, details = OffenseController().passes(live_one_timer_state(), 'one-timer')
         self.assertTrue(choices, details)
         self.assertEqual(choices[0].continuation_value, 0)

@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from nhl94_ai.evaluation.retention import RetentionOutcome, movement_action, movement_id, admissible, summarize
-from tests.unit.test_classic_offense import offense_state
+from tests.support.offense import offense_state
 
 
 class RetentionTests(unittest.TestCase):

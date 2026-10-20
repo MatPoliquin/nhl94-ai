@@ -6,7 +6,7 @@ from nhl94_ai.evaluation.cross_crease_probe import ShotTiming, summarize
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.ram import GOALIE_INPUT_ATTRIBUTES
 from nhl94_ai.tasks.cross_crease_setup import goalie_attributes, set_goalie_level
-from tests.ram_fixture import FixtureMemory
+from tests.support.memory import FixtureMemory
 
 
 class GoalieRatingTests(unittest.TestCase):

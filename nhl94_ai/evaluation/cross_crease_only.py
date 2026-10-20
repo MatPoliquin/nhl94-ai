@@ -145,7 +145,7 @@ def summary(rows):
 def source_hashes():
     root = Path(__file__).resolve().parents[2]
     names = ('agents/cross_crease_only.py', 'evaluation/cross_crease_only.py',
-             'evaluation/cross_crease_probe.py', 'evaluation/benchmark.py',
+             'evaluation/cross_crease_probe.py', 'evaluation/benchmark.py', 'game/genesis_match.py',
              'tasks/cross_crease_setup.py', 'tasks/defense_setup.py',
              'agents/skating.py', 'agents/motion.py', 'agents/defense.py',
              'agents/classic_v1.py', 'agents/cross_crease.py', 'agents/offense.py',

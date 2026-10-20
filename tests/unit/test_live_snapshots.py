@@ -19,8 +19,7 @@ from nhl94_ai.agents.base import AgentInput
 from nhl94_ai.evaluation.metrics import LiveTeamTotals
 from nhl94_ai.models.factory import build_MlpPolicy
 from nhl94_ai.training.events import LiveTrainingState
-from tests.unit.test_target_control import target_env
-from tests.unit.test_target_interfaces import target_args
+from tests.support.environments import target_args, target_env
 
 
 class LiveSnapshotTests(unittest.TestCase):

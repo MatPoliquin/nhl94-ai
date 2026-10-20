@@ -5,7 +5,7 @@ import unittest
 from nhl94_ai.agents.cross_crease_roaming import RoamingCrossCrease
 from nhl94_ai.agents.skating import grounded_step
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_cross_crease import crossing_state
+from tests.support.offense import crossing_state
 
 
 class RoamingCrossCreaseTests(unittest.TestCase):

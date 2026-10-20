@@ -14,8 +14,7 @@ from nhl94_ai.evaluation.metrics import evaluate_policy_with_totals
 from nhl94_ai.evaluation.runner import evaluate
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.tasks.registry import TASKS, get_task
-from tests.unit.test_environment_contracts import wrapped
-from tests.unit.test_episode_statistics import StatisticsEnv
+from tests.support.environments import StatisticsEnv, wrapped
 
 
 def attack_state():
@@ -142,7 +141,7 @@ class TaskRewardStubTests(unittest.TestCase):
         self.assertTrue(all(call.args[1] is None for call in reporter.call_args_list))
 
     def test_shootout_state_no_longer_computes_bonus_only_geometry(self):
-        from tests.unit.test_environment_contracts import FixtureEnv
+        from tests.support.environments import FixtureEnv
         state = NHL94GameState(5)
         info = FixtureEnv().info
         info['ba_ps_flags'] = 0x0400

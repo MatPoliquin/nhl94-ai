@@ -18,8 +18,7 @@ import numpy as np
 from nhl94_ai.agents.learned_offense import (
     N_ACTIONS, OBSERVATION_FIELDS, PossessionController, encode_offense, SCHEMA, attack_sign,
 )
-from nhl94_ai.evaluation.benchmark import away_view, update_state
-from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, cpu_view, select_side
+from nhl94_ai.game.genesis_match import CPU_RAM, away_view, cpu_view, select_side, update_state
 from nhl94_ai.game.ram import pass_geometry_info, restore_away_control
 from nhl94_ai.game.state import NHL94GameState
 

@@ -11,7 +11,7 @@ import numpy as np
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.retention_ranker import RetentionRanker, SCHEMA, load_retention_filter
 from nhl94_ai.evaluation.retention_ranking_model import ranking_metrics
-from tests.unit.test_classic_offense import offense_state
+from tests.support.offense import offense_state
 
 
 def artifact():

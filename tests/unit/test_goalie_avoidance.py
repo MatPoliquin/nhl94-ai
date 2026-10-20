@@ -14,28 +14,7 @@ from nhl94_ai.agents.offense import (
 )
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.game.constants import GameConsts as Buttons
-from tests.unit.test_classic_offense import live_one_timer_state, offense_state
-
-
-def approach_state(*, away=False):
-    state = offense_state()
-    player = state.team1.players[0]
-    player.x, player.y, player.motion_y = 0, 180, 1.6
-    state.team2.goalie.x, state.team2.goalie.y = 0, 228
-    state.puck.x, state.puck.y = 0, 190
-    for other in (*state.team1.players[1:], *state.team2.players):
-        other.x, other.y = 110, -180
-    if away:
-        state.team1.controller, state.team2.controller = 2, 1
-        state.team1.defense_control = state.engine.puck_owner = 6
-        for team in (state.team1, state.team2):
-            team.net.y *= -1
-            for other in (*team.players, team.goalie):
-                other.y *= -1
-                other.motion_y *= -1
-                other.facing = (other.facing + 4) % 8
-        state.puck.y *= -1
-    return state
+from tests.support.offense import approach_state, live_one_timer_state
 
 
 def buttons_for(model, state):

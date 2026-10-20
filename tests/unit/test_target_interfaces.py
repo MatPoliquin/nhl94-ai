@@ -19,15 +19,7 @@ from nhl94_ai.config import EnvironmentConfig
 from nhl94_ai.env.factory import build_single_nhl94_env, resolve_backend_action_type
 from nhl94_ai.env.target_control import CONTROLLER_FIELDS, target_schema
 from nhl94_ai.tasks.registry import TASKS, get_task, register_task
-from tests.unit.test_target_control import target_env
-
-
-def target_args(**overrides):
-    return SimpleNamespace(**{
-        'env': 'NHL94-Genesis-v0', 'rf': 'DefenseZone', 'nn': 'MlpPolicy',
-        'action_type': 'TARGET_POSITION', 'num_players': 1, 'alg': 'ppo2',
-        **overrides,
-    })
+from tests.support.environments import target_args, target_env
 
 
 class TargetInterfaceTests(unittest.TestCase):

@@ -13,8 +13,8 @@ from nhl94_ai.agents.passing import (
 )
 from nhl94_ai.game.ram import _animation_frames, _animation_rom, _stick_hotspots, pass_geometry_info
 from nhl94_ai.game.state import NHL94GameState
-from tests.ram_fixture import FixtureMemory
-from tests.unit.test_classic_offense import offense_state
+from tests.support.memory import FixtureMemory
+from tests.support.offense import offense_state
 
 
 def geometry_env(game='NHL94-Genesis-v0'):

@@ -18,9 +18,11 @@ import numpy as np
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.receiver_selection import ReceiverSelector
 from nhl94_ai.env.factory import make_retro
-from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, MATCHUPS, select_side
-from nhl94_ai.evaluation.possession_ablation_replay import observation, source_hashes as agent_hashes
-from nhl94_ai.evaluation.refinement_replay import advance, fork, read_view, restore
+from nhl94_ai.evaluation.cpu_benchmark import MATCHUPS
+from nhl94_ai.evaluation.refinement_replay import fork
+from nhl94_ai.evaluation.replay_support import (
+    advance, observation, prepare_period, read_view, replay_source_hashes, restore,
+)
 from nhl94_ai.game.state import NHL94GameState
 
 
@@ -41,12 +43,9 @@ def common_continuation(policy):
 
 
 def source_hashes():
-    sources = agent_hashes()
-    root = Path(__file__).resolve().parents[2]
-    for name in ('receiver_replay.py', 'pass_outcomes.py'):
-        path = root / 'nhl94_ai/evaluation' / name
-        sources[str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
-    return sources
+    return replay_source_hashes(
+        'evaluation/receiver_replay.py',
+        'evaluation/pass_outcomes.py')
 
 
 def run_job(job):
@@ -55,14 +54,7 @@ def run_job(job):
     env = make_retro(game='NHL94-Genesis-v0', state=save, num_players=1, goalie_policy=goalie_policy)
     cases, counts, last_sample = [], Counter(), -spacing
     try:
-        for name, (address, kind) in CPU_RAM.items():
-            env.data.set_variable(name, {'address': address, 'type': kind})
-        env.reset(seed=seed)
-        env.data.update_ram()
-        select_side(env.data, env.data.lookup_all(), side)
-        env.data.set_value('bench_rng', seed)
-        env.data.set_value('bench_clock', 300)
-        env.step(np.zeros(12, dtype=np.int8))
+        prepare_period(env, seed, side)
         model = ClassicAIV1Model(SimpleNamespace(
             action_type='FILTERED', goalie_policy=goalie_policy, receiver_selection='legacy'))
         model.receiver_selector.expand_pool = all_safe

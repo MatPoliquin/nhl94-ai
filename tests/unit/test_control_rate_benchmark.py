@@ -11,8 +11,8 @@ from nhl94_ai.agents.registry import create_scripted
 from nhl94_ai.config import EnvironmentConfig
 from nhl94_ai.env.wrappers import StochasticFrameSkip
 from nhl94_ai.evaluation.control_rate_benchmark import portable
-from tests.unit.test_classic_defense import defense_state
-from tests.unit.test_environment_contracts import wrapped
+from tests.support.defense import defense_state
+from tests.support.environments import wrapped
 
 
 def make_agent(interval=0):

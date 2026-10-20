@@ -4,9 +4,8 @@ import gzip
 import json
 from pathlib import Path
 import tempfile
-from types import SimpleNamespace
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import numpy as np
 
@@ -15,21 +14,17 @@ from nhl94_ai.evaluation import snes_replay, snes_session
 from nhl94_ai.evaluation.human_recording import sha256
 from nhl94_ai.evaluation.snes_recording import SnesRecording, scoreboard
 from nhl94_ai.game.platforms import get_backend
+from tests.support.recording import InputReplayEnv, fake_classic
 
 SNES_BUTTONS = get_backend('snes').buttons
 
 
-class ReplayEnv:
+class ReplayEnv(InputReplayEnv):
     """Deterministic stand-in whose state depends on both controllers' inputs."""
 
     def __init__(self):
-        self.buttons = SNES_BUTTONS
+        super().__init__(SNES_BUTTONS)
         self.initial_state = b'test-state'
-        self.frames, self.value = 0, 0
-        self.close = Mock()
-        self.em = SimpleNamespace(get_state=self.get_state, set_state=self.set_state)
-        self.data = SimpleNamespace(set_variable=Mock(), reset=Mock(), update_ram=Mock(),
-                                    lookup_all=self.info)
 
     def info(self):
         return {'nhl94_platform': 'snes', 'period': 0, 'time': max(0, 4 - self.frames),
@@ -39,31 +34,6 @@ class ReplayEnv:
                 'defense_team1': 1, 'defense_team2': 2,
                 'defense_control1': 2, 'defense_control2': 8,
                 'p1_control_slot': 2, 'p2_control_slot': 8}
-
-    def reset(self):
-        self.frames, self.value = 0, 0
-
-    def get_state(self):
-        return bytes([self.frames, self.value])
-
-    def set_state(self, value):
-        self.frames, self.value = value
-        return True
-
-    def get_ram(self):
-        return np.array([self.frames, self.value], dtype=np.uint8)
-
-    def step(self, buttons):
-        self.frames += 1
-        self.value = (self.value + sum((index + 1) * int(value) for index, value in enumerate(buttons))) % 256
-        return None, 0, False, False, self.info()
-
-
-def fake_classic():
-    return SimpleNamespace(_last_decision='carry', _last_target=(np.int64(1), 2),
-                           input_owner='offense', scheduler=SimpleNamespace(decisions=1),
-                           offense_diagnostics={'estimate': float('inf')},
-                           defense_diagnostics={}, goalie_diagnostics={})
 
 
 class RecordingTests(unittest.TestCase):

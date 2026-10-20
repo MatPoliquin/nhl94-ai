@@ -12,19 +12,7 @@ from nhl94_ai.env.intents import HOCKEY_INTENT_DPAD_ACTION_SPACE
 from nhl94_ai.evaluation.benchmark import away_view
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.state import NHL94GameState
-from tests.unit.test_classic_offense import offense_state
-
-
-def shooting_state():
-    state = NHL94GameState(5)
-    state.team1.control = state.team2.control = 1
-    state.team1.net.y, state.team2.net.y = -264, 264
-    state.team1.players[0].x, state.team1.players[0].y = 30, 225
-    state.team2.players[0].x, state.team2.players[0].y = -30, -225
-    state.team2.goalie.x = 10
-    state.team1.goalie.x = -10
-    state.engine.puck_owner = 0
-    return state
+from tests.support.offense import offense_state, shooting_state
 
 
 class ClassicV1Contracts(unittest.TestCase):
