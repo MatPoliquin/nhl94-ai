@@ -11,6 +11,7 @@ from nhl94_ai.agents.defense import defensive_steering, eligible
 from nhl94_ai.agents.motion import arrival_time, velocity
 from nhl94_ai.agents.teammate_receiving import SharedReceiving
 from nhl94_ai.agents.teammate_support import SupportPlanner
+from nhl94_ai.agents.teammate_pressure import SharedPressure, TRAP_ROLES
 from nhl94_ai.env.target_control import project_target
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.ram import teammate_controller_info
@@ -59,6 +60,7 @@ class TeammateCoordinator:
         self.last_menu = -120
         self.pending_pass = None
         self.receiving = SharedReceiving()
+        self.pressure = SharedPressure()
         self.support = [SupportPlanner() for _ in range(self.team_size)]
         self.last_owner = -1
         self.last_pass_count = None
@@ -140,10 +142,14 @@ class TeammateCoordinator:
 
     def act(self, info, deterministic=True):
         views = [teammate_controller_info(info, i + 1, self.side, team_size=self.team_size, human=self.human) for i in range(self.team_size)]
-        self.transient_frames = self.transient_frames + 1 if views[0].get('teammate_transient') else 0
+        # Highlight restoration can leave aliased selections throughout a menu.
+        # Only live play must settle within the bounded ownership deadline.
+        live = not views[0]['teammate_highlight'] and views[0]['time'] > 0 and not views[0]['sflags'] & 0x0100
+        self.transient_frames = self.transient_frames + 1 if live and views[0].get('teammate_transient') else 0
         if self.transient_frames > 120:
             raise RuntimeError('Native controller ownership failed to settle for 120 frames')
         if views[0]['teammate_highlight']:
+            self.pressure.reset('highlight', self.frames)
             self.frames += 1
             actions = np.zeros((self.team_size, 12), dtype=np.int8)
             if self.frames - self.last_menu >= 120:
@@ -181,6 +187,18 @@ class TeammateCoordinator:
                 if event['phase'] == 'ended' and sender is not None:
                     self.controllers[sender - 1].delegate_reception(self.states[sender - 1], event['reason'])
         primary = self._choose_primary(state, slots)
+        pending_contact = next((i for i, controller in enumerate(self.controllers)
+                                if controller.defense.pending_check is not None), None)
+        assignments = (self.pressure.choose(
+            state, slots, self.frames, pending_contact=pending_contact,
+            busy=bool(views[0].get('teammate_transient')))
+            if self.strategy == 'coordinated' and getattr(self.args, 'teammate_pressure', True) else None)
+        if assignments is None and any(role in TRAP_ROLES for role in self.last_roles):
+            for controller in self.controllers:
+                controller.cancel_actions('trap-ended')
+            # A loose puck or new receiver needs a fresh race, not the old primary's lease.
+            self.primary = None
+            primary = self._choose_primary(state, slots)
         actions = np.zeros((self.team_size, 12), dtype=np.int8)
         rows = [None] * self.team_size
         intermission = state.time == 0 or bool(state.engine.sflags & 0x0100)
@@ -216,6 +234,12 @@ class TeammateCoordinator:
                     actions[i, Buttons.INPUT_B] = self.frames % 8 < 4
             elif unavailable:
                 role = 'unavailable'
+            elif assignments is not None:
+                assignment = assignments[i]
+                if self.last_roles[i] not in TRAP_ROLES:
+                    self.controllers[i].cancel_actions('trap-started')
+                actions[i] = self.controllers[i].predict_team_defense(view, assignment, frame_skip=self.interval)
+                role, target = assignment.plan.mode, assignment.plan.target
             elif reception is not None:
                 actions[i], target, role = reception
             elif (self.strategy == 'independent' or i == primary
@@ -272,6 +296,7 @@ class TeammateCoordinator:
                                              'native_slots': views[0].get('native_controller_slots'),
                                              'primary_controller': None if primary is None else primary + 1,
                                              'controllers': rows, 'pending_pass': copy(self.pending_pass),
+                                             'pressure': dict(self.pressure.diagnostics),
                                              'events': self.receiving.frame_events.copy()}}
         for view in self.states:
             view.EndFrame()

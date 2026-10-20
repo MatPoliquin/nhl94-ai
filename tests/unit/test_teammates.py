@@ -102,7 +102,7 @@ class TeammateSetupTests(unittest.TestCase):
     def test_unsupported_modes_fail_before_emulator_creation(self):
         EnvironmentConfig.from_args(team_args())
         for changes in ({'env': 'NHL942on2-Genesis-v0'}, {'env': 'NHL94-Snes-v0'},
-                        {'side': 'away'}, {'nn': 'MlpPolicy'}, {'goalie_policy': 'selective'},
+                        {'side': 'invalid'}, {'nn': 'MlpPolicy'}, {'goalie_policy': 'selective'},
                         {'num_players': 1}, {'selfplay': True}, {'action_type': 'MULTI_DISCRETE'},
                         {'deke': True}, {'model_1': 'old.zip'}, {'classic_control_interval': 4}):
             with self.subTest(changes=changes), self.assertRaises(ValueError):

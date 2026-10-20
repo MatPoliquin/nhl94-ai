@@ -51,13 +51,13 @@ def write_json(path, value):
     temporary.replace(path)
 
 
-def runtime_provenance():
+def runtime_provenance(core='genesis_plus_gx_libretro.so'):
     import stable_retro
     import stable_retro._retro as native
-    core = Path(stable_retro.core_path()) / 'genesis_plus_gx_libretro.so'
+    path = Path(stable_retro.core_path()) / core
     return {'stable_retro_version': version('stable-retro'),
             'native_sha256': sha256(Path(native.__file__).read_bytes()),
-            'core_sha256': sha256(core.read_bytes())}
+            'core_sha256': sha256(path.read_bytes())}
 
 
 def source_provenance():

@@ -668,8 +668,10 @@ class NHL94DebugDisplay:
         elif self.args.mode == 'model_vs_model':
             header_text = f"NHL '94 - P1 {'HUMAN' if self.human_control else 'AI'} / P2 AI"
         elif self.args.mode in ('team_vs_game', 'team_vs_player'):
-            opponent = f'P{self.args.num_players} HUMAN / AWAY' if self.args.mode == 'team_vs_player' else 'CPU'
-            header_text = f"NHL '94 - {getattr(self.args, 'team_size', 2)} HOME BOTS / {opponent}"
+            side = getattr(self.args, 'side', 'home').upper()
+            other = 'HOME' if side == 'AWAY' else 'AWAY'
+            opponent = f'P{self.args.num_players} HUMAN' if self.args.mode == 'team_vs_player' else 'CPU'
+            header_text = f"NHL '94 - {getattr(self.args, 'team_size', 2)} {side} BOTS / {other} {opponent}"
         if self.paused:
             header_text += " - PAUSED"
         self.screen.blit(self.big_font.render(header_text, True, WHITE), (info_x, info_y))
@@ -711,7 +713,9 @@ class NHL94DebugDisplay:
             self.screen.blit(self.font.render(text, True, CYAN),
                              (info_x + 510, stats_y + index * self.HUD_LINE_HEIGHT))
         if self.args.mode == 'team_vs_player':
-            text = f'P{self.args.num_players} away human slot {team2.controlled_scnum()}'
+            human_team = team1 if getattr(self.args, 'side', 'home') == 'away' else team2
+            human_side = 'home' if human_team.controller == 1 else 'away'
+            text = f'P{self.args.num_players} {human_side} human slot {human_team.controlled_scnum()}'
             self.screen.blit(self.font.render(text, True, CYAN),
                              (info_x + 510, stats_y + self.args.team_size * self.HUD_LINE_HEIGHT))
 

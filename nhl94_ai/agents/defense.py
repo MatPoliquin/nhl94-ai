@@ -423,7 +423,7 @@ class DefenseController:
         self.desired_slot = best
         return best, costs
 
-    def _body_check(self, state, actual, player):
+    def _body_check(self, state, actual, player, *, covered_closer=False):
         owner = state.engine.puck_owner
         carrier = next((p for slot, p in skaters(state.team2) if slot == owner), None)
         details = {'status': 'no-active-carrier', 'carrier_slot': owner}
@@ -451,7 +451,7 @@ class DefenseController:
         distance = math.hypot(dx, dy)
         if distance > 30:
             return {**details, 'status': 'outside-range'}
-        if not self._goal_side(state.team1, (player.x, player.y), (carrier.x, carrier.y)):
+        if not covered_closer and not self._goal_side(state.team1, (player.x, player.y), (carrier.x, carrier.y)):
             return {**details, 'status': 'not-goal-side'}
         fx, fy = facing(player)
         if dx * fx + dy * fy < distance * 0.9:
@@ -472,7 +472,7 @@ class DefenseController:
         end = player.x + vx * duration, player.y + vy * duration
         tx, ty = velocity(carrier)
         carrier_end = carrier.x + tx * duration, carrier.y + ty * duration
-        if (not self._goal_side(state.team1, end, carrier_end, 4)
+        if ((not covered_closer and not self._goal_side(state.team1, end, carrier_end, 4))
                 or math.dist(end, project_target(end)) > 1e-6
                 or route_waypoint((player.x, player.y), end) != end):
             return {**details, 'status': 'unsafe-route'}
@@ -496,7 +496,7 @@ class DefenseController:
                 return {**details, 'status': 'leaves-receiver-lane'}
         return {**details, 'status': 'ready'}
 
-    def step(self, state, elapsed=1, *, frame=None):
+    def step(self, state, elapsed=1, *, frame=None, assignment=None):
         self.frames = self.frames + elapsed if frame is None else frame
         actual = controlled_slot(state.team1)
         self._observe_switch(actual)
@@ -507,18 +507,25 @@ class DefenseController:
                 self.frames >= self.pending_check['until'] or actual != self.pending_check['from_slot']
                 or state.engine.puck_owner != self.pending_check['carrier_slot']):
             self.pending_check = None
-        plan = self.choose_target(state)
+        plan = assignment.plan if assignment is not None else self.choose_target(state)
+        if assignment is not None:
+            self.pending_switch = None
+            if not assignment.contact:
+                self.pending_check = None
         if (self.plan and plan.mode in ('protect-lane', 'contain-boards')
                 and (plan.mode, plan.threat_slot) == (self.plan.mode, self.plan.threat_slot)
                 and (plan.shot_goal, plan.reserved_slots) == (self.plan.shot_goal, self.plan.reserved_slots)
                 and math.dist(plan.target, self.plan.target) < 3):
             plan = replace(plan, target=self.plan.target)
         self.plan = plan
-        best, costs = self.select_player(state, plan.target)
+        best, costs = ((actual, {actual: 0}) if assignment is not None else self.select_player(state, plan.target))
         action = np.zeros(Buttons.INPUT_MAX, dtype=np.int8)
         mode, waypoint = 'waiting-for-selection', plan.target
         player = next((p for slot, p in skaters(state.team1) if slot == actual), None)
-        check = self._body_check(state, actual, player)
+        covered_closer = assignment is not None and assignment.covered_closer
+        contact_allowed = assignment is None or assignment.contact
+        check = (self._body_check(state, actual, player, covered_closer=covered_closer)
+                 if contact_allowed else {'status': 'coordinated-positioning'})
         puck_vx, puck_vy = velocity(state.puck)
         likely = self._likely_switch(state)
         if actual < 0:
@@ -577,11 +584,11 @@ class DefenseController:
                 self.pending_check = {'from_slot': actual, 'carrier_slot': state.engine.puck_owner,
                                       'until': self.frames + check['contact_frames'] + 2}
                 mode = 'check-request'
-            elif reachable and aligned and goal_side and can_poke:
+            elif reachable and aligned and (goal_side or covered_closer) and can_poke and contact_allowed:
                 action[Buttons.INPUT_B] = 1
                 self.poke_at = self.frames + 16
                 mode = 'poke-request'
-            elif (self.pending_switch is None and self.frames >= self.boost_at
+            elif (assignment is None and self.pending_switch is None and self.frames >= self.boost_at
                   and not self.c_down and boost_safe(player, waypoint)):
                 action[Buttons.INPUT_C] = 1
                 self.boost_at = self.frames + 36

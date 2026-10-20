@@ -7,12 +7,14 @@ import { controllerView } from "./decoder";
 import { defensive_steering, eligible } from "./defense";
 import { arrival_time } from "./motion";
 import { SharedReceiving } from "./teammate-receiving";
+import { SharedPressure, TRAP_ROLES } from "./teammate-pressure";
 import { Buttons, neutralAction, type Action, type GameState, type Vec2 } from "./state";
 import { project_target } from "./target";
 
 export class TeammateCoordinator {
   readonly controllers: ClassicController[];
   readonly receiving = new SharedReceiving();
+  readonly pressure = new SharedPressure();
   primary: number | null = null;
   roles: string[];
   targets: Vec2[];
@@ -85,6 +87,15 @@ export class TeammateCoordinator {
       this.remaining = 0; this.primary = null; this.receiving.finish("native-transition");
       this.receiving.last_owner = -1; this.receiving.last_count = null;
     }
+    const wasTrapping = this.roles.some((role) => TRAP_ROLES.includes(role));
+    const pendingContact = this.controllers.findIndex((controller) => controller.defense.pending_check !== null);
+    const assignments = this.remaining === 0 || wasTrapping || unavailable ?
+      this.pressure.choose(state, slots, this.frames, { busy: !!unavailable,
+        pendingContact: pendingContact < 0 ? null : pendingContact }) : null;
+    if (wasTrapping && assignments === null) {
+      this.controllers.forEach((controller) => controller.cancel_actions("trap-ended"));
+      this.remaining = 0; this.primary = null;
+    }
     if (this.remaining > 0 && !unavailable) {
       this.remaining--;
       this.controllers.forEach((controller) => controller.advance_held_frame());
@@ -121,6 +132,12 @@ export class TeammateCoordinator {
       } else if (!player || slot === view.team1.goalie_scnum() || player.is_falling ||
           player.unavailable & 4 || player.role !== null && player.role <= 0 ||
           !eligible(player) && !player.is_one_timer && !controller.has_committed_action()) role = "unavailable";
+      else if (assignments !== null) {
+        const assignment = assignments[i]!;
+        if (!TRAP_ROLES.includes(this.roles[i]!)) controller.cancel_actions("trap-started");
+        actions[i] = controller.predict_team_defense(view, assignment);
+        role = assignment.plan.mode; target = assignment.plan.target; external = false;
+      }
       else if (reception) { actions[i] = reception.action; target = reception.target; role = "receive"; }
       else if (i === primary || controller.has_committed_action()) {
         role = state.engine.puck_owner === slot ? "carrier" : view.team2.owns_scnum(state.engine.puck_owner) ? "pressure" : "retrieve";

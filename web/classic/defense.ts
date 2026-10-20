@@ -1,6 +1,7 @@
 import { Buttons, neutralAction, type Action, type GameState, type Player, type Team, type Vec2 } from "./state";
 import { distance, lexCompare, pointEqual, required } from "./numeric";
 import { project_target, route_waypoint } from "./target";
+import type { PressureAssignment } from "./teammate-pressure";
 import {
   LANE_HORIZON, SHOT_SPEED_RANGE, arrival_time, blocks_shot_lane,
   boost_safe, burst_velocity, check_approach, facing, puck_path, skating, velocity,
@@ -345,7 +346,7 @@ export class DefenseController {
     return [best, costs];
   }
 
-  _body_check(state: GameState, actual: number, player: Player | null): CheckDetails {
+  _body_check(state: GameState, actual: number, player: Player | null, covered_closer = false): CheckDetails {
     const owner = state.engine.puck_owner, carrier = skaters(state.team2).find(([slot]) => slot === owner)?.[1];
     let details: CheckDetails = { status: "no-active-carrier", carrier_slot: owner };
     const status = (value: string): CheckDetails => ({ ...details, status: value });
@@ -362,7 +363,7 @@ export class DefenseController {
     if (player.energy < 1024) return status("low-energy");
     const dx = carrier.x - player.x, dy = carrier.y - player.y, dist = Math.hypot(dx, dy);
     if (dist > 30) return status("outside-range");
-    if (!DefenseController._goal_side(state.team1, [player.x, player.y], [carrier.x, carrier.y])) return status("not-goal-side");
+    if (!covered_closer && !DefenseController._goal_side(state.team1, [player.x, player.y], [carrier.x, carrier.y])) return status("not-goal-side");
     const [fx, fy] = facing(player);
     if (dx * fx + dy * fy < dist * 0.9) return status("not-facing-carrier");
     if (this.plan && this.plan.threat_slot !== null && this.plan.threat_slot !== owner) return status("covering-other-threat");
@@ -374,7 +375,7 @@ export class DefenseController {
     if (impact < 20 || impact < threshold + 4) return status("unfavorable-impact");
     const duration = time + 2, [vx, vy] = burst_velocity(player), end: Vec2 = [player.x + vx * duration, player.y + vy * duration];
     const [tx, ty] = velocity(carrier), carrier_end: Vec2 = [carrier.x + tx * duration, carrier.y + ty * duration];
-    if (!DefenseController._goal_side(state.team1, end, carrier_end, 4) || distance(end, project_target(end)) > 1e-6
+    if ((!covered_closer && !DefenseController._goal_side(state.team1, end, carrier_end, 4)) || distance(end, project_target(end)) > 1e-6
       || !pointEqual(route_waypoint([player.x, player.y], end), end)) return status("unsafe-route");
     for (const team of [state.team1, state.team2]) for (const other of [...team.players, team.goalie]) {
       if (other === player || other === carrier || other.role !== null && other.role < 0) continue;
@@ -390,14 +391,16 @@ export class DefenseController {
     return status("ready");
   }
 
-  step(state: GameState, { elapsed = 1, frame = null }: { elapsed?: number; frame?: number | null } = {}): Action {
+  step(state: GameState, { elapsed = 1, frame = null, assignment = null }:
+    { elapsed?: number; frame?: number | null; assignment?: PressureAssignment | null } = {}): Action {
     this.frames = frame ?? this.frames + elapsed;
     const actual = controlled_slot(state.team1);
     this._observe_switch(actual);
     if (owns_puck(state.team1, state.engine.puck_owner)) { this.idle(0); return neutralAction(); }
     if (this.pending_check && (this.frames >= this.pending_check.until || actual !== this.pending_check.from_slot
       || state.engine.puck_owner !== this.pending_check.carrier_slot)) this.pending_check = null;
-    let plan = this.choose_target(state);
+    let plan = assignment?.plan ?? this.choose_target(state);
+    if (assignment) { this.pending_switch = null; if (!assignment.contact) this.pending_check = null; }
     if (this.plan && ["protect-lane", "contain-boards"].includes(plan.mode) && plan.mode === this.plan.mode
       && plan.threat_slot === this.plan.threat_slot && (plan.shot_goal === null ? this.plan.shot_goal === null
         : this.plan.shot_goal !== null && pointEqual(plan.shot_goal, this.plan.shot_goal))
@@ -405,9 +408,12 @@ export class DefenseController {
       plan = Object.assign(new DefensePlan(plan.target, plan.mode, plan.reason), plan, { target: this.plan.target });
     }
     this.plan = plan;
-    const [best, costs] = this.select_player(state, plan.target), action = neutralAction();
+    const [best, costs] = assignment ? [actual, { [actual]: 0 }] : this.select_player(state, plan.target), action = neutralAction();
     let mode = "waiting-for-selection", waypoint = plan.target;
-    const player = skaters(state.team1).find(([slot]) => slot === actual)?.[1] ?? null, check = this._body_check(state, actual, player);
+    const player = skaters(state.team1).find(([slot]) => slot === actual)?.[1] ?? null;
+    const covered_closer = assignment?.covered_closer ?? false, contact_allowed = assignment?.contact ?? true;
+    const check: CheckDetails = contact_allowed ? this._body_check(state, actual, player, covered_closer) :
+      { status: "coordinated-positioning", carrier_slot: state.engine.puck_owner };
     const [puck_vx, puck_vy] = velocity(state.puck), likely = DefenseController._likely_switch(state);
     const switch_status = actual < 0 ? "no-selection" : this.pending_check ? "check-follow-through"
       : this.pending_switch ? "awaiting-selection" : best === null ? "no-eligible-skater"
@@ -439,9 +445,9 @@ export class DefenseController {
         this.pending_check = { from_slot: actual, carrier_slot: state.engine.puck_owner,
           until: this.frames + required(check.contact_frames, "check contact_frames") + 2 };
         mode = "check-request";
-      } else if (reachable && aligned && goal_side && can_poke) {
+      } else if (reachable && aligned && (goal_side || covered_closer) && can_poke && contact_allowed) {
         action[Buttons.INPUT_B] = 1; this.poke_at = this.frames + 16; mode = "poke-request";
-      } else if (this.pending_switch === null && this.frames >= this.boost_at && !this.c_down && boost_safe(player, waypoint)) {
+      } else if (!assignment && this.pending_switch === null && this.frames >= this.boost_at && !this.c_down && boost_safe(player, waypoint)) {
         action[Buttons.INPUT_C] = 1; this.boost_at = this.frames + 36; mode = "boost-request";
       }
     }

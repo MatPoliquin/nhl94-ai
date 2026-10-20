@@ -140,6 +140,36 @@ RAM decoding belongs in `game/ram.py` and `game/state.py`. Task reset helpers
 belong in `tasks/setup.py` and the relevant task initializer. Changes to ordered
 observations or action semantics require matching schema version changes.
 
+Python's coordinated teammate mode also uses `agents.teammate_pressure.SharedPressure`
+against an opposing skater carrying the puck. Three bots jointly assign `contain`,
+`close`, and `cover`; two bots can assign both attacking roles only if other
+on-ice teammates retain observed coverage. The planner evaluates the whole group
+so that a deeper covering skater does not unnecessarily replace the nearest
+attacker. Coverage holds its existing depth and adjusts to the carrier-to-net line.
+
+Traps start in neutral/attacking ice or bounded board-side situations, with
+separate approach targets and an initial containment phase before contact.
+Every native frame rechecks coverage, dangerous receivers, player availability,
+arrival estimates, and predicted collisions over a 24-frame horizon. Motion
+forecasts are estimates; uncontrolled teammates receive only observed-motion
+credit. Advanced receivers require existing shot-lane cover. Unsafe or stalled
+traps return to ordinary pressure/coverage, and passes, loose pucks, or selection
+changes invalidate the shared plan. Assignments have a short stability lease,
+but safety exits take precedence.
+
+`ClassicAIV1Model.predict_team_defense` executes the shared assignments through
+the existing defense controller. Individual switching and approach boosts are
+disabled during the trap; only one attacker may request contact. A covered closer
+can approach from behind while retaining the ordinary energy, facing, impact,
+route, and collision checks. Exiting the trap releases commitments and reruns
+primary selection, so a loose puck gets a fresh retriever.
+
+`python -m tests.integration.teammate_pressure` checks two- and three-bot traps
+using native feedback. `evaluation.teammates --no-pressure` provides the previous
+coordinated behavior for seeded comparisons. Reports include `pressure_outcomes`
+with activation, fallback, spacing, and subsequent possession/shot observations;
+these are contextual measurements, not claims that a trap caused a turnover.
+
 ## Target-position control
 
 `--action_type TARGET_POSITION` supports full-team, single-controller `MlpPolicy`
@@ -226,10 +256,24 @@ Neural observation layouts and ordinary one-/two-controller action contracts are
 unchanged. Gymnasium returns scalar reward and five step values; the Monitor and
 VecEnv stack retains batching, four-value VecEnv steps and terminal auto-reset.
 The debug display appends the human's twelve buttons after all bot channels.
+In both teammate modes, `--side` selects the bots' physical team; the human,
+when present, owns the opposite team. Reset selects distinct skaters from
+slots 0..4 for home or 6..10 for away, and initializes the human from the
+opposing range. The wrapper keeps the display in physical home/away order;
+the coordinator supplies each bot's team perspective. Teammate playback never
+calls the single-controller `restore_away_control` gameplay repair.
 
 New layouts use v2 teammate traces with physical capacity, logical port mapping,
 teams, opponent, seed, reset setup, and ROM/native/core hashes. Replay validates
 this metadata before stepping. Existing v1 traces retain their historical layout.
+V2 uses its existing `side` and physical `teams` fields for away layouts;
+omitted `side` retains the historical home meaning. No schema change is needed.
+`python -m tests.integration.away_teammates` checks both sides, native away input,
+display routing, and a full away regulation game with input replay.
+`python -m tests.integration.away_teammates_comparison` runs the fixed 24-match
+Sabres/Ducks, two/three-bot, pressure-on/off comparison for seeds 94..96,
+writing paired initial-state checks and outcome totals to
+`tmp/away-teammates/comparison.json`.
 Explicit native checks run with `python -m tests.integration.multitap`; legacy
 checks remain in `python -m tests.integration.teammates` and
 `python -m tests.integration.human_play`.

@@ -40,7 +40,8 @@ def build_parser():
     parser.add_argument('--seed', type=int, default=None,
                        help='Opt-in NHL94 ROM seed; each episode uses the next uint32 seed. Omit to retain the saved RNG.')
     parser.add_argument('--side', choices=['home', 'away'], default='home',
-                       help='Classic team versus CPU; SNES multiplayer also assigns controller 1 to this team')
+                       help='Bots team in teammate modes (human plays the opposite team); '
+                            'Classic team versus CPU; SNES controller 1 team')
     parser.add_argument('--goalie-policy', choices=['off', 'selective', 'always'],
                         help='Classic manual goalie AI (default: selective for supported full-team Classic play; off disables it)')
     parser.add_argument('--classic-config', metavar='PATH',
@@ -152,14 +153,14 @@ class NHL94Player:
         if getattr(args, 'side', 'home') != 'home':
             snes = get_game(args.env).platform == 'snes'
             requirements = (
-                args.side == 'away', args.mode == 'model_vs_game' or snes,
+                args.side == 'away', args.mode in ('model_vs_game', *TEAM_MODES) or snes,
                 args.nn in CONTROLLERS or snes and args.mode == 'player_vs_game',
                 get_game(args.env).skaters_per_team == 5, args.action_type.upper() == 'FILTERED',
                 args.rf == 'PostPlay', not args.model_2,
             )
             if not all(requirements):
-                raise ValueError('--side away requires full-team Classic model_vs_game playback '
-                                 'with FILTERED buttons, PostPlay, and one agent')
+                raise ValueError('--side away requires full-team Classic model_vs_game or teammate playback '
+                                 'with FILTERED buttons and PostPlay')
         self.max_playback_speed = max(0.1, min(float(getattr(args, 'max_playback_speed', 2.0)), 2.0))
         self.display_frame_interval = 1.0 / (60.0 * self.max_playback_speed) if need_display else 0.0
         self.next_display_frame_time = None
@@ -443,15 +444,17 @@ def run(args):
 
     com_print('========= Start of Game Loop ==========')
     com_print('Debug display: Space/P pauses playback; 1-7 overlays, 8 AI planner, 9 teammate scores.')
-    if args.mode in ['player_vs_model', 'player_vs_game']:
+    if args.mode in ['player_vs_model', 'player_vs_game', 'team_vs_player']:
         com_print('Arrows: skate | X: pass/switch | C: shoot/check | Z: clear/hold | Enter: pause | ESC: quit')
     if args.mode == 'player_vs_model':
         com_print('AI: controller 1 / home team. Human (keyboard/gamepad): controller 2 / away team.')
     elif args.mode == 'model_vs_game':
         com_print(f"AI: controller 1 / {getattr(args, 'side', 'home')} team. Opponent: built-in CPU.")
     elif args.mode in TEAM_MODES:
-        com_print(f'AI teammates: controllers 1..{args.team_size} / home; automatic goalies. '
-                  f'Opponent: {"human on controller " + str(args.num_players) if args.mode == "team_vs_player" else "built-in CPU"}.')
+        side = getattr(args, 'side', 'home')
+        opponent = 'home' if side == 'away' else 'away'
+        com_print(f'AI teammates: controllers 1..{args.team_size} / {side}; automatic goalies. '
+                  f'Opponent: {"human on controller " + str(args.num_players) if args.mode == "team_vs_player" else "built-in CPU"} / {opponent}.')
 
     try:
         player.play(continuous=not args.single_session, need_reset=False)

@@ -259,7 +259,8 @@ class NHL94Observation2PEnv(gym.Wrapper):
             if self.num_players > 2:
                 from nhl94_ai.game.multitap import prepare_multitap_save
                 prepare_multitap_save(self.env.unwrapped)
-            configure_teammates(self.env.data, team_size=self.team_size, human=self.human_opponent)
+            configure_teammates(self.env.data, 2 if self.play_side == 'away' else 1,
+                                team_size=self.team_size, human=self.human_opponent)
         elif self.platform.name == 'snes':
             self.platform.configure_controllers(self.env, self.play_side, self.num_players)
         elif self.play_side == 'away':
@@ -276,11 +277,12 @@ class NHL94Observation2PEnv(gym.Wrapper):
         info = self._model_input_info(info)
         if self.teammates:
             from nhl94_ai.game.ram import teammate_controller_info
-            info = teammate_controller_info(info, team_size=self.team_size, human=self.human_opponent)
+            info = teammate_controller_info(info, side=2 if self.play_side == 'away' else 1,
+                                            team_size=self.team_size, human=self.human_opponent)
         expected = ((2, 1) if self.external_opponent else (2, 0)) if self.play_side == 'away' else (1, 2)
-        if self.play_side == 'away' and (info.get('defense_team1'), info.get('defense_team2')) != expected:
+        if not self.teammates and self.play_side == 'away' and (info.get('defense_team1'), info.get('defense_team2')) != expected:
             raise ValueError('Away playback did not leave the home team under CPU control.')
-        if self.play_side == 'away':
+        if not self.teammates and self.play_side == 'away':
             info = controller_team_info(info)
         if self.external_opponent and (info.get('defense_team1'), info.get('defense_team2')) != expected:
             raise ValueError('player_vs_model requires a two-controller save with P1 home and P2 away; use a compatible .2P state')
@@ -460,8 +462,9 @@ class NHL94Observation2PEnv(gym.Wrapper):
         info = self._model_input_info(info)
         if self.teammates:
             from nhl94_ai.game.ram import teammate_controller_info
-            info = teammate_controller_info(info, team_size=self.team_size, human=self.human_opponent)
-        if self.play_side == 'away' and self.platform.name == 'genesis':
+            info = teammate_controller_info(info, side=2 if self.play_side == 'away' else 1,
+                                            team_size=self.team_size, human=self.human_opponent)
+        elif self.play_side == 'away' and self.platform.name == 'genesis':
             info = controller_team_info(restore_away_control(self.env.data, info))
         if 'defense_scroll_x' in self.defense_camera:
             info['target_camera_x'] = -64 - self.defense_camera['defense_scroll_x']

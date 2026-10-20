@@ -95,10 +95,10 @@ class EnvironmentConfig:
             supported = (config.env == 'NHL94-Genesis-v0', config.num_players == args.team_size + (args.mode == 'team_vs_player'),
                          config.nn == 'ClassicAIV1', config.action_type == 'FILTERED',
                          not config.selfplay, getattr(args, 'rf', 'PostPlay') in ('', 'PostPlay'),
-                         getattr(args, 'side', 'home') == 'home',
+                         getattr(args, 'side', 'home') in ('home', 'away'),
                          getattr(args, 'goalie_policy', 'off') in (None, 'off'))
             if not all(supported):
-                raise ValueError(f'{args.mode} requires full-team Genesis Classic, two or three home bots, '
+                raise ValueError(f'{args.mode} requires full-team Genesis Classic, two or three bots on home or away, '
                                  'FILTERED PostPlay, automatic goalies and no self-play')
             if getattr(args, 'teammate_support_options', False) and args.team_strategy != 'coordinated':
                 raise ValueError('--teammate-support-options requires coordinated teammates')

@@ -44,13 +44,16 @@ class MultitapFixture(TeammateFixture):
         for port in (3, 4):
             for kind, base, dtype in (('team', 0xFFC328, '>u2'), ('control', 0xFFC320, '>i2')):
                 self.data.set_variable(f'defense_{kind}{port}', {'address': base + (port - 1) * 2, 'type': dtype})
+        for slot in range(12):
+            self.data.set_variable(f'defense_{slot}_flags',
+                                   {'address': 0xFFB04A + slot * 128 + 0x62, 'type': '|u1'})
         return self.render(), self.data.lookup_all()
 
 
-def wrapper(human=False):
+def wrapper(human=False, side='home'):
     base = MultitapFixture()
     base.action_space = gym.spaces.MultiBinary(48 if human else 36)
-    return NHL94Observation2PEnv(base, three_args(human), 4 if human else 3, 'PostPlay')
+    return NHL94Observation2PEnv(base, three_args(human, side=side), 4 if human else 3, 'PostPlay')
 
 
 class MultitapConfigTests(unittest.TestCase):
@@ -82,7 +85,7 @@ class MultitapConfigTests(unittest.TestCase):
         for flag in ('--team-size=2', '--team-strategy=independent'):
             with self.assertRaisesRegex(ValueError, 'require team_vs'):
                 parse_cmdline(['--mode=model_vs_game', flag])
-        for options in (dict(nn='MlpPolicy'), dict(goalie_policy='selective'), dict(side='away'),
+        for options in (dict(nn='MlpPolicy'), dict(goalie_policy='selective'), dict(side='invalid'),
                         dict(env='NHL94-Snes-v0'), dict(selfplay=True)):
             with self.subTest(options=options), self.assertRaises(ValueError):
                 EnvironmentConfig.from_args(three_args(**options))
@@ -219,12 +222,12 @@ class MultitapWrapperTests(unittest.TestCase):
                 patch('pygame.joystick.get_count', return_value=0):
             pygame.init()
             self.addCleanup(pygame.quit)
-            inner = wrapper(True)
+            inner = wrapper(True, side='away')
             vector = DummyVecEnv([lambda inner=inner: Monitor(inner)])
             self.addCleanup(vector.close)
             with patch('nhl94_ai.game.multitap.prepare_multitap_save'):
                 vector.reset()
-            display = NHL94DebugDisplay(vector, three_args(True), 0, 'ClassicAIV1', [])
+            display = NHL94DebugDisplay(vector, three_args(True, side='away'), 0, 'ClassicAIV1', [])
             bots = np.zeros(36, dtype=np.int8)
             bots[6::12] = 1
             for pressed in ({pygame.K_RIGHT: True}, {}):

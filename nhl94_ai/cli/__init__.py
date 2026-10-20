@@ -16,6 +16,8 @@ COMMANDS = {
     'record-human': 'evaluation.human_session',
     'replay-human': 'evaluation.human_replay',
     'replay-match': 'evaluation.human_replay',
+    'record-snes': 'evaluation.snes_session',
+    'replay-snes': 'evaluation.snes_replay',
     'offense': 'training.offense',
     'goalie': 'training.goalie',
 }

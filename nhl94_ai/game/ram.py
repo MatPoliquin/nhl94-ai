@@ -106,8 +106,6 @@ def configure_teammates(data, side=1, *, team_size=2, human=False):
         raise ValueError('Teammate side must be home (1) or away (2)')
     if isinstance(team_size, bool) or team_size not in (2, 3):
         raise ValueError('Teammate team_size must be 2 or 3')
-    if (team_size == 3 or human) and side != 1:
-        raise ValueError('Multitap teammate modes require home bots')
     memory = data.memory
     read = memory.extract
     roles = [read(0xFFB04A + slot * 0x80 + 0x34, '>i2') for slot in range(12)]
@@ -120,8 +118,10 @@ def configure_teammates(data, side=1, *, team_size=2, human=False):
     second = read(0xFFC322, '>i2')
     if not 0 <= second < 5 or second == first:
         second = next(slot for slot in range(5) if slot != first)
-    first += (side - 1) * 6
-    second += (side - 1) * 6
+    bot_base = (side - 1) * 6
+    opponent_base = (2 - side) * 6
+    first += bot_base
+    second += bot_base
     writes = {
         0xFFD04A: 3,  # OptNOP: native Two - Teammates.
         0xFFD052: 1, 0xFFD05A: 1, 0xFFD05C: 1,  # 1 = automatic; 0 = manual.
@@ -130,9 +130,9 @@ def configure_teammates(data, side=1, *, team_size=2, human=False):
     }
     selected = [first, second]
     if team_size == 3:
-        selected.append(next(slot for slot in range(5) if slot not in selected))
+        selected.append(next(slot for slot in range(bot_base, bot_base + 5) if slot not in selected))
     if human:
-        selected.append(6)
+        selected.append(opponent_base)
     if team_size == 3 or human:
         writes[0xFFD046] = 1
         for port in range(4):

@@ -553,6 +553,25 @@ class ClassicAIV1Model:
         self.input_owner = 'external'
         self.accept_applied_action(action)
 
+    def predict_team_defense(self, state, assignment, *, frame_skip=4):
+        """Execute a coordinator-owned target without independent player switching."""
+        self.scheduler.configure(frame_skip)
+        self.scheduler.interrupt()
+        self.scheduler.elapsed = 1
+        self.scheduler.was_defending = True
+        self.offense.cancel()
+        self.end_one_timer('team-defense', interrupt=False)
+        self.shot.cancel()
+        self.setup.until_decision = 0
+        self.defense.b_down, self.defense.c_down = self.buttons.b_down, self.buttons.c_down
+        action = self.defense.step(state, frame=self.scheduler.advance(1), assignment=assignment)
+        self.defense_diagnostics = self.defense.diagnostics
+        self.offense_diagnostics = {}
+        self.input_owner = 'team-defense'
+        self._last_decision, self._last_target = assignment.plan.mode, assignment.plan.target
+        self.accept_applied_action(action)
+        return action
+
     def _idle(self, elapsed):
         """Advance the shared clock while releasing defensive action state."""
         self.defense.idle(frame=self.scheduler.advance(elapsed))

@@ -10,6 +10,7 @@ import { HOCKEY_PASS_PRESS_FRAMES, pass_release_frames } from "./passing";
 import { PossessionOffenseController } from "./possession";
 import { aim_pass } from "./target";
 import { Buttons, GameState, Player, Team, neutralAction, type Action, type Vec2 } from "./state";
+import type { PressureAssignment } from "./teammate-pressure";
 
 export class ActionScheduler {
   frames = 0;
@@ -108,6 +109,19 @@ export class ClassicController {
     else { this._observe_actions(state, 1); this._observe_ordinary_pass(state); }
     this._idle(1); this.scheduler.interrupt(); this.scheduler.elapsed = 1; this.scheduler.was_defending = false;
     this.input_owner = "external"; this.accept_applied_action(action);
+  }
+
+  predict_team_defense(state: GameState, assignment: PressureAssignment, frame_skip = 4): Action {
+    this.scheduler.configure(frame_skip); this.scheduler.interrupt();
+    this.scheduler.elapsed = 1; this.scheduler.was_defending = true;
+    this.offense.cancel(); this.end_one_timer("team-defense", { interrupt: false });
+    this.shot.cancel(); this.setup.until_decision = 0;
+    this.defense.b_down = this.buttons.b_down; this.defense.c_down = this.buttons.c_down;
+    const action = this.defense.step(state, { frame: this.scheduler.advance(1), assignment });
+    this.defense_diagnostics = this.defense.diagnostics; this.offense_diagnostics = {};
+    this.input_owner = "team-defense"; this._last_decision = assignment.plan.mode; this._last_target = assignment.plan.target;
+    this.accept_applied_action(action);
+    return action;
   }
 
   predict_frame(input: GameState, frame_skip = 4, _deterministic = true): Action {
