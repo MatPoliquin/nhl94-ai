@@ -7,6 +7,7 @@ from nhl94_ai.agents.motion import VELOCITY_SCALE, velocity
 from nhl94_ai.agents.offense import normal_shot_release_frames, shot_release_in_front
 from nhl94_ai.agents.passing import one_timer_contact_frame, option_receiver, pass_point_at, pass_release_frames
 from nhl94_ai.agents.skating import grounded_step
+from nhl94_ai.game.platforms import get_backend
 
 
 @dataclass(frozen=True)
@@ -22,6 +23,9 @@ class Finish:
 
 def shot_speed(player, hold_frames, *, one_timer=False):
     """doshot's rating/energy scaling with an estimated charged passspeed."""
+    if getattr(player, 'platform', 'genesis') != 'genesis':
+        from nhl94_ai.game.platforms import get_backend
+        return get_backend(player.platform).shot_speed(player, hold_frames, one_timer=one_timer)
     power = 15 if player.shot_power is None else player.shot_power
     energy = 4096 if player.energy is None else max(0, min(4096, player.energy))
     charge = 31 if one_timer else 15 + hold_frames
@@ -49,7 +53,9 @@ def _score(state, shooter, point, side, release, speed):
                 start = _goalie_position(other, release)
                 end = _goalie_position(other, release + travel)
                 radius = 12
-                if other.live_anim in (0x250, 0x2A2) and release <= (other.animation_timer or 0):
+                save_animations = (getattr(other, 'platform', 'genesis') != 'genesis'
+                                   and get_backend(other.platform).goalie_save_animations or (0x250, 0x2A2))
+                if other.live_anim in save_animations and release <= (other.animation_timer or 0):
                     radius = 18
             else:
                 start = other.x + vx * release, other.y + vy * release

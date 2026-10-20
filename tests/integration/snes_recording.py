@@ -85,6 +85,31 @@ class NativeSnesRecording(unittest.TestCase):
             self.assertEqual(verified['frames'], 600)
             self.assertEqual(verified['actions_sha256'], result['actions_sha256'])
 
+    def test_seeded_period_replays_from_start_and_snapshot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'period'
+            options = classic_options(SimpleNamespace(classic_config=None))
+            job = {'side': 'home', 'human': False, 'goalie_policy': options['goalie_policy'],
+                   'frame_skip': 4, 'classic_options': options, 'seed': 7, 'max_frames': 240}
+            recorder = SnesRecording(path, job, snapshot_interval=60)
+            try:
+                period = play_snes_period({**job, '_recorder': recorder})
+                result = recorder.finish(period)
+            finally:
+                recorder.close()
+            trace = path / 'inputs.jsonl.gz'
+            verified = replay(trace)
+            self.assertTrue(verified['verified'])
+            self.assertEqual(verified['final_ram_sha256'], period['final_ram_sha256'])
+            self.assertEqual(verified['actions_sha256'], result['actions_sha256'])
+            process = subprocess.run([sys.executable, '-m', 'nhl94_ai', 'replay-snes', str(trace),
+                                      '--start-frame', '120'],
+                                     check=True, capture_output=True, text=True)
+            sought = json.loads(process.stdout)
+            self.assertTrue(sought['verified'])
+            self.assertEqual(sought['verified_from_frame'], 120)
+            self.assertEqual(sought['final_ram_sha256'], period['final_ram_sha256'])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,7 +2,7 @@
 import math
 from copy import copy
 
-from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, puck_path, velocity
+from nhl94_ai.agents.motion import arrival_time, puck_path, velocity
 
 INCOMPATIBLE = ('shot_placement', 'possession_value', 'possession_ablation', 'receiver_selection',
                 'offense_lookahead', 'uncertain_carry', 'chance_creation', 'cross_crease',
@@ -24,14 +24,17 @@ def passive_reception(state, receiver, *, stick_only=False):
                                        receiver.motion_x, receiver.motion_y, state.puck.motion_x,
                                        state.puck.motion_y, state.puck.height)):
         return None
+    from nhl94_ai.game.platforms import get_backend
+    backend = get_backend(getattr(state.puck, 'platform', 'genesis'))
+    scale = backend.velocity_scale
     x = receiver.precise_x if receiver.precise_x is not None else float(receiver.x)
     y = receiver.precise_y if receiver.precise_y is not None else float(receiver.y)
-    vx, vy = (round(component / VELOCITY_SCALE) for component in velocity(receiver))
-    shift = 9 if receiver.selection_flags & 1 else 6
+    vx, vy = (round(component / scale) for component in velocity(receiver))
+    shift = backend.reception_drift_shift(receiver)
     closest, best_gap = None, math.inf
     for frame, point, height in puck_path(state.puck, 40, sample_interval=1):
         vx, vy = (component - ((component >> shift) or bool(component)) for component in (vx, vy))
-        x, y = x + vx * VELOCITY_SCALE, y + vy * VELOCITY_SCALE
+        x, y = x + vx * scale, y + vy * scale
         if height > (5 if stick_only else 8):
             continue
         gap = math.dist(point, (x + receiver.stick_x, y + receiver.stick_y)) - 14

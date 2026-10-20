@@ -124,6 +124,45 @@ class ConsoleDecodingTests(unittest.TestCase):
         self.assertGreater(future.x, state.team1.players[0].x)
         self.assertEqual(future.platform, 'snes')
 
+    def test_rom_fixed_point_motion_and_physics_cadence_decode(self):
+        info = snes_info()
+        info.update(p1_3_x=-20, p1_3_x_frac=32768,
+                    p1_3_y=100, p1_3_y_frac=49152,
+                    p1_3_live_vel_x=-1000, p1_3_live_vel_y=250,
+                    puck_x=3, puck_x_frac=49152, puck_y=-4, puck_y_frac=16384,
+                    puck_z=2, puck_z_frac=32768, puck_live_vel_z=-128,
+                    p1_3_native_facing_phase=-16384, p1_3_motion_weight=48,
+                    p1_3_motion_agility=15, p1_3_speed_rating=9,
+                    p1_3_turning_state=0, p1_3_carrier_state=4,
+                    p1_3_motion_flags=8, p1_3_input_lock_x=0, p1_3_input_lock_y=0,
+                    snes_frame_clock=10, snes_physics_clock=9, snes_frame_step=2)
+        state = NHL94GameState(5, platform=get_backend('snes'))
+        state.BeginFrame(info, [0] * 6)
+        player = state.team1.players[2]
+        self.assertEqual(player.position_frac_x, 32768)
+        self.assertEqual(player.position_frac_y, 49152)
+        self.assertAlmostEqual(player.precise_x, -19.5)
+        self.assertAlmostEqual(player.precise_y, 100.75)
+        self.assertEqual(player.raw_vel_x, -1000)
+        self.assertEqual(player.raw_vel_y, 250)
+        self.assertEqual(player.physics_frame_debt, 1)
+        self.assertEqual(player.physics_step_frames, 2)
+        self.assertEqual(player.native_facing_phase, -16384)
+        self.assertEqual(player.facing_phase, -0.25)
+        self.assertEqual(player.motion_weight, 48)
+        self.assertEqual(player.motion_agility, 15)
+        self.assertEqual(player.speed_rating, 9)
+        self.assertEqual(player.turning_state, 0)
+        self.assertEqual(player.carrier_state, 4)
+        self.assertEqual(player.motion_flags, 8)
+        self.assertEqual(player.input_lock_x, 0)
+        self.assertEqual(player.input_lock_y, 0)
+        self.assertEqual(state.engine.physics_frame_debt, 1)
+        self.assertAlmostEqual(state.puck.precise_x, 3.75)
+        self.assertAlmostEqual(state.puck.precise_y, -3.75)
+        self.assertAlmostEqual(state.puck.height, 2.5)
+        self.assertAlmostEqual(state.puck.motion_z, -128 / 4096)
+
     def test_profiles_and_rink_geometry_do_not_leak_between_instances(self):
         genesis = NHL94GameState(5)
         snes = NHL94GameState(5, platform=get_backend('snes'))
@@ -137,6 +176,10 @@ class ConsoleDecodingTests(unittest.TestCase):
         info['p1_state_flags'] = 8
         with self.assertRaisesRegex(ValueError, 'multiple selected'):
             get_backend('snes').decode_info(info)
+        # The native player->joystick map resolves the transient double flag.
+        info['snes_player_controller_2'] = 0
+        result = get_backend('snes').decode_info(info)
+        self.assertEqual(result['p1_control_slot'], 2)
 
 
 class ConsoleControlTests(unittest.TestCase):
@@ -207,7 +250,37 @@ class ConsoleControlTests(unittest.TestCase):
                          {'address': 0x7E19EE, 'type': '<i2'})
         self.assertEqual(variables['snes_goalie_manual_1'],
                          {'address': 0x7E1C92, 'type': '<i2'})
-        self.assertTrue(all(0x7E0000 <= item['address'] < 0x800000 and item['type'] == '<i2'
+        self.assertEqual(variables['p1_3_x_frac'],
+                         {'address': 0x7E0D7B, 'type': '<u2'})
+        self.assertEqual(variables['p1_3_y_frac'],
+                         {'address': 0x7E0DDD, 'type': '<u2'})
+        self.assertEqual(variables['p1_3_native_facing_phase'],
+                         {'address': 0x7E1187, 'type': '<i2'})
+        self.assertEqual(variables['p1_3_motion_weight'],
+                         {'address': 0x7E12C7, 'type': '<i2'})
+        self.assertEqual(variables['p1_3_motion_agility'],
+                         {'address': 0x7E12E7, 'type': '<i2'})
+        self.assertEqual(variables['p1_3_speed_rating'],
+                         {'address': 0x7E1307, 'type': '<i2'})
+        self.assertEqual(variables['p1_3_turning_state'],
+                         {'address': 0x7E1527, 'type': '<i2'})
+        self.assertEqual(variables['snes_motion_puck_owner'],
+                         {'address': 0x7E0AD9, 'type': '<i2'})
+        self.assertEqual(variables['snes_motion_mode'],
+                         {'address': 0x7E0D07, 'type': '<i2'})
+        self.assertEqual(variables['puck_x_frac'],
+                         {'address': 0x7E0D93, 'type': '<u2'})
+        self.assertEqual(variables['puck_z_frac'],
+                         {'address': 0x7E0DFD, 'type': '<u2'})
+        self.assertEqual(variables['puck_live_vel_z'],
+                         {'address': 0x7E0E01, 'type': '<i2'})
+        self.assertEqual(variables['snes_frame_clock'],
+                         {'address': 0x7E0083, 'type': '<u2'})
+        self.assertEqual(variables['snes_physics_clock'],
+                         {'address': 0x7E0D01, 'type': '<u2'})
+        self.assertEqual(variables['snes_frame_step'],
+                         {'address': 0x7E0ADB, 'type': '<u2'})
+        self.assertTrue(all(0x7E0000 <= item['address'] < 0x800000 and item['type'] in ('<i2', '<u2')
                             for item in variables.values()))
 
     def test_snes_only_terminates_at_the_end_of_the_countdown(self):

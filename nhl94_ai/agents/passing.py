@@ -8,8 +8,8 @@ import numpy as np
 from nhl94_ai.agents.classic_tuning import current as tuning
 
 from nhl94_ai.agents.defense import eligible, on_ice
+# rom_direction stays imported as a re-export for Genesis CPU-model callers.
 from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, bounded_projection, facing, rom_direction, skating, velocity
-from nhl94_ai.agents.skating import grounded_step
 from nhl94_ai.env.target_control import _clear_segment, project_target
 from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
 from nhl94_ai.game.geometry import aim_pass
@@ -21,6 +21,11 @@ LIVE_RELEASE_FRAMES = 2
 SAMPLES = 8
 # Fixed common scenarios keep replanning and paired runs reproducible.
 _SCENARIOS = np.random.default_rng(94).uniform(-1, 1, (SAMPLES, 2))
+
+
+def _backend(obj):
+    from nhl94_ai.game.platforms import get_backend
+    return get_backend(getattr(obj, 'platform', 'genesis'))
 
 
 @dataclass(frozen=True)
@@ -62,53 +67,13 @@ def pad_direction(passer, receiver):
 
 
 def selected_receiver(team, puck, passer_slot, direction):
-    candidates = []
-    for index, player in enumerate(team.players):
-        slot = team.skater_scnum_base() + index
-        if slot == passer_slot or player.role is not None and player.role <= 0 or player.unavailable & 4:
-            continue
-        dx, dy = player.x - puck.x, player.y - puck.y
-        sector = rom_direction(dx, dy)
-        if sector == 8:
-            continue
-        difference = (sector - direction + 4) % 8 - 4
-        if abs(difference) <= 1:
-            candidates.append((dx * dx + dy * dy + (difference * 256)**2, -slot, slot))
-    return min(candidates)[2] if candidates else None
+    """Native recipient selection for the puck's console."""
+    return _backend(puck).selected_receiver(team, puck, passer_slot, direction)
 
 
 def pass_launch_view(state, passer):
-    """The second held-B input selects and launches before later slots update.
-
-    Earlier teammates have moved twice; later teammates have moved once. The
-    puck is still at the end of the first frame, after pucknorm's quarter-step
-    attraction to the carrier's stick. CPU steering and sprite offsets are held
-    over this short forecast; this is not a prediction of new CPU decisions.
-    """
-    owner = state.engine.puck_owner
-    team, puck = copy(state.team1), copy(state.puck)
-    carrier = grounded_step(passer, (0, 0))
-    team.players = []
-    pads = ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 0), (0, 0))
-    for index, player in enumerate(state.team1.players):
-        slot = state.team1.skater_scnum_base() + index
-        future = copy(player)
-        if slot != owner and on_ice(player):
-            known = (player.steering in range(10) if player.steering is not None else False)
-            known &= all(getattr(player, field) is not None for field in ('weight', 'agility', 'speed', 'energy'))
-            pad = pads[player.steering] if known else (0, 0)
-            for _ in range(1 + (slot < owner)):
-                future = grounded_step(future, pad, stop=known and player.steering == 9)
-        team.players.append(future)
-    shift = 9 if puck.friction == 511 / 512 else 6
-    for axis, offset in (('x', passer.stick_x), ('y', passer.stick_y)):
-        raw = round(velocity(puck)[axis == 'y'] / VELOCITY_SCALE)
-        raw -= (raw >> shift) or bool(raw)
-        precise = getattr(puck, 'precise_' + axis)
-        integrated = math.floor((getattr(puck, axis) if precise is None else precise) + raw * VELOCITY_SCALE)
-        hotspot = getattr(carrier, axis) + offset
-        setattr(puck, axis, integrated + ((hotspot - integrated) >> 2))
-    return team, puck
+    """Native launch view on Genesis; None where launch telemetry is unrecovered."""
+    return _backend(passer).pass_launch_view(state, passer)
 
 
 def option_receiver(receiver, option):
@@ -197,6 +162,7 @@ def rom_pass_vector(dx, dy, vx, vy, passing, *, goalie=False):
 
 
 def _live_pass_contact(puck, passer, receiver, delay):
+    """Genesis sprite hotspot and passto integer launch; used by GenesisBackend."""
     vx, vy = velocity(receiver)
     px, py = velocity(passer)
     start = math.floor(puck.x + px * delay), math.floor(puck.y + py * delay)
@@ -224,35 +190,12 @@ def _live_pass_contact(puck, passer, receiver, delay):
 
 def pass_release_frames(receiver, delay=RELEASE_FRAMES):
     """Use the same release timing for launch prediction and collision deadlines."""
-    return min(delay, LIVE_RELEASE_FRAMES) if receiver.stick_x is not None and receiver.stick_y is not None else delay
+    return _backend(receiver).pass_release_frames(receiver, delay)
 
 
 def pass_contact(puck, passer, receiver, delay=RELEASE_FRAMES):
-    speed = pass_speed(passer)
-    if speed is None or receiver.motion_x is None or receiver.motion_y is None:
-        return None
-    if receiver.stick_x is not None and receiver.stick_y is not None:
-        return _live_pass_contact(puck, passer, receiver, pass_release_frames(receiver, delay))
-    vx, vy = velocity(receiver)
-    px, py = velocity(passer)
-    fx, fy = facing(receiver)
-    start = puck.x + px * delay, puck.y + py * delay
-    # GetHot is sprite-dependent; use facing as an explicitly approximate hotspot.
-    dx = receiver.x + vx * delay + fx * 10 - start[0]
-    dy = receiver.y + vy * delay + fy * 10 - start[1]
-    a, b, c = vx * vx + vy * vy - speed * speed, 2 * (dx * vx + dy * vy), dx * dx + dy * dy
-    discriminant = b * b - 4 * a * c
-    if discriminant < 0 or abs(a) < 0.01:
-        return None
-    roots = [t for t in ((-b - math.sqrt(discriminant)) / (2 * a),
-                         (-b + math.sqrt(discriminant)) / (2 * a)) if t > 0]
-    if not roots or min(roots) > PASS_HORIZON:
-        return None
-    time = min(roots)
-    point = start[0] + dx + vx * time, start[1] + dy + vy * time
-    if math.dist(point, project_target(point)) > 1e-6:
-        return None
-    return start, point, time, speed
+    """Native or estimated reception contact for the puck's console."""
+    return _backend(puck).pass_contact(puck, passer, receiver, delay)
 
 
 def pass_point_at(puck, receiver, contact, time):
@@ -347,7 +290,8 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
     slot = state.team1.skater_scnum_base() + index
     details = {'slot': slot, 'status': 'missing-feedback'}
     required = ('motion_x', 'motion_y', 'speed', 'agility', 'weight', 'energy', 'facing', 'stick')
-    native_ratings = getattr(passer, 'platform', 'genesis') == 'genesis'
+    backend = _backend(passer)
+    native_ratings = backend.native_ratings
     if not native_ratings:
         required = ('motion_x', 'motion_y', 'facing')
     if (state.puck.height is None or not eligible(receiver)
@@ -363,8 +307,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
                    and receiver.stick_x is not None and receiver.stick_y is not None)
     team, puck = pass_launch_view(state, passer) if live_launch else (state.team1, state.puck)
     recipient = selected_receiver(team, puck, owner, direction)
-    details.update(recipient=recipient, recipient_model='native-slot-order-held-steering' if live_launch
-                   else 'current-position',
+    details.update(recipient=recipient, recipient_model=backend.pass_recipient_models[0 if live_launch else 1],
                    recipient_unstable=recipient != selected_receiver(state.team1, state.puck, owner, direction))
     if recipient != slot:
         return None, {**details, 'status': 'different-rom-recipient'}
@@ -384,8 +327,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
     gain = (point[1] - passer.y) * sign
     details.update(point=point, flight_frames=flight, forward_gain=gain, direction=direction)
     live_geometry = receiver.stick_x is not None and receiver.stick_y is not None
-    details.update(release_frames=release, geometry='rom-sprite-and-integer-launch' if live_geometry
-                   else 'facing-hotspot-estimate')
+    details.update(release_frames=release, geometry=backend.pass_geometry_models[0 if live_geometry else 1])
     if purpose == 'one-timer':
         accuracy = receiver.shot_accuracy if receiver.shot_accuracy is not None else 15
         if one_timer_window and (abs(point[0]) > 70 or not 175 + max(0, 15 - accuracy) <= point[1] * sign < 245):

@@ -14,9 +14,10 @@ from nhl94_ai.agents.carry import (
 from nhl94_ai.agents.motion import (
     arrival_time, bounded_projection, coast_projection, facing, skate_step, skating, stop_projection, velocity,
 )
+from nhl94_ai.agents.motion import direction as console_direction
 from nhl94_ai.agents.passing import (
     evaluate_pass, one_timer_contact_frame, pass_contact, pass_point_at, pass_release_frames,
-    one_timer_position_ok, option_receiver, pressure_margin, rom_direction, shot_value,
+    one_timer_position_ok, option_receiver, pressure_margin, shot_value,
 )
 from nhl94_ai.agents.responses import response_future
 from nhl94_ai.env.target_control import project_target, route_waypoint
@@ -36,7 +37,7 @@ def normal_shot_release_frames(player, hold_frames):
     """Bound updateanim/ShotMode through contact, including the C-release jump."""
     if getattr(player, 'platform', 'genesis') != 'genesis':
         from nhl94_ai.game.platforms import get_backend
-        return max(hold_frames + 2, get_backend(player.platform).normal_release_frames)
+        return get_backend(player.platform).shot_release_frames(player, hold_frames)
     durations = player.shot_durations or (4,) * 8
     index, timer = 0, -1
     for elapsed in range(1, hold_frames + 2 * sum(duration + 1 for duration in durations) + 3):
@@ -108,7 +109,7 @@ def carry_projection(player, target, frames=FEINT_FRAMES):
         ux = math.copysign(1, dx) if abs(dx) > 3 else 0
         uy = math.copysign(1, dy) if abs(dy) > 3 else 0
         ((x, y), (vx, vy)), direction, turn_left = skate_step(
-            ((x, y), (vx, vy)), direction, turn_left, (ux, uy), acceleration, limit)
+            player, ((x, y), (vx, vy)), direction, turn_left, (ux, uy), acceleration, limit)
         if math.dist((x, y), project_target((x, y))) > 1e-6:
             return None
     return (x, y), (vx, vy)
@@ -120,7 +121,7 @@ def _braking(player, target):
     ux, uy = math.copysign(1, dx) if abs(dx) > 3 else 0, math.copysign(1, dy) if abs(dy) > 3 else 0
     wanted = round(math.atan2(ux, uy) * 4 / math.pi) % 8 if ux or uy else None
     direction = player.facing if player.facing is not None else player.orientation
-    return (wanted == (direction + 4) % 8 and (rom_direction(vx, vy) - direction + 2) % 8 < 4
+    return (wanted == (direction + 4) % 8 and (console_direction(player, vx, vy) - direction + 2) % 8 < 4
             and not (player.selection_flags or 0) & 0x10)
 
 

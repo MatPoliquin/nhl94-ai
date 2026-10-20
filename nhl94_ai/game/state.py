@@ -73,6 +73,21 @@ class Player:
     shot_projection_durations: tuple[int, ...] | None = None
     precise_x: float | None = None
     precise_y: float | None = None
+    position_frac_x: int | None = None
+    position_frac_y: int | None = None
+    raw_vel_x: int | None = None
+    raw_vel_y: int | None = None
+    physics_frame_debt: int | None = None
+    physics_step_frames: int | None = None
+    native_facing_phase: int | None = None
+    motion_weight: int | None = None
+    motion_agility: int | None = None
+    speed_rating: int | None = None
+    turning_state: int | None = None
+    carrier_state: int | None = None
+    motion_flags: int | None = None
+    input_lock_x: int | None = None
+    input_lock_y: int | None = None
     facing_phase: float | None = None
     sprite_flipped_x: bool | None = None
     # Position integration uses signed velocity * 17 per elapsed game tick.
@@ -221,6 +236,8 @@ class EngineState:
     clock_stopped: bool | None = None
     camera: tuple | None = None
     faceoff: bool = False
+    physics_frame_debt: int | None = None
+    physics_step_frames: int | None = None
 
     def debug_print(self, prefix="EngineState"):
         print(

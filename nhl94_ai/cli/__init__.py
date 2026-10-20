@@ -18,6 +18,7 @@ COMMANDS = {
     'replay-match': 'evaluation.human_replay',
     'record-snes': 'evaluation.snes_session',
     'replay-snes': 'evaluation.snes_replay',
+    'benchmark-snes': 'evaluation.snes_benchmark',
     'offense': 'evaluation.offense_policy',
     'goalie': 'evaluation.goalie_policy',
 }

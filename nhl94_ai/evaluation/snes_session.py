@@ -21,6 +21,27 @@ from nhl94_ai.game.state import NHL94GameState
 BACKEND = get_backend('snes')
 
 
+def seed_words(seed):
+    """Dual LFSR state words at $0792/$0794 (ROM $808658: poly 0x1D87, draw = sum).
+
+    Both words stay nonzero so the stream is fully seed-driven; a zero word would
+    remap to the ROM's reset constants 0xA5A5/0xB4B4 on the first draw.
+    """
+    word1 = (seed * 0x9E37 + 1) & 0xFFFF or 1
+    word2 = ((seed ^ 0x5A5A) * 0x2545 + 1) & 0xFFFF or 1
+    return word1, word2
+
+
+def seed_rng(env, seed):
+    """Pin the ROM's RNG state at period start so a seed fully determines the period."""
+    env.data.set_variable('rng_state_1', {'address': 0x7E0792, 'type': '<u2'})
+    env.data.set_variable('rng_state_2', {'address': 0x7E0794, 'type': '<u2'})
+    word1, word2 = seed_words(seed)
+    env.data.set_value('rng_state_1', word1)
+    env.data.set_value('rng_state_2', word2)
+    env.data.update_ram()
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True, help='New session directory; existing paths are never overwritten')
@@ -32,6 +53,8 @@ def build_parser():
     parser.add_argument('--classic-config', help='Classic JSON settings, as in ordinary play')
     parser.add_argument('--frame-skip', type=int, default=4, help='Classic tactical decision interval')
     parser.add_argument('--snapshot-interval', type=int, default=600, help='Native frames between seek snapshots')
+    parser.add_argument('--seed', type=int,
+                        help='Base RNG seed; period N uses seed + N - 1 (default: unseeded save state)')
     parser.add_argument('--no-gamepad', action='store_true')
     return parser
 
@@ -64,6 +87,8 @@ def play_snes_period(job):
         raise ValueError('Recorder settings and match goalie policy differ')
     frame_skip = job.get('frame_skip', 4)
     interval = job.get('classic_control_interval', options.get('classic_control_interval', 0))
+    side_options = {name: dict(options, **overrides)
+                    for name, overrides in (job.get('classic_options_by_side') or {}).items()}
     classic_args = SimpleNamespace(**{'env': GAME, 'action_type': 'FILTERED', **options})
     env = make_retro(game=GAME, num_players=2, goalie_policy=goalie_policy)
     viewer = None
@@ -73,6 +98,8 @@ def play_snes_period(job):
         env.reset()
         BACKEND.configure_controllers(env, 'home', 2)
         env.data.update_ram()
+        if job.get('seed') is not None:
+            seed_rng(env, job['seed'])
         # One neutral frame lets the ROM apply the player-select tables, as in
         # the observation wrapper's reset. It precedes the recorded timeline.
         *_, info = env.step(np.zeros(24, dtype=np.int8))
@@ -86,7 +113,8 @@ def play_snes_period(job):
             if human and team == side:
                 classics[name] = None
                 continue
-            model = ClassicAIV1Model(classic_args)
+            model = ClassicAIV1Model(classic_args if name not in side_options else SimpleNamespace(
+                **{'env': GAME, 'action_type': 'FILTERED', **side_options[name]}))
             classics[name] = model
             agents[team] = ControlRateLimit(model, interval) if interval else model
         if human:
@@ -131,8 +159,10 @@ def play_snes_period(job):
         for model in classics.values():
             if model is not None:
                 model.end_one_timer('period-ended' if completed else 'trial-incomplete')
+        import hashlib
         return {'side': job['side'], 'human': human, 'frames': frames,
                 'completed': completed, 'user_quit': user_quit, **scoreboard(info),
+                'final_ram_sha256': hashlib.sha256(env.get_ram().tobytes()).hexdigest(),
                 'goalie_metrics': {name: (dict(model.goalie.metrics)
                                           if model is not None and model.goalie is not None else None)
                                    for name, model in classics.items()}}
@@ -177,6 +207,8 @@ def run(args):
                    'frame_skip': args.frame_skip, 'goalie_policy': options['goalie_policy'],
                    'classic_control_interval': options.get('classic_control_interval', 0),
                    'classic_options': options}
+            if args.seed is not None:
+                job['seed'] = args.seed + index
             recorder = SnesRecording(path / name, job, snapshot_interval=args.snapshot_interval)
             print(f'Period {index + 1}/{args.periods}: {path / name}', flush=True)
             try:

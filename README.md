@@ -65,6 +65,13 @@ nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --side away
 nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --mode player_vs_model
 nhl94 play --agent classic-v1 --env NHL94-Snes-v0 --mode model_vs_model
 
+# Record seeded SNES periods, then replay native inputs without running the AI.
+nhl94 record-snes --output /tmp/snes-session --periods 3 --seed 7
+nhl94 replay-snes /tmp/snes-session/period-001/inputs.jsonl.gz
+
+# Compare two Classic configurations on SNES, swapping sides for each seed.
+nhl94 benchmark-snes --output /tmp/snes-benchmark --policy-a /path/to/a.json --policy-b /path/to/b.json --seeds 20 --frame-skip 4
+
 # Watch Classic as Quebec against Montreal's built-in CPU.
 nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --state CanadiensVsNordiques.start --side away --max_playback_speed 1.0
 

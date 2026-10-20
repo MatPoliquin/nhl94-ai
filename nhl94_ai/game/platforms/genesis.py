@@ -1,4 +1,6 @@
 """Genesis integration and ROM telemetry behind the shared console interface."""
+import math
+
 from nhl94_ai.game.platforms.base import PlatformBackend
 
 
@@ -178,3 +180,168 @@ class GenesisBackend(PlatformBackend):
             state.engine.shot_player >= 0 and state.engine.shot_player == state.team1.controlled_scnum()
         )
         state.engine.goalie_box_small = 1.0 if state.engine.goalie_chk_body <= 0xC else 0.0
+
+    def direction(self, dx, dy):
+        from nhl94_ai.agents.motion import rom_direction
+        return rom_direction(dx, dy)
+
+    def aim_pass(self, action, passer, receiver):
+        """Choose the nearest of eight pad directions, not two independent axes.
+
+        The diagonal boundary is tan(22.5 degrees). Skating toward a point can
+        use both axes for any displacement; aiming that way misdirects shallow
+        passes.
+        """
+        from nhl94_ai.game.constants import GameConsts as Buttons
+        dx, dy = receiver.x - passer.x, receiver.y - passer.y
+        action[4:8] = 0
+        if abs(dx) > max(3, abs(dy) * 0.41421356237):
+            action[Buttons.INPUT_RIGHT if dx > 0 else Buttons.INPUT_LEFT] = 1
+        if abs(dy) > max(3, abs(dx) * 0.41421356237):
+            action[Buttons.INPUT_UP if dy > 0 else Buttons.INPUT_DOWN] = 1
+
+    def skating(self, player, optimistic=False):
+        """ROM playeracc/MaxSpeed units, with explicit conservative unknown ratings."""
+        speed = player.speed if player.speed is not None else (30 if optimistic else 10)
+        agility = player.agility if player.agility is not None else (30 if optimistic else 10)
+        weight = player.weight if player.weight is not None else (32 if optimistic else 88)
+        energy = player.energy if player.energy is not None else (4096 if optimistic else 2048)
+        energy = max(0, min(4096, energy))
+        speed = max(0, min(30, speed + player.movement_bonus))
+        index = min(15, (speed // 2) * energy // 4096)
+        limit = ((20 + index) * 275) ** 2
+        if speed % 2 and index < 15:
+            limit = (limit + ((21 + index) * 275) ** 2) / 2
+        factor = max(1, (64 - weight // 4 + agility + player.movement_bonus) // 2)
+        acceleration = (200 * factor // 32) * self.velocity_scale
+        return acceleration, math.sqrt(limit) * self.velocity_scale, energy
+
+    def boost_impulse(self, player):
+        _, _, energy = self.skating(player)
+        return max(0, energy - 204) // 128 * 200 * self.velocity_scale
+
+    def stop_projection(self, player, frames, *, bounded=False):
+        """Skater stopna subtracts 150 raw units per axis, without reversing velocity."""
+        from nhl94_ai.agents.motion import velocity
+        from nhl94_ai.env.target_control import project_target
+        x, y = float(player.x), float(player.y)
+        vx, vy = velocity(player)
+        for _ in range(frames):
+            vx = math.copysign(max(0, abs(vx) - 150 * self.velocity_scale), vx) * 63 / 64
+            vy = math.copysign(max(0, abs(vy) - 150 * self.velocity_scale), vy) * 63 / 64
+            x, y = x + vx, y + vy
+            if bounded and math.dist((x, y), project_target((x, y))) > 1e-6:
+                return None
+        return (x, y), (vx, vy)
+
+    def skate_step(self, motion, heading, turning, pad, acceleration, limit):
+        """One frame of the shared conservative eight-way skating projection."""
+        (x, y), (vx, vy) = motion
+        ux, uy = pad
+        wanted = round(math.atan2(ux, uy) * 4 / math.pi) % 8 if ux or uy else heading
+        if wanted != heading:
+            turning = turning or 6
+            turning -= 1
+            if turning == 0:
+                difference = (wanted - heading + 4) % 8 - 4
+                heading = (heading + (1 if difference > 0 else -1)) % 8
+            ux = uy = 0
+        length = max(1, math.hypot(ux, uy))
+        nx = vx * self.skater_friction + acceleration * ux / length
+        ny = vy * self.skater_friction + acceleration * uy / length
+        if math.hypot(nx, ny) <= max(limit, math.hypot(vx, vy)):
+            vx, vy = nx, ny
+        else:
+            vx, vy = vx * self.skater_friction, vy * self.skater_friction
+        return ((x + vx, y + vy), (vx, vy)), heading, turning
+
+    def puck_path(self, puck, horizon=64, *, sample_interval=4):
+        """Stop at uncertain wall/net contacts; never invent an exact rebound."""
+        from nhl94_ai.agents.motion import velocity
+        from nhl94_ai.env.target_control import project_target
+        x, y = float(puck.x), float(puck.y)
+        vx, vy = velocity(puck)
+        z = max(0, puck.height or 0)
+        vz = puck.motion_z or 0
+        points = []
+        for frame in range(1, horizon + 1):
+            if z <= 0:
+                vx *= puck.friction
+                vy *= puck.friction
+            x, y = x + vx, y + vy
+            if z > 0 or vz:
+                vz -= 102 * self.velocity_scale
+                z += vz
+                if z < 0:
+                    z, vz = 0.0, -vz / 2
+                    if abs(vz) < 0.05:
+                        vz = 0
+            if math.dist((x, y), project_target((x, y))) > 1e-6:
+                break
+            if frame % sample_interval == 0:
+                points.append((frame, (x, y), z))
+        return points
+
+    def selected_receiver(self, team, puck, passer_slot, direction):
+        """passto's sector-and-distance recipient selection."""
+        return self._select_nearest_in_sector(team, puck, passer_slot, direction)
+
+    def pass_launch_view(self, state, passer):
+        """The second held-B input selects and launches before later slots update.
+
+        Earlier teammates have moved twice; later teammates have moved once. The
+        puck is still at the end of the first frame, after pucknorm's quarter-step
+        attraction to the carrier's stick. CPU steering and sprite offsets are held
+        over this short forecast; this is not a prediction of new CPU decisions.
+        """
+        from copy import copy
+        from nhl94_ai.agents.defense import on_ice
+        from nhl94_ai.agents.motion import velocity
+        from nhl94_ai.agents.skating import grounded_step
+        owner = state.engine.puck_owner
+        team, puck = copy(state.team1), copy(state.puck)
+        carrier = grounded_step(passer, (0, 0))
+        team.players = []
+        pads = ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 0), (0, 0))
+        for index, player in enumerate(state.team1.players):
+            slot = state.team1.skater_scnum_base() + index
+            future = copy(player)
+            if slot != owner and on_ice(player):
+                known = (player.steering in range(10) if player.steering is not None else False)
+                known &= all(getattr(player, field) is not None for field in ('weight', 'agility', 'speed', 'energy'))
+                pad = pads[player.steering] if known else (0, 0)
+                for _ in range(1 + (slot < owner)):
+                    future = grounded_step(future, pad, stop=known and player.steering == 9)
+            team.players.append(future)
+        shift = 9 if puck.friction == 511 / 512 else 6
+        for axis, offset in (('x', passer.stick_x), ('y', passer.stick_y)):
+            raw = round(velocity(puck)[axis == 'y'] / self.velocity_scale)
+            raw -= (raw >> shift) or bool(raw)
+            precise = getattr(puck, 'precise_' + axis)
+            integrated = math.floor((getattr(puck, axis) if precise is None else precise) + raw * self.velocity_scale)
+            hotspot = getattr(carrier, axis) + offset
+            setattr(puck, axis, integrated + ((hotspot - integrated) >> 2))
+        return team, puck
+
+    def pass_release_frames(self, receiver, delay):
+        """Use the same release timing for launch prediction and collision deadlines."""
+        from nhl94_ai.agents.passing import LIVE_RELEASE_FRAMES
+        live = receiver.stick_x is not None and receiver.stick_y is not None
+        return min(delay, LIVE_RELEASE_FRAMES) if live else delay
+
+    def live_pass_contact(self, puck, passer, receiver, delay):
+        from nhl94_ai.agents.passing import _live_pass_contact
+        return _live_pass_contact(puck, passer, receiver, delay)
+
+    def pass_contact(self, puck, passer, receiver, delay):
+        from nhl94_ai.agents.passing import pass_speed
+        if pass_speed(passer) is None or receiver.motion_x is None or receiver.motion_y is None:
+            return None
+        if receiver.stick_x is not None and receiver.stick_y is not None:
+            return self.live_pass_contact(puck, passer, receiver,
+                                          self.pass_release_frames(receiver, delay))
+        return self.estimated_pass_contact(puck, passer, receiver, delay)
+
+    def reception_drift_shift(self, receiver):
+        """assPassRec coasts with pfdoff, faster while its timer bit is set."""
+        return 9 if receiver.selection_flags & 1 else 6

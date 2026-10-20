@@ -150,7 +150,7 @@ def _route_motion(player, route, *, horizon=APPROACH_FRAMES):
             turning = 0
         else:
             motion, carrier.facing, turning = skate_step(
-                ((carrier.x, carrier.y), velocity(carrier)), carrier.facing, turning, pad, acceleration, limit)
+                carrier, ((carrier.x, carrier.y), velocity(carrier)), carrier.facing, turning, pad, acceleration, limit)
         (carrier.x, carrier.y), (carrier.motion_x, carrier.motion_y) = motion
 
 
