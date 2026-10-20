@@ -22,7 +22,7 @@ from nhl94_ai.config import (
 )
 from nhl94_ai.env.encoding import init_model
 from nhl94_ai.env.target_control import CONTROLLER_FIELDS
-from nhl94_ai.training.datasets import load_demo_arrays, save_demo_shard
+from nhl94_ai.datasets import load_demo_arrays, save_demo_shard
 from nhl94_ai.models.factory import MODEL_BUILDERS
 from nhl94_ai.models.mlp import SquashedMlpPolicy
 from nhl94_ai.model_inputs import load_model_input
@@ -52,7 +52,7 @@ class PackageContracts(unittest.TestCase):
         self.assertEqual(sum(parameter.numel() for parameter in policy.parameters()), 114317)
 
     def test_defense_target_example_uses_bounded_mlp_without_changing_shared_defaults(self):
-        from nhl94_ai.training.live import build_parser, prepare_args
+        from nhl94_ai.run_options import build_parser, prepare_args
         path = Path(__file__).resolve().parents[2] / 'configs/training/defense-target.json'
         args = prepare_args(parse_configured(build_parser(), ['--config', str(path)]))
         EnvironmentConfig.from_args(args)
@@ -181,7 +181,8 @@ class PackageContracts(unittest.TestCase):
 from nhl94_ai.compat import install_checkpoint_aliases
 install_checkpoint_aliases()
 assert sys.modules['models'].__name__ == 'nhl94_ai.models.networks'
-assert sys.modules['es'].__name__ == 'nhl94_ai.training.es'
+assert 'es' not in sys.modules
+assert 'nhl94_ai.training.es' not in sys.modules
 for name in ('classic_ai', 'classic_ai_v2', 'classic_ai_v3'):
     assert name not in sys.modules, name
 '''

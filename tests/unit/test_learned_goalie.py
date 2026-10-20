@@ -20,7 +20,7 @@ from nhl94_ai.agents.registry import add_classic_arguments
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.env.goalie import GoalieEnv
 from nhl94_ai.models.goalie import GoaliePolicy, load_model, save_model
-from nhl94_ai.training.decision_ppo import DecisionPPO
+from nhl94_ai.models.decision_ppo import DecisionPPO
 from tests.unit.test_manual_goalie import goalie_state
 
 

@@ -305,11 +305,10 @@ class ClassicDekeContracts(unittest.TestCase):
 
     def test_all_classic_entry_points_expose_the_opt_in(self):
         from nhl94_ai.evaluation import cpu_benchmark, play, runner
-        from nhl94_ai.training import collect, dagger
-        for module in (cpu_benchmark, play, runner, collect, dagger):
+        for module in (cpu_benchmark, play, runner):
             parser = module.build_parser()
             self.assertFalse(parser.get_default('deke'))
-            arguments = ['--deke'] + (['--model', 'policy', '--base_datasets', 'data'] if module is dagger else [])
+            arguments = ['--deke']
             self.assertTrue(parser.parse_known_args(arguments)[0].deke)
 
     def test_incompatible_configuration_is_rejected(self):

@@ -1,8 +1,10 @@
-"""Named task definitions adapting the existing reward implementations."""
+"""Task setup, episode progression, and legacy zero-reward contracts."""
 from dataclasses import dataclass
 from typing import Callable
 from nhl94_ai.game.constants import GameConsts
 from nhl94_ai.tasks.legacy import _reward_function_map
+from nhl94_ai.tasks.scoregoal import update_scoregoal_v2, update_crosscrease_v2
+from nhl94_ai.tasks.createopp import update_createopp
 
 
 @dataclass(frozen=True)
@@ -16,6 +18,8 @@ class TaskDefinition:
     target_control: str | None = None
     target_bounds: tuple[float, float, float, float] | None = None
     model_input_variant: str | None = None
+    advance: Callable | None = None
+    reward_available: bool = True
 
 
 TASKS = {name: TaskDefinition(
@@ -23,6 +27,9 @@ TASKS = {name: TaskDefinition(
             target_bounds=(-GameConsts.MAX_PLAYER_X, GameConsts.MAX_PLAYER_X,
                            -GameConsts.MAX_PLAYER_Y, GameConsts.DEFENSEZONE_POS_Y) if name == 'DefenseZone' else None,
             model_input_variant='pvg' if name == 'PvG' else None,
+            advance={'ScoreGoalV2': update_scoregoal_v2, 'CrossCreaseV2': update_crosscrease_v2,
+                     'CreateOpp': update_createopp}.get(name),
+            reward_available=False,
          )
          for name, functions in _reward_function_map.items()}
 

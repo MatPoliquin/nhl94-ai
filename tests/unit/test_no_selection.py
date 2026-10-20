@@ -123,7 +123,7 @@ class NoSelectionContracts(unittest.TestCase):
                     info['time'] = 199
                 observation, actual_reward, done, _, info = env.step([0.1, -0.6])
                 self.assertTrue(done)
-                self.assertAlmostEqual(actual_reward, reward)
+                self.assertEqual(actual_reward, 0.0)
                 self.assertEqual(info['target_control']['frame'], 1)
                 self.assertTrue(np.all(np.isfinite(observation)))
 

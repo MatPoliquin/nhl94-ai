@@ -8,10 +8,10 @@ application is a separate TypeScript project in `web/`.
 | --- | --- | --- |
 | `game` | Variants, RAM decoding, geometry, and features | `specs.GAMES` |
 | `env` | Environment assembly, observations, actions, and timing | `factory.build_single_nhl94_env`, `encoding.ObservationEncoder` |
-| `tasks` | Episode setup, rewards, completion, and restrictions | `registry.register_task` |
+| `tasks` | Episode setup, completion, restrictions, and zero-reward stubs | `registry.register_task` |
 | `agents` | Scripted and learned gameplay controllers | `Agent.reset`, `Agent.act` |
 | `models` | Neural policy definitions | `factory.register_model` |
-| `training` | PPO, collection, imitation, and curriculum | `service.train`, `curriculum.PHASE_RUNNERS` |
+| `training` | Unavailable workflow stubs and compatibility names | `unavailable.TrainingUnavailableError` |
 | `evaluation` | Evaluation, playback, comparison, and external opponents | `runner.evaluate`, `external.play_match` |
 | `ui` | Optional display and recording | Consumers of state and training events |
 | `cli` | Command dispatch and configuration | `nhl94 --help` |
@@ -40,22 +40,40 @@ and Genesis goalie experiments.
 
 ## Services
 
-`training.service.train(config)` accepts an options dictionary, `RunConfig`, or
-resolved namespace and returns a `TrainingResult`. Headless and live modes share
-the environment factory, trainer, and callbacks.
+Training, demonstration collection, imitation, curriculum, and train-then-compare
+implementations have been removed pending an ML redesign. Their Python entrypoints
+raise `TrainingUnavailableError` (`NotImplementedError`); CLI entrypoints print an
+unavailable message and return a nonzero exit status. ES support is removed.
+
+Existing non-ES checkpoints remain usable. `models.decision_ppo` retains only the
+classes needed to load and predict with legacy DecisionPPO archives; learning is
+disabled. `training.decision_ppo` re-exports their old serialized names.
+`datasets` reads/writes existing demonstration artifacts. `run_options` retains
+legacy configuration parsing without creating a training run.
 
 `evaluation.runner.evaluate(agent, config, env=env)` returns rewards, lengths,
 termination and truncation flags, and budget status. The caller owns and closes
 the supplied environment.
 
-`training.collect.collect_demonstrations(agent, config)` writes a dataset and its
-metadata. Supplied agent instances use one worker and reset between episodes;
-registered teachers support worker processes. BC and DAgger are available through
-`training.bc.train_bc` and `training.dagger.run_dagger`.
+`evaluation.offense_policy` and `evaluation.goalie_policy` own existing-policy
+evaluation; offense playback and audit remain available through `nhl94 offense`.
+`evaluation.session.run_evaluation_session` evaluates a saved checkpoint using
+legacy run configuration. Replay scorers live in `evaluation/*_model.py`.
 
-`training.curriculum.run_curriculum(path, dry_run=False)` resolves phase settings
-and chains artifacts. `nhl94 external` loads an explicitly requested adapter;
-ordinary gameplay has no dependency on an external adapter package.
+`nhl94 external` loads an explicitly requested adapter; ordinary gameplay has no
+dependency on an external adapter package.
+
+Built-in task reward functions return `0.0` while ML is unavailable. Their
+`reward_available` flag is false; frame info reports `reward_status: unavailable`.
+The observation wrapper calls an optional `TaskDefinition.advance` hook once per
+native frame, before checking completion. This retains legacy stall/possession
+limits and opportunity completion without running reward formulas. Resets,
+observation fields, target bounds, and action restrictions are unchanged.
+
+Task-based evaluation represents unavailable reward totals as JSON `null` and
+reports `reward_status`, including live evaluation means and standard deviations.
+Goals, shots, passes, episode endings, and budgets remain measurable. Separate
+native offense/goalie outcome protocols retain their own scoring semantics.
 
 ## Configuration
 
@@ -86,7 +104,8 @@ layouts. [Artifact contracts](ARTIFACTS.md) describe compatibility checks.
 ## Timing and reset
 
 The inner environment processes input, advances one emulator frame, refreshes
-state, computes task rewards and completion, and encodes observations. Frame-skip
+state, advances task progression, returns the reward stub, checks completion,
+and encodes observations. Frame-skip
 wrappers repeat policy actions around that loop. Macro timers use native frames.
 
 Classic's frame dispatcher observes each native frame independently of its
@@ -183,14 +202,14 @@ Other players remain under the game's AI. Playback retains the checkpoint's
 decision interval while rendering individual frames.
 
 Target checkpoints require matching metadata for coordinates, bounds, controller
-settings, and ordered fields. They cannot be loaded as button policies. Start a
-fresh target model with `configs/training/defense-target.json`; loading existing
-weights preserves their saved network and action distribution.
+settings, and ordered fields. They cannot be loaded as button policies. Loading
+existing weights preserves their saved network and action distribution.
 
 ## Tasks and extension
 
-Tasks declare setup, rewards, completion, and supported actions through the task
-registry. Procedural resets operate on the current emulator instance and preserve
+Tasks declare setup, optional frame progression, reward availability, completion,
+and supported actions through the task registry. Procedural resets operate on
+the current emulator instance and preserve
 coherent ownership, controller slots, object ordering, roles, and physical state.
 Use the shared setup helpers rather than writing unrelated coordinates separately.
 

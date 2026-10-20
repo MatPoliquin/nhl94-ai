@@ -10,6 +10,11 @@ import sys
 FORMAT_VERSION = 1
 
 
+def get_model_file_name(args):
+    """Build the checkpoint basename from the run configuration."""
+    return args.env + '-' + args.alg + '-' + args.nn + '-' + str(args.num_timesteps)
+
+
 def _json_value(value):
     if is_dataclass(value):
         return _json_value(asdict(value))

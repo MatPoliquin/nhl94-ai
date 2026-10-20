@@ -126,33 +126,5 @@ def isdone_getpuck_dz(state):
 
 
 def rf_getpuck(state):
-    t1 = state.team1
-    t2 = state.team2
-
-    rew = 0
-
-    if t1.stats.bodychecks > t1.last_stats.bodychecks:
-        rew = 0.5
-
-    if t1.player_haspuck is True:
-        return 1.0
-
-    if t1.goalie_haspuck:
-        rew = -1.0
-
-    if t2.stats.score > t2.last_stats.score:
-        rew = -1.0
-
-    if t1.stats.shots > t1.last_stats.shots:
-        rew = -1.0
-
-    if state.puck.y <= 0:
-        rew = -1.0
-
-    controlled_idx = max(0, t1.control - 1) if t1.control > 0 else 0
-    dist_to_puck = t1.nz_players[controlled_idx].dist_to_puck
-
-    rew -= 0.003
-    rew += max(0.0, 1.0 - dist_to_puck) * 0.01
-
-    return rew
+    """Reward unavailable pending the ML redesign; preserve the numeric API."""
+    return 0.0

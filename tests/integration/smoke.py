@@ -11,7 +11,7 @@ import sys
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-from nhl94_ai.training.datasets import build_single_nhl94_env
+from nhl94_ai.env.factory import build_single_nhl94_env
 from nhl94_ai.evaluation.play import parse_cmdline
 from nhl94_ai.config import load_hyperparams, resolve_hyperparams_for_model
 

@@ -1,6 +1,6 @@
 # NHL94 AI
 
-> **Work in progress**: The ML less baseline bot is available now. Machine-learning workflows are being refactored and will be added in a future update.
+> **Work in progress**: The ML less baseline bot is available now. Training workflows are unavailable pending a redesign. Existing non-ES model playback and evaluation remain supported; ES has been removed.
 
 
 * Benchmark various Neural Networks architectures, LLMs and ML/RL algos on NHL94
@@ -74,21 +74,9 @@ nhl94 play --agent classic-v1 --env NHL94-Genesis-v0 --record-mp4 ../recordings/
 # Play against Classic v1 at half speed (you control the away team).
 nhl94 play --agent classic-v1 --mode player_vs_model --env NHL94-Genesis-v0 --max_playback_speed 0.5
 
-# Train without a display. Add --live to watch progress.
-nhl94 train --config configs/training/default.json --num_env 1
-
-# Train Ducks versus the CPU shootout goalie.
-nhl94 train --config configs/training/pvg.json
-
 # Run bounded evaluation against the game's built-in opponent.
 nhl94 evaluate --agent classic-v1 --episodes 1 --max_steps 100
 
-# Inspect a curriculum before starting its configured training runs.
-nhl94 curriculum configs/curricula/nhl94.json --dry-run
-
-nhl94 collect --help
-nhl94 bc --help
-nhl94 dagger --help
 nhl94 export --help
 ```
 
@@ -117,17 +105,16 @@ nhl94 external --adapter my_external_package.adapter:create \
 
 ## Learned policies
 
-The training commands support collection, imitation learning, PPO, and self-play.
+Task rewards currently return zero; reward-based evaluation totals are marked unavailable. Goals and other gameplay statistics remain available.
+
+Training, collection, imitation learning, curriculum, and train-then-compare commands are explicit stubs that fail without creating runs or artifacts. Offense and goalie evaluation remain available.
 Use matching game, action, observation, and checkpoint settings when loading a
 policy. Keep each model together with its metadata sidecar.
 
 ```bash
-# Inspect the available offense and goalie workflows.
+# Inspect evaluation options for existing offense and goalie checkpoints.
 nhl94 offense --help
 nhl94 goalie --help
-
-# Train a target-position defensive policy.
-nhl94 train --config configs/training/defense-target.json --live
 
 # Watch a compatible button policy.
 nhl94 play --env NHL94-Genesis-v0 --nn MlpPolicy --model_1 /path/to/model.zip

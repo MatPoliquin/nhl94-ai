@@ -25,8 +25,8 @@ def init_selfplay(env, env_name):
 
 
 def rf_selfplay(state):
-    base = rf_general(state)
-    return base
+    """Reward unavailable pending the ML redesign; preserve the numeric API."""
+    return 0.0
 
 
 def init_selfplay_offense(env, env_name):
@@ -38,7 +38,8 @@ def isdone_selfplay_offense(state):
 
 
 def rf_selfplay_offense(state):
-    return rf_scoregoal(state)
+    """Reward unavailable pending the ML redesign; preserve the numeric API."""
+    return 0.0
 
 
 def init_selfplay_defense(env, env_name):
@@ -50,4 +51,5 @@ def isdone_selfplay_defense(state):
 
 
 def rf_selfplay_defense(state):
-    return rf_defensezone(state)
+    """Reward unavailable pending the ML redesign; preserve the numeric API."""
+    return 0.0

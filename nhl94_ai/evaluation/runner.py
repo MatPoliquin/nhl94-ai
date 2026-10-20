@@ -11,7 +11,7 @@ from nhl94_ai.artifacts import load_policy, run_metadata
 from nhl94_ai.config import EvaluationConfig, default_config_path, load_hyperparams, resolve_hyperparams_for_model
 from nhl94_ai.model_inputs import add_model_input_arguments
 from nhl94_ai.env.factory import build_single_nhl94_env
-from nhl94_ai.training.datasets import get_game_state
+from nhl94_ai.env.utils import get_game_state
 
 
 @dataclass
@@ -33,11 +33,13 @@ def evaluate(agent, config, *, env):
         observation, _ = env.reset(seed=config.seed + episode)
         agent.reset()
         total = 0.0
+        reward_available = True
         last_defense = {}
         last_offense = {}
         for step in (range(config.max_steps) if config.max_steps is not None else count()):
             action = agent.act(AgentInput(get_game_state(env), observation), config.deterministic).action
             observation, reward, terminated, truncated, info = env.step(action)
+            reward_available &= info.get('reward_status') != 'unavailable'
             if info.get('classic_defense'):
                 last_defense = info['classic_defense']
             if info.get('classic_offense'):
@@ -45,7 +47,7 @@ def evaluate(agent, config, *, env):
             total += float(reward)
             if terminated or truncated:
                 break
-        rewards.append(total)
+        rewards.append(total if reward_available else None)
         lengths.append(step + 1)
         terminations.append(bool(terminated))
         truncations.append(bool(truncated))
@@ -53,6 +55,7 @@ def evaluate(agent, config, *, env):
         defense_episodes.append(last_defense)
         offense_episodes.append(last_offense)
     metadata = asdict(config)
+    metadata['reward_status'] = 'unavailable' if any(value is None for value in rewards) else 'available'
     if any(defense_episodes):
         metadata['last_defense_by_episode'] = defense_episodes
     if any(offense_episodes):

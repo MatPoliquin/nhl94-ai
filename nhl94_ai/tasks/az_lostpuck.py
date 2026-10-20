@@ -32,10 +32,5 @@ def isdone_az_lostpuck(state):
 
 
 def rf_az_lostpuck(state):
-    if _team_has_control(state.team1):
-        return 1.0
-
-    if _team2_controls_in_team1_defense_zone(state):
-        return -1.0
-
+    """Reward unavailable pending the ML redesign; preserve the numeric API."""
     return 0.0

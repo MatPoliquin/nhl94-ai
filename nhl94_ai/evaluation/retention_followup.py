@@ -13,7 +13,7 @@ from nhl94_ai.env.factory import make_retro
 from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM
 from nhl94_ai.evaluation.goalie import source_hashes
 from nhl94_ai.evaluation.retention import branch
-from nhl94_ai.training.retention import load_rows, cluster_interval
+from nhl94_ai.evaluation.retention_model import load_rows, cluster_interval
 
 
 def follow_game(job):

@@ -18,7 +18,7 @@ import os
 import time
 from copy import copy
 import numpy as np
-from nhl94_ai.training.logging import com_print, init_logger
+from nhl94_ai.logging import com_print, init_logger
 from nhl94_ai.env.factory import init_env, init_play_env
 from nhl94_ai.models.factory import init_model, get_model_probabilities, get_num_parameters
 import nhl94_ai.env.components as games
@@ -212,15 +212,17 @@ class NHL94Player:
         self.target_agent.reset()
         self._reset_playback_timer()
         total_reward = 0.0
+        reward_available = True
         while True:
             self._wait_for_display()
             action = self.target_agent.act(AgentInput(None, observation), self.args.deterministic).action
             observation, reward, done, info = self.display_env.step(action)
+            reward_available &= info[0].get('reward_status') != 'unavailable'
             total_reward += float(reward[0])
             self._throttle_display_frame()
             if np.any(done):
                 if not continuous:
-                    return info, total_reward
+                    return info, total_reward if reward_available else None
                 # VecEnv already returned the next episode's reset observation.
                 self.target_agent.reset()
                 self._reset_playback_timer()
@@ -356,6 +358,7 @@ class NHL94Player:
         state = self.display_env.reset()
         self._reset_playback_timer()
         total_rewards = 0
+        reward_available = True
         scripted = self.args.nn in CONTROLLERS and self.args.mode != 'player_vs_game'
         info = self._scripted_reset_info() if scripted else None
 
@@ -383,6 +386,7 @@ class NHL94Player:
                     self.display_env.set_ai_sys_info(self.ai_sys)
                 try:
                     state, reward, done, info = self.display_env.step(actions)
+                    reward_available &= info[0].get('reward_status') != 'unavailable'
                     total_rewards += reward
                     self._throttle_display_frame()
                 except ValueError as e:
@@ -391,6 +395,7 @@ class NHL94Player:
                     print(f"Invalid action format: {actions}")
                     actions = [0] * 6  # Fallback to no-op
                     state, reward, done, info = self.display_env.step(actions)
+                    reward_available &= info[0].get('reward_status') != 'unavailable'
                     total_rewards += reward
                     self._throttle_display_frame()
                 if scripted and np.any(done):
@@ -413,7 +418,7 @@ class NHL94Player:
                     if scripted:
                         info = self._scripted_reset_info()
                 else:
-                    return info, total_rewards
+                    return info, total_rewards if reward_available else None
 
     def _scripted_reset_info(self):
         vector = self.display_env.env if self.need_display else self.display_env

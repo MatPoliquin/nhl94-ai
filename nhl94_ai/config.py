@@ -83,8 +83,8 @@ class EnvironmentConfig:
         config = cls(**values).validate()
         from nhl94_ai.game.specs import get_game
         get_game(config.env).backend.validate_options(args)
-        if getattr(args, "alg", "ppo2") not in ("ppo2", "es"):
-            raise ValueError("alg must be ppo2 or es")
+        if getattr(args, "alg", "ppo2") != "ppo2":
+            raise ValueError("alg must be ppo2; ES support has been removed")
         from nhl94_ai.models.factory import MODEL_BUILDERS
         from nhl94_ai.agents.registry import CONTROLLERS, ALIASES
         if config.nn not in MODEL_BUILDERS and config.nn not in CONTROLLERS:

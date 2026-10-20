@@ -14,7 +14,7 @@ from nhl94_ai.evaluation.play import parse_cmdline
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.tasks.defense_setup import _place_object, _rebuild_object_order, _reset_player
 from nhl94_ai.tasks.registry import TASKS, get_task, register_task
-from nhl94_ai.training.datasets import get_game_state
+from nhl94_ai.env.utils import get_game_state
 
 
 def _offense_setup(env, game):

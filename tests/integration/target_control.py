@@ -24,7 +24,7 @@ from nhl94_ai.evaluation.play import parse_cmdline
 from nhl94_ai.models.factory import build_MlpPolicy
 from nhl94_ai.tasks.defense_setup import _place_object
 from nhl94_ai.tasks.registry import TASKS, get_task, register_task
-from nhl94_ai.training.datasets import get_game_state
+from nhl94_ai.env.utils import get_game_state
 
 
 def _args(task='DefenseZone', action_type='TARGET_POSITION'):
@@ -290,7 +290,7 @@ def paired_defense(params, episodes, model_path=None):
                     shots = state.team2.stats.shots
                     shot = shots > last_shots
                     conceded = info['p2_score'] > opponent_score
-                    expected_reward = -1.0 if shot or conceded else float(owner in range(5))
+                    expected_reward = 0.0
                     assert reward == expected_reward, (
                         'Reward must contain only possession, shots and goals',
                         policy, seed, frame, reward, expected_reward)

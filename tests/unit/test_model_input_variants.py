@@ -20,8 +20,7 @@ from nhl94_ai.game.ram import GOALIE_INPUT_ATTRIBUTES, SKATER_INPUT_ATTRIBUTES
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.model_inputs import default_model_input_path, load_model_input
 from nhl94_ai.tasks.registry import get_task, resolve_task_model_input as resolve_model_input
-from nhl94_ai.training.bc import _compute_element_weights
-from nhl94_ai.training.live import build_parser, prepare_args
+from nhl94_ai.run_options import build_parser, prepare_args
 from tests.unit.test_environment_contracts import FixtureEnv
 from nhl94_ai.env.observation import NHL94Observation2PEnv
 
@@ -308,25 +307,9 @@ class CompactInputTests(unittest.TestCase):
         self.assertFalse(terminated)
         self.assertIs(env.task.reward, get_task('PostPlay').reward)
 
-    def test_encoder_is_task_independent_and_bc_does_not_treat_attributes_as_buttons(self):
+    def test_encoder_is_task_independent(self):
         encoder = ObservationEncoder(get_task('PostPlay'), 5, self.config)
         self.assertEqual(encoder.size, 52)
-        observations = np.zeros((1, 52), dtype=np.float32)
-        actions = np.zeros((1, 12), dtype=np.float32)
-        np.testing.assert_array_equal(_compute_element_weights(observations, actions, 1, 5, self.config),
-                                      np.ones_like(actions))
-        with self.assertRaisesRegex(ValueError, 'button fields'):
-            _compute_element_weights(observations, actions, 2, 5, self.config)
-
-    def test_bc_release_weights_follow_the_selected_default_field_order(self):
-        config = load_model_input('default')
-        observations = np.zeros((1, 310), dtype=np.float32)
-        actions = np.zeros((1, 12), dtype=np.float32)
-        observations[0, 294 + config['groups']['buttons'].index('c')] = 1
-        weights = _compute_element_weights(observations, actions, 3, 5, config)
-        expected = np.ones_like(actions)
-        expected[0, 8] = 3
-        np.testing.assert_array_equal(weights, expected)
 
     def test_opponent_schema_and_mirrored_feedback_are_preserved(self):
         args = SimpleNamespace(env='NHL94-Genesis-v0', nn='MlpPolicy', action_type='FILTERED',

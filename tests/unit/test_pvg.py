@@ -20,7 +20,7 @@ from nhl94_ai.tasks.pvg_setup import (
     GOALIE_POSITION_JITTER, PLAYER_POSITION_JITTER, PLAYER_VELOCITY_JITTER,
 )
 from nhl94_ai.tasks.registry import get_task
-from nhl94_ai.training.live import build_parser, prepare_args
+from nhl94_ai.run_options import build_parser, prepare_args
 from tests.ram_fixture import FixtureMemory
 from tests.unit.test_environment_contracts import FixtureEnv
 
@@ -89,8 +89,7 @@ class PvGRewardTests(unittest.TestCase):
         self.assertFalse(isdone_pvg(state))
         state.team1.stats.score += 1
         state.is_shootout_active = False
-        state.created_pre_shot_opening = True
-        self.assertEqual(rf_pvg(state), 1.0)
+        self.assertEqual(rf_pvg(state), 0.0)
         self.assertTrue(isdone_pvg(state))
         state.EndFrame()
         self.assertEqual(rf_pvg(state), 0.0)
@@ -102,7 +101,7 @@ class PvGRewardTests(unittest.TestCase):
         self.assertFalse(isdone_pvg(state))
         state.EndFrame()
         state.team1.stats.score = 2
-        self.assertEqual(rf_pvg(state), 1.0)
+        self.assertEqual(rf_pvg(state), 0.0)
 
     def test_shots_catches_loose_pucks_and_positions_have_no_shaping(self):
         for owner in (0, 11, -256):
@@ -277,7 +276,7 @@ class PvGEnvironmentTests(unittest.TestCase):
                         memory.assign(0xFFC2F2, '>u2', 0)
                         before = inner.env.steps
                         _, reward, done, _, info = env.step(action)
-                        self.assertEqual(reward, 1.0 if goal else 0.0)
+                        self.assertEqual(reward, 0.0)
                         self.assertTrue(done)
                         self.assertEqual(inner.env.steps, before + 1)
                         totals = LiveTeamTotals()

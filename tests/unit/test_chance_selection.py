@@ -15,7 +15,6 @@ from nhl94_ai.evaluation import cpu_benchmark
 from nhl94_ai.game.constants import GameConsts as Buttons
 from tests.unit.test_classic_offense import live_one_timer_state, offense_state
 from tests.unit.test_possession_value import finish_state
-from nhl94_ai.training.chance_selection import evaluate, fit, select
 
 
 class ChanceSelectionTests(TestCase):
@@ -123,31 +122,3 @@ class ChanceSelectionTests(TestCase):
         self.assertEqual(result['attack_goal'], 0)
         self.assertEqual(result['first_opponent_possession'], 1)
         self.assertIsNone(result['first_recorded_shot'])
-
-
-class ChanceTrainingTests(TestCase):
-    @staticmethod
-    def case(seed, value, old, new):
-        def outcome(goals):
-            return dict(attack_goal=goals, goals_for=goals, goals_against=0, shots=1)
-        return {'seed': seed, 'baseline': 'shoot', 'features': {'animation_locked': value},
-                'branches': {'shoot': outcome(old), 'carry': outcome(new)}}
-
-    def test_fit_needs_multiple_seeds_and_keeps_rule_fixed_on_validation(self):
-        rows = [self.case(seed, 1, 0, 1) for seed in range(5)]
-        rows += [self.case(seed, 0, 1, 0) for seed in range(5)]
-        candidates = fit(rows, min_cases=5)
-        self.assertTrue(candidates)
-        rule = candidates[0]['rule']
-        self.assertEqual(select(rows[0], rule), 'carry')
-        self.assertEqual(select(rows[-1], rule), 'shoot')
-        # Adverse held-out outcomes are reported, not used to change the rule.
-        heldout = [self.case(100, 1, 1, 0)]
-        self.assertEqual(evaluate(heldout, rule)['totals']['paired_reward_gain'], -1)
-        self.assertEqual(select(heldout[0], rule), 'carry')
-        self.assertFalse(fit([self.case(1, 1, 0, 1)] * 30))
-
-    def test_no_positive_rule_retains_classic(self):
-        rows = [self.case(seed, 1, 1, 0) for seed in range(30)]
-        self.assertFalse(fit(rows))
-        self.assertEqual(select(rows[0], None), 'shoot')

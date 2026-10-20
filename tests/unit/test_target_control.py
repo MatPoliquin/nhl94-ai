@@ -264,7 +264,7 @@ class TargetEnvironmentTests(unittest.TestCase):
                     elif outcome == 'goal':
                         inner.env.info['p2_score'] += 1
                     _, reward, done, _, info = env.step([0, 0])
-                    self.assertEqual(reward, -1.0)
+                    self.assertEqual(reward, 0.0)
                     self.assertTrue(done)
                     self.assertEqual(info['target_control']['frame'], 1)
 
@@ -287,7 +287,7 @@ class TargetEnvironmentTests(unittest.TestCase):
                     action = [0, 0] if action_type == 'TARGET_POSITION' else np.zeros(12, dtype=np.int8)
                     with patch.object(inner.env, 'step', side_effect=step):
                         _, reward, done, _, info = env.step(action)
-                    self.assertEqual(reward, -1.0)
+                    self.assertEqual(reward, 0.0)
                     self.assertTrue(done)
                     self.assertEqual(inner.env.steps, shot_frame)
                     if action_type == 'TARGET_POSITION':
@@ -311,7 +311,7 @@ class TargetEnvironmentTests(unittest.TestCase):
                     self.assertTrue(np.all(np.isfinite(observation)))
                 inner.env.info['puck_owner'] = 2
                 _, reward, done, _, info = env.step([0, 0])
-                self.assertEqual(reward, 1.0)
+                self.assertEqual(reward, 0.0)
                 self.assertTrue(done)
                 self.assertEqual(info['target_control']['frame'], 9)
 

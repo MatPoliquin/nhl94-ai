@@ -15,7 +15,7 @@ from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.ram import select_cpu_side
 from nhl94_ai.tasks.defense_setup import _place_object, _rebuild_object_order, _reset_player
 from nhl94_ai.tasks.registry import TASKS, get_task, register_task
-from nhl94_ai.training.datasets import get_game_state
+from nhl94_ai.env.utils import get_game_state
 from tests.integration.classic_offense import _feint_setup, _offense_setup, _one_timer_cut_setup
 
 

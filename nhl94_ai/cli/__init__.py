@@ -18,8 +18,8 @@ COMMANDS = {
     'replay-match': 'evaluation.human_replay',
     'record-snes': 'evaluation.snes_session',
     'replay-snes': 'evaluation.snes_replay',
-    'offense': 'training.offense',
-    'goalie': 'training.goalie',
+    'offense': 'evaluation.offense_policy',
+    'goalie': 'evaluation.goalie_policy',
 }
 
 
@@ -58,24 +58,12 @@ def main(argv=None):
         return 0
     command = parser.parse_args(argv[:1]).command
     rest = argv[1:]
-    if command == 'curriculum':
-        from nhl94_ai.training.curriculum import main as curriculum_main
-        if rest and not rest[0].startswith('-'):
-            rest = ['--curriculum', rest[0], *rest[1:]]
-        return curriculum_main(['nhl94 curriculum', *rest])
-    if command == 'compare':
-        from nhl94_ai.evaluation.compare import main as compare_main
-        previous = sys.argv
-        try:
-            sys.argv = ['nhl94 compare', *rest]
-            return compare_main()
-        finally:
-            sys.argv = previous
+    if command in ('train', 'collect', 'bc', 'dagger', 'curriculum', 'compare') or (
+            command in ('offense', 'goalie') and rest and rest[0] in ('train', 'collect', 'bc')):
+        from nhl94_ai.training.unavailable import main as unavailable_main
+        return unavailable_main(rest)
     module = importlib.import_module('nhl94_ai.' + COMMANDS[command])
     command_parser = module.build_parser()
-    if command == 'train':
-        command_parser.set_defaults(nn='MlpPolicy', rf='PostPlay', headless=True)
-        command_parser.add_argument('--live', dest='headless', action='store_false', help='Show live training display')
     if command == 'play':
         command_parser.add_argument('--agent', choices=list(ALIASES))
         command_parser.set_defaults(mode='model_vs_game', num_players=None, rf='PostPlay')
@@ -85,9 +73,5 @@ def main(argv=None):
             args.nn = ALIASES[args.agent]
         module.resolve_play_controllers(args)
         module.resolve_play_goalie_defaults(args)
-    if command == 'train':
-        from nhl94_ai.training.service import train
-        train(args)
-    else:
-        module.run(args)
+    module.run(args)
     return 0

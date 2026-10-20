@@ -10,7 +10,7 @@ from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.passing import evaluate_pass
 from nhl94_ai.evaluation.one_timer_admission import AdmissionModel, configured, rejection_audit
 from nhl94_ai.evaluation.one_timer_admission_replay import fork_admission
-from nhl94_ai.training.one_timer_admission import candidate, evaluate, fit, reward, select
+from nhl94_ai.evaluation.one_timer_admission_model import candidate, evaluate, reward, select
 from tests.unit.test_classic_offense import live_one_timer_state, offense_state
 
 
@@ -130,18 +130,6 @@ class AdmissionTrainingTests(TestCase):
                     {'gate': 'position', 'option': {'slot': 1, 'shot_value': 20, 'margin': 10},
                      'features': {'contact_depth': depth}, 'outcome': outcome(new_goal)}]}
 
-    def test_training_selects_rule_without_retuning_to_validation(self):
-        cases = [self.case(seed, 180, 0, 1) for seed in range(20)]
-        cases += [self.case(seed, 220, 1, 0) for seed in range(20)]
-        proposals = fit(cases)
-        self.assertTrue(proposals)
-        rule = proposals[0]['rule']
-        self.assertIsNotNone(select(cases[0], rule))
-        self.assertIsNone(select(cases[-1], rule))
-        validation = self.case(100, 180, 1, 0)
-        self.assertEqual(evaluate([validation], rule)['totals']['paired_reward_gain'], -1)
-        self.assertIsNotNone(select(validation, rule))
-        self.assertFalse(fit([self.case(1, 180, 0, 1)]*40))
 
     def test_receiver_choice_uses_original_ranking_not_fork_outcome(self):
         case = self.case(1, 180, 0, 0)

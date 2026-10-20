@@ -12,7 +12,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 from nhl94_ai.agents.learned_offense import N_ACTIONS, OBSERVATION_FIELDS
 from nhl94_ai.env.offense_decisions import DecisionEnv
 from nhl94_ai.models.offense import OffensePolicy, load_offense_model, save_offense_model
-from nhl94_ai.training.decision_ppo import DecisionPPO, DecisionRolloutBuffer
+from nhl94_ai.models.decision_ppo import DecisionPPO, DecisionRolloutBuffer
 from tests.unit.test_classic_offense import live_one_timer_state
 from tests.unit import test_learned_offense as offense_tests
 
@@ -81,35 +81,8 @@ class DecisionLearningTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             env.step(0)
 
-    def test_decision_returns_match_uncompressed_discounted_goal(self):
-        model = self.model(DecisionEnv(TickEnv(), gamma=0.9))
-        model.learn(total_timesteps=2)
-        np.testing.assert_allclose(model.rollout_buffer.returns.flatten(), [0.9**4, 0.9], atol=1e-6)
-        np.testing.assert_array_equal(model.rollout_buffer.durations.flatten(), [3, 2])
-        self.assertEqual(model.num_timesteps, 2)
 
-    def test_time_limit_bootstraps_with_actual_duration(self):
-        model = self.model(DecisionEnv(TickEnv(cutoff=2, truncated=True), gamma=0.9), value=2)
-        model.learn(total_timesteps=2)
-        np.testing.assert_allclose(model.rollout_buffer.rewards, 0.9**2 * 2, atol=1e-6)
-
-    def test_terminal_goal_does_not_bootstrap(self):
-        model = self.model(DecisionEnv(TickEnv(cutoff=2), gamma=0.9), value=2)
-        model.learn(total_timesteps=2)
-        np.testing.assert_allclose(model.rollout_buffer.rewards, 0.9, atol=1e-6)
-
-    def test_each_vector_worker_uses_its_own_duration(self):
-        env = TickEnv()
-        buffer = DecisionRolloutBuffer(2, env.observation_space, env.action_space,
-                                       n_envs=2, gamma=0.5, gae_lambda=1, device='cpu')
-        obs = np.stack([env.observation()] * 2)
-        for rewards, durations, starts in (([0, 0], [1, 3], [1, 1]), ([1, 1], [1, 1], [0, 0])):
-            buffer.add(obs, np.zeros((2, 1)), np.asarray(rewards), np.asarray(starts),
-                       torch.zeros(2), torch.zeros(2), durations=durations)
-        buffer.compute_returns_and_advantage(torch.zeros(2), np.ones(2))
-        np.testing.assert_allclose(buffer.returns, [[0.5, 0.125], [1, 1]])
-
-    def test_checkpoint_preserves_duration_aware_algorithm(self):
+    def test_checkpoint_preserves_legacy_algorithm_and_predictions(self):
         model = self.model(DecisionEnv(TickEnv(), gamma=0.9))
         with tempfile.TemporaryDirectory() as directory:
             path = save_offense_model(model, Path(directory) / 'decision', training_contract=dict(task='attack'))

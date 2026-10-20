@@ -15,4 +15,5 @@ def isdone_postplay(state):
 
 
 def rf_postplay(state):
+    """Reward unavailable pending the ML redesign; preserve the numeric API."""
     return 0.0

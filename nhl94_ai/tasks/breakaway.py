@@ -7,10 +7,6 @@ import random
 from nhl94_ai.game.constants import GameConsts
 
 
-BREAKAWAY_GOAL_REWARD = 1.0
-BREAKAWAY_TURNOVER_PENALTY = -0.5
-BREAKAWAY_AGAINST_PENALTY = -1.0
-
 _CARRIER_X_LANES = (
     (-95, -58),
     (-57, -24),
@@ -219,22 +215,6 @@ def init_breakaway(env, env_name=None):
     _safe_set_value(env, "camera_y", camera_y)
 
 
-def _breakaway_active(state):
-    t1 = state.team1
-    carrier = t1.get_possession_player()
-    if carrier is None or carrier is t1.goalie:
-        carrier = t1.get_controlled_player()
-
-    return bool(carrier.is_breakaway or state.engine.breakaway_context)
-
-
-def _breakaway_seen(state):
-    if _breakaway_active(state):
-        state.breakaway_seen = True
-
-    return bool(getattr(state, "breakaway_seen", False))
-
-
 def isdone_breakaway(state):
     t1 = state.team1
     t2 = state.team2
@@ -270,17 +250,5 @@ def isdone_breakaway(state):
 
 
 def rf_breakaway(state):
-    t1 = state.team1
-    t2 = state.team2
-    breakaway_seen = _breakaway_seen(state)
-
-    if t1.stats.score > t1.last_stats.score:
-        return BREAKAWAY_GOAL_REWARD if breakaway_seen else 0.0
-
-    if t2.stats.score > t2.last_stats.score:
-        return BREAKAWAY_AGAINST_PENALTY
-
-    if t2.player_haspuck or t2.goalie_haspuck:
-        return BREAKAWAY_TURNOVER_PENALTY
-
+    """Reward unavailable pending the ML redesign; preserve the numeric API."""
     return 0.0

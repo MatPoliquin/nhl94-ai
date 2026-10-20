@@ -14,7 +14,7 @@ from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.motion import velocity
 from nhl94_ai.agents.shot_placement import legacy_action, shot_features
 from nhl94_ai.game.constants import GameConsts as Buttons
-from nhl94_ai.training.shot_placement import estimate
+from nhl94_ai.models.shot_scoring import estimate
 
 
 PADS = tuple((x, y) for y in (0, 1, -1) for x in (-1, 0, 1))

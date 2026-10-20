@@ -15,7 +15,7 @@ from nhl94_ai.game.specs import GAMES
 from nhl94_ai.game.state import NHL94GameState
 from nhl94_ai.tasks.defense_setup import _place_object, _rebuild_object_order
 from nhl94_ai.tasks.registry import TASKS, get_task, register_task
-from nhl94_ai.training.datasets import get_game_state
+from nhl94_ai.env.utils import get_game_state
 
 
 def telemetry():

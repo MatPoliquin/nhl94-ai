@@ -126,6 +126,7 @@ class NHL94GameDisplayEnv():
             rew = rf_scoregoal(self.game_state)
         self.game_state.EndFrame()
 
+        self.reward_available = info[0].get('reward_status') != 'unavailable'
         self.set_reward(rew)
 
         framebuffer = self.env.render()
@@ -253,6 +254,9 @@ class NHL94GameDisplayEnv():
         self.model_in_use = ai_sys.model_in_use
 
     def draw_frame_reward_histogram(self, pos_x, pos_y, width, height):
+        if not getattr(self, 'reward_available', True):
+            self.draw_string(self.info_font, 'REWARD: unavailable', (pos_x, pos_y - 5), self.COLOR_BLUE)
+            return
         if not self.frameRewardList:
             return
 

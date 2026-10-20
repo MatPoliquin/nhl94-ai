@@ -50,8 +50,7 @@ class ClassicV1Contracts(unittest.TestCase):
 
     def test_scripted_command_defaults_use_v1(self):
         from nhl94_ai.evaluation import benchmark, cpu_benchmark, runner
-        from nhl94_ai.training import collect, dagger
-        for module in (benchmark, cpu_benchmark, runner, collect, dagger):
+        for module in (benchmark, cpu_benchmark, runner):
             with self.subTest(command=module.__name__):
                 parser = module.build_parser()
                 self.assertEqual(parser.get_default('agent'), 'classic-v1')

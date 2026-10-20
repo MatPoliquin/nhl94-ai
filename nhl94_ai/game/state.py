@@ -616,8 +616,6 @@ class NHL94GameState(TacticalFeatures):
         self.is_shootout_active = False
         self.is_shooting = False
         self.has_released_shot = False
-        self.created_pre_shot_opening = False
-        self._shooting_opening_seen: bool | None = None
         self.c_pressed = False
         self.c_frames_held = 0
         self.period = 1
@@ -749,11 +747,6 @@ class NHL94GameState(TacticalFeatures):
         # Compute passing lanes AFTER both teams are updated
         self._update_passing_lanes()
         self._update_shot_lanes()
-        opening = self.is_shootout_active and not self.has_released_shot and self._has_viable_shooting_opening()
-        # None marks the reset frame: an opening already in the save is not earned.
-        self.created_pre_shot_opening = self._shooting_opening_seen is False and opening
-        self._shooting_opening_seen = bool(self._shooting_opening_seen or opening)
-
         self._update_opponent_controlled_distances()
 
         self.team1.Normalize()
@@ -767,7 +760,6 @@ class NHL94GameState(TacticalFeatures):
 
     def EndFrame(self):
         self.last_time = self.time
-        self.created_pre_shot_opening = False
 
         self.team1.end_frame()
         self.team2.end_frame()

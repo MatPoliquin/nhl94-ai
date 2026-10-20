@@ -1,5 +1,13 @@
 # Artifacts
 
+Training and fitting commands are currently unavailable; ES support has been
+removed. The contracts below describe existing non-ES artifacts that can still
+be loaded, played, and evaluated. Historical training metadata remains readable.
+
+Built-in task rewards now return zero as compatibility stubs. Current evaluation
+reports mark those rewards unavailable and use `null` for reward metrics.
+Historical reward values in saved artifacts retain their original meaning.
+
 New checkpoints use SB3 `.zip` files with `.zip.json` metadata. Demonstration
 shards use `.npz` plus `.npz.json`. `format_version: 1` records:
 
@@ -67,17 +75,16 @@ behavior rather than becoming labels for the new strategy.
 
 The separate `nhl94 offense` workflow uses `.zip.offense.json` sidecars with
 ordered observations/actions, native execution cadence and a ZIP hash. Sidecars
-record the algorithm (`PPO` or `DecisionPPO`) so reloading a decision model keeps
-its variable-duration rollout buffer and timeout discounting. Older sidecars
+record the algorithm (`PPO` or `DecisionPPO`) so reloading a decision model selects its legacy compatibility class.
+Prediction remains supported; duration-aware rollout collection and learning have been removed. Older sidecars
 without an algorithm field load as ordinary PPO.
 
-PPO training also records `training_contract`: full period or finite attack,
+Historical PPO sidecars also record `training_contract`: full period or finite attack,
 reward definition, observation-clock meaning, four-frame gamma units, and
 whether lambda/timesteps count decisions or fixed ticks. The attack task keeps
 the same tensor ordering but uses remaining attack seconds in the clock field.
 Evaluation requires an explicit `--allow-task-transfer` when moving between
-task contracts. Initializing a new training objective from existing policy
-weights is an intentional transfer; `--reset-value` resets its value output.
+task contracts.
 Native frames and active decisions are reported separately from SB3 timesteps.
 
 Attack banks reuse trusted local emulator/controller snapshots with hash
@@ -101,22 +108,10 @@ goals. Report `active_decisions` (eligible policy ticks) and `executed_commands`
 (ticks that actually used external movement) separately because Classic may
 consume an eligible tick by choosing a finish.
 
-New offense saves include the policy's actual `parameters` count. PPO saves
-record `initialization` (`random` or `checkpoint`), `parent_timesteps`, resolved
-CLI options and the training contract. `--scratch` prohibits both `--model` and
-`--data`; it initializes the complete actor, critic and shared extractor anew.
-`--hidden-dim`, `--features-dim` and `--head-dim` configure fresh networks without
-changing the observation/action schema or the architecture of loaded models.
-
-`--checkpoint-every` is independent of historical-opponent snapshots. Its
-immutable `step-*.zip` files include step zero and the final model. Intermediate
-saves occur at the next rollout start, after the previous PPO update; SB3's
-rollout-end hook precedes that update and would label stale weights incorrectly.
-Sidecars retain the task/control contract, eligible decisions, executed movement
-commands, native frames and completed optimizer epochs (`optimizer_updates`,
-SB3's `_n_updates`). `checkpoints.json` publishes paths only after ZIP and sidecar
-completion. The final `.training.json` also lists these checkpoints, while the
-separate `*-logs/progress.csv` contains optimizer diagnostics.
+Existing offense sidecars may include `parameters`, `initialization`,
+`parent_timesteps`, CLI options, and the training contract. Historical checkpoint
+manifests and `.training.json` reports remain metadata; the checkpoint-producing
+workflows are no longer implemented.
 
 ## Supervised retention artifacts
 
@@ -137,8 +132,8 @@ Higher scores rank movements as preferable; these scores are not loss
 probabilities and cannot use the classifier's risk thresholds. Inference uses
 float32 inputs and strict `<` split comparisons, matching XGBoost. All training
 and development feature rows are checked against the original predictor before
-an artifact is saved. JSON inference needs NumPy only; `.[ranking]` adds the
-CPU XGBoost training dependency. The existing `--retention-model` option loads
+an artifact is saved. JSON inference needs NumPy only; the XGBoost fitting workflow and its
+optional dependency have been removed. The existing `--retention-model` option loads
 either schema and preserves pass/shot priority and native reaction timing.
 
 Ranking labels compare alternative movements from the same snapshot. Censored
@@ -154,14 +149,11 @@ labels only; filtering and movement admission use current-state features. A
 pass or shot ending carrying exposure does not certify that the release led to
 a good attack.
 
-## Live-training snapshots
+## Historical live-training snapshots
 
-Live-display runs keep a separate `_latest_live.zip` and `.zip.json` sidecar,
-overwritten after every scheduled evaluation regardless of its score. The
-viewer loads this snapshot and labels its training timestep count.
-The existing `_best_live.zip` still changes only for a strictly better evaluation,
-and the final checkpoint remains the completed training model. Headless runs
-retain their existing best/final outputs without writing a viewer snapshot.
+Existing `*_latest_live.zip` snapshots remain readable by the optional viewer.
+Snapshot-producing training callbacks have been removed; no new live-training
+sessions are available.
 
 ## Target-position policies
 
@@ -197,14 +189,14 @@ validated interval. Controller timers are measured in emulator frames.
 
 ## Experimental manual-goalie artifacts
 
-`nhl94 goalie train` writes an independent SB3 `DecisionPPO` ZIP plus
+Existing goalie policies use an independent SB3 `DecisionPPO` ZIP plus
 `MODEL.zip.goalie.json`. The sidecar records schema version, token dimensions and action order,
 SHA256, parameter count, actual training decisions/native frames, decision
 interval, initialization seed, architecture, reward/horizon, source-game split,
 runtime source hashes and checkpoint history. Loading validates the checksum,
 schema, policy class and any explicitly requested interval. These artifacts
 are separate from legacy skater/carry checkpoints. Deployment uses the Python
-goalie controller; no separate-runtime export contract is provided. New training starts from random weights and
+goalie controller; no separate-runtime export contract is provided. Historical training started from random weights and
 requires a fresh output/checkpoint directory.
 
 The 292-float schema is fourteen twenty-field entity/context tokens followed

@@ -107,7 +107,7 @@ class EnvironmentContracts(unittest.TestCase):
                     else:
                         inner.env.info['p2_score'] += 1
                     _, reward, terminated, _, _ = env.step(np.zeros(12, dtype=np.int8))
-                    self.assertEqual(reward, 1.0 if recovered else -1.0)
+                    self.assertEqual(reward, 0.0)
                     self.assertTrue(terminated)
                     self.assertEqual(inner.env.steps, 2)  # One reset frame, one terminal frame.
 
@@ -131,7 +131,7 @@ class EnvironmentContracts(unittest.TestCase):
                         info['p2_shots'] += 1
                         before = inner.env.steps
                         _, reward, terminated, _, _ = env.step(action)
-                        self.assertEqual(reward, -1.0)
+                        self.assertEqual(reward, 0.0)
                         self.assertTrue(terminated)
                         self.assertEqual(inner.env.steps, before + 1)
 
@@ -151,7 +151,7 @@ class EnvironmentContracts(unittest.TestCase):
                     elif outcome == 'timeout':
                         info.update(puck_owner=-256, time=199)
                     _, reward, terminated, _, _ = env.step(np.zeros(12, dtype=np.int8))
-                    self.assertEqual(reward, -1.0)
+                    self.assertEqual(reward, 0.0)
                     self.assertTrue(terminated)
                     self.assertEqual(inner.env.steps, 2)
 
@@ -175,7 +175,7 @@ class EnvironmentContracts(unittest.TestCase):
                     self.assertEqual(inner.env.steps, 1 + 2 * frame_skip)
                     info['puck_owner'] = 3
                     _, reward, terminated, _, _ = env.step(action)
-                    self.assertEqual(reward, 1.0)
+                    self.assertEqual(reward, 0.0)
                     self.assertTrue(terminated)
                     self.assertEqual(inner.env.steps, 2 + 2 * frame_skip)
 

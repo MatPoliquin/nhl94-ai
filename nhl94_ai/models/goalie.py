@@ -10,7 +10,7 @@ from stable_baselines3.common.policies import ActorCriticPolicy
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 from nhl94_ai.agents.learned_goalie import N_ACTIONS, SCHEMA, TOKEN_COUNT, TOKEN_WIDTH
-from nhl94_ai.training.decision_ppo import DecisionPPO
+from nhl94_ai.models.decision_ppo import DecisionPPO
 
 
 class GoalieExtractor(BaseFeaturesExtractor):

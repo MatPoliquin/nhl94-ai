@@ -158,7 +158,7 @@ class ShotDecodingTests(unittest.TestCase):
                     np.testing.assert_array_equal(observation, baseline)
                 info['p2_shots'] += 1
                 _, reward, done, _, _ = env.step(action)
-                self.assertEqual(reward, -1.0)
+                self.assertEqual(reward, 0.0)
                 self.assertTrue(done)
 
     def test_missing_shot_field_fails_at_decoding_boundary(self):

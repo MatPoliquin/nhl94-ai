@@ -16,7 +16,7 @@ import pygame
 import pygame.freetype
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import BaseCallback, CallbackList
-from nhl94_ai.training.logging import com_print, create_output_dir, get_model_file_name, init_logger
+from nhl94_ai.logging import com_print
 from nhl94_ai.env.factory import get_button_names, init_env
 from nhl94_ai.models.factory import get_model_probabilities, init_model
 from nhl94_ai.config import load_hyperparams, resolve_hyperparams_for_model

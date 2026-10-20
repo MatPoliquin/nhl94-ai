@@ -14,7 +14,7 @@ from nhl94_ai.agents.registry import create_scripted
 from nhl94_ai.config import load_hyperparams, resolve_hyperparams_for_model
 from nhl94_ai.env.factory import build_single_nhl94_env, get_button_names
 from nhl94_ai.evaluation.play import NHL94Player, parse_cmdline
-from nhl94_ai.training.datasets import get_game_state
+from nhl94_ai.env.utils import get_game_state
 
 
 def options():

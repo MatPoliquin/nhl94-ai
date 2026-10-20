@@ -13,12 +13,11 @@ import pygame
 import pygame.freetype
 from stable_baselines3 import PPO
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
-from nhl94_ai.training.logging import init_logger
+from nhl94_ai.logging import init_logger
 from nhl94_ai.env.factory import init_env, get_button_names
 from nhl94_ai.models.factory import get_num_parameters, get_model_probabilities
 from torchsummary import summary
 import nhl94_ai.env.components as games
-import nhl94_ai.training.rl as train
 from nhl94_ai.config import load_hyperparams, resolve_hyperparams_for_model
 DEFAULT_OUTPUT_DIR = os.path.expanduser("~/OUTPUT/compare_models")
 DEFAULT_FPS = 60

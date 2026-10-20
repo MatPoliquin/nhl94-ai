@@ -16,7 +16,6 @@ except Exception:
 from stable_baselines3 import PPO
 from nhl94_ai.models.networks import CustomMlpPolicy, CustomPolicy, ViTPolicy, DartPolicy, AttentionMLPPolicy, CustomCNN, CustomImpalaFeatureExtractor, CNNTransformer, HockeyMultiHeadPolicy, HybridMambaPolicy, GRUMlpPolicy, ResidualMlpPolicy
 from nhl94_ai.models.mlp import SquashedMlpPolicy
-from nhl94_ai.training.es import EvolutionStrategies
 
 
 VECTOR_POLICIES = (
@@ -68,9 +67,6 @@ def print_model_summary(args, env, player_model, model):
 
     obs_space = getattr(model, "observation_space", None) or env.observation_space
     print(obs_space)
-
-    if args.alg == 'es':
-        return
 
     # Handle policies
     if args.nn in VECTOR_POLICIES:
@@ -217,6 +213,8 @@ def register_model(name, builder):
 
 
 def init_model(output_path, player_model, player_alg, args, env, logger, hyperparams):
+    if player_alg != 'ppo2':
+        raise ValueError(f"Unsupported algorithm {player_alg!r}; only ppo2 is supported")
     from nhl94_ai.artifacts import run_metadata
     policy_kwargs = None
     nn_type = args.nn
@@ -264,10 +262,6 @@ def init_model(output_path, player_model, player_alg, args, env, logger, hyperpa
             model = load_policy(os.path.expanduser(player_model), env=env, expected=run_metadata(args, hyperparams))
 
         model.set_logger(logger)
-
-    elif player_alg == 'es':
-        es = EvolutionStrategies(env, args, 1, None)
-        return es
 
     from nhl94_ai.artifacts import run_metadata
     metadata = run_metadata(args, hyperparams)

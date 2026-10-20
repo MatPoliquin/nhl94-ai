@@ -25,7 +25,7 @@ from nhl94_ai.tasks.cross_crease_setup import (
 )
 from nhl94_ai.tasks.defense_setup import _place_object, _rebuild_object_order, _reset_player
 from nhl94_ai.tasks.registry import TASKS, get_task, register_task
-from nhl94_ai.training.datasets import get_game_state
+from nhl94_ai.env.utils import get_game_state
 from tests.integration.classic_offense import _offense_setup
 
 

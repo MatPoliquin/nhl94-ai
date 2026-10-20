@@ -5,7 +5,8 @@ import numpy as np
 import torch
 
 from nhl94_ai.agents.learned_offense import N_ACTIONS
-from nhl94_ai.training.offense import build_parser, new_model
+from stable_baselines3 import PPO
+from nhl94_ai.models.offense import OffensePolicy
 from tests.unit.test_offense_decisions import TickEnv
 
 
@@ -15,10 +16,10 @@ class OffenseTemporalTests(unittest.TestCase):
         torch.set_num_threads(1)
 
     def setUp(self):
-        args = build_parser().parse_args(['train', '--output', '/tmp/unused-temporal.zip',
-            '--architecture', 'gru', '--hidden-dim', '64', '--features-dim', '128',
-            '--head-dim', '64', '--seed', '81', '--rollout-steps', '4', '--batch-size', '2'])
-        self.model = new_model(TickEnv(), args)
+        self.model = PPO(OffensePolicy, TickEnv(), n_steps=4, batch_size=2, seed=81, device='cpu',
+                         policy_kwargs=dict(features_extractor_kwargs=dict(
+                             features_dim=128, hidden_dim=64, spatial_hidden_dim=64, gru_layers=1),
+                             net_arch=dict(pi=[64], vf=[64])))
         self.policy = self.model.policy
         self.extractor = self.policy.features_extractor
         self.observations = torch.randn(3, 16, 331) * 0.2

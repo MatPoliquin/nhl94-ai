@@ -17,7 +17,7 @@ from nhl94_ai.evaluation.shot_direction import (
 from nhl94_ai.evaluation.shot_direction_replay import fork_direction
 from nhl94_ai.evaluation.shot_direction_benchmark import run_job
 from nhl94_ai.evaluation import cpu_benchmark
-from nhl94_ai.training.shot_direction import evaluate, fit, read_cases, selected_index
+from nhl94_ai.evaluation.shot_direction_model import evaluate, read_cases, selected_index
 from tests.unit.test_classic_offense import live_one_timer_state, offense_state
 from tests.unit.test_possession_value import finish_state
 
@@ -145,20 +145,6 @@ class ShotDirectionTrainingTests(TestCase):
              'outcome': {'goal': int(pad[1] == (1 if high_wins else 0)),
                          'primary_goal': 0, 'goals_against': 0}} for pad in pads]}
 
-    def test_fit_uses_attack_goals_and_retains_baseline_on_adverse_validation(self):
-        training = [self.case(seed, high_wins=True) for seed in range(1, 5)]
-        validation = [self.case(5, high_wins=False)]
-        train_info, val_info = {'seeds': [1, 2, 3, 4]}, {'seeds': [5]}
-        model, report = fit(training, validation, train_info, val_info)
-        self.assertEqual(model['selected_name'], 'legacy')
-        self.assertEqual(report['validation_performance']['totals']['selected_attack_goals'], 1)
-        learned = next(row['model'] for row in report['alternatives'] if row['name'] == 'nine:0')
-        self.assertGreater(learned['weights'][0], 0)
-        totals = evaluate(learned, training)['totals']
-        self.assertEqual(totals['selected_attack_goals'], 4)
-        self.assertEqual(totals['selected_primary_goals'], 0)
-        with self.assertRaisesRegex(ValueError, 'complete seeds'):
-            fit(training, validation, train_info, {'seeds': [4]})
 
     def test_offline_selection_matches_runtime_and_missing_features_keep_baseline(self):
         model = {'version': MODEL_VERSION, 'kind': 'logistic', 'features': ['height'],

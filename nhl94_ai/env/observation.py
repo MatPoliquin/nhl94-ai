@@ -475,7 +475,10 @@ class NHL94Observation2PEnv(gym.Wrapper):
         if self.target_controller is not None:
             self._update_target_feedback(info)
 
+        if self.task.advance is not None:
+            self.task.advance(self.game_state)
         rew = self.reward_function(self.game_state)
+        info['reward_status'] = 'available' if self.task.reward_available else 'unavailable'
         terminated = self.platform.episode_done(self.game_state, self.done_function)
         if self.teammates:
             # A teammate match spans three regulation periods. The normal

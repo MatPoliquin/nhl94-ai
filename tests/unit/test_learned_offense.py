@@ -18,12 +18,7 @@ from nhl94_ai.agents.learned_offense import (
 from nhl94_ai.env.offense import OffenseEnv, score_reward
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.models.offense import OffensePolicy, ReceiverOrderedExtractor
-from nhl94_ai.training.offense import (
-    build_parser, env_options, load_offense_model, save_offense_model, split_sources, validation_source,
-)
-from nhl94_ai.training.offense_learning import (
-    ACTION_GROUP, sampling_weights, imitation_metrics, checkpoint_rank, mirror_examples,
-)
+from nhl94_ai.models.offense import load_offense_model, save_offense_model
 from tests.unit.test_classic_offense import live_one_timer_state
 
 
@@ -140,12 +135,6 @@ class OffenseLearningTests(unittest.TestCase):
         return OffensePolicy(gym.spaces.Box(-1, 1, (16, len(OBSERVATION_FIELDS)), np.float32),
                              gym.spaces.Discrete(N_ACTIONS), lambda _: 0.0003)
 
-    def test_sampling_balances_intents_and_games_without_duplicated_skating_dominating(self):
-        actions = np.asarray([2] * 100 + [8] * 10 + [9] * 2 + [13] * 3 + [17] * 4)
-        sources = np.asarray(['long'] * 100 + ['short'] * 10 + ['passes'] * 2 + ['timers'] * 3 + ['shots'] * 4)
-        weights = sampling_weights(actions, sources)
-        np.testing.assert_allclose([weights[ACTION_GROUP[actions] == group].sum() for group in range(4)], [0.25] * 4)
-        self.assertAlmostEqual(weights[sources == 'long'].sum(), weights[sources == 'short'].sum())
 
     def test_receiver_features_match_command_order_for_every_carrier(self):
         width = len(ENTITY_FIELDS)
@@ -160,30 +149,6 @@ class OffenseLearningTests(unittest.TestCase):
             self.assertEqual(ordered[0, -1, :5 * width:width].tolist(), expected)
             torch.testing.assert_close(ordered[..., 5 * width:], obs[..., 5 * width:])
 
-    def test_mirroring_preserves_receiver_identity_legality_and_is_reversible(self):
-        obs = torch.randn(N_ACTIONS, 16, len(OBSERVATION_FIELDS))
-        obs[..., -N_ACTIONS:] = 0
-        labels = torch.arange(N_ACTIONS)
-        obs[labels, -1, -N_ACTIONS + labels] = 1
-        reflected, actions = mirror_examples(obs, labels)
-        self.assertEqual(actions.tolist(), [0, 1, 8, 7, 6, 5, 4, 3, 2, *range(9, N_ACTIONS)])
-        self.assertTrue(torch.all(reflected[labels, -1, -N_ACTIONS + actions] == 1))
-        restored, labels_again = mirror_examples(reflected, actions)
-        torch.testing.assert_close(obs, restored)
-        torch.testing.assert_close(labels, labels_again)
-
-    def test_quality_gate_rejects_movement_collapse_and_incorrect_receivers(self):
-        labels = np.asarray([2] * 900 + [9] * 30 + [13] * 30 + [17] * 40)
-        counts = np.ones(N_ACTIONS, dtype=int) * 100
-        collapsed = imitation_metrics(labels, np.full(len(labels), 2), np.ones(len(labels)), counts)
-        self.assertGreater(collapsed['accuracy'], 0.8)
-        self.assertFalse(collapsed['quality_gate']['passed'])
-        correct = imitation_metrics(labels, labels, np.ones(len(labels)), counts)
-        self.assertTrue(correct['quality_gate']['passed'])
-        self.assertGreater(checkpoint_rank(correct), checkpoint_rank(collapsed))
-        wrong_receiver = labels.copy()
-        wrong_receiver[labels == 9] = 10
-        self.assertFalse(imitation_metrics(labels, wrong_receiver, np.ones(len(labels)), counts)['quality_gate']['passed'])
 
     def test_forced_actions_have_zero_actor_gradient_but_train_critic(self):
         policy = self.make_policy()
@@ -212,30 +177,6 @@ class OffenseLearningTests(unittest.TestCase):
         torch.testing.assert_close(log_prob, new_log_prob)
         torch.testing.assert_close(values, new_values)
 
-    def test_split_keeps_both_sides_and_related_snapshots_together(self):
-        sources = np.asarray([f'game-{i}' for i in range(30) for _ in range(2)])
-        train, validation = split_sources(sources, 94)
-        self.assertFalse(set(sources[train]) & set(sources[validation]))
-        expanded = np.concatenate([sources, np.asarray([f'game-{i}' for i in range(30, 60)])])
-        more_train, more_validation = split_sources(expanded, 94)
-        self.assertTrue(set(sources[train]).issubset(set(expanded[more_train])))
-        self.assertTrue(set(sources[validation]).issubset(set(expanded[more_validation])))
-        with self.assertRaises(ValueError):
-            split_sources(np.asarray(['same', 'same']), 0)
-
-    def test_training_snapshot_bank_excludes_validation_source_games(self):
-        with tempfile.TemporaryDirectory() as directory:
-            paths, expected = [], []
-            for seed in range(20):
-                path = str(Path(directory) / f'{seed}.pkl.gz')
-                metadata = dict(state_name='rink', source_seed=seed)
-                Path(path + '.json').write_text(json.dumps(metadata), encoding='utf-8')
-                paths.append(path)
-                if not validation_source(f'rink:{seed}', 94):
-                    expected.append(path)
-            self.assertLess(len(expected), len(paths))
-            args = build_parser().parse_args(['train', '--output', directory, '--starts', *paths])
-            self.assertEqual(env_options(args)['starts'], expected)
 
     def test_score_reward_counts_only_changes_and_is_zero_sum(self):
         self.assertEqual(score_reward((1, 2), (1, 2), 1), 0)

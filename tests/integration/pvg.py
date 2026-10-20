@@ -13,8 +13,8 @@ from nhl94_ai.tasks.pvg import init_pvg, isdone_pvg
 from nhl94_ai.tasks.pvg_setup import (
     GOALIE_POSITION_JITTER, PLAYER_POSITION_JITTER, PLAYER_VELOCITY_JITTER,
 )
-from nhl94_ai.training.datasets import get_game_state
-from nhl94_ai.training.live import build_parser, prepare_args
+from nhl94_ai.env.utils import get_game_state
+from nhl94_ai.run_options import build_parser, prepare_args
 
 
 def settings():
@@ -168,7 +168,7 @@ def check_windup_opening(env, args, frame_skip):
     observation, reward, done, _, _ = env.step(action)
     held += frame_skip
     state = get_game_state(env)
-    assert reward == 0.05 and not done
+    assert reward == 0.0 and not done
     assert state.is_shooting and not state.has_released_shot
     assert state.c_frames_held == held
     values = feature_values(args, observation)
@@ -177,7 +177,7 @@ def check_windup_opening(env, args, frame_skip):
     action[Buttons.INPUT_C] = 0
     remaining, _ = finish(env, action)
     state = get_game_state(env)
-    assert remaining in (0.0, 1.0)
+    assert remaining == 0.0
     assert state.has_released_shot and not state.c_pressed and state.c_frames_held == 0
     observation, _ = env.reset(seed=3)
     values = feature_values(args, observation)
@@ -252,7 +252,7 @@ def main():
                 ordinary_score = env.unwrapped.data.memory.extract(0xFFC6DA, '>u2')
                 contact_fixture(env, goal)
                 reward, info = finish(env, neutral, max_steps=100)
-                assert reward == float(goal), (
+                assert reward == 0.0, (
                     frame_skip, goal, reward, info['p1_score'], info['ba_ps_flags'], info['puck_owner'],
                 )
                 assert info['p1_score'] - baseline['p1_score'] == int(goal)

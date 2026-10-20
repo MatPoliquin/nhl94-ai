@@ -19,7 +19,6 @@ dependencies = [
 display = ["pygame-ce>=2.5.8", "matplotlib>=3.10.3"]
 vision = ["timm>=1.0.15"]
 supervised = ["scikit-learn>=1.5,<2"]
-ranking = ["scikit-learn>=1.5,<2", "xgboost-cpu>=3.1,<4"]
 export = ["onnx>=1.18.0", "onnxruntime>=1.22.0"]
 dev = ["pylint>=3.3.7", "build>=1.2"]
 

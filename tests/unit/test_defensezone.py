@@ -30,7 +30,7 @@ class DefenseZoneContracts(unittest.TestCase):
                         state = defensive_state(skaters)
                         state.engine.puck_owner = owner
                         state.puck.y = puck_y
-                        self.assertEqual(rf_defensezone(state), 1.0)
+                        self.assertEqual(rf_defensezone(state), 0.0)
                         self.assertIs(isdone_defensezone(state), True)
 
     def test_conceding_overrides_possession_and_shots(self):
@@ -39,7 +39,7 @@ class DefenseZoneContracts(unittest.TestCase):
         state.engine.puck_owner = 0
         state.team2.stats.shots += 1
         state.team2.stats.score += 1
-        self.assertEqual(rf_defensezone(state), -1.0)
+        self.assertEqual(rf_defensezone(state), 0.0)
         self.assertIs(isdone_defensezone(state), True)
         state.EndFrame()
         state.engine.puck_owner = -256
@@ -65,7 +65,7 @@ class DefenseZoneContracts(unittest.TestCase):
                 player = state.team1.goalie if goalie else state.team1.players[0]
                 state.team1.stats.fullstar_x = player.x
                 state.team1.stats.fullstar_y = player.y
-                self.assertEqual(rf_defensezone(state), 0.0 if goalie else 1.0)
+                self.assertEqual(rf_defensezone(state), 0.0)
                 self.assertIs(isdone_defensezone(state), not goalie)
 
     def test_missing_owner_without_possession_does_not_reward_default_stars(self):
@@ -104,7 +104,7 @@ class DefenseZoneContracts(unittest.TestCase):
         self.assertIs(isdone_defensezone(state), True)
         self.assertEqual(rf_defensezone(state), 0.0)
         state.engine.puck_owner = 0
-        self.assertEqual(rf_defensezone(state), 1.0)
+        self.assertEqual(rf_defensezone(state), 0.0)
 
     def test_positions_do_not_add_shaping_rewards(self):
         for shooter in ((0, -180), (90, -180), (0, -270), (0, 0)):
@@ -147,7 +147,7 @@ class DefenseZoneContracts(unittest.TestCase):
             if done:
                 break
         self.assertEqual(frame, 2)
-        self.assertEqual(total, -1.0)
+        self.assertEqual(total, 0.0)
 
 
 class DefenseZoneGoalieContracts(unittest.TestCase):
@@ -167,7 +167,7 @@ class DefenseZoneGoalieContracts(unittest.TestCase):
                 self.assertEqual(rf_defensezone(state), 0.0)
                 self.assertFalse(isdone_defensezone(state))
                 state.engine.puck_owner = 0
-                self.assertEqual(rf_defensezone(state), 1.0)
+                self.assertEqual(rf_defensezone(state), 0.0)
                 self.assertTrue(isdone_defensezone(state))
 
     def test_goalie_possession_does_not_hide_shots_goals_or_timeout(self):
@@ -181,7 +181,7 @@ class DefenseZoneGoalieContracts(unittest.TestCase):
                     state.team2.stats.score += 1
                 else:
                     state.time = 199
-                self.assertEqual(rf_defensezone(state), 0.0 if outcome == 'timeout' else -1.0)
+                self.assertEqual(rf_defensezone(state), 0.0)
                 self.assertTrue(isdone_defensezone(state))
 
 
@@ -197,7 +197,7 @@ class DefenseZoneShotContracts(unittest.TestCase):
                 self.assertFalse(isdone_defensezone(state))
                 for added in (1, 3):
                     state.team2.stats.shots += added
-                    self.assertEqual(rf_defensezone(state), -1.0)
+                    self.assertEqual(rf_defensezone(state), 0.0)
                     self.assertTrue(isdone_defensezone(state))
                     state.EndFrame()
                     self.assertEqual(rf_defensezone(state), 0.0)
@@ -210,7 +210,7 @@ class DefenseZoneShotContracts(unittest.TestCase):
         self.assertEqual(rf_defensezone(state), 0.0)
         self.assertFalse(isdone_defensezone(state))
         state.team2.stats.shots += 1
-        self.assertEqual(rf_defensezone(state), -1.0)
+        self.assertEqual(rf_defensezone(state), 0.0)
         self.assertTrue(isdone_defensezone(state))
 
     def test_shot_counter_decrease_has_no_reward_or_penalty(self):
@@ -222,7 +222,7 @@ class DefenseZoneShotContracts(unittest.TestCase):
         self.assertFalse(isdone_defensezone(state))
         state.EndFrame()
         state.team2.stats.shots = 1
-        self.assertEqual(rf_defensezone(state), -1.0)
+        self.assertEqual(rf_defensezone(state), 0.0)
         self.assertTrue(isdone_defensezone(state))
 
     def test_shot_failure_overrides_recovery_save_or_timeout(self):
@@ -233,7 +233,7 @@ class DefenseZoneShotContracts(unittest.TestCase):
                 state.team2.stats.shots += 1
                 if owner < 0:
                     state.time = 199
-                self.assertEqual(rf_defensezone(state), -1.0)
+                self.assertEqual(rf_defensezone(state), 0.0)
                 self.assertTrue(isdone_defensezone(state))
 
 

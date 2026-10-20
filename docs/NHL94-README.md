@@ -17,18 +17,12 @@ and increment on every reset. Omit it to replay the save's original RNG state.
 This changes randomness, not the saved lineup or positions, and works with
 home/away play and the opt-in manual goalie policy.
 
-## Train a scoring policy
+## Watch an existing policy
 
-```bash
-nhl94 train --env NHL941on1-Genesis-v0 --nn MlpPolicy --rf ScoreGoal \
-  --num_env 12 --num_timesteps 100000000 \
-  --hyperparams configs/training/nhl94.json
-```
-
-Add `--live` to attach the training display. To watch a saved policy, pass its
-checkpoint to `nhl94 play --model_1` with the same environment, architecture,
-action type, and observation configuration used during training. See
-[artifact contracts](ARTIFACTS.md) for older checkpoints with unknown schemas.
+Training is unavailable pending the ML redesign. To watch an existing non-ES
+policy, pass its checkpoint to `nhl94 play --model_1` with the same environment,
+architecture, action type, and observation configuration used to create it.
+See [artifact contracts](ARTIFACTS.md) for older checkpoints with unknown schemas.
 
 ## Play against Classic v1
 

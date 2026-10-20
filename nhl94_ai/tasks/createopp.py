@@ -7,11 +7,8 @@ from nhl94_ai.env.intents import HOCKEY_INTENT_NOOP, HOCKEY_INTENT_NORMAL_SHOOT,
 from nhl94_ai.tasks.scoregoal import _x_side
 
 
-CREATE_OPP_SIGNAL_REWARD = 0.03
-CREATE_OPP_PASS_REWARD = 0.35
 CREATE_OPP_CROSS_THRESHOLD = 0.75
 CREATE_OPP_ONE_TIMER_THRESHOLD = 0.70
-CREATE_OPP_GOALIE_THRESHOLD = 0.55
 CREATE_OPP_MASKED_INTENTS = {
     HOCKEY_INTENT_NORMAL_SHOOT,
     HOCKEY_INTENT_SLAPSHOT,
@@ -151,44 +148,21 @@ def isdone_createopp(state):
 
 
 def rf_createopp(state):
-    team = state.team1
-    opponent = state.team2
-    engine = state.engine
-    reward_state = _ensure_createopp_state(state)
+    """Reward unavailable pending the ML redesign; preserve the numeric API."""
+    return 0.0
 
-    if team.stats.score > team.last_stats.score:
-        return 0.0
-    if opponent.stats.score > opponent.last_stats.score:
-        return -0.5
-    if opponent.player_haspuck or opponent.goalie_haspuck:
-        return -0.25
-    if state.puck.y < GameConsts.ATACKZONE_POS_Y:
-        return -0.2
-    if state.action[5] or engine.shot_taken or engine.shot_mode_active:
-        return -0.1
 
-    one_timer_score, cross_crease_score, goalie_score = _best_opportunity_scores(state)
-    reward = 0.0
-
-    if one_timer_score >= CREATE_OPP_ONE_TIMER_THRESHOLD:
-        reward += CREATE_OPP_SIGNAL_REWARD * one_timer_score
-
-    if cross_crease_score >= CREATE_OPP_CROSS_THRESHOLD:
-        reward += CREATE_OPP_SIGNAL_REWARD * cross_crease_score
-
-    if goalie_score >= CREATE_OPP_GOALIE_THRESHOLD:
-        reward += CREATE_OPP_SIGNAL_REWARD * goalie_score
-
+def update_createopp(state):
+    """Keep the existing completed-opportunity condition independently of reward."""
+    team, opponent = state.team1, state.team2
+    tracker = _ensure_createopp_state(state)
+    if (team.stats.score > team.last_stats.score or opponent.stats.score > opponent.last_stats.score
+            or opponent.player_haspuck or opponent.goalie_haspuck or state.puck.y < GameConsts.ATACKZONE_POS_Y):
+        return
+    if state.action[5] or state.engine.shot_taken or state.engine.shot_mode_active:
+        return
+    one_timer, cross_crease, _ = _best_opportunity_scores(state)
     if team.stats.passing > team.last_stats.passing:
-        reward += 0.05
-        if reward_state["last_one_timer"] >= CREATE_OPP_ONE_TIMER_THRESHOLD:
-            reward += CREATE_OPP_PASS_REWARD
-            reward_state["completed"] = True
-        if reward_state["last_cross_crease"] >= CREATE_OPP_CROSS_THRESHOLD:
-            reward += CREATE_OPP_PASS_REWARD
-            reward_state["completed"] = True
-
-    reward_state["last_one_timer"] = one_timer_score
-    reward_state["last_cross_crease"] = cross_crease_score
-
-    return reward
+        if tracker['last_one_timer'] >= CREATE_OPP_ONE_TIMER_THRESHOLD or tracker['last_cross_crease'] >= CREATE_OPP_CROSS_THRESHOLD:
+            tracker['completed'] = True
+    tracker.update(last_one_timer=one_timer, last_cross_crease=cross_crease)

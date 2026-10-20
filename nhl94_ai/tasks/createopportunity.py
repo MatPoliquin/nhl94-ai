@@ -181,107 +181,38 @@ def isdone_createopportunity(state):
 
 
 def rf_createopportunity(state):
-    t1 = state.team1
-    t2 = state.team2
-    engine = state.engine
+    """Reward unavailable pending the ML redesign; preserve the numeric API."""
+    return 0.0
+
+
+def update_createopportunity(state):
+    """Retain completion tracking for callers of this legacy unregistered task."""
+    team, opponent = state.team1, state.team2
     tracker = _ensure_create_opportunity_tracker(state)
-
-    if t1.stats.score > t1.last_stats.score:
-        return -0.6
-    if t2.stats.score > t2.last_stats.score:
-        return -0.8
-    if t1.stats.shots > t1.last_stats.shots:
-        return -0.4
-    if t2.player_haspuck or t2.goalie_haspuck:
-        return -0.35
-    if state.puck.y < GameConsts.ATACKZONE_POS_Y:
-        return -0.25
-
-    shot_taken_now = bool(engine.shot_taken) and not tracker["prev_shot_taken"]
-    one_timer_score, cross_crease_score = _create_opportunity_scores(state)
-    setup_score = max(one_timer_score, cross_crease_score)
-
-    rew = 0.0
-
-    if t1.player_haspuck:
-        tracker["possession_frames"] += 1
-        rew -= 0.002
-
-        puck_step = math.hypot(state.puck.x - tracker["last_puck_x"], state.puck.y - tracker["last_puck_y"])
-        controlled_player = t1.get_controlled_player()
-        control_speed = math.hypot(controlled_player.vx, controlled_player.vy)
-        corner_trap = controlled_player.y > 150 and abs(controlled_player.x) > 65
-        deep_corner_trap = controlled_player.y > 185 and abs(controlled_player.x) > 78
-        behind_net = controlled_player.y >= GameConsts.P2_NET_Y - 10
-
-        if corner_trap:
-            rew -= 0.08
-            if deep_corner_trap:
-                rew -= 0.10
-        if behind_net:
-            rew -= 0.18
-
-        lateral_escape = abs(tracker["last_puck_x"]) - abs(state.puck.x)
-        if state.puck.y > 145 and lateral_escape > 0:
-            rew += min(0.16, lateral_escape * 0.014)
-            if corner_trap:
-                rew += min(0.08, lateral_escape * 0.01)
-
-        depth_escape = tracker["last_puck_y"] - state.puck.y
-        if controlled_player.y > GameConsts.CREASE_LOWER_BOUND and depth_escape > 0:
-            rew += min(0.14, depth_escape * 0.012)
-            if behind_net:
-                rew += min(0.12, depth_escape * 0.014)
-
-        if puck_step < 2.0 and control_speed < 4.0 and not state.action[4] and not state.action[5]:
-            tracker["stall_frames"] += 1
+    if (team.stats.score > team.last_stats.score or opponent.stats.score > opponent.last_stats.score
+            or team.stats.shots > team.last_stats.shots):
+        return
+    if (opponent.player_haspuck or opponent.goalie_haspuck
+            or state.puck.y < GameConsts.ATACKZONE_POS_Y):
+        return
+    one_timer, cross_crease = _create_opportunity_scores(state)
+    if team.player_haspuck:
+        tracker['possession_frames'] += 1
+        player = team.get_controlled_player()
+        stationary = math.hypot(state.puck.x-tracker['last_puck_x'], state.puck.y-tracker['last_puck_y']) < 2
+        if stationary and math.hypot(player.vx, player.vy) < 4 and not state.action[4] and not state.action[5]:
+            tracker['stall_frames'] += 1
         else:
-            tracker["stall_frames"] = max(0, tracker["stall_frames"] - 2)
-
-        if behind_net:
-            tracker["behind_net_frames"] += 1
+            tracker['stall_frames'] = max(0, tracker['stall_frames'] - 2)
+        if player.y >= GameConsts.P2_NET_Y - 10:
+            tracker['behind_net_frames'] += 1
         else:
-            tracker["behind_net_frames"] = max(0, tracker["behind_net_frames"] - 3)
-
-        if tracker["stall_frames"] > 15:
-            rew -= min((tracker["stall_frames"] - 15) * 0.004, 0.12)
-
-        if setup_score > 0.45:
-            rew += 0.02 * setup_score
-            setup_gain = setup_score - tracker["best_setup_score"]
-            if setup_gain > 0:
-                rew += min(0.20, setup_gain * 0.45)
-                tracker["best_setup_score"] = setup_score
-
-        if one_timer_score > 0.65:
-            rew += 0.05
-        if cross_crease_score > 0.65:
-            rew += 0.07
+            tracker['behind_net_frames'] = max(0, tracker['behind_net_frames'] - 3)
     else:
-        tracker["possession_frames"] = 0
-        tracker["stall_frames"] = 0
-        tracker["behind_net_frames"] = 0
-
-    if t1.stats.passing > t1.last_stats.passing:
-        pass_setup_score = max(tracker["last_one_timer_score"], tracker["last_cross_crease_score"])
-        rew += 0.05
-        if pass_setup_score >= 0.65:
-            rew += 0.55
-            tracker["opportunity_completed"] = True
-        if tracker["last_cross_crease_score"] >= 0.65:
-            rew += 0.20
-        tracker["stall_frames"] = 0
-
-    if state.action[5] or shot_taken_now or engine.shot_mode_active:
-        rew -= 0.08
-
-    if shot_taken_now:
-        rew -= 0.25
-
-    tracker["last_one_timer_score"] = one_timer_score
-    tracker["last_cross_crease_score"] = cross_crease_score
-    tracker["last_puck_x"] = state.puck.x
-    tracker["last_puck_y"] = state.puck.y
-    tracker["prev_shot_taken"] = bool(engine.shot_taken)
-
-    return rew
+        tracker.update(possession_frames=0, stall_frames=0, behind_net_frames=0)
+    if team.stats.passing > team.last_stats.passing:
+        if max(tracker['last_one_timer_score'], tracker['last_cross_crease_score']) >= 0.65:
+            tracker['opportunity_completed'] = True
+        tracker['stall_frames'] = 0
+    tracker.update(last_one_timer_score=one_timer, last_cross_crease_score=cross_crease,
+                   last_puck_x=state.puck.x, last_puck_y=state.puck.y)

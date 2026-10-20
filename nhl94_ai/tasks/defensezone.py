@@ -57,11 +57,5 @@ def isdone_defensezone(state):
 
 
 def rf_defensezone(state):
-    if (state.team2.stats.score > state.team2.last_stats.score
-            or state.team2.stats.shots > state.team2.last_stats.shots):
-        return -1.0
-
-    carrier = _puck_carrier(state, state.team1)
-    if carrier is not None and carrier is not state.team1.goalie:
-        return 1.0
+    """Reward unavailable pending the ML redesign; preserve the numeric API."""
     return 0.0

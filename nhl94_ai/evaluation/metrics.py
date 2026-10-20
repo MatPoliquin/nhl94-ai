@@ -16,11 +16,12 @@ def resolve_nhl94_players_per_team(env_name, fallback_num_players):
 @dataclass
 class LiveEvaluationResult:
     model_path: str
-    mean_reward: float
-    std_reward: float
+    mean_reward: Optional[float]
+    std_reward: Optional[float]
     episodes: int
     team1_totals: "LiveTeamTotals"
     team2_totals: "LiveTeamTotals"
+    reward_status: str = 'available'
 
 
 @dataclass
@@ -95,8 +96,8 @@ def evaluate_policy_with_totals(
     deterministic: bool,
     env_name: str,
     num_players: int,
-    episode_reporter: Optional[Callable[[int, float, LiveTeamTotals, LiveTeamTotals], None]] = None,
-) -> Tuple[float, float, LiveTeamTotals, LiveTeamTotals]:
+    episode_reporter: Optional[Callable[[int, Optional[float], LiveTeamTotals, LiveTeamTotals], None]] = None,
+) -> Tuple[Optional[float], Optional[float], LiveTeamTotals, LiveTeamTotals]:
     config = config or EvaluationConfig(episodes=max(1, int(n_eval_episodes)), max_steps=None, deterministic=deterministic)
     total_episodes = config.episodes
     deterministic = config.deterministic
@@ -112,10 +113,14 @@ def evaluate_policy_with_totals(
     episode_reward = 0.0
     episodes_completed = 0
     episode_steps = 0
+    reward_available = True
 
     while episodes_completed < total_episodes:
         action, _ = model.predict(observation, deterministic=deterministic)
         observation, reward, done, info = eval_env.step(action)
+        frame_info = _first_item(info)
+        if isinstance(frame_info, dict) and frame_info.get('reward_status') == 'unavailable':
+            reward_available = False
         episode_reward += float(_first_item(reward, 0.0) or 0.0)
         episode_steps += 1
 
@@ -143,7 +148,7 @@ def evaluate_policy_with_totals(
             running_mean = float(np.mean(episode_rewards)) if episode_rewards else 0.0
             episode_reporter(
                 episodes_completed,
-                running_mean,
+                running_mean if reward_available else None,
                 LiveTeamTotals(
                     goals=team1_totals.goals,
                     shots=team1_totals.shots,
@@ -167,4 +172,5 @@ def evaluate_policy_with_totals(
 
     mean_reward = float(np.mean(episode_rewards)) if episode_rewards else 0.0
     std_reward = float(np.std(episode_rewards)) if episode_rewards else 0.0
-    return mean_reward, std_reward, team1_totals, team2_totals
+    return (mean_reward if reward_available else None, std_reward if reward_available else None,
+            team1_totals, team2_totals)

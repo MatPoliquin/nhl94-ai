@@ -7,7 +7,7 @@ from nhl94_ai.config import load_hyperparams, default_config_path, resolve_hyper
 from nhl94_ai.env.factory import build_single_nhl94_env
 from nhl94_ai.evaluation.play import parse_cmdline
 from nhl94_ai.tasks.defensezone import isdone_defensezone
-from nhl94_ai.training.datasets import get_game_state
+from nhl94_ai.env.utils import get_game_state
 
 
 def main():

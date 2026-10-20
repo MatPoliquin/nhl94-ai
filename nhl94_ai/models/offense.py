@@ -127,7 +127,7 @@ def load_offense_model(path, env=None, **kwargs):
     saved_scope = metadata.get('training_contract', {}).get('control_scope', 'offense')
     if expected_scope is not None and saved_scope != expected_scope and not allow_scope_transfer:
         raise ValueError(f'Checkpoint control scope is {saved_scope}, requested {expected_scope}; explicitly allow control transfer')
-    from nhl94_ai.training.decision_ppo import DecisionPPO
+    from nhl94_ai.models.decision_ppo import DecisionPPO
     decision_only = kwargs.pop('decision_only', metadata.get('algorithm') == 'DecisionPPO')
     algorithm = DecisionPPO if decision_only else PPO
     model = algorithm.load(path, env=env, device=kwargs.pop('device', 'cpu'), **kwargs)

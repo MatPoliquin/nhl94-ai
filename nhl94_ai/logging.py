@@ -1,7 +1,4 @@
-"""
-Common utils
-"""
-
+"""Shared run logging and output directories for training, evaluation, and UI."""
 
 import os
 import datetime
@@ -32,7 +29,3 @@ def init_logger(args):
 def com_print(text):
     """com_print"""
     LOGGER.log(text)
-
-def get_model_file_name(args):
-    """get_model_file_name"""
-    return args.env + '-' + args.alg + '-' + args.nn + '-' + str(args.num_timesteps)

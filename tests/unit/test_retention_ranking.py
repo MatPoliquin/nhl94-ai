@@ -10,7 +10,7 @@ import numpy as np
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.retention_ranker import RetentionRanker, SCHEMA, load_retention_filter
-from nhl94_ai.training.retention_ranking import export_ranker, ranking_arrays, ranking_metrics
+from nhl94_ai.evaluation.retention_ranking_model import ranking_metrics
 from tests.unit.test_classic_offense import offense_state
 
 
@@ -27,18 +27,6 @@ def branch(value, valid=True):
 
 
 class RetentionRankingTests(unittest.TestCase):
-    def test_groups_keep_situations_separate_and_game_weight_equal(self):
-        rows = [dict(source='a', branches=[branch(0), branch(1)]),
-                dict(source='a', branches=[branch(1)]),
-                dict(source='a', branches=[branch(1, False)]),
-                dict(source='b', branches=[branch(0), branch(1), branch(1, False)])]
-        _, y, qid, weights, stats = ranking_arrays(rows, ('x',))
-        np.testing.assert_array_equal(y, [1, 0, 0, 1, 0])
-        np.testing.assert_array_equal(qid, [0, 0, 1, 2, 2])
-        self.assertAlmostEqual(weights[:2].sum(), weights[2])
-        self.assertEqual(stats['informative_situations'], 2)
-        self.assertEqual(stats['distinct_label_pairs'], 2)
-        self.assertEqual(stats['censored_situations'], 1)
 
     def test_state_only_prediction_gets_no_pairwise_credit_above_chance(self):
         rows = [dict(branches=[branch(0), branch(1)]) for _ in range(2)]
@@ -113,32 +101,6 @@ class RetentionRankingTests(unittest.TestCase):
         self.assertEqual((model.scheduler.remaining, model.scheduler.decisions, model.scheduler.frames), (3, 11, 41))
         model.input_owner = 'pass'
         self.assertIs(policy.apply(model, offense_state(), neutral), neutral)
-
-    def test_export_matches_xgboost_on_synthetic_grouped_task(self):
-        try:
-            from xgboost import XGBRanker
-        except ImportError:
-            self.skipTest('ranking extra is optional')
-        rng = np.random.default_rng(94)
-        x = rng.normal(size=(90, 3)).astype(np.float32)
-        qid = np.arange(90) // 9
-        y = (x[:, 2] > 0).astype(int)
-        model = XGBRanker(objective='rank:pairwise', tree_method='hist', n_jobs=1,
-                          base_score=0, max_depth=3, n_estimators=15, random_state=94).fit(x, y, qid=qid)
-        data = export_ranker(model, ('a', 'b', 'c'))
-        policy = RetentionRanker(artifact=data)
-        probes = [x]
-        for tree in data['trees']:
-            for node in tree:
-                if node['left'] < 0:
-                    continue
-                threshold = np.float32(node['threshold'])
-                for value in (np.nextafter(threshold, np.float32(-np.inf)), threshold,
-                              np.nextafter(threshold, np.float32(np.inf))):
-                    test = x.copy(); test[:, node['feature']] = value
-                    probes.append(test)
-        matrix = np.concatenate(probes)
-        np.testing.assert_allclose(policy.predict_matrix(matrix), model.predict(matrix), atol=1e-6, rtol=1e-6)
 
 
 if __name__ == '__main__':

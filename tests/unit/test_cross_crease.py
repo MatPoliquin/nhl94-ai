@@ -410,13 +410,11 @@ class CrossCreaseExecutionTests(unittest.TestCase):
 class ClassicCrossCreaseTests(unittest.TestCase):
     def test_classic_command_options_are_explicitly_off_by_default(self):
         from nhl94_ai.evaluation import play, runner, cpu_benchmark
-        from nhl94_ai.training import collect, dagger
-        for module in (play, runner, cpu_benchmark, collect, dagger):
+        for module in (play, runner, cpu_benchmark):
             parser = module.build_parser()
             with self.subTest(command=module.__name__):
                 self.assertFalse(parser.get_default('cross_crease'))
-                self.assertTrue(parser.parse_known_args(['--cross-crease'] +
-                                (['--model', 'policy', '--base_datasets', 'data'] if module is dagger else []))[0].cross_crease)
+                self.assertTrue(parser.parse_known_args(['--cross-crease'])[0].cross_crease)
 
     def test_tactic_is_opt_in_and_keeps_default_actions(self):
         state = crossing_state()

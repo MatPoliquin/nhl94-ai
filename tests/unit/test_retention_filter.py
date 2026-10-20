@@ -9,7 +9,6 @@ import numpy as np
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.retention_filter import RetentionFilter, SCHEMA
 from nhl94_ai.agents.retention_features import features, movement_action, movement_id
-from nhl94_ai.training.retention import arrays, assert_disjoint, export_tree
 from tests.unit.test_classic_offense import offense_state
 
 
@@ -51,21 +50,6 @@ class RetentionFilterTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             policy.risk(dict(pad_x=1, pad_y=1, projected_dy=3))
 
-    def test_source_groups_cannot_cross_partitions(self):
-        with self.assertRaises(ValueError):
-            assert_disjoint([dict(source='same', side=1)], [dict(source='same', side=2)])
-        assert_disjoint([dict(source='a')], [dict(source='b')])
-
-    def test_censored_states_do_not_reduce_source_game_weight(self):
-        def branch(value, valid=True):
-            return dict(features=dict(x=value), loss=value, label_valid=valid)
-        rows = [dict(source='a', branches=[branch(0), branch(0)]),
-                dict(source='a', branches=[branch(0, False)]),
-                dict(source='b', branches=[branch(1)])]
-        _, _, weights = arrays(rows, ('x',))
-        self.assertAlmostEqual(weights[:2].sum(), weights[2])
-        with self.assertRaises(ValueError):
-            arrays([rows[1]], ('x',))
 
     def test_filter_is_only_called_at_an_available_new_decision(self):
         model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED'))
@@ -95,17 +79,6 @@ class RetentionFilterTests(unittest.TestCase):
         self.assertIs(policy.apply(model, offense_state(), action), action)
         self.assertEqual(policy.metrics['eligible_decisions'], 0)
 
-    def test_sklearn_export_reproduces_split_boundaries(self):
-        try:
-            from sklearn.tree import DecisionTreeClassifier
-        except ImportError:
-            self.skipTest('supervised extra is optional')
-        x = np.asarray([[i / 17, i % 3] for i in range(100)], dtype=np.float32)
-        y = np.asarray([int(row[0] > 2 and row[1] == 1) for row in x])
-        tree = DecisionTreeClassifier(max_depth=3, random_state=94).fit(x, y)
-        policy = RetentionFilter(artifact=export_tree(tree, ('a', 'b')))
-        actual = [policy.risk(dict(a=float(a), b=float(b))) for a, b in x]
-        np.testing.assert_allclose(actual, tree.predict_proba(x)[:, 1], rtol=0, atol=1e-14)
 
     def test_override_replaces_only_direction_and_cached_input(self):
         model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED'))
