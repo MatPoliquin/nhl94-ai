@@ -624,6 +624,7 @@ class ClassicAIV1Model:
                 self.goalie.possession_since = None
                 self.goalie.last_effective = False
                 self.goalie.pass_windup = None
+                self.goalie.incoming_pass = None
                 self.goalie_diagnostics = {}
             self.offense.cancel()
             self.shot.cancel()

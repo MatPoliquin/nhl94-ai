@@ -130,6 +130,69 @@ class GoalieContractTests(unittest.TestCase):
             controller.step(state)
 
 
+class RetainedReceiverTests(unittest.TestCase):
+    def incoming(self):
+        state = goalie_state(True)
+        state.engine.puck_owner, state.engine.last_puck_player, state.engine.pass_target = -256, 6, 7
+        state.team2.pass_attempts = 1
+        state.puck.x, state.puck.y = -60, -175
+        state.puck.motion_x, state.puck.motion_y = 4, 0
+        state.team2.players[1].x, state.team2.players[1].y = 30, -175
+        manager = GoalieController('selective')
+        manager.step(state)
+        self.assertIsNotNone(manager.incoming_pass)
+        state.engine.pass_target = -249
+        return state, manager
+
+    def test_cleared_target_keeps_live_receiver_without_mutating_state(self):
+        state, manager = self.incoming()
+        state.team2.players[1].x = 34
+        before = pickle.dumps(state)
+        manager.step(state)
+        self.assertEqual(manager.diagnostics['retained_receiver_slot'], 7)
+        self.assertIsNotNone(manager.diagnostics['receiver'])
+        self.assertEqual(pickle.dumps(state), before)
+
+    def test_cancels_after_touch_possession_new_pass_stoppage_period_or_expiry(self):
+        for event in ('touch', 'possession', 'pass', 'stoppage', 'period', 'expiry', 'miss'):
+            with self.subTest(event=event):
+                state, manager = self.incoming()
+                if event == 'touch':
+                    state.engine.last_puck_player = 7
+                elif event == 'possession':
+                    state.engine.puck_owner = 0
+                elif event == 'pass':
+                    state.team2.pass_attempts += 1
+                elif event == 'stoppage':
+                    state.engine.clock_stopped = True
+                elif event == 'period':
+                    state.period += 1
+                elif event == 'expiry':
+                    manager.frames = manager.incoming_pass.expires
+                else:
+                    state.team2.players[1].y = 20
+                manager.step(state)
+                self.assertIsNone(manager.incoming_pass)
+                self.assertIsNone(manager.diagnostics['retained_receiver_slot'])
+
+    def test_invalid_target_without_history_does_not_invent_receiver(self):
+        state, _ = self.incoming()
+        manager = GoalieController('selective')
+        manager.step(state)
+        self.assertIsNone(manager.diagnostics['receiver'])
+
+    def test_one_timer_windup_lock_preserves_forecast_but_falling_does_not(self):
+        for one_timer in (False, True):
+            with self.subTest(one_timer=one_timer):
+                state, manager = self.incoming()
+                receiver = state.team2.players[1]
+                receiver.selection_flags = 0x20
+                receiver.live_anim = 0x92E
+                receiver.is_one_timer = float(one_timer)
+                manager.step(state)
+                self.assertEqual(manager.diagnostics['retained_receiver_slot'], 7 if one_timer else None)
+
+
 class GoalieGeometryTests(unittest.TestCase):
     def test_targets_remain_in_crease_for_both_ends(self):
         state = goalie_state()
@@ -435,6 +498,42 @@ class GoalieHandoffTests(unittest.TestCase):
         self.assertTrue(action[Buttons.INPUT_A])
         self.assertFalse(action[Buttons.INPUT_B])
         self.assertFalse(action[Buttons.INPUT_C])
+
+    def test_outlet_holds_aim_through_delayed_native_launch(self):
+        state = goalie_state(True)
+        state.engine.puck_owner = 5
+        state.team1.pass_attempts = 0
+        manager = GoalieController('selective')
+        option = SimpleNamespace(slot=2, flight_frames=18, value=30)
+        with patch('nhl94_ai.agents.goalie.evaluate_pass', return_value=(option, {})):
+            for _ in range(8):
+                manager.step(state)
+            requested = manager.step(state)
+        for _ in range(3):
+            self.assertTrue(np.array_equal(manager.step(state), requested))
+        state.team1.pass_attempts = 1
+        state.engine.puck_owner = -256
+        self.assertFalse(manager.step(state).any())
+        self.assertEqual(manager.metrics['outlets_launched'], 1)
+
+    def test_unlaunched_outlet_stops_holding_after_timeout_or_lost_control(self):
+        for lost_control in (False, True):
+            with self.subTest(lost_control=lost_control):
+                state = goalie_state(True)
+                state.engine.puck_owner = 5
+                state.team1.pass_attempts = 0
+                manager = GoalieController('selective')
+                buttons = np.zeros(12, dtype=np.int8)
+                buttons[Buttons.INPUT_B] = buttons[Buttons.INPUT_RIGHT] = 1
+                manager.outlet = dict(receiver=2, started=0, passes=0, launched=False,
+                                      deadline=40, buttons=buttons)
+                manager.frames = 3 if lost_control else 9
+                if lost_control:
+                    state.team1.defense_control = 2
+                self.assertFalse(manager._outlet_feedback(state).any())
+                if not lost_control:
+                    self.assertIsNone(manager.outlet)
+                    self.assertEqual(manager.metrics['outlet_timeouts'], 1)
 
     def test_per_frame_dispatch_advances_once_and_reset_clears_state(self):
         args = SimpleNamespace(action_type='FILTERED', goalie_policy='always')

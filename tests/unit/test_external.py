@@ -193,6 +193,24 @@ class NativeMatchTests(unittest.TestCase):
 
 
 class CommandTests(unittest.TestCase):
+    def test_record_directory_keeps_results_and_refuses_overwrite(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / 'recordings'
+            args = external.build_parser().parse_args([
+                '--adapter', 'dummy:create', '--side', 'home', '--record-dir', str(target)])
+            row = dict(goals=[1, 0], frames=0, completed=True, user_quit=False, goal_difference=1)
+            with patch.object(external, 'play_match', return_value=row) as play:
+                external.run(args)
+            self.assertIn('_recorder', play.call_args.args[0])
+            result = json.loads((target / 'seed-26534-side-1' / 'results.json').read_text())
+            self.assertEqual(result['classic_side'], 1)
+            self.assertIsNone(result['human_side'])
+            with self.assertRaises(FileExistsError):
+                external.run(args)
+            args.human = True
+            with self.assertRaisesRegex(ValueError, 'Classic versus the adapter'):
+                external.run(args)
+
     def test_human_cli_selects_one_side_and_opens_playable_match(self):
         from nhl94_ai.cli import main
         row = dict(goals=[0, 0], frames=0, completed=False, user_quit=True, goal_difference=0)

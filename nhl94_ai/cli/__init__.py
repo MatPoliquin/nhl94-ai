@@ -13,6 +13,9 @@ COMMANDS = {
     'benchmark-cpu': 'evaluation.cpu_benchmark',
     'benchmark-teammates': 'evaluation.teammates',
     'external': 'evaluation.external',
+    'record-human': 'evaluation.human_session',
+    'replay-human': 'evaluation.human_replay',
+    'replay-match': 'evaluation.human_replay',
     'offense': 'training.offense',
     'goalie': 'training.goalie',
 }

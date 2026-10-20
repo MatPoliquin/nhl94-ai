@@ -43,6 +43,15 @@ class GoaliePlan:
     reception_frames: float | None = None
 
 
+@dataclass(frozen=True)
+class IncomingPass:
+    passer: int
+    receiver: int
+    passes: int
+    expires: int
+    period: int
+
+
 def goalie_motion(player):
     """Near-net goalieacc accelerates in pad direction, without skater turn cost."""
     if getattr(player, 'platform', 'genesis') != 'genesis':
@@ -71,10 +80,16 @@ def goalie_arrival(player, target):
     return ramp + (distance - covered) / limit
 
 
-def _receiver_contact(state, windup):
-    receiver = (state.team2.get_player_by_scnum(state.engine.pass_target)
-                if state.engine.pass_target is not None else None)
-    if receiver is None or not eligible(receiver):
+def _receiver_contact(state, windup, receiver_slot=None):
+    target = state.engine.pass_target if receiver_slot is None else receiver_slot
+    receiver = state.team2.get_player_by_scnum(target) if target is not None else None
+    if receiver is None:
+        return None
+    # Genesis also locks skater control during a one-timer's shooting animation.
+    winding_up = (receiver_slot is not None and state.platform.name == 'genesis'
+                  and receiver.is_one_timer and receiver.live_anim in (0x7FC, 0x92E)
+                  and (receiver.role is None or receiver.role > 0) and not receiver.unavailable & 4)
+    if not eligible(receiver) and not winding_up:
         return None
     if windup is not None:
         passer = state.team2.get_player_by_scnum(windup[0])
@@ -84,7 +99,7 @@ def _receiver_contact(state, windup):
         release = pass_release_frames(receiver)
     elif (state.engine.puck_owner < 0 and state.engine.last_puck_player is not None
           and state.team2.owns_scnum(state.engine.last_puck_player)):
-        if (state.engine.pass_target == state.engine.last_puck_player or state.puck.height > 8):
+        if (target == state.engine.last_puck_player or state.puck.height > 8):
             return None
         vx, vy = velocity(state.puck)
         rx, ry = velocity(receiver)
@@ -116,13 +131,13 @@ def _receiver_contact(state, windup):
     return time, (receiver.x + rx * time, receiver.y + ry * time)
 
 
-def goalie_target(state, windup=None):
+def goalie_target(state, windup=None, *, receiver_slot=None):
     """Predict contact at the goalie's depth, stopping before uncertain rebounds."""
     sign = 1 if state.team1.net.y > 0 else -1
     puck = state.puck
     vx, vy = velocity(puck)
     x, y, z, vz = float(puck.x), float(puck.y), max(0, puck.height), puck.motion_z or 0
-    incoming = _receiver_contact(state, windup)
+    incoming = _receiver_contact(state, windup, receiver_slot)
     # Hold our live depth on a shot instead of skating back to a fixed plane.
     # If the puck has passed us, retreat within the crease for a last-chance save.
     depth = max(236, min(254, max(state.team1.goalie.y * sign, y * sign)))
@@ -265,6 +280,7 @@ class GoalieController:
         self.last_effective = False
         self.last_passes = None
         self.pass_windup = None
+        self.incoming_pass = None
         self.hold_sample = None
         self.hold_tick = None
         self.hold_stride = 1
@@ -376,6 +392,38 @@ class GoalieController:
                 or self.frames - self.pass_windup[2] > 6):
             self.pass_windup = None
 
+    def _retained_receiver(self, state):
+        engine, opponent = state.engine, state.team2
+        opponent_touch = (engine.last_puck_player is not None
+                          and opponent.owns_scnum(engine.last_puck_player))
+        if (state.platform.name != 'genesis' or engine.clock_stopped
+                or engine.puck_owner >= 0 or not opponent_touch
+                or opponent.pass_attempts is None):
+            self.incoming_pass = None
+            return None
+        pending = self.incoming_pass
+        if pending is not None and (
+                engine.last_puck_player != pending.passer or opponent.pass_attempts != pending.passes
+                or state.period != pending.period or self.frames > pending.expires):
+            self.incoming_pass = None
+        target = engine.pass_target
+        if target is not None and target >= 0:
+            contact = _receiver_contact(state, None)
+            if contact is None:
+                self.incoming_pass = None
+            else:
+                self.incoming_pass = IncomingPass(engine.last_puck_player, target, opponent.pass_attempts,
+                                                 self.frames + min(40, math.ceil(contact[0]) + 4), state.period)
+            return None
+        pending = self.incoming_pass
+        if pending is not None:
+            # The native target word can be cleared while the receiver winds up.
+            # Recheck live interception geometry; never hold the old position.
+            if _receiver_contact(state, None, pending.receiver) is not None:
+                return pending.receiver
+            self.incoming_pass = None
+        return None
+
     def step(self, state, *, blocked=False):
         controller = self.validate(state)
         self.frames += 1
@@ -386,7 +434,9 @@ class GoalieController:
         if state.engine.puck_owner == slot and self.last_owner != slot and effective and self.last_effective:
             self._event('controlled_catches')
         self._pass_feedback(state)
-        plan = goalie_target(state, self.pass_windup)
+        receiver_slot = self._retained_receiver(state)
+        plan = (goalie_target(state, self.pass_windup) if receiver_slot is None else
+                goalie_target(state, self.pass_windup, receiver_slot=receiver_slot))
         self.diagnostics = {
             'phase': 'goalie', 'mode': self.phase, 'decision': self.phase, 'target': None,
             'destination': plan.target, 'waypoint': plan.target, 'actual_slot': actual,
@@ -394,6 +444,7 @@ class GoalieController:
             'crossing_frames': plan.crossing_frames, 'crossing_x': plan.crossing_x,
             'deadline': plan.deadline, 'reach_frames': goalie_arrival(goalie, plan.target),
             'receiver': plan.receiver, 'reception_frames': plan.reception_frames,
+            'retained_receiver_slot': receiver_slot,
             'hold_count': (state.engine.goalie_hold_counts[controller]
                            if state.engine.goalie_hold_counts is not None else None),
             'animation': goalie.live_anim, 'assignment': goalie.assignment,
@@ -657,7 +708,10 @@ class GoalieController:
             self.outlet = None
             self.phase = 'positioning'
             self.possession_since = self.frames - 90
-        elif (not request['launched'] and self.frames - request['started'] < 2
+        elif (not request['launched']
+              and (request['receiver'] is not None or self.frames - request['started'] < 2)
               and controlled_slot(state.team1) == state.team1.defense_goalie):
+            # The native goalie may sample the aim on the third frame. Keep it
+            # until the pass counter confirms launch, within the timeout above.
             return request['buttons'].copy()
         return neutral

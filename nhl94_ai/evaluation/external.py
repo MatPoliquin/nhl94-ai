@@ -141,15 +141,18 @@ def play_match(job):
     human = job.get('human', False)
     if side not in (1, 2) or opponent not in OPPONENTS or periods not in (1, 3):
         raise ValueError('Unsupported match configuration')
-    if human and opponent != 'external':
-        raise ValueError('Human external matches require an external adapter')
     args = SimpleNamespace(action_type='FILTERED', goalie_policy='selective',
                            goalie_planner=job.get('goalie_planner'),
                            goalie_positioning=job.get('goalie_positioning'))
     candidate = None if human else ClassicAIV1Model(args)
     other = (load_adapter(job['adapter'], side=3-side, seed=seed, config=job.get('adapter_config'))
              if opponent == 'external' else ClassicAIV1Model(
-                 SimpleNamespace(action_type='FILTERED', goalie_policy='selective')))
+                 SimpleNamespace(**job.get('classic_options', {
+                     'action_type': 'FILTERED', 'goalie_policy': 'selective'}))))
+    other_control = other
+    if opponent == 'classic' and job.get('classic_options', {}).get('classic_control_interval'):
+        from nhl94_ai.agents.control_rate import ControlRateLimit
+        other_control = ControlRateLimit(other, job['classic_options']['classic_control_interval'])
     try:
         env = make_retro(game='NHL94-Genesis-v0', state=FIXTURES[job['fixture']],
                          num_players=2, goalie_policy='selective')
@@ -196,6 +199,9 @@ def play_match(job):
         env.data.set_value('bench_clock', job.get('seconds', 300))
         env.data.update_ram()
         info = env.data.lookup_all()
+        recorder = job.get('_recorder')
+        if recorder is not None:
+            recorder.start(env, info, opponent_metadata=other.metadata if opponent == 'external' else None)
         # The Genesis serializer includes host pointers in sound-chip structs.
         # Its raw hash is useful within a process, but differs under ASLR.
         # At this pre-step boundary the same save and RAM edits identify the start.
@@ -247,7 +253,7 @@ def play_match(job):
                     if candidate.scheduler.decisions != before:
                         decisions[candidate._last_decision] += 1
                 if opponent == 'classic':
-                    other_buttons = other.predict_frame(views[2-side], frame_skip=job.get('frame_skip', 4))[0]
+                    other_buttons = other_control.predict_frame(views[2-side], frame_skip=job.get('frame_skip', 4))[0]
             buttons = np.concatenate((candidate_buttons, other_buttons) if side == 1
                                      else (other_buttons, candidate_buttons))
             if (intermission and info['period'] in (1, 2) and info['bench_clock'] == 300
@@ -258,8 +264,12 @@ def play_match(job):
                 if len(menu_frames) > 12:
                     raise RuntimeError('Intermission navigation stalled')
             digest.update(buttons.tobytes())
+            if recorder is not None:
+                recorder.before_step(env, info, other if human else candidate)
             _, _, terminated, truncated, info = env.step(buttons)
             frames += 1
+            if recorder is not None:
+                recorder.after_step(env, buttons, info)
             if (info['bench_team1'], info['bench_team2'], info['goalie_mode_1'], info['goalie_mode_2']) != (1, 2, 0, 0):
                 raise RuntimeError('Controller assignment or goalie setting changed')
             if info['bench_clock'] > 0:
@@ -304,7 +314,7 @@ def play_match(job):
             'effective_attributes': attributes, 'decisions': dict(decisions),
             'goalie_metrics': {
                 'candidate': dict(candidate.goalie.metrics) if candidate is not None else None,
-                'opponent': dict(other.goalie.metrics) if opponent == 'classic' else None,
+                'opponent': dict(other.goalie.metrics) if opponent == 'classic' and other.goalie is not None else None,
             },
             'goalie_planner': job.get('goalie_planner'),
             'goalie_positioning': None if human else resolve_goalie_positioning(args),
@@ -333,7 +343,7 @@ class MatchViewer:
     """Pace native frames, with optional human control of the local side."""
 
     def __init__(self, env, side, seed, info, *, human=False, no_gamepad=False,
-                 opponent_name='External adapter'):
+                 opponent_name='External adapter', local_name=None):
         import os
         os.environ.setdefault('PYGAME_HIDE_SUPPORT_PROMPT', '1')
         import pygame
@@ -346,7 +356,7 @@ class MatchViewer:
         self.frame = env.render()
         height, width = self.frame.shape[:2]
         self.screen = pygame.display.set_mode((width * 3, height * 3 + 60), pygame.RESIZABLE)
-        local_name = 'You' if human else 'Classic AI'
+        local_name = local_name or ('You' if human else 'Classic AI')
         pygame.display.set_caption(f'{opponent_name} vs {local_name} | seed {seed}')
         self.font = pygame.font.Font(None, 24)
         self.clock = pygame.time.Clock()
@@ -437,10 +447,13 @@ def build_parser():
                         help='Play against the adapter with keyboard/M30 at 60 Hz; choose --side home or away')
     parser.add_argument('--no-gamepad', action='store_true', help='Use keyboard only in human mode')
     parser.add_argument('--output', help='Explicit report path; no files are written by default')
+    parser.add_argument('--record-dir', help='New directory for Classic-versus-adapter replays, snapshots and results')
     return parser
 
 
 def validate_options(args):
+    if args.human and getattr(args, 'record_dir', None):
+        raise ValueError('--record-dir requires Classic versus the adapter; use record-human to record human versus Classic')
     if args.human and args.side == 'both':
         raise ValueError('Human play requires --side home or --side away')
     if args.pairs < 1 or args.frame_skip < 1 or not 1 <= args.seconds <= 300:
@@ -453,12 +466,29 @@ def validate_options(args):
 
 def run(args):
     validate_options(args)
+    record_dir = getattr(args, 'record_dir', None)
+    if record_dir:
+        record_dir = Path(record_dir).expanduser().resolve()
+        record_dir.mkdir(parents=True, exist_ok=False)
     sides = {'both': (1, 2), 'home': (1,), 'away': (2,)}[args.side]
     rows = []
     for seed in range(args.seed, args.seed+args.pairs):
         for side in sides:
             job = dict(vars(args), side=side, seed=seed, opponent='external')
-            row = play_match(job)
+            if record_dir:
+                from nhl94_ai.evaluation.human_recording import HumanRecording
+                recorder = HumanRecording(record_dir / f'seed-{seed}-side-{side}', job)
+                try:
+                    row = play_match({**job, '_recorder': recorder})
+                except BaseException as error:
+                    recorder.finish(error=f'{type(error).__name__}: {error}')
+                    raise
+                else:
+                    row = recorder.finish(row)
+                finally:
+                    recorder.close()
+            else:
+                row = play_match(job)
             rows.append(row)
             print(f"seed={seed} local_side={side} goals={row['goals']} "
                   f"frames={row['frames']} completed={row['completed']}", flush=True)
