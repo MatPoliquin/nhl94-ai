@@ -135,6 +135,7 @@ shot, one-timer, goalie and defense lifecycles.
         self.command_used = True
         self.input_owner = 'offense'
         self._last_decision = 'learned-' + ACTION_NAMES[command]
+        self._record_selection(self._last_decision)
         self.offense_diagnostics = {'command': ACTION_NAMES[command]}
         self.setup.cancel()
         if command < 9:
@@ -169,6 +170,7 @@ shot, one-timer, goalie and defense lifecycles.
             return result
         self.input_owner = 'shot'
         self._last_decision = 'shoot'
+        self._record_selection(self._last_decision)
         self.shot.side = -1 if state.team2.goalie.x > 0 else 1
         hold = self.interval if command == 17 else 18
         result = self._start_shot(state, action, hold)
@@ -205,6 +207,7 @@ shot, one-timer, goalie and defense lifecycles.
         if dy:
             result[Buttons.INPUT_UP if dy > 0 else Buttons.INPUT_DOWN] = 1
         self._last_decision = 'learned-carry-' + ACTION_NAMES[command]
+        self._record_selection(self._last_decision)
         self._last_target = player.x + dx * 30, player.y + dy * 30
         self.offense_diagnostics['carry_command'] = ACTION_NAMES[command]
         return result, HOCKEY_INTENT_NOOP

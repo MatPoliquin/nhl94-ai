@@ -5,6 +5,37 @@ from typing import Literal
 
 
 @dataclass(frozen=True)
+class SelectedDecision:
+    """Producer-owned selection; snapshots only serialize this executed evidence."""
+    phase: str
+    plan_id: str | None
+    execution_id: str | None = None
+    active_mode: Literal['offense', 'defense', 'goalie'] = 'offense'
+    evidence_source: Literal['offense', 'defense', 'goalie'] = 'offense'
+
+
+def defense_selection_ids(decision, details):
+    mode = details.get('mode')
+    execution = {'check-follow-through': 'check-request', 'waiting-for-selection': 'wait'}.get(mode, mode)
+    return details.get('decision', decision), execution
+
+
+def goalie_selection_id(phase, outlet, decision):
+    if phase in ('possession-outlet', 'outlet-flight'):
+        return ('goalie-clear' if outlet and outlet['receiver'] is None else
+                'goalie-outlet' if outlet else 'goalie-hold')
+    groups = {
+        'prepare-goalie': 'goalie-takeover', 'request-goalie': 'goalie-takeover',
+        'release-goalie': 'goalie-takeover', 'positioning': 'goalie-positioning',
+        'save-request': 'goalie-save', 'dive-request': 'goalie-dive',
+        'save-recovery': 'goalie-save', 'cpu-fallback': 'goalie-fallback',
+        'request-skater': 'goalie-return', 'neutral-handoff': 'goalie-return',
+        'backoff': 'goalie-fallback', 'stoppage': 'wait', 'skater': 'wait',
+    }
+    return groups.get(phase, f'unknown:{decision}')
+
+
+@dataclass(frozen=True)
 class DecisionScore:
     kind: str
     value: float
@@ -167,13 +198,10 @@ def _pass_candidate(player, slot, details, *, one_timer, owner, controlled, fram
         evaluated_frame=frame if status != 'not-evaluated' else None)
 
 
-def _selected_ids(decision, offense, defense, goalie, controller):
+def _legacy_selected_ids(decision, offense, defense, goalie, controller):
     target = offense.get('desired_slot')
     if defense:
-        mode = defense.get('mode')
-        execution = {'check-follow-through': 'check-request',
-                     'waiting-for-selection': 'wait'}.get(mode, mode)
-        return defense.get('decision', decision), execution
+        return defense_selection_ids(decision, defense)
     if decision.startswith('receive-pass'):
         return f'pass:{target}', None
     if decision in ('advance-pass', 'position-pass', 'pass-release', 'pass-flight'):
@@ -195,24 +223,13 @@ def _selected_ids(decision, offense, defense, goalie, controller):
         return decision, None
     if decision.startswith('goalie-') and decision != 'goalie-avoid':
         phase = goalie.get('mode', controller.goalie.phase if controller.goalie else '')
-        if phase == 'possession-outlet' or phase == 'outlet-flight':
-            outlet = controller.goalie.outlet if controller.goalie else None
-            return ('goalie-clear' if outlet and outlet['receiver'] is None else
-                    'goalie-outlet' if outlet else 'goalie-hold'), None
-        groups = {
-            'prepare-goalie': 'goalie-takeover', 'request-goalie': 'goalie-takeover',
-            'release-goalie': 'goalie-takeover', 'positioning': 'goalie-positioning',
-            'save-request': 'goalie-save', 'dive-request': 'goalie-dive',
-            'save-recovery': 'goalie-save', 'cpu-fallback': 'goalie-fallback',
-            'request-skater': 'goalie-return', 'neutral-handoff': 'goalie-return',
-            'backoff': 'goalie-fallback', 'stoppage': 'wait', 'skater': 'wait',
-        }
-        return groups.get(phase, f'unknown:{decision}'), None
+        outlet = controller.goalie.outlet if controller.goalie else None
+        return goalie_selection_id(phase, outlet, decision), None
     return {'recover': 'recover-safe', 'switch': 'switch-request', 'init': 'wait',
             'one-timer-ended': 'wait'}.get(decision, decision), None
 
 
-def _active_evidence(controller):
+def _legacy_active_evidence(controller):
     """Follow the executed branch, not background/manual-goalie observations."""
     if controller.defense_diagnostics:
         return 'defense', controller.defense_diagnostics
@@ -246,7 +263,14 @@ def classic_decision_snapshot(controller, state, action):
     defense = controller.defense_diagnostics
     goalie = controller.goalie_diagnostics
     decision = controller._last_decision
-    active_mode, evidence = _active_evidence(controller)
+    selected = getattr(controller, 'selection_evidence', None)
+    if selected is not None and selected.phase != decision:
+        selected = None  # Older archives and explicitly injected legacy diagnostics.
+    if selected is None:
+        active_mode, evidence = _legacy_active_evidence(controller)
+    else:
+        active_mode = selected.active_mode
+        evidence = {'offense': offense, 'defense': defense, 'goalie': goalie}[selected.evidence_source]
     frame = controller.scheduler.frames
     evaluated = offense.get('evaluation_frame')
     controlled = state.team1.controlled_scnum() if state.team1.defense_control is None else state.team1.defense_control
@@ -310,7 +334,8 @@ def classic_decision_snapshot(controller, state, action):
                 candidate = ActionCandidate(candidate.action_id, candidate.label, candidate.group, slot,
                                             source='Classic rules', status='disabled', reason='feature off')
             candidates.append(candidate)
-    plan, execution = _selected_ids(decision, offense, defense, goalie, controller)
+    plan, execution = ((selected.plan_id, selected.execution_id) if selected is not None else
+                       _legacy_selected_ids(decision, offense, defense, goalie, controller))
     if active_mode == 'goalie':
         candidates.extend(_outlet_candidates(state, evidence, frame))
     if active_mode == 'defense' and decision == 'goalie-avoid':

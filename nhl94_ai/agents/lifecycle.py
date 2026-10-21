@@ -165,6 +165,7 @@ class ActionStep:
     decision: str
     target: tuple | None = None
     diagnostics: dict = field(default_factory=dict)
+    plan_id: str | None = None
 
 
 @dataclass
@@ -314,7 +315,7 @@ class PassLifecycle:
                        'target': target, 'destination': target, 'waypoint': target,
                        'actual_slot': actual, 'desired_slot': slot,
                        'reception_correction': correction.snapshot(), 'buttons': action.tolist()}
-        return ActionStep(action, intent, mode, target, diagnostics)
+        return ActionStep(action, intent, mode, target, diagnostics, plan_id=f'pass:{slot}')
 
 
 @dataclass
@@ -427,4 +428,4 @@ class OneTimerLifecycle:
             mode = 'one-timer-early-cue'
         return ActionStep(action, HOCKEY_INTENT_NOOP, mode, target,
                           {'desired_slot': request.receiver, 'reason': 'wait for one-timer contact',
-                           'actual_receiver': request.actual_receiver})
+                           'actual_receiver': request.actual_receiver}, plan_id=f'one-timer:{request.receiver}')

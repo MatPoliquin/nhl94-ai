@@ -19,7 +19,7 @@ from nhl94_ai.agents.multi_model import NHL94AISystem
 from nhl94_ai.game.constants import GameConsts
 from nhl94_ai.evaluation.benchmark import away_view
 from tests.support.display import debug_display, initialize_pygame
-from tests.support.offense import offense_state
+from tests.support.offense import live_one_timer_state, offense_state
 
 
 def neural_snapshot():
@@ -43,6 +43,18 @@ def mode_snapshot(mode, frame):
 
 
 class DecisionContractTests(unittest.TestCase):
+    def test_executed_selection_does_not_reinspect_private_commitments(self):
+        controller, state = ClassicAIV1Model(), live_one_timer_state()
+        action = controller.predict_frame(state)[0]
+        selected = controller.selection_evidence
+        self.assertTrue(selected.plan_id.startswith('one-timer:'))
+        with patch.object(controller, 'one_timer', object()), \
+                patch('nhl94_ai.agents.decisions._legacy_selected_ids', side_effect=AssertionError('legacy parsing')), \
+                patch('nhl94_ai.agents.decisions._legacy_active_evidence', side_effect=AssertionError('legacy parsing')):
+            snapshot = classic_decision_snapshot(controller, state, action)
+        self.assertEqual(snapshot.plan_id, selected.plan_id)
+        self.assertEqual(snapshot.phase, selected.phase)
+
     def test_probability_validation_preserves_zero_and_requires_scope(self):
         candidate = ActionCandidate('shoot', 'Shoot', 'Offense', probability=0, probability_scope='finish/action')
         self.assertEqual(candidate.probability, 0)

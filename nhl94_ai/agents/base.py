@@ -28,6 +28,13 @@ class Agent(Protocol):
 
 
 class ScriptedAgent:
+    """The supported game-state adapter: act returns applied input and evidence.
+
+    Set frame_skip for reactive frame execution; strict control intervals hold
+    both input and the prior snapshot. predict_game_state preserves the legacy
+    batch shape. New component integrations use controller explicitly; attribute
+    forwarding remains for existing playback and evaluation callers.
+    """
     input_schema = 'game-state'
 
     def __init__(self, controller_class, args, env=None):

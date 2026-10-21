@@ -224,7 +224,7 @@ def run(args):
         }
     root = Path(__file__).resolve().parents[2]
     files = ('nhl94_ai/agents/deke.py', 'nhl94_ai/agents/classic_v1.py',
-             'nhl94_ai/agents/classic_options.py', 'nhl94_ai/agents/classic_components.py', 'nhl94_ai/agents/history.py', 'nhl94_ai/agents/classic_resources.py',
+             'nhl94_ai/agents/classic_options.py', 'nhl94_ai/agents/classic_components.py', 'nhl94_ai/agents/history.py', 'nhl94_ai/agents/classic_resources.py', 'nhl94_ai/agents/decisions.py',
              'nhl94_ai/game/actors.py', 'nhl94_ai/game/forecast.py', 'nhl94_ai/game/motion.py',
              'nhl94_ai/game/passing.py', 'nhl94_ai/game/shooting.py', 'nhl94_ai/game/skating.py',
              'nhl94_ai/game/platforms/base.py', 'nhl94_ai/game/platforms/genesis.py', 'nhl94_ai/game/platforms/snes.py',

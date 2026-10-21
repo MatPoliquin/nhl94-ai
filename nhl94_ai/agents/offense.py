@@ -3,6 +3,7 @@ from nhl94_ai.game.forecast import clone_forecast, project_body, set_position
 from copy import copy
 from dataclasses import asdict, replace
 import math
+from typing import NamedTuple
 
 from nhl94_ai.agents.classic_tuning import current as tuning
 
@@ -17,7 +18,7 @@ from nhl94_ai.game.motion import (
     velocity,
 )
 from nhl94_ai.game.motion import direction as console_direction
-from nhl94_ai.agents.passing import evaluate_pass, one_timer_position_ok, pressure_margin, shot_value
+from nhl94_ai.agents.passing import PassOption, evaluate_pass, one_timer_position_ok, pressure_margin, shot_value
 from nhl94_ai.game.passing import (
     one_timer_contact_frame, pass_contact, pass_point_at, pass_release_frames, option_receiver,
 )
@@ -34,6 +35,19 @@ GOALIE_SHOT_CLEARANCE = 24
 GOALIE_HORIZON = 32
 SHOT_RELEASE_DELAY = 2
 CARRY_SAMPLES = (4, 8, 12, FEINT_FRAMES)
+
+
+class OffensePlan(NamedTuple):
+    """Selected tactical proposal, retaining the historical three-item tuple API."""
+    mode: str
+    target: tuple
+    option: PassOption | None = None
+
+    def diagnostics(self, actual, reason, last_pass):
+        return dict(mode=self.mode, decision=self.mode, reason=reason, target=self.target,
+                    destination=self.target, waypoint=self.target, actual_slot=actual,
+                    desired_slot=self.option.slot if self.option else actual,
+                    receiver=asdict(self.option) if self.option else None, last_pass=last_pass)
 
 
 
@@ -599,12 +613,8 @@ class OffenseController:
                 'reason': first[1].get('reason', 'verified carrying route with contact and interception clearance'),
             }
         sign = 1 if state.team2.net.y > state.team1.net.y else -1
-        fx, fy = facing(player)
-        brake = player.x - fx * 48, player.y - fy * 48
-        targets = [brake, (player.x, player.y)]
-        targets.extend((player.x + dx, player.y + sign * dy)
-                       for dx, dy in ((-48, 0), (48, 0), (0, -48), (-48, -24), (48, -24),
-                                      (-48, 24), (48, 24)))
+        targets = self._fallback_targets(player, sign)
+        brake = targets[0]
         targets.extend((player.x + dx, player.y + sign * dy)
                        for dx in (-12, 12, -24, 24) for dy in (0, 24))
         options = [first, *(self._carry_option(state, player, target) for target in targets)]
@@ -762,11 +772,9 @@ class OffenseController:
 
     def _plan(self, state, mode, target, reason, option=None):
         actual = controlled_slot(state.team1)
-        self.diagnostics.update(
-            mode=mode, decision=mode, reason=reason, target=target, destination=target, waypoint=target,
-            actual_slot=actual, desired_slot=option.slot if option else actual,
-            receiver=asdict(option) if option else None, last_pass=self.pass_action.last_pass)
-        return mode, target, option
+        plan = OffensePlan(mode, target, option)
+        self.diagnostics.update(plan.diagnostics(actual, reason, self.pass_action.last_pass))
+        return plan
 
     def _passing_window(self, state, frame=0):
         windows = []
@@ -847,8 +855,7 @@ class OffenseController:
                 or option.opportunity > current + 12)
         return option.opportunity > current + 12
 
-    def choose(self, state, frame):
-        self.risk_cache.clear()
+    def _begin_choice(self, state, frame):
         player = state.team1.get_player_by_scnum(state.engine.puck_owner)
         self.diagnostics = {
             'candidates': [], 'scenario_samples': 8,
@@ -858,20 +865,9 @@ class OffenseController:
                 or player.motion_y is None or not state.engine.puck_owner_known):
             self.diagnostics['status'] = 'missing-feedback'
             return None
-        sign = 1 if state.team2.net.y > state.team1.net.y else -1
-        purpose = 'advance' if player.y * sign < 140 else 'position'
-        choices, self.diagnostics['candidates'] = self.passes(state, purpose)
-        retained_value, retained = self.retained_opportunity(state, player)
-        current = shot_value(state, player)
-        retained_progress = retained[1]['carry_progress'] if retained else 0
-        self.diagnostics.update(retained_value=retained_value, retained_carry=retained,
-                                retained_progress=retained_progress)
-        choices = [option for option in choices if self._worthwhile(
-            option, player, sign, purpose, retained_value, retained_progress)]
-        worthwhile_slots = {option.slot for option in choices}
-        for candidate in self.diagnostics['candidates']:
-            if candidate['status'] == 'safe':
-                candidate['worthwhile'] = candidate['slot'] in worthwhile_slots
+        return player
+
+    def _close_to_finish(self, state, player, sign):
         params = tuning()
         finish_depth = params.normal_shot_depth - 20 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * params.shot_accuracy_depth_scale
         if (player.y * sign > finish_depth and abs(player.x) < params.normal_shot_half_width
@@ -879,16 +875,10 @@ class OffenseController:
                 and pressure_margin(state.team2, (player.x, player.y), 8) >= 3):
             self.feint_target = None
             self.diagnostics['status'] = 'close-to-finish'
-            return None
-        if self.breakaway(state, player):
-            self.feint_target = None
-            return self._plan(state, 'carry-breakaway', self.carry_target(state, player),
-                              'no reachable skater interception')
-        if self.chance_creation and self.feint_target is None:
-            chance = self._create_chance(state, player, frame)
-            if chance is not None:
-                return chance
-        opportunity = max(current, choices[0].opportunity + min(choices[0].margin, 12) if choices else 0)
+            return True
+        return False
+
+    def _pass_or_cut(self, state, player, frame, choices, purpose, opportunity):
         if self.feint_mode == 'one-timer-setup':
             continuation = self._continue_cut(state, player, frame)
             if continuation:
@@ -907,6 +897,56 @@ class OffenseController:
         cut = self._feint(state, player, frame, opportunity)
         if cut:
             return cut
+        return None
+
+    def _mark_worthwhile(self, choices):
+        worthwhile_slots = {option.slot for option in choices}
+        for candidate in self.diagnostics['candidates']:
+            if candidate['status'] == 'safe':
+                candidate['worthwhile'] = candidate['slot'] in worthwhile_slots
+
+    def _breakaway_plan(self, state, player, reason):
+        self.feint_target = None
+        return self._plan(state, 'carry-breakaway', self.carry_target(state, player), reason)
+
+    @staticmethod
+    def _fallback_targets(player, sign):
+        fx, fy = facing(player)
+        brake = player.x - fx * 48, player.y - fy * 48
+        targets = [brake, (player.x, player.y)]
+        targets.extend((player.x + dx, player.y + sign * dy)
+                       for dx, dy in ((-48, 0), (48, 0), (0, -48), (-48, -24), (48, -24),
+                                      (-48, 24), (48, 24)))
+        return targets
+
+    def choose(self, state, frame):
+        self.risk_cache.clear()
+        player = self._begin_choice(state, frame)
+        if player is None:
+            return None
+        sign = 1 if state.team2.net.y > state.team1.net.y else -1
+        purpose = 'advance' if player.y * sign < 140 else 'position'
+        choices, self.diagnostics['candidates'] = self.passes(state, purpose)
+        retained_value, retained = self.retained_opportunity(state, player)
+        current = shot_value(state, player)
+        retained_progress = retained[1]['carry_progress'] if retained else 0
+        self.diagnostics.update(retained_value=retained_value, retained_carry=retained,
+                                retained_progress=retained_progress)
+        choices = [option for option in choices if self._worthwhile(
+            option, player, sign, purpose, retained_value, retained_progress)]
+        self._mark_worthwhile(choices)
+        if self._close_to_finish(state, player, sign):
+            return None
+        if self.breakaway(state, player):
+            return self._breakaway_plan(state, player, 'no reachable skater interception')
+        if self.chance_creation and self.feint_target is None:
+            chance = self._create_chance(state, player, frame)
+            if chance is not None:
+                return chance
+        opportunity = max(current, choices[0].opportunity + min(choices[0].margin, 12) if choices else 0)
+        selected = self._pass_or_cut(state, player, frame, choices, purpose, opportunity)
+        if selected is not None:
+            return selected
         if retained is not None and carry_value(retained[1]) > POSITIONAL_CREDIT * current + 10:
             self.diagnostics.update(retained[1])
             return self._plan(state, 'carry-opportunity', retained[0],

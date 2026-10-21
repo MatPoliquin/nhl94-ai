@@ -67,12 +67,8 @@ class PossessionOffenseController(OffenseController):
                 'reason': 'model-based forward route; defender safety uncertified',
             }
         sign = 1 if state.team2.net.y > state.team1.net.y else -1
-        fx, fy = facing(player)
-        brake = player.x - fx * 48, player.y - fy * 48
-        targets = [brake, (player.x, player.y)]
-        targets.extend((player.x + dx, player.y + sign * dy)
-                       for dx, dy in ((-48, 0), (48, 0), (0, -48), (-48, -24), (48, -24),
-                                      (-48, 24), (48, 24)))
+        targets = self._fallback_targets(player, sign)
+        brake = targets[0]
         options = [first, *(self._estimated_carry(state, player, target) for target in targets)]
         bounded = [option for option in options if option[1]['carry_bounded']]
         if not bounded:
@@ -105,52 +101,22 @@ class PossessionOffenseController(OffenseController):
     def choose(self, state, frame):
         if self.allow_uncertified or self.chance_creation:
             return super().choose(state, frame)
-        player = state.team1.get_player_by_scnum(state.engine.puck_owner)
-        self.diagnostics = {'candidates': [], 'scenario_samples': 8,
-                            'evaluation_frame': frame, 'evaluation_carrier': state.engine.puck_owner}
-        if (player is None or not controllable_skater(player) or player.motion_x is None
-                or player.motion_y is None or not state.engine.puck_owner_known):
-            self.diagnostics['status'] = 'missing-feedback'
+        player = self._begin_choice(state, frame)
+        if player is None:
             return None
         sign = 1 if state.team2.net.y > state.team1.net.y else -1
         purpose = 'advance' if player.y * sign < 140 else 'position'
         choices, self.diagnostics['candidates'] = self.passes(state, purpose)
-        params = tuning()
-        finish_depth = params.normal_shot_depth - 20 + max(0, 15 - (player.shot_accuracy if player.shot_accuracy is not None else 15)) * params.shot_accuracy_depth_scale
-        if (player.y * sign > finish_depth and abs(player.x) < params.normal_shot_half_width
-                and shot_release_in_front(state, player, self.shot_hold_frames)
-                and pressure_margin(state.team2, (player.x, player.y), 8) >= 3):
-            self.feint_target = None
-            self.diagnostics['status'] = 'close-to-finish'
+        if self._close_to_finish(state, player, sign):
             return None
         if self.breakaway(state, player):
-            self.feint_target = None
-            return self._plan(state, 'carry-breakaway', self.carry_target(state, player),
-                              'no reachable skater interception in the arrival estimate')
+            return self._breakaway_plan(state, player, 'no reachable skater interception in the arrival estimate')
         current = shot_value(state, player)
         choices = [option for option in choices if self._immediate_gain(option, player, sign, purpose, current)]
-        worthwhile_slots = {option.slot for option in choices}
-        for candidate in self.diagnostics['candidates']:
-            if candidate['status'] == 'safe':
-                candidate['worthwhile'] = candidate['slot'] in worthwhile_slots
+        self._mark_worthwhile(choices)
         opportunity = max(current, choices[0].shot_value + min(choices[0].margin, 12) if choices else 0)
-        if self.feint_mode == 'one-timer-setup':
-            continuation = self._continue_cut(state, player, frame)
-            if continuation:
-                return continuation
-        if choices and frame >= self.pass_at:
-            best = choices[0]
-            if purpose == 'position':
-                setup = self._feint(state, player, frame, opportunity, one_timer_only=True)
-                if setup:
-                    return setup
-            return self._plan(state, 'advance-pass' if purpose == 'advance' else 'position-pass',
-                              best.point, 'advance beyond defenders with reception space', best)
-        continuation = self._continue_cut(state, player, frame)
-        if continuation:
-            return continuation
-        cut = self._feint(state, player, frame, opportunity)
-        if cut:
-            return cut
+        selected = self._pass_or_cut(state, player, frame, choices, purpose, opportunity)
+        if selected is not None:
+            return selected
         self.diagnostics['status'] = 'no-better-safe-option'
         return None
