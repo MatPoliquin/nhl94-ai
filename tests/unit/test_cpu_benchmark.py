@@ -14,7 +14,7 @@ class ExecutionBenchmarkContracts(unittest.TestCase):
     def test_rebound_flag_reaches_each_trial_and_reports_actual_replans(self):
         args = build_parser().parse_args(['--rebound-recovery', '--trials', '1'])
         fixtures = []
-        def match(fixture):
+        def match(fixture, **_options):
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                         goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
@@ -35,7 +35,7 @@ class ExecutionBenchmarkContracts(unittest.TestCase):
             for flags in (['--reception-control'], ['--shot-placement', str(model)]):
                 args = build_parser().parse_args([*flags, '--trials', '1'])
                 fixtures = []
-                def match(fixture, collect=fixtures.append):
+                def match(fixture, collect=fixtures.append, **_options):
                     collect(fixture)
                     return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                                 goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
@@ -54,7 +54,7 @@ class ExecutionBenchmarkContracts(unittest.TestCase):
         for mode in ('early-cue', 'release-retry'):
             args = build_parser().parse_args(['--one-timer-execution', mode, '--trials', '1'])
             fixtures = []
-            def match(fixture, collect=fixtures.append):
+            def match(fixture, collect=fixtures.append, **_options):
                 collect(fixture)
                 return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                             goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
@@ -81,11 +81,26 @@ class ExecutionBenchmarkContracts(unittest.TestCase):
                 EnvironmentConfig.from_args(args)
 
 
+    def test_explicit_classic_goalie_positioning_reaches_manual_trials(self):
+        for policy in ('selective', 'always'):
+            with self.subTest(policy=policy):
+                args = build_parser().parse_args([
+                    '--matchups', 'sabres-ducks-manual', 'ducks-sabres-manual',
+                    '--goalie-policy', policy, '--goalie-positioning', 'classic', '--trials', '1'])
+                def match(fixture, *, goalie_positioning=None):
+                    self.assertEqual(goalie_positioning, 'classic')
+                    return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
+                                goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
+                with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=match), patch('builtins.print'):
+                    report = run(args)
+                self.assertEqual(report['settings']['goalie_positioning'], 'classic')
+
+
 class CpuBenchmarkContracts(unittest.TestCase):
     def test_receiver_profile_reaches_trials_without_changing_other_options(self):
         args = build_parser().parse_args(['--receiver-selection', 'value', '--trials', '1'])
         fixtures = []
-        def match(fixture):
+        def match(fixture, **_options):
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                         goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
@@ -103,7 +118,7 @@ class CpuBenchmarkContracts(unittest.TestCase):
         for profile in ('legacy', 'rank', 'continuations', 'risk', 'continuations-risk'):
             args = build_parser().parse_args(['--possession-ablation', profile, '--trials', '1'])
             fixtures = []
-            def match(fixture, collect=fixtures.append):
+            def match(fixture, collect=fixtures.append, **_options):
                 collect(fixture)
                 return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                             goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
@@ -121,7 +136,7 @@ class CpuBenchmarkContracts(unittest.TestCase):
             '--possession-value', '--cross-crease', '--deke',
             '--classic-refinements', 'pass-timing', '--trials', '1'])
         fixtures = []
-        def match(fixture):
+        def match(fixture, **_options):
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                         goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
@@ -140,7 +155,7 @@ class CpuBenchmarkContracts(unittest.TestCase):
         args = build_parser().parse_args([
             '--classic-refinements', 'pass-timing', 'interceptions', '--trials', '1', '--deke'])
         fixtures = []
-        def match(fixture):
+        def match(fixture, **_options):
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                         goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
@@ -156,7 +171,7 @@ class CpuBenchmarkContracts(unittest.TestCase):
 
     def test_lookahead_flag_reaches_trials_and_preserves_other_options(self):
         fixtures = []
-        def match(fixture):
+        def match(fixture, **_options):
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                         goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
@@ -173,7 +188,7 @@ class CpuBenchmarkContracts(unittest.TestCase):
         args = build_parser().parse_args(
             ['--chance-creation', '--uncertain-carry', '--deke', '--cross-crease', '--trials', '1'])
         fixtures = []
-        def match(fixture):
+        def match(fixture, **_options):
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                         goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
@@ -186,7 +201,7 @@ class CpuBenchmarkContracts(unittest.TestCase):
     def test_uncertain_carry_flag_reaches_every_trial(self):
         args = build_parser().parse_args(['--uncertain-carry', '--trials', '1'])
         fixtures = []
-        def match(fixture):
+        def match(fixture, **_options):
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                         goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})
@@ -227,7 +242,7 @@ class CpuBenchmarkContracts(unittest.TestCase):
     def test_cross_crease_option_reaches_each_trial_and_report(self):
         args = build_parser().parse_args(['--cross-crease', '--trials', '1'])
         fixtures = []
-        def match(fixture):
+        def match(fixture, **_options):
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                         goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
@@ -365,7 +380,7 @@ class CpuBenchmarkContracts(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / 'partial.json'
             args = build_parser().parse_args(['--trials', '1', '--output', str(path)])
-            def partial(fixture):
+            def partial(fixture, **_options):
                 return {'matchup': fixture[1], 'completed': False}
             with patch('nhl94_ai.evaluation.cpu_benchmark.cpu_match', side_effect=partial), patch('builtins.print'):
                 with self.assertRaisesRegex(RuntimeError, 'Incomplete CPU'):

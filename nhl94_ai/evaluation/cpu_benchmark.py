@@ -453,13 +453,13 @@ def run(args):
     goalie_digest = hashlib.sha256(goalie_path.read_bytes()).hexdigest() if goalie_path else None
     sources = {str(path.relative_to(root)):
                hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
-    match_options = {}
+    # Forward the resolved choice even when it is "classic": omitting it lets
+    # cpu_match choose the automatic deep-csave default for manual goalies.
+    match_options = {'goalie_positioning': args.goalie_positioning}
     if interval:
         match_options['classic_control_interval'] = interval
     if getattr(args, 'goalie_planner', None):
         match_options['goalie_planner'] = args.goalie_planner
-    if getattr(args, 'goalie_positioning', 'classic') != 'classic':
-        match_options['goalie_positioning'] = args.goalie_positioning
     match = partial(cpu_match, **match_options) if match_options else cpu_match
     if args.workers == 1:
         results = [match(fixture) for fixture in fixtures]

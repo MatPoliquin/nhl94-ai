@@ -125,7 +125,7 @@ class CrossingFinishContracts(unittest.TestCase):
     def test_benchmark_flag_reaches_trials(self):
         args = build_parser().parse_args(['--opportunistic-cross-crease', '--trials', '1'])
         fixtures = []
-        def match(fixture):
+        def match(fixture, **_options):
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=MATCHUPS[fixture[1]][1], completed=True,
                         goals=[0, 0], one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},

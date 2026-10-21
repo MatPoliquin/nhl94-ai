@@ -134,7 +134,7 @@ class ControlRateContracts(unittest.TestCase):
     def test_cpu_benchmark_passes_custom_interval_as_named_option(self):
         from nhl94_ai.evaluation.cpu_benchmark import build_parser, run
         args = build_parser().parse_args(['--classic-control-interval', '10', '--trials', '1'])
-        def match(fixture, *, classic_control_interval):
+        def match(fixture, *, classic_control_interval, **_options):
             self.assertEqual(classic_control_interval, 10)
             return dict(matchup=fixture[1], side=1, completed=True, goals=[0, 0],
                         one_timers=[0, 0], one_timer_goals=[0, 0], decisions={})

@@ -309,7 +309,7 @@ class ClassicDekeContracts(unittest.TestCase):
     def test_cpu_trials_preserve_deke_options_and_aggregate_events(self):
         from nhl94_ai.evaluation import cpu_benchmark
         fixtures = []
-        def match(fixture):
+        def match(fixture, **_options):
             fixtures.append(fixture)
             return dict(matchup=fixture[1], side=1, completed=True, goals=[0, 0],
                         one_timers=[0, 0], one_timer_goals=[0, 0], decisions={},
