@@ -35,6 +35,8 @@ class NHL94AISystem():
         self.game_state = NHL94GameState(num_players_per_team, platform=get_game(args.env).backend)
 
         self.models = [None, None, None]
+        # Each slot is an independent controller stream, even for the same policy.
+        self._learned_agents = {}
         self.model_params = [None, None, None]
         self.display_probs = (1,0,0,0,0,0,0,0,0,0,0,0,0)
         self.model_in_use = 0
@@ -44,6 +46,13 @@ class NHL94AISystem():
     def SetModels(self, model_paths):
         if self.args.action_type.upper() == 'TARGET_POSITION':
             raise ValueError('TARGET_POSITION is not supported by the button-based multi-model system')
+        self.models = [None, None, None]
+        self.model_params = [None, None, None]
+        self._learned_agents.clear()
+        self.model_in_use = 0
+        self.shooting = self.pass_button_pressed = False
+        self.scoregoal_state = None
+        self.last_diagnostics = {}
         i=1
         self.num_models = 0
         for p in model_paths:
@@ -62,9 +71,38 @@ class NHL94AISystem():
                     getattr(self.args, "hyperparams_dict", None),
                 )
                 self.model_params[i] = get_num_parameters(self.models[i])
+                self._prediction_agent(i)
                 self.num_models += 1
                 self.model_in_use = i
             i += 1
+
+    def _prediction_agent(self, model_index):
+        """Switching resumes a slot; replacing its model starts a fresh stream."""
+        from nhl94_ai.agents.base import LearnedAgent
+        model = self.models[model_index]
+        if hasattr(model, 'act'):
+            return model
+        # Historical integrations may construct the system without __init__.
+        if not hasattr(self, '_learned_agents'):
+            self._learned_agents = {}
+        cached = self._learned_agents.get(model_index)
+        if cached is None or cached[0] is not model:
+            cached = model, LearnedAgent(model, self.args.action_type)
+            self._learned_agents[model_index] = cached
+        return cached[1]
+
+    def reset(self):
+        """End the episode for every stream, including currently inactive slots."""
+        self.shooting = self.pass_button_pressed = False
+        self.scoregoal_state = None
+        self.last_diagnostics = {}
+        for index, model in enumerate(self.models):
+            if model is None:
+                continue
+            agent = self._prediction_agent(index)
+            agent.reset()
+            if agent is not model and hasattr(model, 'reset'):
+                model.reset()
 
     def GotoTarget(self, p1_actions, target_vec):
         if target_vec[0] > 0:
@@ -83,12 +121,8 @@ class NHL94AISystem():
         return math.sqrt(tmp)
 
     def Predict(self, model_index, model_input, deterministic):
-        model = self.models[model_index]
-        from nhl94_ai.agents.base import AgentInput, LearnedAgent
-        if not hasattr(model, 'act'):
-            agent = LearnedAgent(model, self.args.action_type)
-        else:
-            agent = model
+        from nhl94_ai.agents.base import AgentInput
+        agent = self._prediction_agent(model_index)
         game_state = self.game_state
         if getattr(self.args, 'side', 'home') == 'away':
             game_state = copy(game_state)

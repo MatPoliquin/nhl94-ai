@@ -330,11 +330,19 @@ class NHL94Player:
         """Game loop for model vs model mode"""
         state = self.play_env.reset()
         self._reset_playback_timer()
+        for side in ('p1', 'p2'):
+            model = getattr(self, side + '_model')
+            agent = getattr(self, side + '_agent', None)
+            if agent is None or agent.model is not model:
+                agent = LearnedAgent(model, self.args.action_type)
+                setattr(self, side + '_agent', agent)
+            agent.reset()
 
         while True:
             self._wait_for_display(self.play_env)
-            p1_actions = self.p1_model.predict(state)[0]  # Get the action array directly
-            p2_actions = self.p2_model.predict(state)[0]  # Get the action array directly
+            # This compatibility mode historically uses predict()'s sampled default.
+            p1_actions = self.p1_agent.act(AgentInput(None, state), deterministic=False).action
+            p2_actions = self.p2_agent.act(AgentInput(None, state), deterministic=False).action
 
             self.play_env.p1_action_probabilities = get_model_probabilities(self.p1_model, state)[0]
             self.play_env.p2_action_probabilities = get_model_probabilities(self.p2_model, state)[0]
@@ -345,7 +353,9 @@ class NHL94Player:
             state, _, done, _ = self.play_env.step(actions)
             self._throttle_display_frame()
 
-            if done:
+            if np.any(done):
+                self.p1_agent.reset()
+                self.p2_agent.reset()
                 if continuous:
                     if need_reset:
                         state = self.play_env.reset()
@@ -361,6 +371,8 @@ class NHL94Player:
         reward_available = True
         scripted = self.args.nn in CONTROLLERS and self.args.mode != 'player_vs_game'
         info = self._scripted_reset_info() if scripted else None
+        if not scripted and self.args.mode != 'player_vs_game':
+            self.ai_sys.reset()
 
         while True:
             self._wait_for_display()
@@ -398,8 +410,8 @@ class NHL94Player:
                     reward_available &= info[0].get('reward_status') != 'unavailable'
                     total_rewards += reward
                     self._throttle_display_frame()
-                if scripted and np.any(done):
-                    if self.args.mode in TEAM_MODES:
+                if self.args.mode != 'player_vs_game' and np.any(done):
+                    if not scripted or self.args.mode in TEAM_MODES:
                         self.ai_sys.reset()
                     else:
                         for model in self.ai_sys.models:
@@ -417,6 +429,10 @@ class NHL94Player:
                         self._reset_playback_timer()
                     if scripted:
                         info = self._scripted_reset_info()
+                    else:
+                        # VecEnv's observation already belongs to the new episode.
+                        # Do not pair it with the terminal episode's RAM feedback.
+                        info = None
                 else:
                     return info, total_rewards if reward_available else None
 

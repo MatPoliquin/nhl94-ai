@@ -109,6 +109,7 @@ def configure_scripted_frames(agent, env, *, record=False, teacher_only=False):
 
 
 class LearnedAgent:
+    """One policy stream: recurrent state persists until an explicit episode reset."""
     input_schema = 'encoded-observation'
 
     def __init__(self, model, action_schema='FILTERED'):
@@ -158,12 +159,7 @@ class MultiModelAgent:
         self.system = system
 
     def reset(self):
-        self.system.shooting = False
-        self.system.pass_button_pressed = False
-        self.system.scoregoal_state = None
-        for model in self.system.models:
-            if hasattr(model, 'reset'):
-                model.reset()
+        self.system.reset()
 
     def act(self, inputs, deterministic=True):
         if getattr(getattr(self.system, 'args', None), 'action_type', 'FILTERED').upper() == 'TARGET_POSITION':
