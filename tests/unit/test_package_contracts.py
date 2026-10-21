@@ -39,7 +39,7 @@ class PackageContracts(unittest.TestCase):
         self.assertEqual(params['frame_skip'], 4)
         self.assertEqual(params['net_arch'], {'pi': [128, 128], 'vf': [128, 128]})
         self.assertEqual(params['model_input'], load_model_input(config['model_input']))
-        other = resolve_hyperparams_for_model(config, 'CustomMlpPolicy')
+        other = resolve_hyperparams_for_model(config, 'CustomCnnPolicy')
         self.assertEqual(other['net_arch'], {'pi': [512, 512, 256], 'vf': [512, 512, 256]})
         policy_name, kwargs = MODEL_BUILDERS['MlpPolicy'](512, params)
         self.assertEqual(policy_name, 'MlpPolicy')
@@ -197,7 +197,6 @@ import nhl94_ai.export
 assert 'pygame' not in sys.modules
 assert 'onnx' not in sys.modules
 assert 'onnxruntime' not in sys.modules
-assert 'timm' not in sys.modules
 '''
         subprocess.run([sys.executable, '-B', '-c', command], cwd=tempfile.gettempdir(), check=True)
 

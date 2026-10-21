@@ -23,8 +23,7 @@ NHL94_DEFAULT_STATES = {name: spec.default_state for name, spec in GAMES.items()
 
 
 def isMLP(name):
-    return name == 'MlpPolicy' or name == 'MlpDropoutPolicy' or name == 'CombinedPolicy' \
-          or name == 'AttentionMLPPolicy' or name == 'HockeyMultiHeadPolicy' \
+    return name == 'MlpPolicy' or name == 'CombinedPolicy' \
           or name == 'ResidualMlpPolicy' \
           or name == 'HybridMambaPolicy' or name == 'GRUMlpPolicy' \
           or name in CONTROLLERS

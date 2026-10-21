@@ -14,14 +14,12 @@ except Exception:
     pass
 
 from stable_baselines3 import PPO
-from nhl94_ai.models.networks import CustomMlpPolicy, CustomPolicy, ViTPolicy, DartPolicy, AttentionMLPPolicy, CustomCNN, CustomImpalaFeatureExtractor, CNNTransformer, HockeyMultiHeadPolicy, HybridMambaPolicy, GRUMlpPolicy, ResidualMlpPolicy
+from nhl94_ai.models.networks import CustomPolicy, CustomCNN, CustomImpalaFeatureExtractor, HybridMambaPolicy, GRUMlpPolicy, ResidualMlpPolicy
 from nhl94_ai.models.mlp import SquashedMlpPolicy
 
 
 VECTOR_POLICIES = (
     'MlpPolicy',
-    'AttentionMLPPolicy',
-    'CustomMlpPolicy',
     'ResidualMlpPolicy',
     'HybridMambaPolicy',
     'GRUMlpPolicy',
@@ -99,12 +97,6 @@ def build_MlpPolicy(size, hyperparams):
     return nn_type, policy_kwargs
 
 
-def build_CustomMlpPolicy(size, hyperparams):
-    nn_type = CustomMlpPolicy
-    policy_kwargs = dict(activation_fn=th.nn.ReLU, net_arch=hyperparams.get('net_arch', [size, size]), dropout_prob=hyperparams.get('dropout_prob', 0.3))
-    return nn_type, policy_kwargs
-
-
 def build_ResidualMlpPolicy(size, hyperparams):
     nn_type = ResidualMlpPolicy
     residual_kwargs = hyperparams.get('residual_mlp', {}) if hyperparams else {}
@@ -132,41 +124,6 @@ def build_CombinedPolicy(size, hyperparams):
     return nn_type, policy_kwargs
 
 
-def build_ViTPolicy(size, hyperparams):
-    nn_type = ViTPolicy
-    policy_kwargs = {}
-    return nn_type, policy_kwargs
-
-
-def build_DartPolicy(size, hyperparams):
-    nn_type = DartPolicy
-    policy_kwargs = dict(net_arch=hyperparams.get('net_arch', dict(pi=[size, size], vf=[size, size])), features_extractor_kwargs=dict(features_dim=hyperparams.get('features_dim', 128)))
-    return nn_type, policy_kwargs
-
-
-def build_AttentionMLPPolicy(size, hyperparams):
-    nn_type = AttentionMLPPolicy
-    attention_kwargs = hyperparams.get('attention_mlp', {}) if hyperparams else {}
-    if not isinstance(attention_kwargs, dict):
-        raise TypeError("hyperparams['attention_mlp'] must be a dict when provided")
-    features_extractor_kwargs = dict(attention_kwargs)
-    features_extractor_kwargs.setdefault('features_dim', hyperparams.get('features_dim', 128))
-    policy_kwargs = dict(activation_fn=th.nn.ReLU, net_arch=hyperparams.get('net_arch', dict(pi=[size, size], vf=[size, size])), features_extractor_kwargs=features_extractor_kwargs)
-    return nn_type, policy_kwargs
-
-
-def build_CnnTransformerPolicy(size, hyperparams):
-    nn_type = 'CnnPolicy'
-    policy_kwargs = dict(features_extractor_class=CNNTransformer, features_extractor_kwargs=dict(features_dim=512, nhead=8, num_layers=3))
-    return nn_type, policy_kwargs
-
-
-def build_HockeyMultiHeadPolicy(size, hyperparams):
-    nn_type = HockeyMultiHeadPolicy
-    policy_kwargs = dict(features_extractor_kwargs=dict())
-    return nn_type, policy_kwargs
-
-
 def build_HybridMambaPolicy(size, hyperparams):
     nn_type = HybridMambaPolicy
     hybrid_kwargs = hyperparams.get('hybrid_mamba', {}) if hyperparams else {}
@@ -191,16 +148,10 @@ def build_GRUMlpPolicy(size, hyperparams):
 
 MODEL_BUILDERS = {
     'MlpPolicy': build_MlpPolicy,
-    'CustomMlpPolicy': build_CustomMlpPolicy,
     'ResidualMlpPolicy': build_ResidualMlpPolicy,
     'CustomCnnPolicy': build_CustomCnnPolicy,
     'ImpalaCnnPolicy': build_ImpalaCnnPolicy,
     'CombinedPolicy': build_CombinedPolicy,
-    'ViTPolicy': build_ViTPolicy,
-    'DartPolicy': build_DartPolicy,
-    'AttentionMLPPolicy': build_AttentionMLPPolicy,
-    'CnnTransformerPolicy': build_CnnTransformerPolicy,
-    'HockeyMultiHeadPolicy': build_HockeyMultiHeadPolicy,
     'HybridMambaPolicy': build_HybridMambaPolicy,
     'GRUMlpPolicy': build_GRUMlpPolicy,
     'CnnPolicy': lambda size, hyperparams: ('CnnPolicy', None),

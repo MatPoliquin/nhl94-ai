@@ -4,6 +4,11 @@ Training and fitting commands are currently unavailable; ES support has been
 removed. The contracts below describe existing non-ES artifacts that can still
 be loaded, played, and evaluated. Historical training metadata remains readable.
 
+The retired `DartPolicy`, `CustomMlpPolicy`, `HockeyMultiHeadPolicy`,
+`AttentionMLPPolicy`, `CnnTransformerPolicy`, and `ViTPolicy` implementations
+have been removed, including their historical import aliases. Checkpoints that
+depend on these classes require a repository revision from before their removal.
+
 Built-in task rewards now return zero as compatibility stubs. Current evaluation
 reports mark those rewards unavailable and use `null` for reward metrics.
 Historical reward values in saved artifacts retain their original meaning.

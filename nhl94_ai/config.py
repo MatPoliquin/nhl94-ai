@@ -69,7 +69,7 @@ class EnvironmentConfig:
             raise ValueError('TARGET_POSITION requires full-team NHL94, MlpPolicy and one controller without self-play')
         if self.selfplay and self.action_type == 'DISCRETE':
             raise ValueError('Self-play does not support DISCRETE actions')
-        if self.selfplay and self.nn in ('CnnPolicy', 'CustomCnnPolicy', 'ImpalaCnnPolicy', 'CnnTransformerPolicy', 'ViTPolicy'):
+        if self.selfplay and self.nn in ('CnnPolicy', 'CustomCnnPolicy', 'ImpalaCnnPolicy'):
             raise ValueError('Self-play requires structured observations')
         return self
 
@@ -115,7 +115,7 @@ class EnvironmentConfig:
             supported = (
                 config.env == 'NHL94-Genesis-v0', config.num_players == 1, not config.selfplay,
                 getattr(args, 'side', 'home') == 'home',
-                config.nn not in ('CnnPolicy', 'CustomCnnPolicy', 'ImpalaCnnPolicy', 'CnnTransformerPolicy', 'ViTPolicy'),
+                config.nn not in ('CnnPolicy', 'CustomCnnPolicy', 'ImpalaCnnPolicy'),
             )
             if not all(supported):
                 raise ValueError('PvG requires full-team NHL94 with one home controller and structured observations, without self-play')
