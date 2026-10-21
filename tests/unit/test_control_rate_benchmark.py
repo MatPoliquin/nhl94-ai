@@ -7,6 +7,7 @@ import numpy as np
 
 from nhl94_ai.agents.base import AgentInput, configure_scripted_frames
 from nhl94_ai.agents.control_rate import ControlRateLimit
+from nhl94_ai.agents.goalie import GoalieController
 from nhl94_ai.agents.registry import create_scripted
 from nhl94_ai.config import EnvironmentConfig
 from nhl94_ai.env.wrappers import StochasticFrameSkip
@@ -47,7 +48,8 @@ class ControlRateContracts(unittest.TestCase):
         agent = make_agent(10)
         first = agent.predict_game_state(defense_state()).copy()
         model = agent.controller
-        model.goalie = SimpleNamespace(frames=1, release_until=2)
+        model.goalie = GoalieController('selective')
+        model.goalie.frames, model.goalie.release_until = 1, 2
         model.defense.pending_check = {'until': 3}
         model.defense.pending_switch = {'frame': 1}
         buttons = (model.buttons.b_down, model.buttons.c_down)
@@ -55,6 +57,7 @@ class ControlRateContracts(unittest.TestCase):
         for _ in range(9):
             np.testing.assert_array_equal(agent.predict_game_state(object()), first)
         self.assertEqual((model.scheduler.frames, model.defense.frames, model.goalie.frames), (10, 10, 10))
+        self.assertEqual(model.goalie.release_until, 2)
         self.assertEqual(model.scheduler.decisions, decisions)
         self.assertEqual(model.scheduler.remaining, 0)
         self.assertEqual(model.defense.pending_check, {'until': 3})

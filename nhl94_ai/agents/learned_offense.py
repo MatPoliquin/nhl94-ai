@@ -15,7 +15,6 @@ from nhl94_ai.agents.motion import velocity
 from nhl94_ai.agents.passing import pad_direction, pass_speed, pass_contact, pass_release_frames
 from nhl94_ai.env.intents import HOCKEY_INTENT_NOOP, HOCKEY_INTENT_NORMAL_SHOOT, HOCKEY_INTENT_PASS_START
 from nhl94_ai.game.constants import GameConsts as Buttons
-from nhl94_ai.game.geometry import aim_pass
 
 
 PADS = ((0, 0), (0, 1), (1, 1), (1, 0), (1, -1),
@@ -137,7 +136,7 @@ shot, one-timer, goalie and defense lifecycles.
         self.input_owner = 'offense'
         self._last_decision = 'learned-' + ACTION_NAMES[command]
         self.offense_diagnostics = {'command': ACTION_NAMES[command]}
-        self.setup.until_decision = 0
+        self.setup.cancel()
         if command < 9:
             dx, dy = PADS[command]
             dx, dy = dx * attack, dy * attack
@@ -158,32 +157,24 @@ shot, one-timer, goalie and defense lifecycles.
             if command >= 13:
                 duration = (math.ceil(flight + pass_release_frames(receiver)) + ONE_TIMER_CONTACT_GRACE
                             if contact is not None else ONE_TIMER_TIMEOUT_FRAMES)
-                self.one_timer.start(state, slot, self.scheduler.frames,
-                                     duration)
-                self.input_owner = 'one-timer'
+                result = self._start_one_timer_pass(state, action, player, index, slot, point, duration)
                 purpose = 'one-timer'
             else:
                 option = SimpleNamespace(slot=slot, point=point, flight_frames=flight,
                                          direction=pad_direction(player, receiver))
-                self.offense.start_pass(state, option, self.scheduler.frames, 'learned-pass')
-                self.input_owner = 'pass'
+                result = self._start_pass(state, action, player, option, index, 'learned-pass')
                 purpose = 'learned-pass'
             self._last_pass_request = dict(frame=self.scheduler.frames, passer=actual,
                                            receiver=slot, purpose=purpose)
-            self._last_target = point
-            aim_pass(action, player, receiver)
-            action[Buttons.INPUT_B] = 1
-            return action, HOCKEY_INTENT_PASS_START + index
+            return result
         self.input_owner = 'shot'
         self._last_decision = 'shoot'
         self.shot.side = -1 if state.team2.goalie.x > 0 else 1
         hold = self.interval if command == 17 else 18
-        self.shot.start(state, self.scheduler.decisions, self.scheduler.frames, hold)
+        result = self._start_shot(state, action, hold)
         self.shot.extended_hold = command == 18
         self._last_target = self.shot.side * 13, state.team2.net.y
-        self.shot.aim(action)
-        action[Buttons.INPUT_C] = 1
-        return action, HOCKEY_INTENT_NORMAL_SHOOT
+        return result
 
     def _carry_attack(self, state, action, player, actual, attack):
         """Keep Classic's decisions/executors; replace only an uncommitted carry.

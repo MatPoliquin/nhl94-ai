@@ -288,6 +288,18 @@ class GoalieController:
         self.last_event = None
         self.diagnostics = {}
 
+    def faceoff(self):
+        """Release commitments without resetting goalie clocks or episode metrics."""
+        self.phase = 'stoppage'
+        self.outlet = self.pending_save = None
+        self.possession_since = None
+        self.last_effective = False
+        self.pass_windup = None
+        self.incoming_pass = None
+
+    def advance_unobserved_frame(self):
+        self.frames += 1
+
     @staticmethod
     def validate(state):
         if state.platform.name != 'genesis':

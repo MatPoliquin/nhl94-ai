@@ -138,6 +138,19 @@ class SetupState:
     retry_at_decision: int = 0
     slot: int | None = None
 
+    def start(self, slot, decision, duration, retry):
+        self.slot = slot
+        self.until_decision = decision + duration
+        self.retry_at_decision = decision + retry
+
+    def cancel(self):
+        """End the setup while retaining the receiver and retry history."""
+        self.until_decision = 0
+
+    def clear_target(self):
+        self.cancel()
+        self.slot = None
+
 
 @dataclass(frozen=True)
 class ActionEnd:

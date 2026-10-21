@@ -399,6 +399,16 @@ class OffenseController:
             self.chance_until = 0
         return self.pass_action.observe(state, frame)
 
+    def finish_selection(self, decision, previous_decision, frame):
+        """A winning action can displace a chance proposal after it updated state."""
+        if self.chance_owner is None or decision == 'create-chance':
+            return False
+        self.chance_owner = None
+        self.chance_until = 0
+        if previous_decision == 'create-chance':
+            self.chance_at = frame + 72
+        return True
+
     def start_pass(self, state, option, frame, purpose):
         self.pass_action.start(state, option, frame, purpose)
         self.pass_at = frame + 24
