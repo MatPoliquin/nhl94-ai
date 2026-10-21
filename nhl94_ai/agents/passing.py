@@ -82,6 +82,7 @@ def option_receiver(receiver, option):
         return receiver
     future = copy(receiver)
     future.x, future.y, future.motion_x, future.motion_y = option.receiver_origin
+    future.precise_x, future.precise_y = float(future.x), float(future.y)
     return future
 
 
@@ -322,6 +323,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
         receiver = copy(team.players[index])
         receiver.x -= velocity(receiver)[0] * release
         receiver.y -= velocity(receiver)[1] * release
+        receiver.precise_x, receiver.precise_y = float(receiver.x), float(receiver.y)
     total = flight + release
     sign = 1 if state.team2.net.y > state.team1.net.y else -1
     gain = (point[1] - passer.y) * sign

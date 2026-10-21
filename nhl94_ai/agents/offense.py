@@ -157,12 +157,15 @@ def projected_state(state, target, frames=FEINT_FRAMES, *, decision_interval=Non
                 continue
             (player.x, player.y), player.projection_uncertainty = bounded_projection(
                 player, frames, boards=player is not team.goalie)
+            player.precise_x, player.precise_y = float(player.x), float(player.y)
         setattr(future, name, team)
     player = future.team1.get_player_by_scnum(state.engine.puck_owner)
     (player.x, player.y), (player.motion_x, player.motion_y) = motion
+    player.precise_x, player.precise_y = float(player.x), float(player.y)
     future.puck = copy(state.puck)
     future.puck.x = state.puck.x + player.x - original.x
     future.puck.y = state.puck.y + player.y - original.y
+    future.puck.precise_x, future.puck.precise_y = float(future.puck.x), float(future.puck.y)
     return future
 
 
@@ -203,6 +206,7 @@ def reception_state(state, option, elapsed=None):
     contact = option.contact or pass_contact(state.puck, state.team1.get_player_by_scnum(state.engine.puck_owner), receiver)
     future.puck.x, future.puck.y = pass_point_at(
         state.puck, receiver, contact, elapsed - pass_release_frames(receiver))
+    future.puck.precise_x, future.puck.precise_y = float(future.puck.x), float(future.puck.y)
     future.puck.motion_x, future.puck.motion_y = velocity(receiver)
     return future
 
@@ -227,6 +231,7 @@ def carry_future(state, player, carrier, *, frames=CARRY_FRAMES):
     future.puck = copy(state.puck)
     future.puck.x += carrier.x - player.x
     future.puck.y += carrier.y - player.y
+    future.puck.precise_x, future.puck.precise_y = float(future.puck.x), float(future.puck.y)
     return future
 
 

@@ -128,6 +128,7 @@ def _advance_preview(scene, slot, action):
     index = slot - scene.team1.skater_scnum_base()
     scene.team1.players[index] = future
     scene.puck.x, scene.puck.y = future.x + offset[0], future.y + offset[1]
+    scene.puck.precise_x, scene.puck.precise_y = float(scene.puck.x), float(scene.puck.y)
     scene.puck.motion_x, scene.puck.motion_y = future.motion_x, future.motion_y
     for team in (scene.team1, scene.team2):
         for index, other in enumerate(team.players):

@@ -94,6 +94,7 @@ def _puck_at(state, original, carrier):
     puck = copy(state.puck)
     puck.x, puck.y = (state.puck.x + carrier.x - original.x,
                       state.puck.y + carrier.y - original.y)
+    puck.precise_x, puck.precise_y = float(puck.x), float(puck.y)
     puck.motion_x, puck.motion_y = velocity(carrier)
     return puck
 
@@ -147,6 +148,7 @@ def response_future(state, path):
                 team.goalie = player
     future.puck.x = state.puck.x + path[-1].x - original.x
     future.puck.y = state.puck.y + path[-1].y - original.y
+    future.puck.precise_x, future.puck.precise_y = float(future.puck.x), float(future.puck.y)
     future.puck.motion_x, future.puck.motion_y = velocity(path[-1])
     clearance = math.inf
     for slot, track in tracks.items():

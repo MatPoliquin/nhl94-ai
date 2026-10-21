@@ -135,6 +135,7 @@ def _route_motion(player, route, *, horizon=APPROACH_FRAMES):
     """Project only the carrier, using the same steering as live execution."""
     carrier = copy(player)
     carrier.x, carrier.y = float(player.x), float(player.y)
+    carrier.precise_x, carrier.precise_y = carrier.x, carrier.y
     carrier.motion_x, carrier.motion_y = velocity(player)
     carrier.facing = player.facing if player.facing is not None else player.orientation
     acceleration, limit, _ = skating(player)
@@ -152,6 +153,7 @@ def _route_motion(player, route, *, horizon=APPROACH_FRAMES):
             motion, carrier.facing, turning = skate_step(
                 carrier, ((carrier.x, carrier.y), velocity(carrier)), carrier.facing, turning, pad, acceleration, limit)
         (carrier.x, carrier.y), (carrier.motion_x, carrier.motion_y) = motion
+        carrier.precise_x, carrier.precise_y = float(carrier.x), float(carrier.y)
 
 
 def _risk_cost(margin):
@@ -170,6 +172,7 @@ def _shot_scene(state, carrier, direction, elapsed):
         moved = other.x + vx * min(elapsed, 12), other.y + vy * min(elapsed, 12)
         if math.dist(moved, project_target(moved)) < 1e-6:
             other.x, other.y = moved
+            other.precise_x, other.precise_y = float(other.x), float(other.y)
         other.motion_x = other.motion_y = 0
     goalie = scene.team2.goalie = copy(state.team2.goalie)
     sign = 1 if state.team2.net.y > state.team1.net.y else -1
@@ -178,6 +181,7 @@ def _shot_scene(state, carrier, direction, elapsed):
     u, v = bait[0] + direction * 6 + vx * 4, bait[1] - sign * 260
     length = max(30, math.hypot(u, v))
     goalie.x, goalie.y = 34 * u / length, sign * 260 + 26 * v / length
+    goalie.precise_x, goalie.precise_y = float(goalie.x), float(goalie.y)
     goalie.motion_x = goalie.motion_y = 0
     return scene
 
