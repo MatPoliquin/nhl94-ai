@@ -9,7 +9,7 @@ from dataclasses import dataclass, fields, is_dataclass
 
 
 CONTROLLER_FIELDS = (
-    'args', 'options', 'platform', 'refinements', '_one_timers', '_intents', '_size',
+    'args', 'options', 'resources', 'platform', 'refinements', '_one_timers', '_intents', '_size',
     'recovery_switch_at_decision', 'input_owner', '_last_decision', '_last_target',
     '_last_action_preferences', '_last_pass_request', 'carry_metrics',
     'defense_diagnostics', 'offense_diagnostics', 'goalie_diagnostics',
@@ -95,12 +95,14 @@ def export_history(policy):
         values = {name: getattr(owner, name) for name in names if hasattr(owner, name)}
         components[path] = ComponentHistory(type(owner), values, hasattr(owner, 'offense'))
     values = {name: getattr(policy, name) for name in CONTROLLER_FIELDS if hasattr(policy, name)}
-    return deepcopy(ClassicHistory(type(policy), values, components))
+    resources = getattr(policy, 'resources', None)
+    return deepcopy(ClassicHistory(type(policy), values, components), resources.copy_memo() if resources else None)
 
 
 def import_history(policy, history):
     """Retain existing executor objects; isolate the history of each replay branch."""
-    history = deepcopy(history)
+    resources = history.controller.get('resources')
+    history = deepcopy(history, resources.copy_memo() if resources else None)
     for name, value in history.controller.items():
         setattr(policy, name, value)
     for path, captured in history.components.items():

@@ -5,13 +5,11 @@ They are not calibrated game-wide xG. The model is a small regularized logistic
 regression stored as checked, portable JSON rather than executable pickles.
 """
 from collections import Counter
-import hashlib
-import json
 import math
-from pathlib import Path
 
 import numpy as np
 
+from nhl94_ai.agents.classic_resources import load_json_artifact
 from nhl94_ai.agents.carry import carry_path
 from nhl94_ai.agents.defense import eligible, on_ice
 from nhl94_ai.agents.finishing import _score, shot_speed
@@ -99,10 +97,9 @@ def extend_hold(model, hold):
 
 
 class ShotPlacement:
-    def __init__(self, path):
-        data = Path(path).read_bytes()
-        self.sha256 = hashlib.sha256(data).hexdigest()
-        self.model = json.loads(data)
+    def __init__(self, path=None, *, resource=None):
+        resource = resource or load_json_artifact(path)
+        self.sha256, self.model = resource.sha256, resource.data
         self.metrics, self.diagnostics = Counter(), {}
         self.fixed_hold = None
         if self.model.get('version') == CONTROL_VERSION:
@@ -125,6 +122,8 @@ class ShotPlacement:
                 or not (self.scale > 0).all() or not math.isfinite(self.bias)
                 or not 0 <= self.min_gain <= 1):
             raise ValueError('Invalid shot-placement model parameters')
+        for values in (self.mean, self.scale, self.weights):
+            values.flags.writeable = False
 
     def estimate(self, features):
         vector = np.asarray([features[name] for name in self.names])

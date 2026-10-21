@@ -1,11 +1,9 @@
 """Dependency-free boosted-tree ranking for the optional retention filter."""
 from collections import Counter
-import hashlib
-import json
-from pathlib import Path
 
 import numpy as np
 
+from nhl94_ai.agents.classic_resources import FrozenDict, load_json_artifact
 from nhl94_ai.agents.retention_features import INTERVAL, admissible
 from nhl94_ai.agents.retention_filter import RetentionFilter
 
@@ -13,10 +11,11 @@ from nhl94_ai.agents.retention_filter import RetentionFilter
 SCHEMA = 'native-carry-retention-ranker-v1'
 
 
-def load_retention_filter(path):
-    """Dispatch versioned artifacts without importing training dependencies."""
-    schema = json.loads(Path(path).read_text(encoding='utf-8')).get('schema')
-    return RetentionRanker(path) if schema == SCHEMA else RetentionFilter(path)
+def load_retention_filter(path=None, *, resource=None):
+    """Dispatch one parsed artifact without importing training dependencies."""
+    resource = resource or load_json_artifact(path)
+    implementation = RetentionRanker if resource.data.get('schema') == SCHEMA else RetentionFilter
+    return implementation(resource=resource)
 
 
 class RetentionRanker(RetentionFilter):
@@ -24,11 +23,9 @@ class RetentionRanker(RetentionFilter):
     score_name = 'ranking_scores'
 
     # Reuse action application, but validate the ensemble's distinct schema.
-    def __init__(self, path=None, *, artifact=None):  # pylint: disable=super-init-not-called
-        self.path = str(Path(path).resolve()) if path else None
-        raw = Path(path).read_bytes() if path else None
-        self.sha256 = hashlib.sha256(raw).hexdigest() if raw is not None else None
-        self.artifact = artifact if artifact is not None else json.loads(raw)
+    def __init__(self, path=None, *, artifact=None, resource=None):  # pylint: disable=super-init-not-called
+        resource = resource or load_json_artifact(path, artifact=artifact)
+        self.path, self.sha256, self.artifact = resource.path, resource.sha256, resource.data
         data = self.artifact
         if (data.get('schema') != SCHEMA or data.get('interval') != INTERVAL
                 or data.get('horizon') != 24 or not data.get('feature_names')):
@@ -56,6 +53,10 @@ class RetentionRanker(RetentionFilter):
             self.trees.append({key: np.asarray([node[key] for node in tree], dtype=dtype)
                                for key, dtype in (('left', int), ('right', int), ('feature', int),
                                                   ('threshold', np.float32), ('value', np.float32))})
+        for tree in self.trees:
+            for values in tree.values():
+                values.flags.writeable = False
+        self.trees = tuple(FrozenDict(tree) for tree in self.trees)
         self.metrics = Counter()
 
     def risk(self, row):

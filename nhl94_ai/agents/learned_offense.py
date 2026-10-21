@@ -52,6 +52,13 @@ shot, one-timer, goalie and defense lifecycles.
         self.control_scope = control_scope
         self.mode = mode
         self.interval = interval
+        self._reset_commands()
+
+    def reset_episode(self):
+        super().reset_episode()
+        self._reset_commands()
+
+    def _reset_commands(self):
         self.command = None
         self.teacher_command = None
         self.teacher_allowed = False

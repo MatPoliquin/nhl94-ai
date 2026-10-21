@@ -37,7 +37,7 @@ def load_reference(runtime):
     names = (*(name for name in ('scheduling', 'lifecycle')
                if (runtime / 'nhl94_ai/agents' / (name + '.py')).is_file()), 'carry', 'offense', *(('possession',) if (
         runtime / 'nhl94_ai/agents/possession.py').is_file() else ()),
-             *(name for name in ('classic_options', 'classic_components')
+             *(name for name in ('classic_options', 'classic_resources', 'classic_components')
                if (runtime / 'nhl94_ai/agents' / (name + '.py')).is_file()), 'classic_v1')
     saved = {f'nhl94_ai.agents.{name}': sys.modules.get(f'nhl94_ai.agents.{name}') for name in names}
     try:
@@ -315,7 +315,7 @@ def source_hashes(runtime=None):
         names = (*names, 'possession')
     if (root / 'agents/finishing.py').is_file():
         names = (*names, 'finishing')
-    for name in ('receiving', 'scheduling', 'lifecycle', 'classic_options', 'classic_components', 'history'):
+    for name in ('receiving', 'scheduling', 'lifecycle', 'classic_options', 'classic_components', 'history', 'classic_resources'):
         if (root / 'agents' / (name + '.py')).is_file():
             names = (*names, name)
     result = {f'nhl94_ai/agents/{name}.py': hashlib.sha256(

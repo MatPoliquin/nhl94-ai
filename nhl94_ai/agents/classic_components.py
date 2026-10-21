@@ -14,14 +14,15 @@ def create_offense(options):
     return offense
 
 
-def create_goalie(options, platform, *, pass_timing):
+def create_goalie(options, platform, *, pass_timing, resources=None):
     """Optional neural dependencies are imported only for a requested checkpoint."""
     policy, interval = options.goalie_policy, options.goalie_decision_interval
     if policy == 'off':
         return None
     if options.goalie_model:
         from nhl94_ai.agents.neural_goalie import NeuralGoalie
-        return NeuralGoalie(policy, options.goalie_model, interval=interval, pass_timing=pass_timing)
+        return NeuralGoalie(policy, options.goalie_model, interval=interval, pass_timing=pass_timing,
+                            model=resources.goalie.model if resources is not None else None)
     if interval and interval != 1:
         from nhl94_ai.agents.learned_goalie import SampledGoalie
         return SampledGoalie(policy, interval=interval, save_timing=options.goalie_save_timing,

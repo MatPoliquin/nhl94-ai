@@ -11,6 +11,7 @@ import numpy as np
 from nhl94_ai.agents.scheduling import ActionScheduler, ButtonState
 from nhl94_ai.agents.classic_config import decision_state
 from nhl94_ai.agents.classic_options import validate_classic_options
+from nhl94_ai.agents.classic_resources import load_resources
 from nhl94_ai.agents.classic_components import create_offense, create_goalie
 from nhl94_ai.agents.lifecycle import (
     ActionEnd, OneTimerLifecycle, ShotLifecycle, SetupState,
@@ -47,9 +48,23 @@ from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
 class ClassicAIV1Model:
     """Deterministic controller; shot decisions and frame-timed tactics stay distinct."""
 
-    def __init__(self, args=None, env=None):
+    def __init__(self, args=None, env=None, *, resources=None):
         self.args, self.env = args, env
-        options = self.options = validate_classic_options(args)
+        self.options = validate_classic_options(args)
+        self.resources = load_resources(self.options, resources)
+        self._reset_episode_state()
+
+    def new_episode(self, *, args, env=None):
+        """Keep scripted reset's fresh controller while reusing loaded artifacts."""
+        return type(self)(args=args, env=env, resources=self.resources)
+
+    def reset_episode(self):
+        self.options = validate_classic_options(self.args)
+        self.resources = load_resources(self.options, self.resources)
+        self._reset_episode_state()
+
+    def _reset_episode_state(self):
+        options = self.options
         from nhl94_ai.game.specs import get_game
         self.platform = get_game(options.env).backend
         self.refinements = options.classic_refinements
@@ -73,7 +88,7 @@ class ClassicAIV1Model:
         self.possession_ablation = LegacyValueRanker(options.possession_ablation) if options.possession_ablation else None
         self.offense.rank_pass_risk = bool(self.possession_ablation and self.possession_ablation.relaxed_risk)
         self.receiver_selector = ReceiverSelector(options.receiver_selection) if options.receiver_selection else None
-        self.shot_placement = ShotPlacement(options.shot_placement) if options.shot_placement else None
+        self.shot_placement = ShotPlacement(resource=self.resources.shot) if options.shot_placement else None
         self.crossing_finish = CrossingFinishSelector() if options.opportunistic_cross_crease else None
         self.cross_crease = CrossCreaseController() if options.cross_crease else None
         self.deke = DekeController() if options.deke else None
@@ -81,12 +96,13 @@ class ClassicAIV1Model:
         self._last_pass_request = None
         self.carry_metrics = {}
         self.scheduler.action = np.zeros((1, self._size), dtype=np.int8)
-        self.goalie = create_goalie(options, self.platform, pass_timing=self.offense.pass_timing)
+        self.goalie = create_goalie(options, self.platform, pass_timing=self.offense.pass_timing,
+                                    resources=self.resources)
         self.goalie_diagnostics = {}
         self.retention_filter = None
         if options.retention_model:
             from nhl94_ai.agents.retention_ranker import load_retention_filter
-            self.retention_filter = load_retention_filter(options.retention_model)
+            self.retention_filter = load_retention_filter(resource=self.resources.retention)
 
     def export_history(self):
         from nhl94_ai.agents.history import export_history

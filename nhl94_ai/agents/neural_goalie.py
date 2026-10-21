@@ -10,11 +10,11 @@ from nhl94_ai.models.goalie import load_model
 class NeuralGoalie(CommandGoalie):
     """Deploy the trained positioning policy inside Classic's goalie lifecycle."""
 
-    def __init__(self, policy, model_path, *, interval=None, **kwargs):
+    def __init__(self, policy, model_path, *, interval=None, model=None, **kwargs):
         super().__init__(policy, **kwargs)
         # Small CPU inference batches are slower with a large BLAS thread pool.
         torch.set_num_threads(1)
-        self.model = load_model(model_path, interval=interval)
+        self.model = model if model is not None else load_model(model_path, interval=interval)
         self.interval = self.model.goalie_metadata['interval']
         self.next_choice = 0
 

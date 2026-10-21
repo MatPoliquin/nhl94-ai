@@ -36,10 +36,14 @@ class ScriptedAgent:
         self.action_schema = getattr(args, 'action_type', 'FILTERED')
         self.control_interval = control_interval(args)
         self.frame_skip = None
+        self.controller = None
         self.reset()
 
     def reset(self):
-        self.controller = self.controller_class(args=self.args, env=self.env)
+        if self.controller is not None and hasattr(self.controller, 'new_episode'):
+            self.controller = self.controller.new_episode(args=self.args, env=self.env)
+        else:
+            self.controller = self.controller_class(args=self.args, env=self.env)
         self.control_rate = (ControlRateLimit(self.controller, self.control_interval)
                              if self.control_interval else None)
         self.last_output = None

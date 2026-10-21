@@ -1,11 +1,9 @@
 """Optional shallow-tree correction of ordinary Classic movement decisions."""
 from collections import Counter
-import hashlib
-import json
-from pathlib import Path
 
 import numpy as np
 
+from nhl94_ai.agents.classic_resources import load_json_artifact
 from nhl94_ai.agents.retention_features import (
     INTERVAL, PADS, admissible, attack_sign, features, movement_action, movement_id, ordinary_movement,
 )
@@ -17,10 +15,9 @@ SCHEMA = 'native-carry-retention-tree-v1'
 class RetentionFilter:
     score_name = 'risks'
 
-    def __init__(self, path=None, *, artifact=None):
-        self.path = str(Path(path).resolve()) if path else None
-        self.sha256 = hashlib.sha256(Path(path).read_bytes()).hexdigest() if path else None
-        self.artifact = artifact if artifact is not None else json.loads(Path(path).read_text(encoding='utf-8'))
+    def __init__(self, path=None, *, artifact=None, resource=None):
+        resource = resource or load_json_artifact(path, artifact=artifact)
+        self.path, self.sha256, self.artifact = resource.path, resource.sha256, resource.data
         data = self.artifact
         if (data.get('schema') != SCHEMA or data.get('interval') != INTERVAL
                 or data.get('horizon') != 24 or not data.get('feature_names')):
