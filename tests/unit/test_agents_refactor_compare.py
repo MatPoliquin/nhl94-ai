@@ -162,3 +162,18 @@ class AgentsRefactorComparisonTests(unittest.TestCase):
         report = self.compare(mode='behavior')
         self.assertEqual(report['escalations'], [{'profile': 'native-1', 'matchup': 'ducks-sabres-manual',
                                                 'goal_difference_delta': -1, 'goals_against_delta': 1}])
+
+    def test_worker_changes_require_explicit_counts_and_separate_timing(self):
+        for cadence in (1, 4):
+            self.change(lambda r: r['settings'].update(workers=15), f'native-{cadence}.json')
+        with self.assertRaisesRegex(ValueError, 'workers'):
+            self.compare()
+        with self.assertRaisesRegex(ValueError, 'workers'):
+            self.compare(workers=15)
+        report = self.compare(workers=15, reference_workers=1)
+        self.assertTrue(report['passed'])
+        self.assertEqual(report['workers'], {'before': 1, 'after': 15})
+        self.assertFalse(report['timing']['comparable_workers'])
+        for count in (0, -1, True, 1.5):
+            with self.subTest(count=count), self.assertRaisesRegex(ValueError, 'positive integers'):
+                self.compare(workers=count)

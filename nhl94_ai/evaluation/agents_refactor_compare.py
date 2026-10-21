@@ -49,9 +49,9 @@ def _seeds(tier):
 
 
 def _settings(report):
-    # These two fields describe output location and the explicitly checked subset.
+    # Coverage and worker counts are validated explicitly, independently of gameplay.
     return {key: value for key, value in report['settings'].items()
-            if key not in ('output', 'trials')}
+            if key not in ('output', 'trials', 'workers')}
 
 
 def _manifest(directory):
@@ -66,11 +66,11 @@ def _manifest(directory):
     return result
 
 
-def _validate(report, manifest, cadence, seeds, *, core):
+def _validate(report, manifest, cadence, seeds, *, core, workers):
     _require(report.get('protocol') == PROTOCOL, 'Wrong benchmark protocol')
     settings = report['settings']
     required = {'agent': 'classic-v1', 'seed': min(seeds), 'seconds': 300,
-                'frame_skip': cadence, 'workers': 1, 'trials': len(seeds)}
+                'frame_skip': cadence, 'workers': workers, 'trials': len(seeds)}
     if core:
         required.update(CORE_OPTIONS, action_type='FILTERED')
     for key, value in required.items():
@@ -153,9 +153,14 @@ def summarize(rows):
     return result
 
 
-def compare(reference, candidate, *, tier='full', mode='exact', profiles=None, reference_tier='full'):
+def compare(reference, candidate, *, tier='full', mode='exact', profiles=None, reference_tier='full',
+            workers=1, reference_workers=None):
     """Require the entire declared matrix, selecting checkpoint seeds explicitly."""
     _require(mode in ('exact', 'behavior'), 'Unknown comparison mode')
+    reference_workers = workers if reference_workers is None else reference_workers
+    _require(all(isinstance(count, int) and not isinstance(count, bool) and count > 0
+                 for count in (workers, reference_workers)),
+             'Worker counts must be positive integers')
     reference, candidate = Path(reference), Path(candidate)
     core = profiles is None
     profiles = CORE_PROFILES if core else profiles
@@ -173,8 +178,9 @@ def compare(reference, candidate, *, tier='full', mode='exact', profiles=None, r
     for profile, cadence in profiles.items():
         old_report, new_report = (_read(directory / f'{profile}.json')
                                   for directory in (reference, candidate))
-        old = _validate(old_report, before_manifest, cadence, _seeds(reference_tier), core=core)
-        new = _validate(new_report, after_manifest, cadence, selected, core=core)
+        old = _validate(old_report, before_manifest, cadence, _seeds(reference_tier),
+                        core=core, workers=reference_workers)
+        new = _validate(new_report, after_manifest, cadence, selected, core=core, workers=workers)
         _require(_settings(old_report) == _settings(new_report), f'Effective settings differ: {profile}')
         for field in ('protocol', 'versions', *ASSET_FIELDS):
             _require(old_report[field] == new_report[field], f'Report metadata differs: {field}')
@@ -211,7 +217,9 @@ def compare(reference, candidate, *, tier='full', mode='exact', profiles=None, r
             'requires_behavior_review': mode == 'behavior', 'paired': paired, 'summaries': summaries,
             'escalations': escalations,
             'source_changes': source_changes,
-            'timing': {'before': before_manifest.get('timings_seconds'),
+            'workers': {'before': reference_workers, 'after': workers},
+            'timing': {'comparable_workers': reference_workers == workers,
+                       'before': before_manifest.get('timings_seconds'),
                        'after': after_manifest.get('timings_seconds')}}
 
 
@@ -240,6 +248,8 @@ def main():
     parser.add_argument('--tier', choices=('full', 'check', 'extension'), default='full')
     parser.add_argument('--reference-tier', choices=('full', 'check', 'extension'), default='full')
     parser.add_argument('--mode', choices=('exact', 'behavior'), default='exact')
+    parser.add_argument('--workers', type=int, default=1)
+    parser.add_argument('--reference-workers', type=int)
     parser.add_argument('--profiles', nargs='+', help='Optional report stems and cadences, e.g. retention:4')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
@@ -247,7 +257,8 @@ def main():
     profiles = dict((name, int(cadence)) for name, cadence in
                     (item.rsplit(':', 1) for item in args.profiles)) if args.profiles else None
     report = compare(args.reference, args.candidate, tier=args.tier, mode=args.mode,
-                     profiles=profiles, reference_tier=args.reference_tier)
+                     profiles=profiles, reference_tier=args.reference_tier,
+                     workers=args.workers, reference_workers=args.reference_workers)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     args.output.with_suffix('.txt').write_text(readable(report), encoding='utf-8')
