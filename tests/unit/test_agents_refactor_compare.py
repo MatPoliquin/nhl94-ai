@@ -137,3 +137,28 @@ class AgentsRefactorComparisonTests(unittest.TestCase):
         self.change(lambda r: r['sources'].update({'agent.py': 'f' * 64}), 'run-manifest.json')
         self.change(lambda r: r['sources'].update({'agent.py': 'f' * 64}), 'native-4.json')
         self.assertTrue(self.compare()['passed'])
+
+    def test_matched_extension_requires_exactly_the_prespecified_twenty_new_seeds(self):
+        for cadence in (1, 4):
+            name = f'native-{cadence}.json'
+            report = json.loads((self.before / name).read_text())
+            report['settings']['seed'] = 8020
+            for row in report['matches']:
+                row['seed'] += 20
+            for directory in (self.before, self.after):
+                self.write(directory / name, report)
+        result = compare(self.before, self.after, tier='extension', reference_tier='extension')
+        self.assertTrue(result['passed'])
+        self.assertEqual(len(result['paired']), 80)
+        with self.assertRaisesRegex(ValueError, 'Reference lacks'):
+            compare(self.before, self.after, tier='extension')
+        self.change(lambda r: r['matches'][0].update(seed=8040))
+        with self.assertRaisesRegex(ValueError, 'Unexpected trial'):
+            compare(self.before, self.after, tier='extension', reference_tier='extension')
+
+    def test_escalation_does_not_pool_away_team_regression(self):
+        self.change(lambda r: r['matches'][0].update(goals=[4, 1]))
+        self.change(lambda r: r['matches'][2].update(goals=[2, 2]))
+        report = self.compare(mode='behavior')
+        self.assertEqual(report['escalations'], [{'profile': 'native-1', 'matchup': 'ducks-sabres-manual',
+                                                'goal_difference_delta': -1, 'goals_against_delta': 1}])

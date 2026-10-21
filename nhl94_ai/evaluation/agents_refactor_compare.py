@@ -42,7 +42,9 @@ def _require(condition, message):
 
 
 def _seeds(tier):
-    _require(tier in ('full', 'check'), 'Unknown coverage tier')
+    _require(tier in ('full', 'check', 'extension'), 'Unknown coverage tier')
+    if tier == 'extension':
+        return set(range(8020, 8040))
     return set(range(8000, 8020 if tier == 'full' else 8002))
 
 
@@ -67,7 +69,7 @@ def _manifest(directory):
 def _validate(report, manifest, cadence, seeds, *, core):
     _require(report.get('protocol') == PROTOCOL, 'Wrong benchmark protocol')
     settings = report['settings']
-    required = {'agent': 'classic-v1', 'seed': 8000, 'seconds': 300,
+    required = {'agent': 'classic-v1', 'seed': min(seeds), 'seconds': 300,
                 'frame_skip': cadence, 'workers': 1, 'trials': len(seeds)}
     if core:
         required.update(CORE_OPTIONS, action_type='FILTERED')
@@ -198,10 +200,16 @@ def compare(reference, candidate, *, tier='full', mode='exact', profiles=None, r
                               'action_hash_matches': sum(x['actions_sha256'] == y['actions_sha256']
                                                          for x, y in zip(before_rows, after_rows))})
     exact = all(not row['gameplay'] and not row['diagnostics'] for row in paired)
+    escalations = [{'profile': row['profile'], 'matchup': row['matchup'],
+                    'goal_difference_delta': row['goal_difference_delta'],
+                    'goals_against_delta': row['after']['goals_against'] - row['before']['goals_against']}
+                   for row in summaries if row['goal_difference_delta'] < 0
+                   or row['after']['goals_against'] > row['before']['goals_against']]
     return {'protocol': COMPARISON_PROTOCOL, 'comparator_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             'mode': mode, 'tier': tier, 'reference': str(reference), 'candidate': str(candidate),
             'passed': exact if mode == 'exact' else None, 'exact': exact,
             'requires_behavior_review': mode == 'behavior', 'paired': paired, 'summaries': summaries,
+            'escalations': escalations,
             'source_changes': source_changes,
             'timing': {'before': before_manifest.get('timings_seconds'),
                        'after': after_manifest.get('timings_seconds')}}
@@ -219,6 +227,9 @@ def readable(report):
     lines.append(f"Changed trials: {sum(bool(r['gameplay'] or r['diagnostics']) for r in report['paired'])}")
     if report['requires_behavior_review']:
         lines.append('Behavior changes require focused reproduction, divergence review, and the plan escalation rule.')
+        for row in report['escalations']:
+            lines.append(f"Escalation: {row['profile']} / {row['matchup']}: "
+                         f"GD delta {row['goal_difference_delta']:+d}, GA delta {row['goals_against_delta']:+d}")
     return '\n'.join(lines) + '\n'
 
 
@@ -226,8 +237,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('reference', type=Path)
     parser.add_argument('candidate', type=Path)
-    parser.add_argument('--tier', choices=('full', 'check'), default='full')
-    parser.add_argument('--reference-tier', choices=('full', 'check'), default='full')
+    parser.add_argument('--tier', choices=('full', 'check', 'extension'), default='full')
+    parser.add_argument('--reference-tier', choices=('full', 'check', 'extension'), default='full')
     parser.add_argument('--mode', choices=('exact', 'behavior'), default='exact')
     parser.add_argument('--profiles', nargs='+', help='Optional report stems and cadences, e.g. retention:4')
     parser.add_argument('--output', type=Path, required=True)
