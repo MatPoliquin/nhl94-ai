@@ -10,29 +10,28 @@ import numpy as np
 
 from nhl94_ai.agents.scheduling import ActionScheduler, ButtonState
 from nhl94_ai.agents.classic_config import decision_state
+from nhl94_ai.agents.classic_options import validate_classic_options
+from nhl94_ai.agents.classic_components import create_offense, create_goalie
 from nhl94_ai.agents.lifecycle import (
     ActionEnd, OneTimerLifecycle, ShotLifecycle, SetupState,
     ONE_TIMER_TIMEOUT_FRAMES, ONE_TIMER_CONTACT_GRACE,
-    validate_one_timer_execution, validate_rebound_recovery,
 )
 from nhl94_ai.agents.defense import DefenseController, eligible, on_ice, owns_puck
 from nhl94_ai.agents.defense import controlled_slot
 from nhl94_ai.agents.carry import carry_pad
-from nhl94_ai.agents.goalie import GoalieController, outlet_options
+from nhl94_ai.agents.goalie import outlet_options
 from nhl94_ai.agents.cross_crease import CrossCreaseController, evaluate_cross_crease
-from nhl94_ai.agents.crossing_finish import CrossingFinishSelector, validate_crossing_finish
+from nhl94_ai.agents.crossing_finish import CrossingFinishSelector
 from nhl94_ai.agents.deke import DekeController, evaluate_deke
 from nhl94_ai.agents.offense import (
-    OffenseController, carry_clear,
+    carry_clear,
     goalie_avoidance, ordinary_shot_conditions, projected_state,
 )
 from nhl94_ai.agents.passing import pass_release_frames, shot_value
-from nhl94_ai.agents.possession import PossessionOffenseController
 from nhl94_ai.agents.possession_value import PossessionValuePlanner
 from nhl94_ai.agents.possession_ablation import LegacyValueRanker
-from nhl94_ai.agents.receiver_selection import ReceiverSelector, INCOMPATIBLE as RECEIVER_INCOMPATIBLE
-from nhl94_ai.agents.shot_placement import ShotPlacement, extend_hold, INCOMPATIBLE as SHOT_INCOMPATIBLE
-from nhl94_ai.agents.receiving import INCOMPATIBLE as RECEPTION_INCOMPATIBLE
+from nhl94_ai.agents.receiver_selection import ReceiverSelector
+from nhl94_ai.agents.shot_placement import ShotPlacement, extend_hold
 from nhl94_ai.agents.finishing import normal_finish as evaluate_finish, one_timer_finish
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
@@ -50,159 +49,44 @@ class ClassicAIV1Model:
 
     def __init__(self, args=None, env=None):
         self.args, self.env = args, env
+        options = self.options = validate_classic_options(args)
         from nhl94_ai.game.specs import get_game
-        self.platform = get_game(getattr(args, 'env', 'NHL94-Genesis-v0')).backend
-        self.crossing_finish = CrossingFinishSelector() if validate_crossing_finish(args) else None
-        self.refinements = frozenset(getattr(args, 'classic_refinements', ()))
+        self.platform = get_game(options.env).backend
+        self.refinements = options.classic_refinements
         self.scheduler = ActionScheduler()
         self.buttons = ButtonState()
         self.recovery_switch_at_decision = 0
-        self.shot = ShotLifecycle(rebound_recovery=validate_rebound_recovery(args))
-        self.one_timer = OneTimerLifecycle(execution=validate_one_timer_execution(args))
+        self.shot = ShotLifecycle(rebound_recovery=options.rebound_recovery)
+        self.one_timer = OneTimerLifecycle(execution=options.one_timer_execution)
         self.setup = SetupState()
-        self._one_timers = getattr(args, 'one_timers', True)
+        self._one_timers = options.one_timers
         self.input_owner = 'idle'
         self._last_decision = 'init'
         self._last_target = (0, 0)
-        self._intents = getattr(args, 'action_type', 'FILTERED').upper() == 'HOCKEY_INTENT_DPAD'
+        self._intents = options.action_type == 'HOCKEY_INTENT_DPAD'
         self._size = len(HOCKEY_INTENT_DPAD_ACTION_SPACE) if self._intents else Buttons.INPUT_MAX
         self._last_action_preferences = np.zeros((1, self._size), dtype=np.float32)
         self.defense = DefenseController(verify_interceptions='interceptions' in self.refinements)
         self.defense_diagnostics = {}
-        offense_type = OffenseController if getattr(args, 'offense_lookahead', False) else PossessionOffenseController
-        self.offense = offense_type(one_timers=self._one_timers,
-                                    allow_uncertified=getattr(args, 'uncertain_carry', False),
-                                    chance_creation=getattr(args, 'chance_creation', False))
-        self.offense.pass_timing = 'pass-timing' in self.refinements
-        self.offense.carry_motion = 'carry-motion' in self.refinements
-        possession_value = getattr(args, 'possession_value', False)
-        if possession_value and (
-                getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
-                or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
-            raise ValueError('Possession-value AI requires full-team FILTERED or HOCKEY_INTENT_DPAD controls')
-        if possession_value and any(getattr(args, name, False) for name in (
-                'offense_lookahead', 'uncertain_carry', 'chance_creation')):
-            raise ValueError('Possession-value replaces offense-lookahead, uncertain-carry and chance-creation selection')
-        self.possession_value = PossessionValuePlanner() if possession_value else None
-        ablation = getattr(args, 'possession_ablation', None)
-        if ablation and (getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'
-                         or getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')):
-            raise ValueError('Possession ablations require full-team Classic buttons/intents')
-        if ablation and any(getattr(args, name, False) for name in (
-                'possession_value', 'offense_lookahead', 'uncertain_carry', 'chance_creation',
-                'cross_crease', 'deke', 'classic_refinements')):
-            raise ValueError('Possession ablations isolate legacy proposals; disable other offensive experiments/refinements')
-        self.possession_ablation = LegacyValueRanker(ablation) if ablation else None
+        self.offense = create_offense(options)
+        self.possession_value = PossessionValuePlanner() if options.possession_value else None
+        self.possession_ablation = LegacyValueRanker(options.possession_ablation) if options.possession_ablation else None
         self.offense.rank_pass_risk = bool(self.possession_ablation and self.possession_ablation.relaxed_risk)
-        receiver_selection = getattr(args, 'receiver_selection', None)
-        if receiver_selection and (
-                getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'
-                or getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')):
-            raise ValueError('Receiver selection requires full-team Classic buttons/intents')
-        if receiver_selection and any(getattr(args, name, False) for name in RECEIVER_INCOMPATIBLE):
-            raise ValueError('Receiver selection isolates legacy passes; disable other experiments/refinements')
-        self.receiver_selector = ReceiverSelector(receiver_selection) if receiver_selection else None
-        shot_placement = getattr(args, 'shot_placement', None)
-        if shot_placement and (
-                getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'
-                or getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
-                or any(getattr(args, name, False) for name in SHOT_INCOMPATIBLE)):
-            raise ValueError('Shot placement requires full-team Classic buttons/intents with other offensive experiments disabled')
-        self.shot_placement = ShotPlacement(shot_placement) if shot_placement else None
-        reception_control = getattr(args, 'reception_control', False)
-        if reception_control and (
-                getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'
-                or getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
-                or any(getattr(args, name, False) for name in RECEPTION_INCOMPATIBLE)):
-            raise ValueError('Reception control requires full-team Classic buttons/intents with other offensive experiments disabled')
-        self.offense.pass_action.stick_control = reception_control
-        if getattr(args, 'chance_creation', False) and (
-                getattr(args, 'action_type', 'FILTERED').upper() not in ('FILTERED', 'HOCKEY_INTENT_DPAD')
-                or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
-            raise ValueError('Chance-creation AI requires full-team FILTERED or HOCKEY_INTENT_DPAD controls')
+        self.receiver_selector = ReceiverSelector(options.receiver_selection) if options.receiver_selection else None
+        self.shot_placement = ShotPlacement(options.shot_placement) if options.shot_placement else None
+        self.crossing_finish = CrossingFinishSelector() if options.opportunistic_cross_crease else None
+        self.cross_crease = CrossCreaseController() if options.cross_crease else None
+        self.deke = DekeController() if options.deke else None
         self.offense_diagnostics = {}
-        cross_crease = getattr(args, 'cross_crease', False)
-        if cross_crease and (getattr(args, 'action_type', 'FILTERED').upper() not in (
-                'FILTERED', 'HOCKEY_INTENT_DPAD') or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
-            raise ValueError('Cross-crease AI requires full-team FILTERED or HOCKEY_INTENT_DPAD controls')
-        self.cross_crease = CrossCreaseController() if cross_crease else None
-        deke = getattr(args, 'deke', False)
-        if deke and (getattr(args, 'action_type', 'FILTERED').upper() not in (
-                'FILTERED', 'HOCKEY_INTENT_DPAD') or getattr(args, 'env', 'NHL94-Genesis-v0') != 'NHL94-Genesis-v0'):
-            raise ValueError('Deke AI requires full-team FILTERED or HOCKEY_INTENT_DPAD controls')
-        self.deke = DekeController() if deke else None
         self._last_pass_request = None
         self.carry_metrics = {}
         self.scheduler.action = np.zeros((1, self._size), dtype=np.int8)
-        goalie_policy = getattr(args, 'goalie_policy', 'off')
-        if goalie_policy not in ('off', 'selective', 'always'):
-            raise ValueError('goalie_policy must be off, selective or always')
-        if goalie_policy != 'off' and getattr(args, 'action_type', 'FILTERED').upper() != 'FILTERED':
-            raise ValueError('Manual goalie AI requires FILTERED buttons')
-        self.goalie = None if goalie_policy == 'off' else GoalieController(
-            goalie_policy, pass_timing=self.offense.pass_timing,
-            save_timing=getattr(args, 'goalie_save_timing', 'classic'), platform=self.platform)
-        goalie_model = getattr(args, 'goalie_model', None)
-        goalie_interval = getattr(args, 'goalie_decision_interval', None)
-        from nhl94_ai.agents.registry import resolve_goalie_positioning
-        goalie_positioning = resolve_goalie_positioning(args)
-        if goalie_positioning not in ('classic', 'deep', 'deep-csave'):
-            raise ValueError('goalie_positioning must be classic, deep or deep-csave')
-        if goalie_positioning in ('deep', 'deep-csave') and (self.goalie is None or goalie_model
-                or goalie_interval not in (None, 1) or getattr(args, 'goalie_planner', None)):
-            raise ValueError('Deep goalie positioning requires manual goalies and no other goalie controller')
-        if goalie_positioning == 'deep-csave' and getattr(args, 'goalie_save_timing', 'classic') != 'classic':
-            raise ValueError('Deep C-save positioning already includes its own save timing')
-        if (goalie_model or goalie_interval is not None or getattr(args, 'goalie_save_timing', 'classic') != 'classic') and self.goalie is None:
-            raise ValueError('Goalie model/timing options require --goalie-policy selective or always')
-        if goalie_interval is not None and goalie_interval < 1:
-            raise ValueError('Goalie decision interval must be positive')
-        if goalie_model:
-            if getattr(args, 'goalie_save_timing', 'classic') != 'classic':
-                raise ValueError('Learned goalie and scripted contact timing are separate controllers')
-            from nhl94_ai.agents.neural_goalie import NeuralGoalie
-            self.goalie = NeuralGoalie(goalie_policy, goalie_model, interval=goalie_interval,
-                                      pass_timing=self.offense.pass_timing)
-        elif goalie_interval and goalie_interval != 1:
-            from nhl94_ai.agents.learned_goalie import SampledGoalie
-            self.goalie = SampledGoalie(goalie_policy, interval=goalie_interval,
-                                        save_timing=getattr(args, 'goalie_save_timing', 'classic'),
-                                        pass_timing=self.offense.pass_timing)
-        goalie_planner = getattr(args, 'goalie_planner', None)
-        if goalie_planner:
-            if (self.goalie is None or goalie_model or goalie_interval not in (None, 1)
-                    or getattr(args, 'goalie_save_timing', 'classic') != 'classic'
-                    or getattr(args, 'classic_control_interval', 0)):
-                raise ValueError('Goalie planning requires manual goalies, native reactions and no other goalie experiment')
-            from nhl94_ai.agents.goalie_planner import PlanningGoalie
-            if goalie_planner == 'outcome-24':
-                from nhl94_ai.agents.goalie_outcome_planner import OutcomeGoalie
-                self.goalie = OutcomeGoalie(goalie_policy, pass_timing=self.offense.pass_timing)
-            else:
-                self.goalie = PlanningGoalie(goalie_policy, planning=goalie_planner,
-                                            pass_timing=self.offense.pass_timing)
-        if goalie_positioning == 'deep':
-            from nhl94_ai.agents.goalie_positioning import DeepGoalie
-            self.goalie = DeepGoalie(goalie_policy, pass_timing=self.offense.pass_timing,
-                                     save_timing=getattr(args, 'goalie_save_timing', 'classic'))
-        elif goalie_positioning == 'deep-csave':
-            from nhl94_ai.agents.goalie_csave import CSaveGoalie
-            self.goalie = CSaveGoalie(goalie_policy, pass_timing=self.offense.pass_timing)
+        self.goalie = create_goalie(options, self.platform, pass_timing=self.offense.pass_timing)
         self.goalie_diagnostics = {}
         self.retention_filter = None
-        retention_path = getattr(args, 'retention_model', None)
-        if retention_path:
+        if options.retention_model:
             from nhl94_ai.agents.retention_ranker import load_retention_filter
-            if (getattr(args, 'action_type', 'FILTERED').upper() != 'FILTERED'
-                    or getattr(args, 'classic_control_interval', 0)):
-                raise ValueError('Retention filtering requires FILTERED and native Classic reactions')
-            incompatible = ('possession_value', 'possession_ablation', 'receiver_selection', 'shot_placement',
-                            'reception_control', 'one_timer_execution', 'rebound_recovery',
-                            'classic_refinements', 'offense_lookahead', 'uncertain_carry',
-                            'chance_creation', 'cross_crease', 'deke')
-            if any(getattr(args, name, False) for name in incompatible):
-                raise ValueError('Retention filtering cannot combine with other offensive experiments')
-            self.retention_filter = load_retention_filter(retention_path)
+            self.retention_filter = load_retention_filter(options.retention_model)
 
     def predict(self, _observation, deterministic=True):
         return np.zeros((1, self._size), dtype=np.int8), None

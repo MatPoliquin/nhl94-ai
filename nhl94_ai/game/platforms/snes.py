@@ -113,11 +113,6 @@ class SnesBackend(PlatformBackend):  # pylint: disable=too-many-public-methods
         players = getattr(args, 'num_players', 1)
         if players != (2 if mode in ('player_vs_model', 'model_vs_model') else 1):
             raise ValueError('SNES playback requires one controller versus CPU or two for multiplayer')
-        if (getattr(args, 'goalie_positioning', None) not in (None, 'classic')
-                or getattr(args, 'goalie_model', None) or getattr(args, 'goalie_planner', None)
-                or getattr(args, 'goalie_decision_interval', None) not in (None, 1)
-                or getattr(args, 'goalie_save_timing', 'classic') != 'classic'):
-            raise ValueError('SNES manual goalies use shared classic positioning with native SNES saves')
         if getattr(args, 'mode', None) is not None and getattr(args, 'seed', None) is not None:
             raise ValueError('SNES ROM RNG seeding is not mapped; omit --seed to use the saved RNG')
 

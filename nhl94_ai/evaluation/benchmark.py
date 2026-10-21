@@ -176,7 +176,7 @@ def run(args):
                                   'lines': len(path.read_text(encoding='utf-8').splitlines())}
     root = Path(__file__).resolve().parents[1]
     for name in ('game/genesis_match.py', 'game/state.py', 'game/ram.py', 'game/geometry.py', 'env/factory.py',
-                 'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/offense.py',
+                 'agents/classic_options.py', 'agents/classic_components.py', 'agents/base.py', 'agents/defense.py', 'agents/motion.py', 'agents/offense.py',
                  'agents/passing.py', 'agents/receiving.py', 'evaluation/pass_outcomes.py'):
         path = root / name
         sources[name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),

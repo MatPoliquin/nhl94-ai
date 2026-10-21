@@ -12,7 +12,6 @@ from types import SimpleNamespace
 import numpy as np
 
 from nhl94_ai.agents.registry import ALIASES, add_classic_arguments, create_scripted, resolve_goalie_positioning
-from nhl94_ai.agents.control_rate import control_interval
 from nhl94_ai.env.actions import HockeyActionController
 # Re-export historical helper imports for existing scripts.
 from nhl94_ai.game.genesis_match import RAM, CPU_RAM, away_view, update_state, select_side, lineup, cpu_view
@@ -326,12 +325,9 @@ def build_parser():
 
 def run(args):
     args.goalie_positioning = resolve_goalie_positioning(args)
-    from nhl94_ai.agents.lifecycle import validate_one_timer_execution, validate_rebound_recovery
-    validate_one_timer_execution(args)
-    validate_rebound_recovery(args)
-    from nhl94_ai.agents.crossing_finish import validate_crossing_finish
-    validate_crossing_finish(args)
-    interval = control_interval(args)
+    from nhl94_ai.agents.classic_options import validate_classic_options
+    options = validate_classic_options(args, benchmark=True)
+    interval = options.classic_control_interval
     if (min(args.trials, args.seconds, args.frame_skip, args.workers) < 1
             or args.seconds > 65535 or args.seed < 0 or args.seed + args.trials > 2**32):
         raise ValueError('Use positive counts, a uint16 clock, and uint32 ROM seeds.')
@@ -364,30 +360,17 @@ def run(args):
     if getattr(args, 'possession_value', False):
         fixtures = [(*fixture, True) for fixture in fixtures]
     if getattr(args, 'possession_ablation', None):
-        if any(getattr(args, name, False) for name in (
-                'possession_value', 'offense_lookahead', 'uncertain_carry', 'chance_creation',
-                'cross_crease', 'deke', 'classic_refinements')):
-            raise ValueError('Possession ablations cannot combine with other offensive experiments/refinements')
         fixtures = [(*fixture[:7], False, False, False, False, False, (), False, args.possession_ablation)
                     for fixture in fixtures]
     if getattr(args, 'receiver_selection', None):
-        from nhl94_ai.agents.receiver_selection import INCOMPATIBLE
-        if any(getattr(args, name, False) for name in INCOMPATIBLE):
-            raise ValueError('Receiver selection cannot combine with other experiments/refinements')
         fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, args.receiver_selection)
                     for fixture in fixtures]
     shot_path = Path(args.shot_placement).resolve() if getattr(args, 'shot_placement', None) else None
     shot_digest = hashlib.sha256(shot_path.read_bytes()).hexdigest() if shot_path else None
     if shot_path:
-        from nhl94_ai.agents.shot_placement import INCOMPATIBLE as SHOT_INCOMPATIBLE
-        if any(getattr(args, name, False) for name in SHOT_INCOMPATIBLE):
-            raise ValueError('Shot placement cannot combine with other offensive experiments')
         fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, str(shot_path))
                     for fixture in fixtures]
     if getattr(args, 'reception_control', False):
-        from nhl94_ai.agents.receiving import INCOMPATIBLE as RECEPTION_INCOMPATIBLE
-        if any(getattr(args, name, False) for name in RECEPTION_INCOMPATIBLE):
-            raise ValueError('Reception control cannot combine with other offensive experiments')
         fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, None, True)
                     for fixture in fixtures]
     if getattr(args, 'one_timer_execution', None):
@@ -397,16 +380,12 @@ def run(args):
         fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, None, False,
                      None, True) for fixture in fixtures]
     if (args.goalie_save_timing != 'classic' or args.goalie_model or args.goalie_decision_interval is not None):
-        if args.goalie_policy == 'off':
-            raise ValueError('Goalie model/timing options require an enabled goalie policy')
         defaults = [False, False, False, False, False, (), False, None, None, None, False, None, False]
         fixtures = [(*fixture, *defaults[len(fixture) - 7:], args.goalie_save_timing,
                      args.goalie_model, args.goalie_decision_interval) for fixture in fixtures]
     retention_path = Path(args.retention_model).resolve() if getattr(args, 'retention_model', None) else None
     retention_digest = hashlib.sha256(retention_path.read_bytes()).hexdigest() if retention_path else None
     if retention_path:
-        if args.frame_skip != 4 or interval:
-            raise ValueError('Retention filtering requires four-frame offense and native reactions')
         defaults = ['off', False, False, False, False, False, (), False, None, None, None,
                     False, None, False, 'classic', None, None]
         fixtures = [(*fixture, *defaults[len(fixture) - 6:], str(retention_path)) for fixture in fixtures]
@@ -423,7 +402,7 @@ def run(args):
     root = Path(__file__).resolve().parents[2]
     files.update(root / 'nhl94_ai' / name for name in (
         'evaluation/benchmark.py', 'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
-        'agents/base.py', 'agents/control_rate.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
+        'agents/classic_options.py', 'agents/classic_components.py', 'agents/base.py', 'agents/control_rate.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
         'agents/offense.py', 'agents/possession.py', 'agents/possession_value.py', 'agents/possession_ablation.py',
         'agents/receiver_selection.py', 'agents/shot_placement.py',
         'agents/passing.py', 'agents/receiving.py', 'agents/responses.py', 'agents/finishing.py',

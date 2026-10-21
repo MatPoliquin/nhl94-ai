@@ -1,6 +1,7 @@
 """Explicit agent registration without importing neural networks."""
 from importlib import import_module
 from nhl94_ai.agents.base import ScriptedAgent
+from nhl94_ai.agents.classic_options import resolve_goalie_positioning  # compatibility export
 
 CONTROLLERS = {
     'ClassicAIV1': ('nhl94_ai.agents.classic_v1', 'ClassicAIV1Model'),
@@ -14,20 +15,6 @@ TEAM_INCOMPATIBLE = (
     'possession_value', 'uncertain_carry', 'chance_creation', 'offense_lookahead',
     'classic_refinements', 'retention_model', 'goalie_model', 'goalie_planner',
 )
-
-
-def resolve_goalie_positioning(args):
-    """Use the improved manual goalie unless another controller is requested."""
-    explicit = getattr(args, 'goalie_positioning', None)
-    if explicit is not None:
-        return explicit
-    if getattr(args, 'env', '') == 'NHL94-Snes-v0':
-        return 'classic'
-    replaced = (getattr(args, 'goalie_model', None) or getattr(args, 'goalie_planner', None)
-                or getattr(args, 'goalie_decision_interval', None) not in (None, 1)
-                or getattr(args, 'goalie_save_timing', 'classic') != 'classic')
-    return ('deep-csave' if getattr(args, 'goalie_policy', 'off') in ('selective', 'always')
-            and not replaced else 'classic')
 
 
 def add_classic_arguments(parser):
