@@ -34,7 +34,8 @@ def replay(row):
             assert hashlib.sha256(bytes(env.get_ram())).hexdigest() == row['ram_sha256']
             info = env.data.lookup_all()
             model = ClassicAIV1Model(SimpleNamespace(action_type='FILTERED', goalie_policy='selective'))
-            model.__dict__.update(vars(sample['model']))
+            from nhl94_ai.evaluation.lifecycle_history import copy_history
+            copy_history(sample['model'], model)
             replacement = (GoalieController('selective') if mode.startswith('baseline') else
                            OutcomeGoalie() if mode == 'outcome-24' else PlanningGoalie(planning=mode))
             model.goalie = replace_goalie(model.goalie, replacement)

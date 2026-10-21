@@ -315,7 +315,7 @@ def source_hashes(runtime=None):
         names = (*names, 'possession')
     if (root / 'agents/finishing.py').is_file():
         names = (*names, 'finishing')
-    for name in ('receiving', 'scheduling', 'lifecycle', 'classic_options', 'classic_components'):
+    for name in ('receiving', 'scheduling', 'lifecycle', 'classic_options', 'classic_components', 'history'):
         if (root / 'agents' / (name + '.py')).is_file():
             names = (*names, name)
     result = {f'nhl94_ai/agents/{name}.py': hashlib.sha256(

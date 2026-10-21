@@ -309,7 +309,7 @@ if __name__ == '__main__':
     if arguments.output:
         root = Path(__file__).resolve().parents[2]
         sources = ('agents/carry.py', 'agents/offense.py', 'agents/classic_v1.py',
-                   'agents/classic_options.py', 'agents/classic_components.py',
+                   'agents/classic_options.py', 'agents/classic_components.py', 'agents/history.py',
                    'agents/passing.py', 'game/state.py', 'agents/skating.py')
         report = {'motion_maximum_errors': errors, 'active_pressure': pressure,
                   'default_wing': default_wing, 'idle_wing': wing, 'active_wing': active_wing,

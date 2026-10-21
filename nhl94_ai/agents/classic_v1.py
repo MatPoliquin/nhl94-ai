@@ -88,6 +88,18 @@ class ClassicAIV1Model:
             from nhl94_ai.agents.retention_ranker import load_retention_filter
             self.retention_filter = load_retention_filter(options.retention_model)
 
+    def export_history(self):
+        from nhl94_ai.agents.history import export_history
+        return export_history(self)
+
+    def import_history(self, history):
+        from nhl94_ai.agents.history import import_history
+        return import_history(self, history)
+
+    def fork(self):
+        from nhl94_ai.agents.history import fork_history
+        return fork_history(self)
+
     def predict(self, _observation, deterministic=True):
         return np.zeros((1, self._size), dtype=np.int8), None
 

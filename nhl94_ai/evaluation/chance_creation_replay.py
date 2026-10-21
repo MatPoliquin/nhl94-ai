@@ -36,10 +36,7 @@ FRESH_STRATA = ('uncertified', 'unsupported-response', 'no-window', 'below-margi
 
 def clone_policy(model):
     """Copy gameplay history, excluding this tool's read-only decision observer."""
-    clone = ClassicAIV1Model()
-    clone.__dict__.update(deepcopy({name: value for name, value in model.__dict__.items()
-                                   if name != '_predict_decision'}))
-    return clone
+    return model.fork()
 
 
 def restore_sample(env, sample, side):

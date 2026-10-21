@@ -4,7 +4,6 @@ Compatibility is confined to evaluation: the live controller has no aliases for
 its former private fields. Old snapshots still need their original field layout
 when a current trajectory is forked through their policy.
 """
-from copy import deepcopy
 
 
 LEGACY_FIELDS = {
@@ -34,31 +33,31 @@ def _attribute(value, path):
 
 
 def copy_history(history, policy):
-    """Preserve target policy implementations while copying source action state."""
-    values = deepcopy(vars(history))
-    offense_values = values.pop('offense').__dict__
-    offense = policy.offense
+    """Use the live history contract, adapting only the archived field layout."""
+    from nhl94_ai.agents.history import CONTROLLER_FIELDS, COMPONENT_FIELDS, export_history, import_history, fork_history
     if hasattr(policy, 'scheduler'):
-        for name in ('scheduler', 'buttons', 'shot', 'one_timer', 'setup'):
-            getattr(policy, name).__dict__.update(vars(values.pop(name)))
-        offense.pass_action.__dict__.update(vars(offense_values.pop('pass_action')))
-    else:
-        for legacy, path in LEGACY_FIELDS.items():
-            values[legacy] = deepcopy(_attribute(history, path))
-        pending = history.one_timer.pending
-        values['_one_timer'] = (pending.passer, pending.receiver, pending.deadline) if pending else None
-        if pending is not None:
-            values.update({old: deepcopy(getattr(pending, field)) for old, field in ONE_TIMER_FIELDS.items()})
-        for name in ('scheduler', 'buttons', 'shot', 'one_timer', 'setup', 'recovery_switch_at_decision'):
-            values.pop(name, None)
-        # Defense may have been idle when a replay constructed this history.
-        values['defense'].frames = history.scheduler.frames
-        passing = offense_values.pop('pass_action')
-        offense_values.update(pending=passing.pending.snapshot() if passing.pending else None,
-                              last_pass=passing.last_pass, last_request=passing.last_request)
-    policy.__dict__.update(values)
-    offense.__dict__.update(offense_values)
-    policy.offense = offense
+        return import_history(policy, export_history(history))
+    source = fork_history(history)
+    for name in CONTROLLER_FIELDS:
+        if hasattr(source, name):
+            setattr(policy, name, getattr(source, name))
+    for name in COMPONENT_FIELDS:
+        if '.' not in name and name not in ('scheduler', 'buttons', 'shot', 'one_timer', 'setup', 'offense'):
+            setattr(policy, name, getattr(source, name))
+    for legacy, path in LEGACY_FIELDS.items():
+        setattr(policy, legacy, _attribute(source, path))
+    pending = source.one_timer.pending
+    policy._one_timer = (pending.passer, pending.receiver, pending.deadline) if pending else None
+    if pending is not None:
+        for old, field in ONE_TIMER_FIELDS.items():
+            setattr(policy, old, getattr(pending, field))
+    policy.defense.frames = source.scheduler.frames
+    for name in COMPONENT_FIELDS['offense']:
+        setattr(policy.offense, name, getattr(source.offense, name))
+    passing = source.offense.pass_action
+    policy.offense.pending = passing.pending.snapshot() if passing.pending else None
+    policy.offense.last_pass, policy.offense.last_request = passing.last_pass, passing.last_request
+    return policy
 
 
 def cache_input(model, action, remaining):

@@ -272,7 +272,7 @@ def run(args):
                             root / 'nhl94_ai/tasks/defense_setup.py', root / 'nhl94_ai/game/ram.py',
                             root / 'nhl94_ai/game/state.py', root / 'nhl94_ai/agents/cross_crease.py',
                             root / 'nhl94_ai/agents/classic_v1.py',
-                            root / 'nhl94_ai/agents/classic_options.py', root / 'nhl94_ai/agents/classic_components.py', root / 'nhl94_ai/agents/goalie.py',
+                            root / 'nhl94_ai/agents/classic_options.py', root / 'nhl94_ai/agents/classic_components.py', root / 'nhl94_ai/agents/history.py', root / 'nhl94_ai/agents/goalie.py',
                             root / 'nhl94_ai/agents/offense.py', root / 'nhl94_ai/agents/motion.py',
                             root / 'nhl94_ai/agents/passing.py', root / 'nhl94_ai/agents/defense.py',
                             root / 'nhl94_ai/env/factory.py', root / 'nhl94_ai/env/target_control.py',
