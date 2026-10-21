@@ -4,7 +4,8 @@ import math
 from nhl94_ai.game.platforms.base import PlatformBackend
 
 
-class GenesisBackend(PlatformBackend):
+# Legacy Genesis shot primitives remain in offense/finishing until their extraction.
+class GenesisBackend(PlatformBackend):  # pylint: disable=abstract-method
     goalie_takeover_frames = 24
     goalie_takeover_button = 0
     goalie_viewport = (108, 92)

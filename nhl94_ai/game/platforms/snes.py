@@ -65,7 +65,7 @@ SAVE_ANIMATIONS = frozenset((0xE1E2, 0xE214, 0xE2AA, 0xE2FC, 0xE246, 0xE278,
 DIVE_ANIMATIONS = frozenset((0xE4B6,))
 
 
-class SnesBackend(PlatformBackend):
+class SnesBackend(PlatformBackend):  # pylint: disable=too-many-public-methods
     name = 'snes'
     buttons = ('B', 'Y', 'SELECT', 'START', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'A', 'X', 'L', 'R')
     control_mapping = dict(zip(('pass', 'clear', 'mode', 'start', 'up', 'down', 'left',

@@ -114,7 +114,8 @@ class SharedPressure:
         owner = state.engine.puck_owner
         carrier = next((p for slot, p in skaters(state.team2) if slot == owner), None)
         players = [state.team1.get_player_by_scnum(slot) for slot in slots]
-        if (busy or state.engine.clock_stopped or state.time == 0 or state.engine.sflags & 0x0100
+        # These observations jointly invalidate the same commitment.
+        if (busy or state.engine.clock_stopped or state.time == 0 or state.engine.sflags & 0x0100  # pylint: disable=too-many-boolean-expressions
                 or not state.engine.puck_owner_known or carrier is None):
             self.reset('no-opponent-carrier-or-busy', frame)
             return None

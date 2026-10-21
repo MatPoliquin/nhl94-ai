@@ -584,7 +584,7 @@ class DefenseController:
                 self.pending_check = {'from_slot': actual, 'carrier_slot': state.engine.puck_owner,
                                       'until': self.frames + check['contact_frames'] + 2}
                 mode = 'check-request'
-            elif reachable and aligned and (goal_side or covered_closer) and can_poke and contact_allowed:
+            elif reachable and aligned and (goal_side or covered_closer) and can_poke and contact_allowed:  # pylint: disable=too-many-boolean-expressions
                 action[Buttons.INPUT_B] = 1
                 self.poke_at = self.frames + 16
                 mode = 'poke-request'

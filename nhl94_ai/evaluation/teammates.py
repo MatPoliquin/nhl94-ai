@@ -353,7 +353,8 @@ def replay_trace(path):
         team_size, human = 2, False
         if header['schema'] == 'nhl94-teammate-inputs-v2':
             team_size, human = header.get('team_size'), header.get('opponent') == 'human'
-            if (single or isinstance(team_size, bool) or team_size not in (2, 3)
+            # Keep the replay-layout rejection conditions together and short-circuited.
+            if (single or isinstance(team_size, bool) or team_size not in (2, 3)  # pylint: disable=too-many-boolean-expressions
                     or team_size == 2 and not human or header.get('opponent') not in ('human', 'cpu')):
                 raise ValueError('Invalid multitap replay layout')
             expected = trace_layout(team_size, human, side)

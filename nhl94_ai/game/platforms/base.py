@@ -43,7 +43,8 @@ class HockeyCommand:
         return result
 
 
-class PlatformBackend:
+# Each public operation represents a distinct part of the console contract.
+class PlatformBackend:  # pylint: disable=too-many-public-methods
     name = 'genesis'
     rink = RinkGeometry()
     native_ratings = True
