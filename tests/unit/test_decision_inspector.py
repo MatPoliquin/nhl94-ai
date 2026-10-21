@@ -43,6 +43,21 @@ def mode_snapshot(mode, frame):
 
 
 class DecisionContractTests(unittest.TestCase):
+    def test_native_handoff_releases_defensive_evidence_on_cached_frames(self):
+        controller, state = ClassicAIV1Model(), offense_state()
+        controller.scheduler.remaining = 2
+        controller.scheduler.was_defending = True
+        controller._last_decision = 'protect-lane'
+        controller.defense_diagnostics = {'decision': 'protect-lane', 'mode': 'skating'}
+        controller._record_selection('protect-lane', 'skating', mode='defense')
+        for _ in range(2):
+            action = controller._scheduled_frame(state, True)[0]
+            snapshot = classic_decision_snapshot(controller, state, action)
+            self.assertEqual(snapshot.active_mode, 'offense')
+            self.assertEqual(snapshot.plan_id, 'protect-lane')
+            self.assertIsNone(snapshot.execution_id)
+            self.assertFalse(action.any())
+
     def test_executed_selection_does_not_reinspect_private_commitments(self):
         controller, state = ClassicAIV1Model(), live_one_timer_state()
         action = controller.predict_frame(state)[0]

@@ -638,6 +638,10 @@ class ClassicAIV1Model:
             self._idle(1)
         if not defending:
             self.defense_diagnostics = {}
+            if self.selection_evidence is not None and self.selection_evidence.active_mode == 'defense':
+                # Native handoff retains the tactical phase but drops defensive
+                # execution evidence until the next observed offensive choice.
+                self._record_selection(self._last_decision)
         self.scheduler.was_defending = defending
         self.scheduler.remaining -= 1
         self.scheduler.elapsed = self.scheduler.interval
