@@ -6,10 +6,25 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from nhl94_ai.evaluation.agents_refactor_trace import PROTOCOL, compare
+from nhl94_ai.evaluation.agents_refactor_trace import PROTOCOL, compare, verify_result
 
 
 class NativeRefactorTraceTests(unittest.TestCase):
+    def test_raw_native_contact_tuples_match_saved_json_but_changed_coordinates_fail(self):
+        measured = {'frames': 3, 'actions_sha256': 'fixed',
+                    'goalie_contact_events': [{'preceding_action': {'target': (-10.0, -199.0)}}]}
+        saved = json.loads(json.dumps(measured))
+        self.assertEqual(verify_result(measured, saved, 2, 'fixed'), saved)
+        measured['goalie_contact_events'][0]['preceding_action']['target'] = (-11.0, -199.0)
+        with self.assertRaisesRegex(RuntimeError, 'goalie_contact_events'):
+            verify_result(measured, saved, 2, 'fixed')
+
+    def test_matching_results_still_require_the_independently_hashed_applied_stream(self):
+        result = {'frames': 3, 'actions_sha256': 'saved'}
+        for frames, digest in ((1, 'saved'), (2, 'different')):
+            with self.subTest(frames=frames, digest=digest), self.assertRaisesRegex(RuntimeError, 'Applied trace'):
+                verify_result(result, result, frames, digest)
+
     def fixture(self, root, name, *, button=False, diagnostic=False, truncate=False):
         directory = root / name
         directory.mkdir()

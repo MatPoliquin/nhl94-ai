@@ -41,6 +41,18 @@ def _input(state):
     return deepcopy(result)
 
 
+def verify_result(measured, saved, frames, applied_hash):
+    """Compare the native result in the same JSON representation as CPU reports."""
+    measured = json.loads(json.dumps(measured, default=_json))
+    if measured != saved:
+        fields = sorted(key for key in measured.keys() | saved.keys()
+                        if measured.get(key) != saved.get(key))
+        raise RuntimeError(f'Instrumented trial does not reproduce saved report: {fields}')
+    if frames + 1 != measured['frames'] or applied_hash != measured['actions_sha256']:
+        raise RuntimeError('Applied trace does not reproduce the saved action hash/frame count')
+    return measured
+
+
 def measure(root, expected_report, matchup, seed, output):
     root, output = root.resolve(), output.resolve()
     if output.exists():
@@ -106,12 +118,8 @@ def measure(root, expected_report, matchup, seed, output):
         with patch.object(factory, 'make_retro', traced_env), patch.object(cpu, 'create_scripted', traced_agent), \
                 (output / 'runner.stdout.log').open('w') as stdout, redirect_stdout(stdout):
             measured = cpu.run(args)['matches'][0]
-    if measured != selected[0]:
-        fields = sorted(key for key in measured.keys() | selected[0].keys()
-                        if measured.get(key) != selected[0].get(key))
-        raise RuntimeError(f'Instrumented trial does not reproduce saved report: {fields}')
-    if frames + 1 != measured['frames'] or applied_hash.hexdigest() != measured['actions_sha256']:
-        raise RuntimeError('Applied trace does not reproduce the saved action hash/frame count')
+    (output / 'measured-result.json').write_text(json.dumps(measured, default=_json, indent=2) + '\n')
+    measured = verify_result(measured, selected[0], frames, applied_hash.hexdigest())
     report = {'protocol': PROTOCOL, 'source_root': str(root), 'sources': saved['sources'],
               'instrumentation_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               'expected_report': str(expected_report.resolve()), 'settings': saved['settings'],
