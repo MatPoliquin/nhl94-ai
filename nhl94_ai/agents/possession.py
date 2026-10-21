@@ -3,11 +3,9 @@ import math
 
 from nhl94_ai.agents.classic_tuning import current as tuning
 
-from nhl94_ai.game.actors import controllable_skater
-from nhl94_ai.game.motion import facing
 from nhl94_ai.agents.offense import (
     CARRY_SAMPLES, FEINT_FRAMES, OffenseController, _carry_motion, carry_clearance,
-    goalie_avoidance, shot_release_in_front,
+    goalie_avoidance,
 )
 from nhl94_ai.agents.passing import pressure_margin, shot_value
 from nhl94_ai.env.target_control import project_target, route_waypoint

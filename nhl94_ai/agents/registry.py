@@ -1,7 +1,7 @@
 """Explicit agent registration without importing neural networks."""
 from importlib import import_module
 from nhl94_ai.agents.base import ScriptedAgent
-from nhl94_ai.agents.classic_options import resolve_goalie_positioning  # compatibility export
+from nhl94_ai.agents.classic_options import resolve_goalie_positioning  # pylint: disable=unused-import
 
 CONTROLLERS = {
     'ClassicAIV1': ('nhl94_ai.agents.classic_v1', 'ClassicAIV1Model'),

@@ -322,7 +322,7 @@ def source_hashes(runtime=None):
     result = {f'nhl94_ai/agents/{name}.py': hashlib.sha256(
         (root / 'agents' / f'{name}.py').read_bytes()).hexdigest() for name in names}
     for name in (
-        'game/actors.py', 'game/forecast.py', 'game/motion.py', 'game/passing.py', 'game/shooting.py', 'game/skating.py', 'game/platforms/base.py', 'game/platforms/genesis.py', 'game/platforms/snes.py'):
+        'game/geometry.py', 'game/actors.py', 'game/forecast.py', 'game/motion.py', 'game/passing.py', 'game/shooting.py', 'game/skating.py', 'game/platforms/base.py', 'game/platforms/genesis.py', 'game/platforms/snes.py'):
         # Old archives predate these files. Their agents retain the old bodies;
         # current shared dependencies are covered by the candidate manifest.
         if (root / name).is_file():

@@ -1,11 +1,11 @@
 """Action-conditioned skating scenarios, not certificates of future CPU decisions."""
-from nhl94_ai.game.forecast import clone_forecast, project_body, set_position
+from nhl94_ai.game.forecast import clone_forecast, project_body
 from copy import copy
 import math
 
 from nhl94_ai.agents.carry import CONTACT_RADIUS, _segment_clearance
 from nhl94_ai.game.actors import observable_body
-from nhl94_ai.game.motion import VELOCITY_SCALE, bounded_projection, velocity
+from nhl94_ai.game.motion import VELOCITY_SCALE, velocity
 from nhl94_ai.agents.passing import rom_direction
 from nhl94_ai.game.skating import grounded_step
 

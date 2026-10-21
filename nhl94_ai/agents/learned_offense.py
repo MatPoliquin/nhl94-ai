@@ -13,8 +13,9 @@ from nhl94_ai.game.actors import controlled_slot, observable_body
 from nhl94_ai.agents.lifecycle import ONE_TIMER_TIMEOUT_FRAMES, ONE_TIMER_CONTACT_GRACE
 from nhl94_ai.game.motion import velocity
 from nhl94_ai.game.passing import pad_direction, pass_speed, pass_contact, pass_release_frames
-from nhl94_ai.env.intents import HOCKEY_INTENT_NOOP, HOCKEY_INTENT_NORMAL_SHOOT, HOCKEY_INTENT_PASS_START
+from nhl94_ai.env.intents import HOCKEY_INTENT_NOOP
 from nhl94_ai.game.constants import GameConsts as Buttons
+from nhl94_ai.game.geometry import apply_pad
 
 
 PADS = ((0, 0), (0, 1), (1, 1), (1, 0), (1, -1),
@@ -141,10 +142,7 @@ shot, one-timer, goalie and defense lifecycles.
         if command < 9:
             dx, dy = PADS[command]
             dx, dy = dx * attack, dy * attack
-            if dx:
-                action[Buttons.INPUT_RIGHT if dx > 0 else Buttons.INPUT_LEFT] = 1
-            if dy:
-                action[Buttons.INPUT_UP if dy > 0 else Buttons.INPUT_DOWN] = 1
+            apply_pad(action, (dx, dy))
             self._last_target = player.x + dx * 30, player.y + dy * 30
             return action, HOCKEY_INTENT_NOOP
         if command < 17:
@@ -202,10 +200,7 @@ shot, one-timer, goalie and defense lifecycles.
         result[:] = 0
         dx, dy = PADS[command]
         dx, dy = dx * attack, dy * attack
-        if dx:
-            result[Buttons.INPUT_RIGHT if dx > 0 else Buttons.INPUT_LEFT] = 1
-        if dy:
-            result[Buttons.INPUT_UP if dy > 0 else Buttons.INPUT_DOWN] = 1
+        apply_pad(result, (dx, dy))
         self._last_decision = 'learned-carry-' + ACTION_NAMES[command]
         self._record_selection(self._last_decision)
         self._last_target = player.x + dx * 30, player.y + dy * 30

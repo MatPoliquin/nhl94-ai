@@ -15,7 +15,7 @@ from nhl94_ai.agents.receiving import passive_reception, reception_target
 from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
 from nhl94_ai.env.intents import HOCKEY_INTENT_CHANGE_PLAYER, HOCKEY_INTENT_NOOP
 from nhl94_ai.game.constants import GameConsts as Buttons
-from nhl94_ai.game.geometry import aim_pass
+from nhl94_ai.game.geometry import aim_pass, apply_pad
 
 
 ONE_TIMER_TIMEOUT_FRAMES = 72
@@ -298,10 +298,7 @@ class PassLifecycle:
         if actual == slot:
             self.reception_metrics['steered-frames'] += 1
             pad, target = defensive_steering(receiver, target)
-            for delta, negative, positive in ((pad[0], Buttons.INPUT_LEFT, Buttons.INPUT_RIGHT),
-                                              (pad[1], Buttons.INPUT_DOWN, Buttons.INPUT_UP)):
-                if delta:
-                    action[positive if delta > 0 else negative] = 1
+            apply_pad(action, pad)
             mode = 'receive-pass'
         elif (not b_down and DefenseController._likely_switch(state) == slot
               and (correction.switch_frame is None or frame - correction.switch_frame >= 8)):

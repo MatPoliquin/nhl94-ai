@@ -1,5 +1,5 @@
 """Progression first; bounded cuts must create an identifiable opportunity."""
-from nhl94_ai.game.forecast import clone_forecast, project_body, set_position
+from nhl94_ai.game.forecast import clone_forecast, project_body
 from copy import copy
 from dataclasses import asdict, replace
 import math
@@ -14,7 +14,7 @@ from nhl94_ai.agents.carry import (
     carry_path, forecast_carry, forecast_path,
 )
 from nhl94_ai.game.motion import (
-    arrival_time, bounded_projection, coast_projection, facing, skate_step, skating, stop_projection,
+    bounded_projection, coast_projection, facing, skate_step, skating, stop_projection,
     velocity,
 )
 from nhl94_ai.game.motion import direction as console_direction

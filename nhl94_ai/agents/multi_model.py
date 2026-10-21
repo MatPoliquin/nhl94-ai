@@ -3,8 +3,6 @@ NHL AI
 """
 from nhl94_ai.agents.registry import CONTROLLERS
 
-import math
-import random
 from copy import copy
 import numpy as np
 from nhl94_ai.game.constants import GameConsts
@@ -19,12 +17,10 @@ MODEL_SCOREOPP = 2
 
 class NHL94AISystem():
     def __init__(self, args, env, logger):
-        self.test = 0
         self.args = args
         self.logger = logger
         self.env = env
 
-        self.target_xy = [0,0]
         self.scoregoal_state = None
         self.pass_button_pressed = False
         self.shooting = False
@@ -115,11 +111,6 @@ class NHL94AISystem():
         else:
             p1_actions[GameConsts.INPUT_UP] = 1
 
-    def DistToPos(self, vec1, vec2):
-        tmp = (vec1[0] - vec2[0])**2 + (vec1[1] - vec2[1])**2
-
-        return math.sqrt(tmp)
-
     def Predict(self, model_index, model_input, deterministic):
         from nhl94_ai.agents.base import AgentInput
         agent = self._prediction_agent(model_index)
@@ -186,12 +177,6 @@ class NHL94AISystem():
             p1_actions[GameConsts.INPUT_C] = 1
 
         return p1_actions
-
-    def SelectRandomTarget(self):
-        x = (random.random() - 0.5) * 240
-        y = (random.random() - 0.5) * 460
-
-        return [x,y]
 
     def predict(self, state, info, deterministic):
         if info is None:

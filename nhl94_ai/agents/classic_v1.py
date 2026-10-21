@@ -38,7 +38,7 @@ from nhl94_ai.agents.receiver_selection import ReceiverSelector
 from nhl94_ai.agents.shot_placement import ShotPlacement, extend_hold
 from nhl94_ai.agents.finishing import Finish, normal_finish as evaluate_finish, one_timer_finish
 from nhl94_ai.game.constants import GameConsts as Buttons
-from nhl94_ai.game.geometry import aim_pass
+from nhl94_ai.game.geometry import aim_pass, apply_pad
 from nhl94_ai.env.intents import (
     HOCKEY_INTENT_DPAD_ACTION_SPACE, HOCKEY_INTENT_NOOP,
     HOCKEY_INTENT_NORMAL_SHOOT, HOCKEY_INTENT_CHANGE_PLAYER,
@@ -667,11 +667,7 @@ class ClassicAIV1Model:
             self._record_selection(self._last_decision)
             self.offense_diagnostics.update(details)
         self._last_target = (x, y)
-        dx, dy = carry_pad(player, (x, y))
-        if dx:
-            action[Buttons.INPUT_RIGHT if dx > 0 else Buttons.INPUT_LEFT] = 1
-        if dy:
-            action[Buttons.INPUT_UP if dy > 0 else Buttons.INPUT_DOWN] = 1
+        apply_pad(action, carry_pad(player, (x, y)))
 
     def _carry(self, state, player, action, *, breakaway=False):
         point, details = self.offense.fallback_carry(state, player)

@@ -8,6 +8,7 @@ from nhl94_ai.game.actors import controlled_slot
 from nhl94_ai.agents.goalie import DIVE_ANIMATION, SAVE_ANIMATIONS, GoalieController, goalie_target
 from nhl94_ai.game.motion import velocity
 from nhl94_ai.game.constants import GameConsts as Buttons
+from nhl94_ai.game.geometry import apply_pad
 
 
 PADS = ((0, 0), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))
@@ -103,12 +104,7 @@ def command_buttons(command, state):
         action[Buttons.INPUT_C] = 1
     elif command >= 10:
         action[Buttons.INPUT_A] = 1
-    dx, dy = dx * rotate, dy * rotate
-    if dx:
-        action[Buttons.INPUT_RIGHT if dx > 0 else Buttons.INPUT_LEFT] = 1
-    if dy:
-        action[Buttons.INPUT_UP if dy > 0 else Buttons.INPUT_DOWN] = 1
-    return action
+    return apply_pad(action, (dx * rotate, dy * rotate))
 
 
 class CommandGoalie(GoalieController):

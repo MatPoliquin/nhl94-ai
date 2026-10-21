@@ -1,11 +1,15 @@
 """Short-horizon, conservative motion estimates in rink units and emulator frames."""
 import math
 
-from nhl94_ai.env.target_control import project_target, route_waypoint
-from nhl94_ai.game.motion import (
-    VELOCITY_SCALE, _backend, rom_direction, direction, velocity, coast_projection, bounded_projection,
-    skate_step, skating, facing, boost_impulse, burst_velocity, stop_projection, check_approach, boost_safe,
-    arrival_time, puck_path,
+# Compatibility exports preserve the original physical API.
+from nhl94_ai.game.motion import (  # pylint: disable=unused-import
+    VELOCITY_SCALE, _backend,
+    rom_direction, direction, velocity,
+    coast_projection, bounded_projection,
+    skate_step, skating, facing,
+    boost_impulse, burst_velocity,
+    stop_projection, check_approach,
+    boost_safe, arrival_time, puck_path,
 )
 
 

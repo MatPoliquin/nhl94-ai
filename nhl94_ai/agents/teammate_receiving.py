@@ -1,7 +1,6 @@
 """One native-confirmed commitment shared by passer and selected receiver."""
 from collections import deque
 from dataclasses import asdict, dataclass
-import math
 
 import numpy as np
 

@@ -13,7 +13,7 @@ from nhl94_ai.agents.carry import body_clearance, carry_path
 from nhl94_ai.game.actors import controlled_slot, controllable_skater, observable_body
 from nhl94_ai.agents.finishing import automatic_aim, normal_finish
 from nhl94_ai.game.shooting import shot_speed
-from nhl94_ai.game.motion import bounded_projection, facing, velocity
+from nhl94_ai.game.motion import facing, velocity
 from nhl94_ai.agents.offense import (
     carry_future, goalie_avoidance, ordinary_shot_conditions, reception_frames, reception_state,
 )

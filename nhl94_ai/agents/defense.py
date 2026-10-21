@@ -15,8 +15,10 @@ from nhl94_ai.game.motion import (
 )
 from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.game.actors import (
-    controlled_slot, owns_puck, controllable_skater as eligible, observable_body as on_ice
+    controlled_slot, owns_puck, controllable_skater as eligible,
 )
+# Historical public name, retained for existing callers.
+from nhl94_ai.game.actors import observable_body as on_ice  # pylint: disable=unused-import
 
 
 SWITCH_DELAY = 6

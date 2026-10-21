@@ -413,7 +413,6 @@ class TeammateCoordinationTests(unittest.TestCase):
 
     def test_a_switch_without_native_pass_counter_change_is_not_a_pass(self):
         ai = TeammateCoordinator(team_args())
-        ai.last_owner, ai.last_pass_count = -1, 0
         ai.previous[0, 0] = 1
         ai.act(team_info(puck_owner=-1))
         self.assertIsNone(ai.pending_pass)

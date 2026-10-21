@@ -6,6 +6,7 @@ from nhl94_ai.game.actors import controlled_slot, controllable_skater
 from nhl94_ai.game.motion import velocity
 from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.game.constants import GameConsts as Buttons
+from nhl94_ai.game.geometry import apply_pad
 
 
 INTERVAL = 4
@@ -25,11 +26,7 @@ def movement_action(command, sign):
         raise ValueError('Expected one of nine movement commands and an attack sign')
     action = np.zeros(12, dtype=np.int8)
     dx, dy = PADS[command]
-    if dx:
-        action[Buttons.INPUT_RIGHT if dx * sign > 0 else Buttons.INPUT_LEFT] = 1
-    if dy:
-        action[Buttons.INPUT_UP if dy * sign > 0 else Buttons.INPUT_DOWN] = 1
-    return action
+    return apply_pad(action, (dx * sign, dy * sign))
 
 
 def movement_id(action, sign):

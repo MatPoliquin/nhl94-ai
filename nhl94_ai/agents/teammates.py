@@ -9,7 +9,7 @@ from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.classic_config import decision_state
 from nhl94_ai.agents.defense import defensive_steering
 from nhl94_ai.game.actors import controllable_skater
-from nhl94_ai.game.motion import arrival_time, velocity
+from nhl94_ai.game.motion import arrival_time
 from nhl94_ai.agents.teammate_receiving import SharedReceiving
 from nhl94_ai.agents.teammate_support import SupportPlanner
 from nhl94_ai.agents.teammate_pressure import SharedPressure, TRAP_ROLES
@@ -63,8 +63,6 @@ class TeammateCoordinator:
         self.receiving = SharedReceiving()
         self.pressure = SharedPressure()
         self.support = [SupportPlanner() for _ in range(self.team_size)]
-        self.last_owner = -1
-        self.last_pass_count = None
         self.last_diagnostics = {}
         self.display_probs = np.zeros(12)
         self.model_in_use = 1
@@ -160,7 +158,6 @@ class TeammateCoordinator:
             self.receiving.frame_events = []
             self.receiving.finish(self.frames, 'highlight')
             self.receiving.last_owner, self.receiving.last_count = -1, None
-            self.last_owner, self.last_pass_count = -1, None
             self.last_roles, self.last_slots = ['highlight'] * self.team_size, [-1] * self.team_size
             self.previous = actions.copy()
             for i, controller in enumerate(self.controllers):
@@ -180,7 +177,6 @@ class TeammateCoordinator:
         self.frames += 1
         slots = [view[f'p{self.side}_control_slot'] for view in views]
         owner = state.engine.puck_owner
-        count = state.team1.pass_attempts
         if self.strategy == 'coordinated':
             self.receiving.observe(state, slots, self.frames)
             for event in self.receiving.frame_events:
@@ -284,7 +280,6 @@ class TeammateCoordinator:
                                        if controller.one_timer.pending is not None else None),
                          'shot_phase': controller.shot.phase(controller.scheduler.decisions,
                                                               controller.scheduler.frames)}
-        self.last_owner, self.last_pass_count = owner, count
         if self.strategy == 'coordinated' and not intermission and not state.engine.clock_stopped:
             for i, controller in enumerate(self.controllers):
                 self.receiving.propose(controller.pass_intention(), i + 1, slots, state, self.frames)

@@ -9,17 +9,21 @@ from nhl94_ai.agents.classic_tuning import current as tuning
 
 from nhl94_ai.game.actors import controllable_skater, observable_body
 # rom_direction stays imported as a re-export for Genesis CPU-model callers.
-from nhl94_ai.game.motion import (
-    VELOCITY_SCALE, arrival_time, bounded_projection, facing, rom_direction, skating, velocity,
+from nhl94_ai.game.motion import (  # pylint: disable=unused-import
+    VELOCITY_SCALE, arrival_time, bounded_projection, rom_direction, skating, velocity,
 )
-from nhl94_ai.env.target_control import _clear_segment, project_target
+from nhl94_ai.env.target_control import _clear_segment
 from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
-from nhl94_ai.game.geometry import aim_pass
-from nhl94_ai.game.passing import (
-    _backend, PASS_HORIZON, RELEASE_FRAMES, LIVE_RELEASE_FRAMES, pad_direction, selected_receiver,
-    pass_launch_view, option_receiver, pass_speed, _nominal_speed, _word, _divide, _rom_sqrt,
-    rom_pass_vector, _live_pass_contact, pass_release_frames, pass_contact, pass_point_at,
-    one_timer_contact_frame,
+# Physical helpers remain available to callers of the original module.
+from nhl94_ai.game.passing import (  # pylint: disable=unused-import
+    _backend, PASS_HORIZON, RELEASE_FRAMES,
+    LIVE_RELEASE_FRAMES, pad_direction,
+    selected_receiver, pass_launch_view,
+    option_receiver, pass_speed, _nominal_speed,
+    _word, _divide, _rom_sqrt,
+    rom_pass_vector, _live_pass_contact,
+    pass_release_frames, pass_contact,
+    pass_point_at, one_timer_contact_frame,
 )
 
 
@@ -87,7 +91,7 @@ def shot_value(state, shooter, point=None, delay=0):
     if abs(point[0]) > 71 or not 150 < point[1] * sign < 245:
         return 0.0
     goalie = state.team2.goalie
-    gx, gy = velocity(goalie)
+    gx, _gy = velocity(goalie)
     targets = state._shot_target_points_for_net(state.team2.net)
     clear = 0
     for goal in targets:
