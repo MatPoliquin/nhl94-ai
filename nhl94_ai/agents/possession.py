@@ -3,8 +3,8 @@ import math
 
 from nhl94_ai.agents.classic_tuning import current as tuning
 
-from nhl94_ai.agents.defense import eligible
-from nhl94_ai.agents.motion import facing
+from nhl94_ai.game.actors import controllable_skater
+from nhl94_ai.game.motion import facing
 from nhl94_ai.agents.offense import (
     CARRY_SAMPLES, FEINT_FRAMES, OffenseController, _carry_motion, carry_clearance,
     goalie_avoidance, shot_release_in_front,
@@ -108,7 +108,7 @@ class PossessionOffenseController(OffenseController):
         player = state.team1.get_player_by_scnum(state.engine.puck_owner)
         self.diagnostics = {'candidates': [], 'scenario_samples': 8,
                             'evaluation_frame': frame, 'evaluation_carrier': state.engine.puck_owner}
-        if (player is None or not eligible(player) or player.motion_x is None
+        if (player is None or not controllable_skater(player) or player.motion_x is None
                 or player.motion_y is None or not state.engine.puck_owner_known):
             self.diagnostics['status'] = 'missing-feedback'
             return None

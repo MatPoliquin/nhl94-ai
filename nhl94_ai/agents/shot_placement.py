@@ -11,10 +11,12 @@ import numpy as np
 
 from nhl94_ai.agents.classic_resources import load_json_artifact
 from nhl94_ai.agents.carry import carry_path
-from nhl94_ai.agents.defense import eligible, on_ice
-from nhl94_ai.agents.finishing import _score, shot_speed
-from nhl94_ai.agents.motion import facing, velocity
-from nhl94_ai.agents.offense import normal_shot_release_frames, shot_release_in_front
+from nhl94_ai.game.actors import controllable_skater, observable_body
+from nhl94_ai.agents.finishing import _score
+from nhl94_ai.game.shooting import shot_speed
+from nhl94_ai.game.motion import facing, velocity
+from nhl94_ai.agents.offense import shot_release_in_front
+from nhl94_ai.game.shooting import normal_shot_release_frames
 from nhl94_ai.agents.passing import pressure_margin
 from nhl94_ai.agents.possession_value import shot_quality
 
@@ -43,7 +45,7 @@ def shot_actions(state, interval):
 
 def shot_features(state, side, hold):
     player = state.team1.get_player_by_scnum(state.engine.puck_owner)
-    if player is None or not eligible(player) or any(getattr(player, name) is None for name in (
+    if player is None or not controllable_skater(player) or any(getattr(player, name) is None for name in (
             'motion_x', 'motion_y', 'speed', 'agility', 'weight', 'energy', 'shot_power', 'shot_accuracy')):
         return None
     sign = 1 if state.team2.net.y > state.team1.net.y else -1
@@ -73,7 +75,7 @@ def shot_features(state, side, hold):
         'pressure': max(-30, min(30, pressure_margin(state.team2, point, release)))/30,
         'goalie_down': float(goalie.live_anim in (0x250, 0x2A2)),
         'nearest_defender': min((math.dist((player.x, player.y), (p.x, p.y))
-                                 for p in state.team2.players if on_ice(p)), default=150)/150,
+                                 for p in state.team2.players if observable_body(p)), default=150)/150,
         'aim': side, 'neutral': float(side == 0), 'hold': h, 'hold_squared': h*h,
         'aim_carrier_x': side*x, 'aim_goalie_x': side*goal_x, 'aim_goalie_vx': side*gx/4,
         'aim_carrier_vx': side*vx/4, 'aim_facing_x': side*fx,

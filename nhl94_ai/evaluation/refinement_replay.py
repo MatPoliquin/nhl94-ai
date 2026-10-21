@@ -21,11 +21,11 @@ import numpy as np
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.carry import body_clearance, carry_path
-from nhl94_ai.agents.defense import controlled_slot
+from nhl94_ai.game.actors import controlled_slot
 from nhl94_ai.agents.finishing import normal_finish
-from nhl94_ai.agents.motion import velocity
+from nhl94_ai.game.motion import velocity
 from nhl94_ai.agents.passing import evaluate_pass
-from nhl94_ai.agents.skating import grounded_step
+from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.evaluation.carry_replay import source_hashes
 from nhl94_ai.evaluation.carry_outcomes import CarryOutcomes

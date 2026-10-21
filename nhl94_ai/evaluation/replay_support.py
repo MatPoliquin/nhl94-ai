@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from nhl94_ai.agents.defense import controlled_slot
+from nhl94_ai.game.actors import controlled_slot
 from nhl94_ai.game.genesis_match import CPU_RAM, cpu_view, select_side
 from nhl94_ai.game.ram import pass_geometry_info, restore_away_control
 

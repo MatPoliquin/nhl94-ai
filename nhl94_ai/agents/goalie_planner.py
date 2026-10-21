@@ -14,7 +14,7 @@ import numpy as np
 
 from nhl94_ai.agents.goalie import GoalieController
 from nhl94_ai.agents.goalie_physics import KeeperMotion, PuckFlight, PADS, contact_margin, free_trajectory
-from nhl94_ai.agents.motion import velocity
+from nhl94_ai.game.motion import velocity
 from nhl94_ai.game.constants import GameConsts as Buttons
 
 

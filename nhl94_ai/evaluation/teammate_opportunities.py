@@ -5,8 +5,8 @@ Live contact and both shot poses remain uncertain until the ROM resolves them.
 """
 from copy import copy
 
-from nhl94_ai.agents.defense import eligible
-from nhl94_ai.agents.motion import velocity
+from nhl94_ai.game.actors import controllable_skater
+from nhl94_ai.game.motion import velocity
 from nhl94_ai.agents.passing import evaluate_pass, shot_value
 from nhl94_ai.agents.receiving import passive_reception, reachable_reception
 from nhl94_ai.game.constants import GameConsts as Buttons
@@ -63,7 +63,7 @@ def opportunity_diagnostics(state, diagnostics, previous):
             reasons.append('purpose-classification')
         if plan['phase'] != 'flight':
             reasons.append('not-in-flight')
-        if not eligible(receiver):
+        if not controllable_skater(receiver):
             reasons.append('animation-unavailable')
         if shot is None:
             reasons.append('animation-uncertainty')

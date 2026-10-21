@@ -4,9 +4,9 @@ import math
 
 import numpy as np
 
-from nhl94_ai.agents.motion import coast_projection, velocity
-from nhl94_ai.agents.defense import controlled_slot, on_ice
-from nhl94_ai.agents.skating import grounded_step
+from nhl94_ai.game.motion import coast_projection, velocity
+from nhl94_ai.game.actors import controlled_slot, observable_body
+from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.env.target_control import project_target, route_waypoint
 from nhl94_ai.game.constants import GameConsts as Buttons
 
@@ -52,7 +52,7 @@ class CrossCreaseOnly:
     def _obstacles(self, state, player):
         """Body, avoidance radius, cost weight and velocity forecast horizon."""
         return [(other, 24, 12, 8) for other in (*state.team2.players, state.team2.goalie)
-                if on_ice(other)]
+                if observable_body(other)]
 
     def _skate(self, state, player, target, frame):
         """Choose an ordinary D-pad input using a short native-motion forecast.

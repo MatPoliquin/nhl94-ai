@@ -11,7 +11,7 @@ import numpy as np
 
 from nhl94_ai.agents.carry import CARRY_FRAMES, carry_path
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
-from nhl94_ai.agents.motion import velocity
+from nhl94_ai.game.motion import velocity
 from nhl94_ai.agents.responses import response_future
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.env.actions import HockeyActionController
@@ -152,7 +152,7 @@ def run(args):
                                  'response': diagnostics, 'deadline_interrupt_frame': model.scheduler.frames})
         root = Path(__file__).resolve().parents[2]
         names = ('agents/responses.py', 'agents/carry.py', 'agents/skating.py',
-                 'agents/classic_v1.py', 'agents/classic_options.py', 'agents/classic_components.py', 'agents/history.py', 'agents/classic_resources.py', 'agents/offense.py', 'env/actions.py',
+                 'agents/classic_v1.py', 'agents/classic_options.py', 'agents/classic_components.py', 'agents/history.py', 'agents/classic_resources.py', 'game/actors.py', 'game/forecast.py', 'game/motion.py', 'game/passing.py', 'game/shooting.py', 'game/skating.py', 'game/platforms/base.py', 'game/platforms/genesis.py', 'game/platforms/snes.py', 'agents/offense.py', 'env/actions.py',
                  'game/ram.py', 'game/state.py', 'evaluation/chance_creation_probe.py')
         report = {'protocol': 'nhl94-chance-response-probe-v1', 'traces': rows,
                   'maximum_position_error': max(row['position_error'] for row in rows),

@@ -402,7 +402,7 @@ def run(args):
     root = Path(__file__).resolve().parents[2]
     files.update(root / 'nhl94_ai' / name for name in (
         'evaluation/benchmark.py', 'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
-        'agents/classic_options.py', 'agents/classic_components.py', 'agents/history.py', 'agents/classic_resources.py', 'agents/base.py', 'agents/control_rate.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
+        'agents/classic_options.py', 'agents/classic_components.py', 'agents/history.py', 'agents/classic_resources.py', 'game/actors.py', 'game/forecast.py', 'game/motion.py', 'game/passing.py', 'game/shooting.py', 'game/skating.py', 'game/platforms/base.py', 'game/platforms/genesis.py', 'game/platforms/snes.py', 'agents/base.py', 'agents/control_rate.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
         'agents/offense.py', 'agents/possession.py', 'agents/possession_value.py', 'agents/possession_ablation.py',
         'agents/receiver_selection.py', 'agents/shot_placement.py',
         'agents/passing.py', 'agents/receiving.py', 'agents/responses.py', 'agents/finishing.py',

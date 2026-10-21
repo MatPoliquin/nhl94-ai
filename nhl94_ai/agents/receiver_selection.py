@@ -7,7 +7,7 @@ thresholds. Native recipient, contact, offside, catch and race gates stay strict
 """
 import math
 
-from nhl94_ai.agents.motion import velocity
+from nhl94_ai.game.motion import velocity
 from nhl94_ai.agents.passing import shot_value
 from nhl94_ai.agents.possession_value import PossessionValuePlanner, VALUE_MODEL
 

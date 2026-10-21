@@ -6,10 +6,13 @@ import warnings
 
 import numpy as np
 
-from nhl94_ai.agents.defense import DefenseController, controlled_slot, eligible, owns_puck
-from nhl94_ai.agents.motion import VELOCITY_SCALE, arrival_time, blocks_shot_lane, skating, velocity
-from nhl94_ai.agents.passing import evaluate_pass, one_timer_contact_frame, pass_contact, pass_release_frames
-from nhl94_ai.agents.skating import grounded_step
+from nhl94_ai.agents.defense import DefenseController
+from nhl94_ai.game.actors import controlled_slot, controllable_skater, owns_puck
+from nhl94_ai.agents.motion import blocks_shot_lane
+from nhl94_ai.game.motion import VELOCITY_SCALE, arrival_time, skating, velocity
+from nhl94_ai.agents.passing import evaluate_pass
+from nhl94_ai.game.passing import one_timer_contact_frame, pass_contact, pass_release_frames
+from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass
 from nhl94_ai.game.platforms import get_backend
@@ -89,7 +92,7 @@ def _receiver_contact(state, windup, receiver_slot=None):
     winding_up = (receiver_slot is not None and state.platform.name == 'genesis'
                   and receiver.is_one_timer and receiver.live_anim in (0x7FC, 0x92E)
                   and (receiver.role is None or receiver.role > 0) and not receiver.unavailable & 4)
-    if not eligible(receiver) and not winding_up:
+    if not controllable_skater(receiver) and not winding_up:
         return None
     if windup is not None:
         passer = state.team2.get_player_by_scnum(windup[0])
@@ -365,7 +368,7 @@ class GoalieController:
         if deadline < takeover_frames + reach + 6:
             return False, 'too late for goalie takeover plus reach'
         player = state.team1.get_player_by_scnum(controlled_slot(state.team1))
-        if player is not None and eligible(player):
+        if player is not None and controllable_skater(player):
             if (plan.receiver is None and state.engine.puck_owner >= 0
                     and arrival_time(player, (state.puck.x, state.puck.y), boost=True)
                     <= self.platform.goalie_takeover_frames / 2):

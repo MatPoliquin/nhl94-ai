@@ -9,10 +9,10 @@ from types import SimpleNamespace
 import numpy as np
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
-from nhl94_ai.agents.defense import controlled_slot, on_ice
+from nhl94_ai.game.actors import controlled_slot, observable_body
 from nhl94_ai.agents.lifecycle import ONE_TIMER_TIMEOUT_FRAMES, ONE_TIMER_CONTACT_GRACE
-from nhl94_ai.agents.motion import velocity
-from nhl94_ai.agents.passing import pad_direction, pass_speed, pass_contact, pass_release_frames
+from nhl94_ai.game.motion import velocity
+from nhl94_ai.game.passing import pad_direction, pass_speed, pass_contact, pass_release_frames
 from nhl94_ai.env.intents import HOCKEY_INTENT_NOOP, HOCKEY_INTENT_NORMAL_SHOOT, HOCKEY_INTENT_PASS_START
 from nhl94_ai.game.constants import GameConsts as Buttons
 
@@ -70,7 +70,7 @@ shot, one-timer, goalie and defense lifecycles.
         return bool(
             team.owns_scnum(owner) and owner != team.goalie_scnum()
             and owner == controlled_slot(team) and player is not None
-            and on_ice(player) and not player.is_falling
+            and observable_body(player) and not player.is_falling
             and player.y * attack_sign(state) >= 100
             and not state.engine.clock_stopped
             and not self.scheduler.was_defending
@@ -88,7 +88,7 @@ shot, one-timer, goalie and defense lifecycles.
             return mask
         if not self.buttons.b_down:
             for i, (_, player) in enumerate(receivers(state)[:4]):
-                if on_ice(player) and not player.is_falling:
+                if observable_body(player) and not player.is_falling:
                     mask[9 + i] = mask[13 + i] = 1
         if not self.buttons.c_down:
             mask[17:] = 1
@@ -255,7 +255,7 @@ def encode_offense(state, controller, *, clock, score_difference):
                            sign * (player.x - puck.x) / 256, sign * (player.y - puck.y) / 576,
                            sign * math.sin(angle), sign * math.cos(angle),
                            float(controlled_slot(team) == slot), float(owner == slot),
-                           float(on_ice(player)), player.is_falling, player.is_pad_stack,
+                           float(observable_body(player)), player.is_falling, player.is_pad_stack,
                            player.is_dive, player.anim_frame / 32))
             values.extend((getattr(player, name, None) or 0) / scale for name, scale in RATINGS)
             values.append(float(all(getattr(player, name, None) is not None for name, _ in RATINGS)))

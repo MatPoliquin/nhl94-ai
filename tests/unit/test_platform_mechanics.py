@@ -105,7 +105,7 @@ class SnesEstimatesTests(unittest.TestCase):
         # receiver at (100,0); connects with the ROM-aimed hotspot offset.
         passer = player('snes', x=0.0, y=0.0, motion_x=0.0, motion_y=0.0)
         receiver = player('snes', x=100.0, y=0.0, motion_x=0.0, motion_y=0.0, facing=0)
-        with patch('nhl94_ai.agents.passing.rom_pass_vector', side_effect=AssertionError('ROM rule')):
+        with patch('nhl94_ai.game.passing.rom_pass_vector', side_effect=AssertionError('ROM rule')):
             contact = pass_contact(puck('snes', x=-2, y=21, motion_x=0.0, motion_y=0.0),
                                    passer, receiver)
         self.assertIsNotNone(contact)

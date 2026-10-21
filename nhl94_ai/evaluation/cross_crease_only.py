@@ -148,7 +148,7 @@ def source_hashes():
              'evaluation/cross_crease_probe.py', 'evaluation/benchmark.py', 'game/genesis_match.py',
              'tasks/cross_crease_setup.py', 'tasks/defense_setup.py',
              'agents/skating.py', 'agents/motion.py', 'agents/defense.py',
-             'agents/classic_v1.py', 'agents/classic_options.py', 'agents/classic_components.py', 'agents/history.py', 'agents/classic_resources.py', 'agents/cross_crease.py', 'agents/offense.py',
+             'agents/classic_v1.py', 'agents/classic_options.py', 'agents/classic_components.py', 'agents/history.py', 'agents/classic_resources.py', 'game/actors.py', 'game/forecast.py', 'game/motion.py', 'game/passing.py', 'game/shooting.py', 'game/skating.py', 'game/platforms/base.py', 'game/platforms/genesis.py', 'game/platforms/snes.py', 'agents/cross_crease.py', 'agents/offense.py',
              'agents/passing.py', 'agents/goalie.py', 'env/target_control.py',
              'env/factory.py', 'game/state.py', 'game/ram.py')
     return {'nhl94_ai/' + name: hashlib.sha256((root / 'nhl94_ai' / name).read_bytes()).hexdigest()

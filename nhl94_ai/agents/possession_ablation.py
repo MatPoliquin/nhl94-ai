@@ -8,8 +8,9 @@ from collections import Counter
 import math
 
 from nhl94_ai.agents.carry import body_clearance, carry_path
-from nhl94_ai.agents.finishing import shot_speed
-from nhl94_ai.agents.offense import carry_future, normal_shot_release_frames
+from nhl94_ai.game.shooting import shot_speed
+from nhl94_ai.agents.offense import carry_future
+from nhl94_ai.game.shooting import normal_shot_release_frames
 from nhl94_ai.agents.passing import pressure_margin
 from nhl94_ai.agents.possession_value import (
     CARRY_HORIZON, VALUE_MODEL, PossessionValuePlanner, position_value, shot_quality, transition_score,

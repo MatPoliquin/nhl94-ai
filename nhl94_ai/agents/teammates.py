@@ -7,8 +7,9 @@ import numpy as np
 from nhl94_ai.agents.base import AgentOutput
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.classic_config import decision_state
-from nhl94_ai.agents.defense import defensive_steering, eligible
-from nhl94_ai.agents.motion import arrival_time, velocity
+from nhl94_ai.agents.defense import defensive_steering
+from nhl94_ai.game.actors import controllable_skater
+from nhl94_ai.game.motion import arrival_time, velocity
 from nhl94_ai.agents.teammate_receiving import SharedReceiving
 from nhl94_ai.agents.teammate_support import SupportPlanner
 from nhl94_ai.agents.teammate_pressure import SharedPressure, TRAP_ROLES
@@ -94,7 +95,7 @@ class TeammateCoordinator:
         choices = [(arrival_time(player, (state.puck.x, state.puck.y)), i)
                    for i, slot in enumerate(slots)
                    if (player := state.team1.get_player_by_scnum(slot)) is not None
-                   and slot != state.team1.goalie_scnum() and eligible(player)]
+                   and slot != state.team1.goalie_scnum() and controllable_skater(player)]
         if not choices:
             self.primary = None
             return None
@@ -218,7 +219,7 @@ class TeammateCoordinator:
             unavailable = player is None or slot == view.team1.goalie_scnum()
             if not unavailable:
                 unavailable = player.is_falling or player.unavailable & 4 or player.role is not None and player.role <= 0
-                unavailable = unavailable or (not eligible(player) and not player.is_one_timer
+                unavailable = unavailable or (not controllable_skater(player) and not player.is_one_timer
                                               and not self.controllers[i].has_committed_action())
             if intermission:
                 role = 'intermission'

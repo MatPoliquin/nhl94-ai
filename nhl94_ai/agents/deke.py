@@ -7,11 +7,12 @@ import math
 import numpy as np
 
 from nhl94_ai.agents.cross_crease import _path_clear, crossing_clear, shot_lane_clear
-from nhl94_ai.agents.defense import controlled_slot, eligible, on_ice
-from nhl94_ai.agents.motion import VELOCITY_SCALE, coast_projection, velocity
-from nhl94_ai.agents.offense import goalie_avoidance, normal_shot_release_frames, shot_release_in_front
+from nhl94_ai.game.actors import controlled_slot, controllable_skater, observable_body
+from nhl94_ai.game.motion import VELOCITY_SCALE, coast_projection, velocity
+from nhl94_ai.agents.offense import goalie_avoidance, shot_release_in_front
+from nhl94_ai.game.shooting import normal_shot_release_frames
 from nhl94_ai.agents.passing import pressure_margin, rom_direction, shot_value
-from nhl94_ai.agents.skating import grounded_step, skating_route
+from nhl94_ai.game.skating import grounded_step, skating_route
 from nhl94_ai.env.target_control import SETTINGS, project_target, route_waypoint, steering_direction
 from nhl94_ai.game.constants import GameConsts as Buttons
 
@@ -132,7 +133,7 @@ def _advance_preview(scene, slot, action):
     scene.puck.motion_x, scene.puck.motion_y = future.motion_x, future.motion_y
     for team in (scene.team1, scene.team2):
         for index, other in enumerate(team.players):
-            if other is future or not on_ice(other):
+            if other is future or not observable_body(other):
                 continue
             team.players[index] = grounded_step(other, (0, 0))
     scene.team2.goalie = _goalie_step(scene)
@@ -206,7 +207,7 @@ def evaluate_deke(state, alternatives):
     missing = _missing_feedback(state, player)
     if (missing or not state.engine.puck_owner_known or controlled_slot(state.team1) != state.engine.puck_owner):
         return None, {**diagnostics, 'status': 'missing-feedback', 'missing_feedback': missing}
-    if state.is_shootout_active or state.is_shooting or not eligible(player) or not on_ice(state.team2.goalie):
+    if state.is_shootout_active or state.is_shooting or not controllable_skater(player) or not observable_body(state.team2.goalie):
         return None, {**diagnostics, 'status': 'ineligible-state'}
     if not _ordinary_goalie_scene(state):
         return None, {**diagnostics, 'status': 'unsupported-goalie-state'}
@@ -276,7 +277,7 @@ class DekeController:
         plan, event = self.plan, self.event
         player, goalie = state.team1.get_player_by_scnum(plan.slot), state.team2.goalie
         if player is None or (self.phase in ('bait', 'cut') and (
-                controlled_slot(state.team1) != plan.slot or not eligible(player))):
+                controlled_slot(state.team1) != plan.slot or not controllable_skater(player))):
             self._finish(frame, 'control-lost')
             return
         impacts = goalie.contact_impact or 0, player.contact_impact or 0
@@ -354,7 +355,7 @@ class DekeController:
                         self._phase('release', frame, 'bounded-wrist-shot')
                 if not self.event['windup'] and elapsed >= hold_frames + 3:
                     self.metrics['unaccepted_presses'] += 1
-                    if self.event['retries'] < 2 and state.engine.puck_owner == plan.slot and eligible(player):
+                    if self.event['retries'] < 2 and state.engine.puck_owner == plan.slot and controllable_skater(player):
                         self.event['retries'] += 1
                         self._phase('cut', frame, 'unaccepted-shot-retry')
                     else:

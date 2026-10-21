@@ -4,12 +4,10 @@ import math
 
 import numpy as np
 
-from nhl94_ai.agents.defense import on_ice
-from nhl94_ai.agents.motion import (
-    VELOCITY_SCALE, bounded_projection, facing, skating, velocity,
-)
+from nhl94_ai.game.actors import observable_body
+from nhl94_ai.game.motion import VELOCITY_SCALE, bounded_projection, facing, skating, velocity
 from nhl94_ai.agents.passing import _contact_offsets
-from nhl94_ai.agents.skating import grounded_step
+from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.env.target_control import project_target
 
 
@@ -101,7 +99,7 @@ def _contact_reach(player, body):
 def interception_time(state, player, point, deadline, *, body=False, envelopes=None, extra_radius=0):
     """A lower bound on contact time, never a failed-pursuit arrival estimate."""
     deadline = math.ceil(deadline)
-    if not on_ice(player):
+    if not observable_body(player):
         return deadline + 1
     envelopes = reach_envelopes(player, deadline) if envelopes is None else envelopes
     reach = _contact_reach(player, body)
@@ -118,7 +116,7 @@ def interception_time(state, player, point, deadline, *, body=False, envelopes=N
 def interception_times(player, points, deadlines, bodies, envelopes, *, puck_extent=0):
     """Batch the scalar segment/circle test over the identical reach envelopes."""
     deadlines = np.ceil(deadlines).astype(np.int64)
-    if not on_ice(player):
+    if not observable_body(player):
         return deadlines + 1
     centers = np.asarray([entry[0] for entry in envelopes], dtype=np.float64)
     radii = np.asarray([entry[1] for entry in envelopes], dtype=np.float64)
@@ -171,7 +169,7 @@ def assess_path_risk(state, player, path, pressure_state, delay, interval, cache
     first = None
     offset = state.puck.x - player.x, state.puck.y - player.y
     for other in pressure_state.team2.players:
-        if not on_ice(other):
+        if not observable_body(other):
             continue
         if any(getattr(other, field) is None
                for field in ('motion_x', 'motion_y', 'weight', 'agility', 'speed', 'energy')):
@@ -229,7 +227,7 @@ def forecast_path(state, player, path, *, pressure_state=None, pressure_delay=0,
     offset = state.puck.x - player.x, state.puck.y - player.y
     margin = 60.0
     pressure_state = state if pressure_state is None else pressure_state
-    opponents = [other for other in pressure_state.team2.players if on_ice(other)]
+    opponents = [other for other in pressure_state.team2.players if observable_body(other)]
     envelopes = {
         id(other): cached_reach_envelopes(other, math.ceil(
             pressure_delay + frames + INTERCEPTION_MARGIN), risk_cache) for other in opponents}
@@ -268,7 +266,7 @@ def body_clearance(state, player, path, *, cache=None):
     """Swept body separation shared by the primary route and achievable exits."""
     clearance = math.inf
     obstacles = [other for team in (state.team1, state.team2)
-                 for other in (*team.players, team.goalie) if other is not player and on_ice(other)]
+                 for other in (*team.players, team.goalie) if other is not player and observable_body(other)]
     for other in obstacles:
         key = 'body-projection', tuple(getattr(other, field) for field in PROJECTION_FIELDS), len(path)
         projections = None if cache is None else cache.get(key)

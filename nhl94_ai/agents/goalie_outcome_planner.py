@@ -13,7 +13,7 @@ from nhl94_ai.agents.goalie import GoalieController, goalie_target
 from nhl94_ai.agents.goalie_outcomes import body_rebound, catch_probability
 from nhl94_ai.agents.goalie_physics import KeeperMotion, PADS, PuckFlight, contact_margin, free_trajectory
 from nhl94_ai.agents.goalie_planner import BEAM, BLOCK, MAX_STEPS, SAVE, PlanningGoalie, decode, supported
-from nhl94_ai.agents.motion import arrival_time
+from nhl94_ai.game.motion import arrival_time
 
 
 @dataclass(frozen=True, slots=True)

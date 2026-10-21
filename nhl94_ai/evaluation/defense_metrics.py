@@ -2,7 +2,7 @@
 from collections import Counter
 import math
 
-from nhl94_ai.agents.defense import controlled_slot, eligible
+from nhl94_ai.game.actors import controlled_slot, controllable_skater
 from nhl94_ai.game.constants import GameConsts
 
 
@@ -16,9 +16,9 @@ class CarrierDefenseMetrics:
         self.recovery_context = None
         owner, actual = state.engine.puck_owner, controlled_slot(state.team1)
         carrier = next((player for index, player in enumerate(state.team2.players)
-                        if state.team2.skater_scnum_base() + index == owner and eligible(player)), None)
+                        if state.team2.skater_scnum_base() + index == owner and controllable_skater(player)), None)
         player = next((player for index, player in enumerate(state.team1.players)
-                       if state.team1.skater_scnum_base() + index == actual and eligible(player)), None)
+                       if state.team1.skater_scnum_base() + index == actual and controllable_skater(player)), None)
         if not diagnostics or carrier is None or player is None:
             self.previous = None
             return

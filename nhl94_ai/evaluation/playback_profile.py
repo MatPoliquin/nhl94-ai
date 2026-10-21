@@ -39,7 +39,7 @@ def run(args):
     if reference is not None and reference['settings'] != settings:
         raise ValueError('Timing reference must use the identical native prefix and pacing settings.')
     root = Path(__file__).resolve().parents[2]
-    names = ('evaluation/play.py', 'agents/base.py', 'agents/decisions.py', 'agents/classic_v1.py', 'agents/classic_options.py', 'agents/classic_components.py', 'agents/history.py', 'agents/classic_resources.py',
+    names = ('evaluation/play.py', 'agents/base.py', 'agents/decisions.py', 'agents/classic_v1.py', 'agents/classic_options.py', 'agents/classic_components.py', 'agents/history.py', 'agents/classic_resources.py', 'game/actors.py', 'game/forecast.py', 'game/motion.py', 'game/passing.py', 'game/shooting.py', 'game/skating.py', 'game/platforms/base.py', 'game/platforms/genesis.py', 'game/platforms/snes.py',
              'agents/offense.py', 'agents/carry.py', 'agents/passing.py', 'agents/receiving.py', 'agents/motion.py',
              'env/target_control.py', 'env/observation.py', 'agents/multi_model.py',
              'game/state.py', 'game/ram.py', 'agents/skating.py', 'agents/goalie.py', 'ui/debug.py', 'ui/decision_panel.py',

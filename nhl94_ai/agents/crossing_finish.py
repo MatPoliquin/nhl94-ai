@@ -2,8 +2,8 @@
 from collections import Counter
 
 from nhl94_ai.agents.cross_crease_roaming import RoamingCrossCrease
-from nhl94_ai.agents.defense import controlled_slot, eligible
-from nhl94_ai.agents.motion import velocity
+from nhl94_ai.game.actors import controlled_slot, controllable_skater
+from nhl94_ai.game.motion import velocity
 
 
 def validate_crossing_finish(args):
@@ -36,7 +36,7 @@ class CrossingFinishSelector:
         self.diagnostics = {}
         player = state.team1.get_player_by_scnum(state.engine.puck_owner)
         reason = None
-        carrier_ready = (player is not None and player is not state.team1.goalie and eligible(player)
+        carrier_ready = (player is not None and player is not state.team1.goalie and controllable_skater(player)
                          and state.engine.puck_owner == controlled_slot(state.team1))
         if (state.numPlayers != 5 or state.engine.clock_stopped or state.is_shootout_active
                 or not carrier_ready or state.is_shooting):

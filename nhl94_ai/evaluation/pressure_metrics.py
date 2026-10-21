@@ -2,7 +2,7 @@
 from collections import Counter
 import math
 
-from nhl94_ai.agents.defense import owns_puck
+from nhl94_ai.game.actors import owns_puck
 
 
 class PressureMetrics:

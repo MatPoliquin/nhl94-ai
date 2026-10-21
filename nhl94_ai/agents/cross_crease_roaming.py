@@ -4,9 +4,9 @@ import math
 import numpy as np
 
 from nhl94_ai.agents.cross_crease_only import CrossCreaseOnly
-from nhl94_ai.agents.defense import controlled_slot, on_ice
-from nhl94_ai.agents.motion import coast_projection, velocity
-from nhl94_ai.agents.offense import normal_shot_release_frames
+from nhl94_ai.game.actors import controlled_slot, observable_body
+from nhl94_ai.game.motion import coast_projection, velocity
+from nhl94_ai.game.shooting import normal_shot_release_frames
 from nhl94_ai.env.target_control import project_target, route_waypoint
 from nhl94_ai.game.constants import GameConsts as Buttons
 
@@ -37,9 +37,9 @@ class RoamingCrossCrease(CrossCreaseOnly):
             return super()._obstacles(state, player)
         # Steering costs stay soft: crowded ice can be crossed when alternatives
         # are worse. Teammates obstruct a route without posing a checking threat.
-        return ([(p, 28, 14, 16) for p in state.team2.players if on_ice(p)]
-                + [(p, 24, 12, 12) for p in (state.team2.goalie,) if on_ice(p)]
-                + [(p, 20, 12, 12) for p in state.team1.players if p is not player and on_ice(p)])
+        return ([(p, 28, 14, 16) for p in state.team2.players if observable_body(p)]
+                + [(p, 24, 12, 12) for p in (state.team2.goalie,) if observable_body(p)]
+                + [(p, 20, 12, 12) for p in state.team1.players if p is not player and observable_body(p)])
 
     def _allow_shot(self, state, player, projected):
         if not self.select_release:
@@ -60,8 +60,8 @@ class RoamingCrossCrease(CrossCreaseOnly):
 
     @staticmethod
     def _bodies(state, player):
-        return [(p, 24) for p in (*state.team2.players, state.team2.goalie) if on_ice(p)] + [
-            (p, 16) for p in state.team1.players if p is not player and on_ice(p)]
+        return [(p, 24) for p in (*state.team2.players, state.team2.goalie) if observable_body(p)] + [
+            (p, 16) for p in state.team1.players if p is not player and observable_body(p)]
 
     def _route_pressure(self, state, player, target):
         """Estimate crowding along a possible route; this is not a collision certificate."""

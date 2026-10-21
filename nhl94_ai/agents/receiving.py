@@ -2,7 +2,7 @@
 import math
 from copy import copy
 
-from nhl94_ai.agents.motion import arrival_time, puck_path, velocity
+from nhl94_ai.game.motion import arrival_time, puck_path, velocity
 
 INCOMPATIBLE = ('shot_placement', 'possession_value', 'possession_ablation', 'receiver_selection',
                 'offense_lookahead', 'uncertain_carry', 'chance_creation', 'cross_crease',

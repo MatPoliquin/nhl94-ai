@@ -5,22 +5,21 @@ returns. All alternatives use the same terminal value, time cost and risk costs.
 Only the first action is committed. A projected continuation is rechecked live.
 """
 from collections import Counter
-from copy import copy
+from nhl94_ai.game.forecast import clone_forecast, project_body
 from dataclasses import asdict, dataclass
 import math
 
 from nhl94_ai.agents.carry import body_clearance, carry_path
-from nhl94_ai.agents.defense import controlled_slot, eligible, on_ice
-from nhl94_ai.agents.finishing import automatic_aim, normal_finish, shot_speed
-from nhl94_ai.agents.motion import bounded_projection, facing, velocity
+from nhl94_ai.game.actors import controlled_slot, controllable_skater, observable_body
+from nhl94_ai.agents.finishing import automatic_aim, normal_finish
+from nhl94_ai.game.shooting import shot_speed
+from nhl94_ai.game.motion import bounded_projection, facing, velocity
 from nhl94_ai.agents.offense import (
-    carry_future, goalie_avoidance, normal_shot_release_frames,
-    ordinary_shot_conditions, reception_frames, reception_state,
+    carry_future, goalie_avoidance, ordinary_shot_conditions, reception_frames, reception_state,
 )
-from nhl94_ai.agents.passing import (
-    evaluate_pass, one_timer_contact_frame, option_receiver, pass_point_at,
-    pass_release_frames, pressure_margin,
-)
+from nhl94_ai.game.shooting import normal_shot_release_frames
+from nhl94_ai.agents.passing import evaluate_pass, pressure_margin
+from nhl94_ai.game.passing import one_timer_contact_frame, option_receiver, pass_point_at, pass_release_frames
 from nhl94_ai.env.target_control import project_target, route_waypoint
 
 
@@ -109,7 +108,7 @@ def shot_quality(state, shooter, point, side, delay, speed):
     clearance = 24.0
     for team in (state.team1, state.team2):
         for other in (*team.players, team.goalie):
-            if other is shooter or not on_ice(other):
+            if other is shooter or not observable_body(other):
                 continue
             goalie = other is state.team1.goalie or other is state.team2.goalie
             vx, vy = velocity(other)
@@ -131,23 +130,14 @@ def shot_quality(state, shooter, point, side, delay, speed):
 
 def coast_scene(state, frames):
     """Advance a settled carrier and all actors once; keep puck and velocity coherent."""
-    future = copy(state)
+    future = clone_forecast(state)
     for name in ('team1', 'team2'):
-        source = getattr(state, name)
-        team = copy(source)
-        actors = []
-        for other in (*source.players, source.goalie):
-            actor = copy(other)
-            if on_ice(actor):
-                (actor.x, actor.y), actor.projection_uncertainty = bounded_projection(
-                    other, frames, boards=other is not source.goalie)
-                actor.precise_x, actor.precise_y = float(actor.x), float(actor.y)
-            actors.append(actor)
-        team.players, team.goalie = actors[:-1], actors[-1]
-        setattr(future, name, team)
+        team = getattr(future, name)
+        for actor in (*team.players, team.goalie):
+            if observable_body(actor):
+                project_body(actor, frames, boards=actor is not team.goalie)
     player = state.team1.get_player_by_scnum(state.engine.puck_owner)
     carrier = future.team1.get_player_by_scnum(state.engine.puck_owner)
-    future.puck = copy(state.puck)
     future.puck.x += carrier.x - player.x
     future.puck.y += carrier.y - player.y
     future.puck.motion_x, future.puck.motion_y = velocity(carrier)
@@ -171,7 +161,7 @@ class PossessionValuePlanner:
     def available(state):
         player = state.team1.get_player_by_scnum(state.engine.puck_owner)
         return (state.numPlayers == 5 and state.engine.puck_owner_known and player is not None
-                and player is not state.team1.goalie and eligible(player)
+                and player is not state.team1.goalie and controllable_skater(player)
                 and controlled_slot(state.team1) == state.engine.puck_owner
                 and all(getattr(player, key) is not None for key in (
                     'motion_x', 'motion_y', 'speed', 'agility', 'weight', 'energy')))

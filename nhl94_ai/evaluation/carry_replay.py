@@ -14,8 +14,9 @@ from types import SimpleNamespace
 import numpy as np
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
-from nhl94_ai.agents.defense import controlled_slot, eligible
-from nhl94_ai.agents.passing import PassOption, pad_direction, selected_receiver
+from nhl94_ai.game.actors import controlled_slot, controllable_skater
+from nhl94_ai.agents.passing import PassOption
+from nhl94_ai.game.passing import pad_direction, selected_receiver
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.env.intents import HOCKEY_INTENT_NOOP
 from nhl94_ai.game.genesis_match import cpu_view
@@ -234,7 +235,7 @@ def replay_seed(seed, reference_class, *, search_frames, horizon, min_depth,
                 forced_pass = False
                 if not passes:
                     candidates = [receiver for receiver in view.team1.players
-                                  if receiver is not carrier and eligible(receiver)]
+                                  if receiver is not carrier and controllable_skater(receiver)]
                     proposals = []
                     for receiver in candidates:
                         direction = pad_direction(carrier, receiver)
@@ -320,6 +321,12 @@ def source_hashes(runtime=None):
             names = (*names, name)
     result = {f'nhl94_ai/agents/{name}.py': hashlib.sha256(
         (root / 'agents' / f'{name}.py').read_bytes()).hexdigest() for name in names}
+    for name in (
+        'game/actors.py', 'game/forecast.py', 'game/motion.py', 'game/passing.py', 'game/shooting.py', 'game/skating.py', 'game/platforms/base.py', 'game/platforms/genesis.py', 'game/platforms/snes.py'):
+        # Old archives predate these files. Their agents retain the old bodies;
+        # current shared dependencies are covered by the candidate manifest.
+        if (root / name).is_file():
+            result[f'nhl94_ai/{name}'] = hashlib.sha256((root / name).read_bytes()).hexdigest()
     if runtime is None:
         for name in ('evaluation/carry_replay.py', 'evaluation/lifecycle_history.py', 'evaluation/carry_outcomes.py', 'evaluation/benchmark.py', 'game/genesis_match.py',
                      'evaluation/cpu_benchmark.py', 'evaluation/replay_support.py', 'game/ram.py', 'game/state.py', 'tasks/cross_crease_setup.py',

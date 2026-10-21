@@ -1,11 +1,13 @@
 """Bounded reachable support options using Classic's movement/pass geometry."""
 from copy import copy
+from nhl94_ai.game.forecast import clone_forecast, set_position
 import math
 
-from nhl94_ai.agents.defense import defensive_steering, eligible
-from nhl94_ai.agents.motion import arrival_time, bounded_projection, velocity
+from nhl94_ai.agents.defense import defensive_steering
+from nhl94_ai.game.actors import controllable_skater
+from nhl94_ai.game.motion import arrival_time, bounded_projection, velocity
 from nhl94_ai.agents.passing import evaluate_pass, pressure_margin, shot_value
-from nhl94_ai.agents.skating import grounded_step
+from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.env.target_control import project_target
 
 
@@ -22,14 +24,14 @@ def support_forecast(state, slot, target, *, coast=False, frames=FORECAST_FRAMES
     The puck follows the carrier displacement, preserving its current offset.
     No receiver is teleported to the target or assigned an invented zero speed.
     """
-    future = copy(state)
+    future = clone_forecast(state)
     owner = state.engine.puck_owner
 
     def project(player, receiver=False):
         projected = copy(player)
         if any(getattr(player, key) is None for key in ('weight', 'agility', 'speed', 'energy')):
-            (projected.x, projected.y), _ = bounded_projection(player, frames)
-            projected.precise_x, projected.precise_y = projected.x, projected.y
+            point, _ = bounded_projection(player, frames)
+            set_position(projected, point)
             return projected
         for _ in range(frames):
             steering = player.steering if player.steering in range(10) else 8
@@ -40,12 +42,11 @@ def support_forecast(state, slot, target, *, coast=False, frames=FORECAST_FRAMES
 
     for name in ('team1', 'team2'):
         team = getattr(state, name)
-        projected = copy(team)
+        projected = getattr(future, name)
         projected.players = [project(player, name == 'team1' and team.skater_scnum_base() + i == slot)
                              for i, player in enumerate(team.players)]
         projected.goalie = project(team.goalie)
         setattr(future, name, projected)
-    future.puck = copy(state.puck)
     carrier, projected = state.team1.get_player_by_scnum(owner), future.team1.get_player_by_scnum(owner)
     if carrier is not None and projected is not None:
         for axis in ('x', 'y'):
@@ -82,7 +83,7 @@ class SupportPlanner:
                  else 'buildup' if carrier is not None and carrier is not team.goalie
                  else 'recovery' if frame < self.recover_until else 'defense')
         key = (slot, owner, attack, phase, primary_slot)
-        if player is None or not eligible(player):
+        if player is None or not controllable_skater(player):
             self.key, self.until, self.coast = None, 0, False
             self.target, self.role = (0, 0), 'coverage'
             self.diagnostics = {'phase': 'unavailable', 'candidates': []}
@@ -115,7 +116,7 @@ class SupportPlanner:
             arrival = arrival_time(player, point)
             spacing = math.dist((carrier.x, carrier.y), point)
             teammate_gap = min((math.dist(point, (other.x, other.y)) for other in team.players
-                                if other is not player and other is not carrier and eligible(other)), default=100)
+                                if other is not player and other is not carrier and controllable_skater(other)), default=100)
             if arrival > 48 or spacing < 30 or teammate_gap < 18:
                 continue
             pressure = pressure_margin(opponents, point, arrival)
@@ -157,7 +158,7 @@ class SupportPlanner:
             # support runs beyond the carrier. Infeasible passes earn no shot bonus.
             gap = min((math.dist((receiver.x, receiver.y), (other.x, other.y))
                        for other in future.team1.players if other is not receiver and other is not future_carrier
-                       and eligible(other)), default=100)
+                       and controllable_skater(other)), default=100)
             exposure = pressure_margin(future.team2, (receiver.x, receiver.y), 0)
             candidate['score'] = (0.3 * (receiver.y - future_carrier.y) * attack
                                   - candidate['arrival'] * 0.6 + min(18, exposure) * 1.5
@@ -186,7 +187,7 @@ class SupportPlanner:
         y = puck.y + toward * depth
         y = min(team.net.y - 24, y) if toward > 0 else max(team.net.y + 24, y)
         middle = (max(-42, min(42, puck.x * 0.4)), y)
-        threats = [other for other in state.team2.players if eligible(other)
+        threats = [other for other in state.team2.players if controllable_skater(other)
                    and (other.y - puck.y) * toward > 15 and abs(other.x) < 85]
         if threats:
             threat = min(threats, key=lambda other: math.dist((other.x, other.y), (0, team.net.y)))

@@ -92,30 +92,6 @@ class SnesBackend(PlatformBackend):  # pylint: disable=too-many-public-methods
     def scenario(self):
         return str(files('nhl94_ai').joinpath('data/snes-scenario.json'))
 
-    def validate_options(self, args):
-        from nhl94_ai.agents.registry import CONTROLLERS, ALIASES
-        policy = getattr(args, 'nn', '')
-        classic = policy in CONTROLLERS or policy == 'MlpPolicy' and getattr(args, 'agent', None) in ALIASES
-        human = getattr(args, 'mode', None) == 'player_vs_game'
-        if (not classic and not (human and policy == 'MlpPolicy')) or getattr(args, 'rf', 'PostPlay') not in ('', 'PostPlay'):
-            raise ValueError('SNES currently supports Classic PostPlay; RAM-writing training tasks and learned policies require a SNES contract')
-        if any(getattr(args, name, None) for name in ('model', 'model_1', 'model_2', 'load_p1_model', 'load_p2_model', 'retention_model')):
-            raise ValueError('Genesis learned-policy artifacts cannot be loaded as SNES policies')
-        model_input = getattr(args, 'model_input', 'default')
-        if isinstance(model_input, str) and model_input.startswith('pvg'):
-            raise ValueError('The compact PvG observation layout requires Genesis ROM attributes')
-        if (getattr(args, 'action_type', 'FILTERED').upper() != 'FILTERED'
-                or getattr(args, 'selfplay', False)):
-            raise ValueError('SNES Classic requires FILTERED controls without self-play')
-        mode = getattr(args, 'mode', 'model_vs_game')
-        if mode not in ('model_vs_game', 'player_vs_game', 'player_vs_model', 'model_vs_model'):
-            raise ValueError('Unsupported SNES playback mode')
-        players = getattr(args, 'num_players', 1)
-        if players != (2 if mode in ('player_vs_model', 'model_vs_model') else 1):
-            raise ValueError('SNES playback requires one controller versus CPU or two for multiplayer')
-        if getattr(args, 'mode', None) is not None and getattr(args, 'seed', None) is not None:
-            raise ValueError('SNES ROM RNG seeding is not mapped; omit --seed to use the saved RNG')
-
     def register(self, env, skaters):
         if skaters != 5:
             raise ValueError('SNES requires the full-team integration')
@@ -443,7 +419,7 @@ class SnesBackend(PlatformBackend):  # pylint: disable=too-many-public-methods
                 if bounded and math.dist(point, project_target(point)) > 1e-6:
                     return None
             return (future.precise_x, future.precise_y), (future.motion_x, future.motion_y)
-        from nhl94_ai.agents.motion import velocity
+        from nhl94_ai.game.motion import velocity
         x, y = float(player.x), float(player.y)
         vx, vy = velocity(player)
         acceleration, _, _ = self.skating(player)
@@ -478,7 +454,7 @@ class SnesBackend(PlatformBackend):  # pylint: disable=too-many-public-methods
         z integrates zvel/16 after -96 gravity and bounces with zvel = -zvel/2.
         Modeled at one substep per rendered frame (the measured long-run cadence);
         load-dependent skip frames are not modeled."""
-        from nhl94_ai.agents.motion import velocity
+        from nhl94_ai.game.motion import velocity
         from nhl94_ai.env.target_control import project_target
         x, y = float(puck.x), float(puck.y)
         vx, vy = velocity(puck)
@@ -545,8 +521,8 @@ class SnesBackend(PlatformBackend):  # pylint: disable=too-many-public-methods
         The receiver anim hotspot is modeled from the ROM-observed default receiving
         anim (13 rink px to the stick side, 10 forward); the +-(16 - rating) launch
         speed jitter is RNG noise and not modeled."""
-        from nhl94_ai.agents.motion import velocity
-        from nhl94_ai.agents.passing import PASS_HORIZON
+        from nhl94_ai.game.motion import velocity
+        from nhl94_ai.game.passing import PASS_HORIZON
         from nhl94_ai.env.target_control import project_target
         if receiver.motion_x is None or receiver.motion_y is None:
             return None
@@ -662,7 +638,7 @@ class SnesBackend(PlatformBackend):  # pylint: disable=too-many-public-methods
         future.facing_phase = phase / 65536
 
     def grounded_step(self, player, pad, *, goalie=False, stop=False):
-        from nhl94_ai.agents.motion import velocity
+        from nhl94_ai.game.motion import velocity
         future = copy(player)
         debt = getattr(player, 'physics_frame_debt', None)
         if debt is not None:

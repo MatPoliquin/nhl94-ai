@@ -2,7 +2,7 @@
 from dataclasses import replace
 
 from nhl94_ai.agents.goalie import GoalieController, goalie_arrival
-from nhl94_ai.agents.motion import velocity
+from nhl94_ai.game.motion import velocity
 
 
 class DeepGoalie(GoalieController):

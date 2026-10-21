@@ -215,11 +215,11 @@ class IntegerPassGeometryTests(unittest.TestCase):
         state = offense_state()
         passer, receiver = state.team1.players[:2]
         receiver.stick_x, receiver.stick_y = -24, 4
-        with patch('nhl94_ai.agents.passing.rom_pass_vector', return_value=(-10000, 10000)) as launch:
+        with patch('nhl94_ai.game.passing.rom_pass_vector', return_value=(-10000, 10000)) as launch:
             pass_contact(state.puck, passer, receiver)
         self.assertEqual(launch.call_args.args, (-104, 94, 0, 0, 20))
         receiver.stick_x = receiver.stick_y = None
-        with patch('nhl94_ai.agents.passing.rom_pass_vector') as launch:
+        with patch('nhl94_ai.game.passing.rom_pass_vector') as launch:
             self.assertIsNotNone(pass_contact(state.puck, passer, receiver))
         launch.assert_not_called()
 
@@ -227,9 +227,9 @@ class IntegerPassGeometryTests(unittest.TestCase):
         state = offense_state()
         passer, receiver = state.team1.players[:2]
         receiver.stick_x = receiver.stick_y = 0
-        with patch('nhl94_ai.agents.passing.rom_pass_vector', return_value=(10000, 0)):
+        with patch('nhl94_ai.game.passing.rom_pass_vector', return_value=(10000, 0)):
             self.assertIsNone(pass_contact(state.puck, passer, receiver))
-        with patch('nhl94_ai.agents.passing.rom_pass_vector', return_value=None):
+        with patch('nhl94_ai.game.passing.rom_pass_vector', return_value=None):
             self.assertIsNone(pass_contact(state.puck, passer, receiver))
 
     def test_live_reception_speed_accounts_for_flight_friction(self):
@@ -237,7 +237,7 @@ class IntegerPassGeometryTests(unittest.TestCase):
         passer, receiver = state.team1.players[:2]
         receiver.x, receiver.y = -80, -120
         receiver.stick_x = receiver.stick_y = 0
-        with patch('nhl94_ai.agents.passing.rom_pass_vector', return_value=(-10000, 0)):
+        with patch('nhl94_ai.game.passing.rom_pass_vector', return_value=(-10000, 0)):
             contact = pass_contact(state.puck, passer, receiver)
         self.assertIsNotNone(contact)
         self.assertEqual(contact[3], 10000 * VELOCITY_SCALE * state.puck.friction**32)

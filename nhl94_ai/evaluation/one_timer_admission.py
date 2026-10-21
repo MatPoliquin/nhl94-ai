@@ -8,8 +8,9 @@ from copy import deepcopy
 import math
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
-from nhl94_ai.agents.motion import facing, velocity
-from nhl94_ai.agents.passing import evaluate_pass, one_timer_position_ok, pass_release_frames, shot_value
+from nhl94_ai.game.motion import facing, velocity
+from nhl94_ai.agents.passing import evaluate_pass, one_timer_position_ok, shot_value
+from nhl94_ai.game.passing import pass_release_frames
 from nhl94_ai.evaluation.chance_selection import readiness
 from nhl94_ai.game.constants import GameConsts as Buttons
 

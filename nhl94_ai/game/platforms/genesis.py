@@ -4,8 +4,7 @@ import math
 from nhl94_ai.game.platforms.base import PlatformBackend
 
 
-# Legacy Genesis shot primitives remain in offense/finishing until their extraction.
-class GenesisBackend(PlatformBackend):  # pylint: disable=abstract-method
+class GenesisBackend(PlatformBackend):
     goalie_takeover_frames = 24
     goalie_takeover_button = 0
     goalie_viewport = (108, 92)
@@ -15,6 +14,14 @@ class GenesisBackend(PlatformBackend):  # pylint: disable=abstract-method
     buttons = ('B', 'A', 'MODE', 'START', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'C', 'Y', 'X', 'Z')
     control_mapping = dict(zip(('pass', 'clear', 'mode', 'start', 'up', 'down', 'left',
                                'right', 'shoot', 'aux1', 'aux2', 'aux3'), buttons))
+
+    def shot_release_frames(self, player, hold_frames):
+        from nhl94_ai.game.shooting import normal_shot_release_frames
+        return normal_shot_release_frames(player, hold_frames)
+
+    def shot_speed(self, player, hold_frames, *, one_timer=False):
+        from nhl94_ai.game.shooting import shot_speed
+        return shot_speed(player, hold_frames, one_timer=one_timer)
 
     def decode_player(self, player, info, prefix):
         super().decode_player(player, info, prefix)
@@ -183,7 +190,7 @@ class GenesisBackend(PlatformBackend):  # pylint: disable=abstract-method
         state.engine.goalie_box_small = 1.0 if state.engine.goalie_chk_body <= 0xC else 0.0
 
     def direction(self, dx, dy):
-        from nhl94_ai.agents.motion import rom_direction
+        from nhl94_ai.game.motion import rom_direction
         return rom_direction(dx, dy)
 
     def aim_pass(self, action, passer, receiver):
@@ -223,7 +230,7 @@ class GenesisBackend(PlatformBackend):  # pylint: disable=abstract-method
 
     def stop_projection(self, player, frames, *, bounded=False):
         """Skater stopna subtracts 150 raw units per axis, without reversing velocity."""
-        from nhl94_ai.agents.motion import velocity
+        from nhl94_ai.game.motion import velocity
         from nhl94_ai.env.target_control import project_target
         x, y = float(player.x), float(player.y)
         vx, vy = velocity(player)
@@ -258,7 +265,7 @@ class GenesisBackend(PlatformBackend):  # pylint: disable=abstract-method
 
     def puck_path(self, puck, horizon=64, *, sample_interval=4):
         """Stop at uncertain wall/net contacts; never invent an exact rebound."""
-        from nhl94_ai.agents.motion import velocity
+        from nhl94_ai.game.motion import velocity
         from nhl94_ai.env.target_control import project_target
         x, y = float(puck.x), float(puck.y)
         vx, vy = velocity(puck)
@@ -296,9 +303,9 @@ class GenesisBackend(PlatformBackend):  # pylint: disable=abstract-method
         over this short forecast; this is not a prediction of new CPU decisions.
         """
         from copy import copy
-        from nhl94_ai.agents.defense import on_ice
-        from nhl94_ai.agents.motion import velocity
-        from nhl94_ai.agents.skating import grounded_step
+        from nhl94_ai.game.actors import observable_body
+        from nhl94_ai.game.motion import velocity
+        from nhl94_ai.game.skating import grounded_step
         owner = state.engine.puck_owner
         team, puck = copy(state.team1), copy(state.puck)
         carrier = grounded_step(passer, (0, 0))
@@ -307,7 +314,7 @@ class GenesisBackend(PlatformBackend):  # pylint: disable=abstract-method
         for index, player in enumerate(state.team1.players):
             slot = state.team1.skater_scnum_base() + index
             future = copy(player)
-            if slot != owner and on_ice(player):
+            if slot != owner and observable_body(player):
                 known = (player.steering in range(10) if player.steering is not None else False)
                 known &= all(getattr(player, field) is not None for field in ('weight', 'agility', 'speed', 'energy'))
                 pad = pads[player.steering] if known else (0, 0)
@@ -326,16 +333,16 @@ class GenesisBackend(PlatformBackend):  # pylint: disable=abstract-method
 
     def pass_release_frames(self, receiver, delay):
         """Use the same release timing for launch prediction and collision deadlines."""
-        from nhl94_ai.agents.passing import LIVE_RELEASE_FRAMES
+        from nhl94_ai.game.passing import LIVE_RELEASE_FRAMES
         live = receiver.stick_x is not None and receiver.stick_y is not None
         return min(delay, LIVE_RELEASE_FRAMES) if live else delay
 
     def live_pass_contact(self, puck, passer, receiver, delay):
-        from nhl94_ai.agents.passing import _live_pass_contact
+        from nhl94_ai.game.passing import _live_pass_contact
         return _live_pass_contact(puck, passer, receiver, delay)
 
     def pass_contact(self, puck, passer, receiver, delay):
-        from nhl94_ai.agents.passing import pass_speed
+        from nhl94_ai.game.passing import pass_speed
         if pass_speed(passer) is None or receiver.motion_x is None or receiver.motion_y is None:
             return None
         if receiver.stick_x is not None and receiver.stick_y is not None:

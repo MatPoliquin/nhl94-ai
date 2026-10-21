@@ -5,7 +5,8 @@ import math
 
 import numpy as np
 
-from nhl94_ai.agents.defense import defensive_steering, eligible
+from nhl94_ai.agents.defense import defensive_steering
+from nhl94_ai.game.actors import controllable_skater
 from nhl94_ai.agents.lifecycle import OneTimerLifecycle, OneTimerState
 from nhl94_ai.agents.passing import shot_value
 from nhl94_ai.agents.receiving import one_timer_reception, passive_reception, reachable_reception
@@ -131,7 +132,7 @@ class SharedReceiving:
                 self.finish(frame, 'other-receiver')
             elif plan.phase == 'received' and owner != plan.receiver:
                 self.finish(frame, 'reception-possession-ended')
-            elif receiver is None or receiver.is_falling or not eligible(receiver) and not receiver.is_one_timer:
+            elif receiver is None or receiver.is_falling or not controllable_skater(receiver) and not receiver.is_one_timer:
                 self.finish(frame, 'receiver-unavailable')
             elif plan.receiver_controller is not None and plan.receiver not in slots:
                 self.finish(frame, 'receiver-selection-lost')
@@ -147,7 +148,7 @@ class SharedReceiving:
                 or plan.phase not in ('release', 'flight')):
             return None
         player = state.team1.get_player_by_scnum(plan.receiver)
-        if player is None or not eligible(player) and not player.is_one_timer:
+        if player is None or not controllable_skater(player) and not player.is_one_timer:
             return None
         action = np.zeros(12, dtype=np.int8)
         if plan.phase == 'release' or player.is_one_timer:

@@ -7,9 +7,9 @@ are available before acting; native outcomes must never enter this hook.
 from collections import Counter
 import math
 
-from nhl94_ai.agents.defense import on_ice
+from nhl94_ai.game.actors import observable_body
 from nhl94_ai.agents.finishing import one_timer_finish
-from nhl94_ai.agents.motion import velocity
+from nhl94_ai.game.motion import velocity
 from nhl94_ai.agents.shot_placement import legacy_action, shot_features
 
 
@@ -36,7 +36,7 @@ def features(model, state, baseline, shot_allowed, timer_target):
         'goalie_vx': gx, 'goalie_vy': gy * sign,
         'goalie_distance': math.dist((player.x, player.y), (goalie.x, goalie.y)),
         'defender_distance': min((math.dist((player.x, player.y), (p.x, p.y))
-                                  for p in state.team2.players if on_ice(p)), default=300),
+                                  for p in state.team2.players if observable_body(p)), default=300),
     }
     shot = shot_features(state, *legacy_action(state, model.scheduler.interval))
     if shot is not None:

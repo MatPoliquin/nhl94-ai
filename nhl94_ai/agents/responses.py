@@ -1,12 +1,13 @@
 """Action-conditioned skating scenarios, not certificates of future CPU decisions."""
+from nhl94_ai.game.forecast import clone_forecast, project_body, set_position
 from copy import copy
 import math
 
 from nhl94_ai.agents.carry import CONTACT_RADIUS, _segment_clearance
-from nhl94_ai.agents.defense import on_ice
-from nhl94_ai.agents.motion import VELOCITY_SCALE, bounded_projection, velocity
+from nhl94_ai.game.actors import observable_body
+from nhl94_ai.game.motion import VELOCITY_SCALE, bounded_projection, velocity
 from nhl94_ai.agents.passing import rom_direction
-from nhl94_ai.agents.skating import grounded_step
+from nhl94_ai.game.skating import grounded_step
 
 
 _PADS = ((0, 1), (1, 1), (1, 0), (1, -1),
@@ -101,8 +102,7 @@ def _puck_at(state, original, carrier):
 
 def response_future(state, path):
     """Model stable support assignments; expose unsupported actors and zone transitions."""
-    future = copy(state)
-    future.puck = copy(state.puck)
+    future = clone_forecast(state)
     owner = state.engine.puck_owner
     original = state.team1.get_player_by_scnum(owner)
     if original is None or not path:
@@ -110,9 +110,7 @@ def response_future(state, path):
     sign = 1 if state.team2.net.y > state.team1.net.y else -1
     tracks, modeled, unsupported = {}, [], []
     for name in ('team1', 'team2'):
-        team = copy(getattr(state, name))
-        team.players = [copy(player) for player in team.players]
-        team.goalie = copy(team.goalie)
+        team = getattr(future, name)
         setattr(future, name, team)
         for index, player in enumerate((*team.players, team.goalie)):
             slot = team.skater_scnum_base() + index
@@ -120,7 +118,7 @@ def response_future(state, path):
                 tracks[slot] = path
                 team.players[index] = path[-1]
                 continue
-            if not on_ice(player):
+            if not observable_body(player):
                 continue
             friendly = name == 'team1'
             supported = _supported(player, friendly)
@@ -136,9 +134,7 @@ def response_future(state, path):
                                            friendly=friendly, offsides=state.engine.offsides_enabled)
                 else:
                     player = copy(track[0])
-                    (player.x, player.y), player.projection_uncertainty = bounded_projection(
-                        track[0], elapsed, boards=index < len(team.players))
-                    player.precise_x, player.precise_y = float(player.x), float(player.y)
+                    project_body(player, elapsed, source=track[0], boards=index < len(team.players))
                 track.append(player)
             tracks[slot] = track
             (modeled if supported else unsupported).append(slot)

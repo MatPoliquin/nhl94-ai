@@ -2,8 +2,8 @@
 from collections import Counter
 import math
 
-from nhl94_ai.agents.defense import controlled_slot
-from nhl94_ai.agents.motion import velocity
+from nhl94_ai.game.actors import controlled_slot
+from nhl94_ai.game.motion import velocity
 from nhl94_ai.game.constants import GameConsts
 
 

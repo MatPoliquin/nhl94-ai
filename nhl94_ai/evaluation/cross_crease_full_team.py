@@ -14,7 +14,7 @@ import numpy as np
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.cross_crease_only import CrossCreaseOnly, CrossingSettings
 from nhl94_ai.agents.cross_crease_roaming import RoamingCrossCrease
-from nhl94_ai.agents.defense import controlled_slot
+from nhl94_ai.game.actors import controlled_slot
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.evaluation.cpu_benchmark import CPU_RAM, cpu_view, lineup, select_side
 from nhl94_ai.game.constants import GameConsts as Buttons

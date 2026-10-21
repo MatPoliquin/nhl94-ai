@@ -165,3 +165,28 @@ def validate_classic_options(args, *, application=None, benchmark=False, classic
     if benchmark and options.retention_model and getattr(args, 'frame_skip', 4) != 4:
         raise ValueError('Retention filtering requires four-frame offense and native reactions')
     return options
+
+
+def validate_platform_application(args, *, platform, classic):
+    if platform != 'snes':
+        return
+    policy = getattr(args, 'nn', '')
+    human = getattr(args, 'mode', None) == 'player_vs_game'
+    if (not classic and not (human and policy == 'MlpPolicy')) or getattr(args, 'rf', 'PostPlay') not in ('', 'PostPlay'):
+        raise ValueError('SNES currently supports Classic PostPlay; RAM-writing training tasks and learned policies require a SNES contract')
+    if any(getattr(args, name, None) for name in ('model', 'model_1', 'model_2', 'load_p1_model', 'load_p2_model', 'retention_model')):
+        raise ValueError('Genesis learned-policy artifacts cannot be loaded as SNES policies')
+    model_input = getattr(args, 'model_input', 'default')
+    if isinstance(model_input, str) and model_input.startswith('pvg'):
+        raise ValueError('The compact PvG observation layout requires Genesis ROM attributes')
+    if (getattr(args, 'action_type', 'FILTERED').upper() != 'FILTERED'
+            or getattr(args, 'selfplay', False)):
+        raise ValueError('SNES Classic requires FILTERED controls without self-play')
+    mode = getattr(args, 'mode', 'model_vs_game')
+    if mode not in ('model_vs_game', 'player_vs_game', 'player_vs_model', 'model_vs_model'):
+        raise ValueError('Unsupported SNES playback mode')
+    players = getattr(args, 'num_players', 1)
+    if players != (2 if mode in ('player_vs_model', 'model_vs_model') else 1):
+        raise ValueError('SNES playback requires one controller versus CPU or two for multiplayer')
+    if getattr(args, 'mode', None) is not None and getattr(args, 'seed', None) is not None:
+        raise ValueError('SNES ROM RNG seeding is not mapped; omit --seed to use the saved RNG')

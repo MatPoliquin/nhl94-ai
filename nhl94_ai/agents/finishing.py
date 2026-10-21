@@ -2,12 +2,14 @@
 from dataclasses import dataclass
 import math
 
-from nhl94_ai.agents.defense import on_ice
-from nhl94_ai.agents.motion import VELOCITY_SCALE, velocity
-from nhl94_ai.agents.offense import normal_shot_release_frames, shot_release_in_front
-from nhl94_ai.agents.passing import one_timer_contact_frame, option_receiver, pass_point_at, pass_release_frames
-from nhl94_ai.agents.skating import grounded_step
+from nhl94_ai.game.actors import observable_body
+from nhl94_ai.game.motion import VELOCITY_SCALE, velocity
+from nhl94_ai.agents.offense import shot_release_in_front
+from nhl94_ai.game.shooting import normal_shot_release_frames
+from nhl94_ai.game.passing import one_timer_contact_frame, option_receiver, pass_point_at, pass_release_frames
+from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.game.platforms import get_backend
+from nhl94_ai.game.shooting import shot_speed
 
 
 @dataclass(frozen=True)
@@ -21,17 +23,6 @@ class Finish:
     value: float
 
 
-def shot_speed(player, hold_frames, *, one_timer=False):
-    """doshot's rating/energy scaling with an estimated charged passspeed."""
-    if getattr(player, 'platform', 'genesis') != 'genesis':
-        from nhl94_ai.game.platforms import get_backend
-        return get_backend(player.platform).shot_speed(player, hold_frames, one_timer=one_timer)
-    power = 15 if player.shot_power is None else player.shot_power
-    energy = 4096 if player.energy is None else max(0, min(4096, player.energy))
-    charge = 31 if one_timer else 15 + hold_frames
-    rating = (power // 2) * energy // 4096
-    speed = ((20 + rating) * charge * 0x5249) >> 16
-    return max(1.0, speed * 68 * VELOCITY_SCALE)
 
 
 def _goalie_position(goalie, delay):
@@ -46,7 +37,7 @@ def _score(state, shooter, point, side, release, speed):
     clearance = 40.0
     for team in (state.team1, state.team2):
         for other in (*team.players, team.goalie):
-            if other is shooter or not on_ice(other):
+            if other is shooter or not observable_body(other):
                 continue
             vx, vy = velocity(other)
             if other is state.team2.goalie:
@@ -92,7 +83,7 @@ def normal_finish(state, player, decision_interval):
 def automatic_aim(state, point, delay):
     """shotdiradj's goalie-relative post comparison for a native one-timer."""
     goalie = state.team2.goalie
-    if not on_ice(goalie):
+    if not observable_body(goalie):
         return 0
     x, y = _goalie_position(goalie, delay)
     vx, vy = (round(component / VELOCITY_SCALE) >> 9 for component in velocity(goalie))

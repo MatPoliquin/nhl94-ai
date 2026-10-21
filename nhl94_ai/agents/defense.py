@@ -9,11 +9,14 @@ from nhl94_ai.agents.classic_tuning import current as tuning
 
 from nhl94_ai.env.target_control import project_target, route_waypoint
 from nhl94_ai.game.constants import GameConsts as Buttons
-from nhl94_ai.agents.motion import (
-    LANE_HORIZON, SHOT_SPEED_RANGE, arrival_time, blocks_shot_lane,
-    boost_safe, burst_velocity, check_approach, facing, puck_path, skating, velocity,
+from nhl94_ai.agents.motion import LANE_HORIZON, SHOT_SPEED_RANGE, blocks_shot_lane
+from nhl94_ai.game.motion import (
+    arrival_time, boost_safe, burst_velocity, check_approach, facing, puck_path, skating, velocity,
 )
-from nhl94_ai.agents.skating import grounded_step
+from nhl94_ai.game.skating import grounded_step
+from nhl94_ai.game.actors import (
+    controlled_slot, owns_puck, controllable_skater as eligible, observable_body as on_ice
+)
 
 
 SWITCH_DELAY = 6
@@ -31,24 +34,6 @@ def defensive_steering(player, target):
     brake_y = vy * abs(vy) / (2 * acceleration + abs(vy) / 64)
     corrections = waypoint[0] - player.x - brake_x, waypoint[1] - player.y - brake_y
     return tuple(1 if delta > 3 else -1 if delta < -3 else 0 for delta in corrections), waypoint
-
-
-def controlled_slot(team):
-    return team.controlled_scnum() if team.defense_control is None else team.defense_control
-
-
-def owns_puck(team, owner):
-    goalie = team.goalie_scnum() if team.defense_goalie is None else team.defense_goalie
-    return team.skater_scnum_base() <= owner < team.skater_scnum_base() + len(team.players) or owner == goalie
-
-
-def eligible(player):
-    locked = player.is_falling if player.selection_flags is None else player.selection_flags & 0x20
-    return not locked and (player.role is None or player.role > 0) and not player.unavailable & 4
-
-
-def on_ice(player):
-    return player.role is None or player.role >= 0
 
 
 def skaters(team):

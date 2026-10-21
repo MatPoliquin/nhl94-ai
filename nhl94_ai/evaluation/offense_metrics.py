@@ -2,8 +2,8 @@
 from collections import deque
 from copy import deepcopy
 
-from nhl94_ai.agents.defense import controlled_slot
-from nhl94_ai.agents.motion import arrival_time, velocity
+from nhl94_ai.game.actors import controlled_slot
+from nhl94_ai.game.motion import arrival_time, velocity
 from nhl94_ai.game.constants import GameConsts
 
 

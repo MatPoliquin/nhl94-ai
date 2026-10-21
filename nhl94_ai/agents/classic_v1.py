@@ -17,8 +17,9 @@ from nhl94_ai.agents.lifecycle import (
     ActionEnd, OneTimerLifecycle, ShotLifecycle, SetupState,
     ONE_TIMER_TIMEOUT_FRAMES, ONE_TIMER_CONTACT_GRACE,
 )
-from nhl94_ai.agents.defense import DefenseController, eligible, on_ice, owns_puck
-from nhl94_ai.agents.defense import controlled_slot
+from nhl94_ai.agents.defense import DefenseController
+from nhl94_ai.game.actors import controllable_skater, observable_body, owns_puck
+from nhl94_ai.game.actors import controlled_slot
 from nhl94_ai.agents.carry import carry_pad
 from nhl94_ai.agents.goalie import outlet_options
 from nhl94_ai.agents.cross_crease import CrossCreaseController, evaluate_cross_crease
@@ -28,7 +29,8 @@ from nhl94_ai.agents.offense import (
     carry_clear,
     goalie_avoidance, ordinary_shot_conditions, projected_state,
 )
-from nhl94_ai.agents.passing import pass_release_frames, shot_value
+from nhl94_ai.agents.passing import shot_value
+from nhl94_ai.game.passing import pass_release_frames
 from nhl94_ai.agents.possession_value import PossessionValuePlanner
 from nhl94_ai.agents.possession_ablation import LegacyValueRanker
 from nhl94_ai.agents.receiver_selection import ReceiverSelector
@@ -690,7 +692,7 @@ class ClassicAIV1Model:
         teammates = [(team.skater_scnum_base() + i, p) for i, p in enumerate(team.players)
                      if i != team.control - 1]
         for index, (slot, receiver) in enumerate(teammates):
-            if (not eligible(receiver) or abs(receiver.x) > 70
+            if (not controllable_skater(receiver) or abs(receiver.x) > 70
                     or not 175 + max(0, 15 - self._accuracy(receiver)) < receiver.y * attack < 245):
                 continue
             dx, dy = receiver.x - passer.x, receiver.y - passer.y
@@ -704,7 +706,7 @@ class ClassicAIV1Model:
                 continue
             clear = True
             for defender in opponents.players:
-                if not on_ice(defender):
+                if not observable_body(defender):
                     continue
                 along = max(0, min(1, ((defender.x - passer.x) * dx + (defender.y - passer.y) * dy) / length2))
                 if math.hypot(defender.x - passer.x - along * dx, defender.y - passer.y - along * dy) < 14:

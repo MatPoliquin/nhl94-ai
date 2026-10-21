@@ -82,7 +82,10 @@ class EnvironmentConfig:
         values['action_type'] = values['action_type'].upper()
         config = cls(**values).validate()
         from nhl94_ai.game.specs import get_game
-        get_game(config.env).backend.validate_options(args)
+        from nhl94_ai.agents.registry import CONTROLLERS, ALIASES
+        from nhl94_ai.agents.classic_options import validate_platform_application
+        validate_platform_application(args, platform=get_game(config.env).backend.name,
+            classic=config.nn in CONTROLLERS or config.nn == 'MlpPolicy' and getattr(args, 'agent', None) in ALIASES)
         if getattr(args, "alg", "ppo2") != "ppo2":
             raise ValueError("alg must be ppo2; ES support has been removed")
         from nhl94_ai.models.factory import MODEL_BUILDERS

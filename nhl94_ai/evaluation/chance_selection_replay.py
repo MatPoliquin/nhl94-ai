@@ -16,7 +16,7 @@ from types import SimpleNamespace
 import numpy as np
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
-from nhl94_ai.agents.defense import controlled_slot
+from nhl94_ai.game.actors import controlled_slot
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.evaluation.chance_selection import ChanceSelection, readiness
 from nhl94_ai.evaluation.cpu_benchmark import MATCHUPS

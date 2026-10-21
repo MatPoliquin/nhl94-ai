@@ -2,7 +2,7 @@
 import math
 from dataclasses import dataclass
 
-from nhl94_ai.agents.motion import VELOCITY_SCALE
+from nhl94_ai.game.motion import VELOCITY_SCALE
 from nhl94_ai.game.ram import GOALIE_INPUT_ATTRIBUTES, SKATER_INPUT_ATTRIBUTES, select_cpu_side
 from nhl94_ai.tasks.defense_setup import (
     _place_object, _rebuild_object_order, _reset_player, init_full_team_defense,

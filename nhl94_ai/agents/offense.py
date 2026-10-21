@@ -1,26 +1,29 @@
 """Progression first; bounded cuts must create an identifiable opportunity."""
+from nhl94_ai.game.forecast import clone_forecast, project_body, set_position
 from copy import copy
 from dataclasses import asdict, replace
 import math
 
 from nhl94_ai.agents.classic_tuning import current as tuning
 
-from nhl94_ai.agents.defense import controlled_slot, eligible, on_ice
+from nhl94_ai.game.actors import controlled_slot, controllable_skater, observable_body
 from nhl94_ai.agents.lifecycle import PassLifecycle
 from nhl94_ai.agents.carry import (
     CARRY_FRAMES, INTERCEPTION_MARGIN, _segment_clearance, assess_path_risk, body_clearance,
     carry_path, forecast_carry, forecast_path,
 )
-from nhl94_ai.agents.motion import (
-    arrival_time, bounded_projection, coast_projection, facing, skate_step, skating, stop_projection, velocity,
+from nhl94_ai.game.motion import (
+    arrival_time, bounded_projection, coast_projection, facing, skate_step, skating, stop_projection,
+    velocity,
 )
-from nhl94_ai.agents.motion import direction as console_direction
-from nhl94_ai.agents.passing import (
-    evaluate_pass, one_timer_contact_frame, pass_contact, pass_point_at, pass_release_frames,
-    one_timer_position_ok, option_receiver, pressure_margin, shot_value,
+from nhl94_ai.game.motion import direction as console_direction
+from nhl94_ai.agents.passing import evaluate_pass, one_timer_position_ok, pressure_margin, shot_value
+from nhl94_ai.game.passing import (
+    one_timer_contact_frame, pass_contact, pass_point_at, pass_release_frames, option_receiver,
 )
 from nhl94_ai.agents.responses import response_future
 from nhl94_ai.env.target_control import project_target, route_waypoint
+from nhl94_ai.game.shooting import normal_shot_release_frames
 
 
 FEINT_FRAMES = 18
@@ -33,30 +36,6 @@ SHOT_RELEASE_DELAY = 2
 CARRY_SAMPLES = (4, 8, 12, FEINT_FRAMES)
 
 
-def normal_shot_release_frames(player, hold_frames):
-    """Bound updateanim/ShotMode through contact, including the C-release jump."""
-    if getattr(player, 'platform', 'genesis') != 'genesis':
-        from nhl94_ai.game.platforms import get_backend
-        return get_backend(player.platform).shot_release_frames(player, hold_frames)
-    durations = player.shot_durations or (4,) * 8
-    index, timer = 0, -1
-    for elapsed in range(1, hold_frames + 2 * sum(duration + 1 for duration in durations) + 3):
-        if index >= 7:
-            return elapsed + 1
-        if timer < 0:
-            timer = durations[index]
-        else:
-            timer -= 1
-            if timer < 0:
-                index += 1
-                if index < 7:
-                    timer = durations[index]
-        if index >= 7:
-            return elapsed + 1
-        if index < 4 and (elapsed == hold_frames or player.shot_power is not None
-                          and player.shot_power < 20 and index > 2):
-            index = 7 - index
-    raise RuntimeError('Shot animation did not reach native contact.')
 
 
 def shot_release_in_front(state, player, hold_frames):
@@ -146,23 +125,18 @@ def projected_state(state, target, frames=FEINT_FRAMES, *, decision_interval=Non
     motion = _carry_motion(original, target, frames)
     if motion is None:
         return None
-    future = copy(state)
+    future = clone_forecast(state)
     for name in ('team1', 'team2'):
-        team = copy(getattr(state, name))
-        team.players = [copy(p) for p in team.players]
-        team.goalie = copy(team.goalie)
+        team = getattr(future, name)
         carrier = team.get_player_by_scnum(state.engine.puck_owner) if name == 'team1' else None
         for player in (*team.players, team.goalie):
-            if player is carrier or not on_ice(player):
+            if player is carrier or not observable_body(player):
                 continue
-            (player.x, player.y), player.projection_uncertainty = bounded_projection(
-                player, frames, boards=player is not team.goalie)
-            player.precise_x, player.precise_y = float(player.x), float(player.y)
+            project_body(player, frames, boards=player is not team.goalie)
         setattr(future, name, team)
     player = future.team1.get_player_by_scnum(state.engine.puck_owner)
     (player.x, player.y), (player.motion_x, player.motion_y) = motion
     player.precise_x, player.precise_y = float(player.x), float(player.y)
-    future.puck = copy(state.puck)
     future.puck.x = state.puck.x + player.x - original.x
     future.puck.y = state.puck.y + player.y - original.y
     future.puck.precise_x, future.puck.precise_y = float(future.puck.x), float(future.puck.y)
@@ -184,17 +158,14 @@ def reception_state(state, option, elapsed=None):
     elapsed = reception_frames(state, option) if elapsed is None else elapsed
     if elapsed is None:
         raise ValueError('Cannot project a reception without modeled body/stick contact')
-    future = copy(state)
+    future = clone_forecast(state)
     for name in ('team1', 'team2'):
-        team = copy(getattr(state, name))
-        team.players = [copy(player) for player in team.players]
-        team.goalie = copy(team.goalie)
+        team = getattr(future, name)
         for player in (*team.players, team.goalie):
-            if not on_ice(player):
+            if not observable_body(player):
                 continue
             source = receiver if name == 'team1' and player is team.players[option.index] else player
-            (player.x, player.y), player.projection_uncertainty = bounded_projection(
-                source, elapsed, boards=player is not team.goalie)
+            project_body(player, elapsed, source=source, boards=player is not team.goalie)
             if source is receiver:
                 player.motion_x, player.motion_y = velocity(receiver)
             player.precise_x, player.precise_y = float(player.x), float(player.y)
@@ -202,7 +173,6 @@ def reception_state(state, option, elapsed=None):
     future.engine = copy(state.engine)
     future.engine.puck_owner = option.slot
     future.team1.defense_control, future.team1.control = option.slot, option.index + 1
-    future.puck = copy(state.puck)
     contact = option.contact or pass_contact(state.puck, state.team1.get_player_by_scnum(state.engine.puck_owner), receiver)
     future.puck.x, future.puck.y = pass_point_at(
         state.puck, receiver, contact, elapsed - pass_release_frames(receiver))
@@ -212,23 +182,17 @@ def reception_state(state, option, elapsed=None):
 
 
 def carry_future(state, player, carrier, *, frames=CARRY_FRAMES):
-    future = copy(state)
+    future = clone_forecast(state)
     for name in ('team1', 'team2'):
-        team = copy(getattr(state, name))
-        team.players = [copy(other) for other in team.players]
-        team.goalie = copy(team.goalie)
+        team = getattr(future, name)
         for index, other in enumerate(team.players):
             if getattr(state, name).players[index] is player:
                 team.players[index] = carrier
-            elif on_ice(other):
-                (other.x, other.y), other.projection_uncertainty = bounded_projection(other, frames)
-                other.precise_x, other.precise_y = float(other.x), float(other.y)
-        if on_ice(team.goalie):
-            (team.goalie.x, team.goalie.y), team.goalie.projection_uncertainty = bounded_projection(
-                team.goalie, frames, boards=False)
-            team.goalie.precise_x, team.goalie.precise_y = float(team.goalie.x), float(team.goalie.y)
+            elif observable_body(other):
+                project_body(other, frames)
+        if observable_body(team.goalie):
+            project_body(team.goalie, frames, boards=False)
         setattr(future, name, team)
-    future.puck = copy(state.puck)
     future.puck.x += carrier.x - player.x
     future.puck.y += carrier.y - player.y
     future.puck.precise_x, future.puck.precise_y = float(future.puck.x), float(future.puck.y)
@@ -247,7 +211,7 @@ def carry_clearance(state, player, target, *, decision_interval=None):
         point, _ = motion
         for team in (state.team1, state.team2):
             for other in (*team.players, team.goalie):
-                if other is player or not on_ice(other):
+                if other is player or not observable_body(other):
                     continue
                 position, uncertainty = bounded_projection(other, frames, boards=other is not team.goalie)
                 clearance = min(clearance, math.dist(point, position) - 16 - uncertainty)
@@ -259,7 +223,7 @@ def carry_clear(state, player, target, *, decision_interval=None):
 
 
 def goalie_contact_time(player, goalie, clearance=GOALIE_CLEARANCE):
-    if not on_ice(goalie):
+    if not observable_body(goalie):
         return math.inf
     vx, vy = velocity(player)
     gx, gy = velocity(goalie)
@@ -276,7 +240,7 @@ def goalie_contact_time(player, goalie, clearance=GOALIE_CLEARANCE):
 
 
 def _goalie_clearance(player, goalie, target, *, decision_interval=None):
-    if not on_ice(goalie):
+    if not observable_body(goalie):
         return math.inf
     gx, gy = velocity(goalie)
     previous = player.x - goalie.x, player.y - goalie.y
@@ -305,7 +269,7 @@ def _goalie_clearance(player, goalie, target, *, decision_interval=None):
 
 def goalie_avoidance(state, player, target, *, decision_interval=None):
     goalie = state.team2.goalie
-    if player is None or player is state.team1.goalie or not on_ice(goalie):
+    if player is None or player is state.team1.goalie or not observable_body(goalie):
         return None
     if math.dist((player.x, player.y), (goalie.x, goalie.y)) > 120:
         return None
@@ -890,7 +854,7 @@ class OffenseController:
             'candidates': [], 'scenario_samples': 8,
             'evaluation_frame': frame, 'evaluation_carrier': state.engine.puck_owner,
         }
-        if (player is None or not eligible(player) or player.motion_x is None
+        if (player is None or not controllable_skater(player) or player.motion_x is None
                 or player.motion_y is None or not state.engine.puck_owner_known):
             self.diagnostics['status'] = 'missing-feedback'
             return None

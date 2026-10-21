@@ -1,9 +1,10 @@
 """Shared current-state/action features and admission rules for retention probes."""
 import numpy as np
 
-from nhl94_ai.agents.defense import controlled_slot, eligible
-from nhl94_ai.agents.motion import velocity
-from nhl94_ai.agents.skating import grounded_step
+# Legacy artifact semantics intentionally exclude goalies from this feature.
+from nhl94_ai.game.actors import controlled_slot, controllable_skater
+from nhl94_ai.game.motion import velocity
+from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.game.constants import GameConsts as Buttons
 
 
@@ -42,7 +43,7 @@ def available(model, state):
     player = state.team1.get_player_by_scnum(owner)
     return bool(player is not None and owner == controlled_slot(state.team1)
                 and owner != state.team1.goalie_scnum() and state.team1.owns_scnum(owner)
-                and eligible(player) and player.y * attack_sign(state) >= 88
+                and controllable_skater(player) and player.y * attack_sign(state) >= 88
                 and not state.engine.clock_stopped and model.scheduler.remaining == 0
                 and not model.scheduler.was_defending and model.one_timer.pending is None
                 and model.offense.pass_action.pending is None
@@ -82,7 +83,7 @@ def features(state, command):
     row.update(projected_dx=sign * (future.x - player.x), projected_dy=sign * (future.y - player.y),
                projected_vx=sign * velocity(future)[0], projected_vy=sign * velocity(future)[1])
     for team_name, team, count in (('opponent', state.team2, 6), ('teammate', state.team1, 2)):
-        others = sorted((p for p in (*team.players, team.goalie) if p is not player and eligible(p)),
+        others = sorted((p for p in (*team.players, team.goalie) if p is not player and controllable_skater(p)),
                         key=lambda p: (p.x - player.x)**2 + (p.y - player.y)**2)
         for index in range(count):
             other = others[index] if index < len(others) else None

@@ -3,9 +3,11 @@ from copy import copy
 from dataclasses import dataclass
 import math
 
-from nhl94_ai.agents.defense import DefensePlan, defensive_steering, eligible, skaters
-from nhl94_ai.agents.motion import arrival_time, blocks_shot_lane, bounded_projection
-from nhl94_ai.agents.skating import grounded_step
+from nhl94_ai.agents.defense import DefensePlan, defensive_steering, skaters
+from nhl94_ai.game.actors import controllable_skater
+from nhl94_ai.agents.motion import blocks_shot_lane
+from nhl94_ai.game.motion import arrival_time, bounded_projection
+from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.env.target_control import project_target
 
 
@@ -37,7 +39,7 @@ class SharedPressure:
 
     @staticmethod
     def _known(player):
-        return eligible(player) and not player.is_falling and all(
+        return controllable_skater(player) and not player.is_falling and all(
             getattr(player, field) is not None
             for field in ('motion_x', 'motion_y', 'speed', 'agility', 'weight', 'energy', 'facing'))
 

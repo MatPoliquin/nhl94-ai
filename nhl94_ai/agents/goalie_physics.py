@@ -12,7 +12,7 @@ reach, dives, skater collisions and post/board rebounds are not certified.
 from dataclasses import dataclass, replace
 import math
 
-from nhl94_ai.agents.motion import VELOCITY_SCALE, skating, velocity
+from nhl94_ai.game.motion import VELOCITY_SCALE, skating, velocity
 
 
 FIXED = 65536

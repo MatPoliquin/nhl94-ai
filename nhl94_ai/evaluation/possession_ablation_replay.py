@@ -18,7 +18,7 @@ from types import SimpleNamespace
 import numpy as np
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
-from nhl94_ai.agents.defense import controlled_slot
+from nhl94_ai.game.actors import controlled_slot
 from nhl94_ai.agents.possession_ablation import LegacyValueRanker, PROFILES
 from nhl94_ai.evaluation.cpu_benchmark import MATCHUPS
 from nhl94_ai.evaluation.refinement_replay import fork

@@ -9,9 +9,8 @@ import math
 
 import numpy as np
 
-from nhl94_ai.agents.defense import (
-    DefenseController, controlled_slot, defensive_steering, eligible, owns_puck,
-)
+from nhl94_ai.agents.defense import DefenseController, defensive_steering
+from nhl94_ai.game.actors import controlled_slot, controllable_skater, owns_puck
 from nhl94_ai.agents.receiving import passive_reception, reception_target
 from nhl94_ai.env.actions import HOCKEY_PASS_PRESS_FRAMES
 from nhl94_ai.env.intents import HOCKEY_INTENT_CHANGE_PLAYER, HOCKEY_INTENT_NOOP
@@ -275,7 +274,7 @@ class PassLifecycle:
         slot = request.actual_receiver
         receiver = state.team1.get_player_by_scnum(slot) if slot is not None else None
         correction = request.reception_correction
-        if receiver is None or not eligible(receiver):
+        if receiver is None or not controllable_skater(receiver):
             return self.finish(state, frame, 'receiver-unavailable') if correction is not None else None
         actual = controlled_slot(state.team1)
         if correction is None:

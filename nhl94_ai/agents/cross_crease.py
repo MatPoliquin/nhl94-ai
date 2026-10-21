@@ -7,9 +7,9 @@ import math
 
 import numpy as np
 
-from nhl94_ai.agents.defense import controlled_slot, eligible, on_ice
+from nhl94_ai.game.actors import controlled_slot, controllable_skater, observable_body
 from nhl94_ai.agents.goalie import DIVE_ANIMATION, SAVE_ANIMATIONS
-from nhl94_ai.agents.motion import arrival_time, coast_projection, skate_step, skating, stop_projection, velocity
+from nhl94_ai.game.motion import arrival_time, coast_projection, skate_step, skating, stop_projection, velocity
 from nhl94_ai.agents.offense import (
     GOALIE_SHOT_CLEARANCE, _braking, _carry_motion, goalie_avoidance,
 )
@@ -58,7 +58,7 @@ def shot_lane_clear(state, point, side, delay=0, *, include_goalie=True, goal_x=
     distance = math.dist(point, goal)
     obstacles = (*state.team2.players, state.team2.goalie) if include_goalie else state.team2.players
     for other in obstacles:
-        if not on_ice(other):
+        if not observable_body(other):
             continue
         vx, vy = velocity(other)
         along = max(0, min(1, ((other.x - point[0]) * (goal[0] - point[0])
@@ -98,7 +98,7 @@ def _path_clear(state, player, samples, *, goalie_clearance=20, pressure=True, s
                          _arrival_margin(state, puck_point, elapsed))
         for team in (state.team1, state.team2):
             for other in (*team.players, team.goalie):
-                if other is player or other is owner or not on_ice(other):
+                if other is player or other is owner or not observable_body(other):
                     continue
                 vx, vy = velocity(other)
                 start_time, end_time = min(previous_time, 12), min(elapsed, 12)
@@ -166,7 +166,7 @@ def _shot_scene(state, carrier, direction, elapsed):
     scene.team2 = copy(state.team2)
     scene.team2.players = [copy(other) for other in state.team2.players]
     for other in scene.team2.players:
-        if not on_ice(other):
+        if not observable_body(other):
             continue
         vx, vy = velocity(other)
         moved = other.x + vx * min(elapsed, 12), other.y + vy * min(elapsed, 12)
@@ -257,7 +257,7 @@ def evaluate_cross_crease(state, alternatives, *, prepare=True, max_depth=None):
             or missing):
         return None, {**diagnostics, 'status': 'missing-feedback', 'missing_feedback': missing}
     sign = 1 if state.team2.net.y > state.team1.net.y else -1
-    if state.is_shootout_active or state.is_shooting or not eligible(player):
+    if state.is_shootout_active or state.is_shooting or not controllable_skater(player):
         return None, {**diagnostics, 'status': 'ineligible-state'}
     if not crossing_entry(state, player):
         return None, {**diagnostics, 'status': 'outside-crossing-entry'}

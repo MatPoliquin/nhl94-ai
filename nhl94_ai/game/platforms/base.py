@@ -85,9 +85,6 @@ class PlatformBackend:  # pylint: disable=too-many-public-methods
         # Preserve all historical buttons, including unused Genesis channels.
         return HockeyCommand.from_buttons(action).encode(self.buttons, self.control_mapping)
 
-    def validate_options(self, args):
-        return None
-
     # Stage-2 mechanics contract. Shared tactical code reaches these through the
     # player/puck platform instead of assuming Genesis ROM rules. Methods whose
     # only platform input is a declared attribute (friction, skating estimates)
@@ -115,7 +112,7 @@ class PlatformBackend:  # pylint: disable=too-many-public-methods
 
     def coast_projection(self, player, frames):
         """Inertia-only projection decaying at the console's skater friction."""
-        from nhl94_ai.agents.motion import velocity
+        from nhl94_ai.game.motion import velocity
         x, y = float(player.x), float(player.y)
         vx, vy = velocity(player)
         for _ in range(frames):
@@ -133,7 +130,7 @@ class PlatformBackend:  # pylint: disable=too-many-public-methods
 
     def arrival_time(self, player, target, *, optimistic=False, boost=False):
         """Reach a stick-sized area, including turning and lateral momentum."""
-        from nhl94_ai.agents.motion import boost_safe, facing, velocity
+        from nhl94_ai.game.motion import boost_safe, facing, velocity
         from nhl94_ai.env.target_control import project_target, route_waypoint
         target = project_target(target)
         waypoint = (target if max(abs(player.y), abs(target[1])) < 248
@@ -213,8 +210,8 @@ class PlatformBackend:  # pylint: disable=too-many-public-methods
         GetHot is sprite-dependent; use facing as an explicitly approximate
         hotspot. This is an estimate on every console, never a ROM rule.
         """
-        from nhl94_ai.agents.motion import facing, velocity
-        from nhl94_ai.agents.passing import PASS_HORIZON, pass_speed
+        from nhl94_ai.game.motion import facing, velocity
+        from nhl94_ai.game.passing import PASS_HORIZON, pass_speed
         from nhl94_ai.env.target_control import project_target
         speed = pass_speed(passer)
         if speed is None or receiver.motion_x is None or receiver.motion_y is None:

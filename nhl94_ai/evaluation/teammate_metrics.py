@@ -1,7 +1,7 @@
 """Policy-independent native pass, reception and subsequent-shot attribution."""
 from collections import Counter
 
-from nhl94_ai.agents.motion import velocity
+from nhl94_ai.game.motion import velocity
 from nhl94_ai.evaluation.carry_outcomes import normal_shot_released
 
 _UNOBSERVED = object()

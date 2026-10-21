@@ -12,8 +12,9 @@ import numpy as np
 
 from nhl94_ai.agents.carry import carry_pad, carry_path
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
-from nhl94_ai.agents.defense import controlled_slot, eligible
-from nhl94_ai.agents.passing import PassOption, evaluate_pass, pad_direction, selected_receiver
+from nhl94_ai.game.actors import controlled_slot, controllable_skater
+from nhl94_ai.agents.passing import PassOption, evaluate_pass
+from nhl94_ai.game.passing import pad_direction, selected_receiver
 from nhl94_ai.agents.responses import response_future
 from nhl94_ai.env.factory import make_retro
 from nhl94_ai.env.intents import HOCKEY_INTENT_NOOP
@@ -325,7 +326,7 @@ def investigate_case(env, sample, side, model, action, *, selected, horizon, pas
         if route['elapsed_frames'] == frames and route['retained_original_carrier'] and not route['clock_stopped']:
             for player_index, player in enumerate(view.team1.players):
                 slot = view.team1.skater_scnum_base() + player_index
-                if slot == view.engine.puck_owner or not eligible(player):
+                if slot == view.engine.puck_owner or not controllable_skater(player):
                     continue
                 for purpose in ('position', 'one-timer'):
                     probes.append(native_pass_probe(env, endpoint, side, slot, purpose, pass_horizon))
