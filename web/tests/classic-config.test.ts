@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DECISION_RATES, DEFAULT_CLASSIC_CONFIG, controlInterval, decisionState, parseClassicConfig, parseClassicConfigText } from "../classic/config";
+import { DECISION_RATES, DEFAULT_CLASSIC_CONFIG, controlInterval, decisionInterval, decisionState, parseClassicConfig, parseClassicConfigText } from "../classic/config";
 import { GameState } from "../classic/state";
 import { GenesisRam } from "../classic/ram";
 import { parseReplay } from "../replay";
@@ -10,6 +10,7 @@ describe("Classic configuration", () => {
     expect(parseClassicConfigText('{/* test */ "ai_goalie": false // test\n}')).toEqual({ ...DEFAULT_CLASSIC_CONFIG, ai_goalie: false });
     expect(parseClassicConfig({})).toEqual(DEFAULT_CLASSIC_CONFIG);
     expect(DECISION_RATES.map((decision_hz) => controlInterval({ ...DEFAULT_CLASSIC_CONFIG, decision_hz }))).toEqual([1, 4, 6, 10]);
+    expect(DECISION_RATES.map((decision_hz) => decisionInterval({ ...DEFAULT_CLASSIC_CONFIG, decision_hz }))).toEqual([1, 4, 4, 4]);
     for (const value of [null, [], { other: true }, { decision_hz: true }, { decision_hz: 12 }, { ai_goalie: 0 }, { player_ratings_consideration: "false" }]) {
       expect(() => parseClassicConfig(value)).toThrow("Classic");
     }

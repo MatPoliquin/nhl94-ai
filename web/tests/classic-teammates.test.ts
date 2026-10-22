@@ -2,8 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_CLASSIC_CONFIG } from "../classic/config";
 import { controllerView } from "../classic/decoder";
 import { SharedReceiving } from "../classic/teammate-receiving";
+import * as reception from "../classic/receiving";
 import { TeammateCoordinator } from "../classic/teammates";
-import { GameState, neutralAction } from "../classic/state";
+import { ClassicController } from "../classic/classic";
+import { TeamControlContext } from "../classic/teammate-context";
+import { faceoff_center, FaceoffInput } from "../classic/teammate-faceoff";
+import { Buttons, GameState, neutralAction } from "../classic/state";
 import { decodeObservation, type Observation } from "../observations";
 import { Button } from "../inputs";
 import { parseReplay } from "../replay";
@@ -87,6 +91,184 @@ describe("Classic teammate coordination", () => {
     receiving.observe(input, slots, 4);
     expect(receiving.pending).toBeNull();
     expect(receiving.ended).toEqual([{ passer_controller: 0, reason: "intercepted" }]);
+  });
+
+  function releasedPass(purpose = "advance-pass") {
+    const input = state(), receiving = new SharedReceiving();
+    receiving.observe(input, [0, 1, 2], 0);
+    receiving.propose({ passer: 0, receiver: 1, point: [35, 210], frame: 1, deadline: 60, purpose },
+      0, [0, 1, 2], input, 1);
+    input.team1.pass_attempts = 1; input.engine.pass_target = 1; input.engine.puck_owner = -1;
+    Object.assign(input.team1.players[1]!, { x: 35, y: 210 });
+    receiving.observe(input, [0, 1, 2], 2);
+    return { input, receiving };
+  }
+
+  it("preserves a released pass through an entirely unknown table and resumes reception", () => {
+    const { input, receiving } = releasedPass(), plan = receiving.pending;
+    receiving.observe(input, [-1, -1, -1], 3);
+    expect(receiving.pending).toBe(plan);
+    receiving.observe(input, [0, 1, 2], 4);
+    input.engine.puck_owner = 1;
+    receiving.observe(input, [0, 1, 2], 5);
+    expect(receiving.pending).toMatchObject({ phase: "received", received: 5 });
+  });
+
+  it.each(["known-loss", "partial-unknown", "interception", "stoppage", "expiry", "unreleased"])(
+    "still cancels a pass for %s during an unknown controller table", (reason) => {
+      const { input, receiving } = releasedPass();
+      let slots = [-1, -1, -1], frame = 3;
+      if (reason === "known-loss") slots = [0, 2, 3];
+      if (reason === "partial-unknown") slots = [0, 2, -1];
+      if (reason === "interception") input.engine.puck_owner = 6;
+      if (reason === "stoppage") input.engine.clock_stopped = true;
+      if (reason === "expiry") frame = receiving.pending!.expiry;
+      if (reason === "unreleased") {
+        receiving.pending!.phase = "release"; receiving.pending!.released = null;
+      }
+      receiving.observe(input, slots, frame);
+      expect(receiving.pending).toBeNull();
+    },
+  );
+
+  it("keeps unknown controllers neutral without erasing the coordinator's released pass", () => {
+    const team = new TeammateCoordinator([0, 1, 2], DEFAULT_CLASSIC_CONFIG);
+    const { input, receiving } = releasedPass();
+    team.act(observation(), input);
+    team.receiving.pending = receiving.pending;
+    const missing = { team: 1, slot: -1, player: null };
+    const unknown: Observation = { ...observation(), transient: true,
+      controllers: [missing, missing, missing, { ...missing, team: 2 }] };
+    expect([...team.act(unknown, input).values()]).toEqual([0, 0, 0]);
+    expect(team.receiving.pending).toBe(receiving.pending);
+    expect(team.roles).toEqual(["unavailable", "unavailable", "unavailable"]);
+    expect(team.controllers.map((controller) => controller.scheduler.frames)).toEqual([2, 2, 2]);
+    team.act(observation(), input);
+    expect(team.receiving.pending).toBe(receiving.pending);
+  });
+
+  it("spends a one-timer cue only when its current receiver applies a fresh C edge", () => {
+    const contact = vi.spyOn(reception, "one_timer_reception").mockReturnValue({ gap: -4, frames: 8, point: [35, 210] });
+    try {
+      const { input, receiving } = releasedPass("one-timer");
+      const request = receiving.receiverAction(input, 1, 3, neutralAction())!;
+      expect(request.action[Buttons.INPUT_C]).toBe(1);
+      expect(receiving.pending!.cue).toBeNull();
+      receiving.acceptAppliedAction(1, -1, 3, request.action, neutralAction());
+      receiving.acceptAppliedAction(0, 1, 3, request.action, neutralAction());
+      receiving.acceptAppliedAction(1, 1, 3, neutralAction(), neutralAction());
+      receiving.acceptAppliedAction(1, 1, 3, request.action, request.action);
+      expect(receiving.pending!.cue).toBeNull();
+      const retry = receiving.receiverAction(input, 1, 4, neutralAction())!;
+      expect(retry.role).toBe("one-timer-receiver");
+      receiving.acceptAppliedAction(1, 1, 4, retry.action, neutralAction());
+      expect(receiving.pending!.cue).toBe(4);
+      expect(receiving.receiverAction(input, 1, 5, neutralAction())!.action[Buttons.INPUT_C]).toBe(0);
+    } finally { contact.mockRestore(); }
+  });
+
+  it("reroutes a receiver to its actual controller and observes native arming without another cue", () => {
+    const contact = vi.spyOn(reception, "one_timer_reception").mockReturnValue({ gap: -4, frames: 8, point: [35, 210] });
+    try {
+      const { input, receiving } = releasedPass("one-timer");
+      receiving.pending!.receiver_controller = null;
+      input.team1.players[1]!.is_one_timer = 1;
+      receiving.observe(input, [1, 0, 2], 3);
+      expect(receiving.pending).toMatchObject({ receiver_controller: 0, cue: null, armed: 3 });
+      expect(receiving.receiverAction(input, 1, 3, neutralAction())).toBeNull();
+      expect(receiving.receiverAction(input, 0, 3, neutralAction())!.action).toEqual(neutralAction());
+      input.team1.players[1]!.is_one_timer = 0;
+      receiving.observe(input, [1, 0, 2], 4);
+      expect(receiving.pending!.armed).toBe(3);
+      expect(receiving.receiverAction(input, 0, 4, neutralAction())!.action[Buttons.INPUT_C]).toBe(0);
+    } finally { contact.mockRestore(); }
+  });
+
+  it("accounts for the coordinator's applied one-timer edge without cueing it again", () => {
+    const contact = vi.spyOn(reception, "one_timer_reception").mockReturnValue({ gap: -4, frames: 8, point: [35, 210] });
+    try {
+      const team = new TeammateCoordinator([0, 1, 2], DEFAULT_CLASSIC_CONFIG);
+      const { input, receiving } = releasedPass("one-timer");
+      team.act(observation(), input);
+      team.receiving.pending = receiving.pending;
+      expect(team.act(observation(), input).get(1)! & Button.C).toBe(Button.C);
+      expect(team.roles[1]).toBe("one-timer-receiver");
+      expect(team.receiving.pending!.cue).toBe(2);
+      expect(team.act(observation(), input).get(1)! & Button.C).toBe(0);
+      expect(team.receiving.pending!.cue).toBe(2);
+    } finally { contact.mockRestore(); }
+  });
+
+  it("assigns faceoff B only to the native draw participant, not the first port", () => {
+    const team = new TeammateCoordinator([0, 1, 2], DEFAULT_CLASSIC_CONFIG), input = state();
+    input.engine.puck_owner = -1; input.engine.clock_stopped = true;
+    Object.assign(input.team1.players[1]!, { x: 0, y: -12, role: 4, assignment: 0x17 });
+    Object.assign(input.team2.players[0]!, { x: 0, y: 12, role: 4, assignment: 0x17 });
+    expect(faceoff_center(input)).toBe(1);
+    const masks = team.act(observation(), input);
+    expect([...masks.values()]).toEqual([0, Button.B, 0]);
+    expect(team.roles).toEqual(["faceoff-support", "faceoff", "faceoff-support"]);
+    input.team1.players[1]!.assignment = 0x16;
+    expect([...team.act(observation(), input).values()]).toEqual([0, 0, 0]);
+    expect(team.roles).toEqual(["stoppage", "stoppage", "stoppage"]);
+  });
+
+  it("releases B on draw ownership handoff and rejects unknown or ambiguous participants", () => {
+    const input = state(), faceoff = new FaceoffInput(), previous = [neutralAction(), neutralAction()];
+    input.engine.puck_owner = -1; input.engine.clock_stopped = true;
+    Object.assign(input.team1.players[1]!, { x: 0, y: -12, role: 4, assignment: 0x17 });
+    Object.assign(input.team2.players[0]!, { x: 0, y: 12, role: 4, assignment: 0x17 });
+    previous[1]![Buttons.INPUT_B] = 1;
+    expect(faceoff.choose(input, [0, 1], 1, false, previous).action).toEqual(neutralAction());
+    expect(faceoff.choose(input, [0, 1], 2, false, previous).action[Buttons.INPUT_B]).toBe(1);
+    expect(faceoff.choose(input, [0, 1], 3, true, previous).controller).toBeNull();
+    input.team1.players[0]!.assignment = 0x17; input.team1.players[0]!.role = 4;
+    expect(faceoff_center(input)).toBeNull();
+  });
+
+  it("lets only the selected goalie execute an outlet without inventing shared reception ownership", () => {
+    const team = new TeammateCoordinator([0, 1, 2], DEFAULT_CLASSIC_CONFIG), input = state();
+    input.engine.puck_owner = 5; input.team1.goalie_haspuck = true;
+    const observed: Observation = { ...observation(), controllers: [
+      observation().controllers[0], { team: 1, slot: 5, player: { x: 0, y: -250 } },
+      observation().controllers[2], observation().controllers[3],
+    ] };
+    const outlet = neutralAction(); outlet[Buttons.INPUT_B] = 1;
+    const predict = vi.spyOn(team.controllers[1]!, "predict_frame").mockReturnValue(outlet);
+    expect(team.act(observed, input).get(1)).toBe(Button.B);
+    expect(predict).toHaveBeenCalledOnce();
+    expect(team.roles[1]).toBe("goalie-outlet");
+    const receiving = new SharedReceiving();
+    receiving.propose({ passer: 5, receiver: 0, point: [0, 0], frame: 1, deadline: 50, purpose: "goalie-outlet" },
+      1, [0, 5, 2], input, 1);
+    expect(receiving.pending).toBeNull();
+  });
+
+  it("supports a confirmed CPU carrier without switch/pass input and falls back when ownership is unknown", () => {
+    const input = state(), controller = new ClassicController({ ...DEFAULT_CLASSIC_CONFIG, ai_goalie: false });
+    const view = controllerView(input, 0, 0);
+    view.engine.puck_owner = 3; view.engine.puck_owner_known = true;
+    controller.team_context = new TeamControlContext([0, 1, 2], true, [-45, 130], true);
+    const action = controller._decide(view);
+    expect(controller._last_decision).toBe("cpu-carrier-support");
+    expect(controller._last_target).toEqual([-45, 76]);
+    expect(action[Buttons.INPUT_B]).toBe(0);
+    expect(action[Buttons.INPUT_C]).toBe(0);
+    expect(controller.team_context.cpu_carrier(view)).toBe(true);
+    view.engine.puck_owner_known = false;
+    expect(controller.team_context.cpu_carrier(view)).toBe(false);
+    controller.team_context = new TeamControlContext([0, 1, 2], false, [-45, 130], true);
+    view.engine.puck_owner_known = true;
+    expect(controller.team_context.cpu_carrier(view)).toBe(false);
+  });
+
+  it("does not let an unselected skater issue or continue a goalie's B release", () => {
+    const input = state(), controller = new ClassicController({ ...DEFAULT_CLASSIC_CONFIG, ai_goalie: false });
+    const view = controllerView(input, 0, 0);
+    view.engine.puck_owner = 5; view.team1.goalie_haspuck = true;
+    controller.team_context = new TeamControlContext([0, 1], true, [45, -145], true);
+    expect(controller._decide(view)[Buttons.INPUT_B]).toBe(0);
+    expect(controller._last_decision).toBe("goalie-outlet-support");
   });
 });
 

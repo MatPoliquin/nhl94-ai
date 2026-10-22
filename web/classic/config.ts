@@ -31,6 +31,9 @@ export const DEFAULT_CLASSIC_CONFIG = parseClassicConfigText(source);
 export function controlInterval(config: ClassicConfig): number {
   return config.decision_hz === 60 ? 1 : 60 / config.decision_hz;
 }
+export function decisionInterval(config: ClassicConfig): number {
+  return config.decision_hz === 60 ? 1 : 4;
+}
 
 const NEUTRAL_RATINGS = {
   speed: 15, agility: 15, shot_power: 15, shot_accuracy: 15, passing: 15, stick: 15,

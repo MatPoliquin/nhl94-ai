@@ -1,298 +1,216 @@
 # Architecture
 
-The repository contains the `nhl94_ai` Python package at its root. `models/`
-holds model assets; `nhl94_ai/models/` contains network definitions. The browser
-application is a separate TypeScript project in `web/`.
+The Python application lives in `nhl94_ai/`. Top-level `models/` holds model
+assets; `nhl94_ai/models/` contains policy definitions. The separate
+[TypeScript browser application](../web/README.md) uses a WebAssembly emulator
+and its own Classic implementation; it does not require the Python runtime.
 
 | Package | Responsibility | Extension point |
 | --- | --- | --- |
-| `game` | Variants, RAM decoding, geometry, and features | `specs.GAMES` |
+| `game` | Variants, console backends, RAM decoding, geometry, and features | `specs.GAMES` |
 | `env` | Environment assembly, observations, actions, and timing | `factory.build_single_nhl94_env`, `encoding.ObservationEncoder` |
-| `tasks` | Episode setup, completion, restrictions, and zero-reward stubs | `registry.register_task` |
-| `agents` | Scripted and learned gameplay controllers | `Agent.reset`, `Agent.act` |
+| `tasks` | Episode setup, progression, completion, and reward stubs | `registry.register_task` |
+| `agents` | Scripted and learned gameplay controllers | `base.Agent.reset`, `base.Agent.act` |
 | `models` | Neural policy definitions | `factory.register_model` |
 | `training` | Unavailable workflow stubs and compatibility names | `unavailable.TrainingUnavailableError` |
-| `evaluation` | Evaluation, playback, comparison, and external opponents | `runner.evaluate`, `external.play_match` |
-| `ui` | Optional display and recording | Consumers of state and training events |
+| `evaluation` | Playback, evaluation, recording, replay, and external opponents | `runner.evaluate`, `external.play_match` |
+| `ui` | Optional display and recording | State and agent diagnostics |
 | `cli` | Command dispatch and configuration | `nhl94 --help` |
 
 Game decoding does not import UI or training code. Display and export dependencies
-load only when requested. Environment bindings are per-instance objects.
+load only when requested. Environment bindings and controller state are per instance.
+For commands, see the [README](../README.md), [Classic guide](CLASSIC.md),
+[evaluation guide](../nhl94_ai/evaluation/README.md), and [test guide](../tests/README.md).
 
-`GameSpec.platform` selects the console backend in `game/platforms/`. Both
-consoles use `NHL94GameState` and `ClassicAIV1Model`; backend hooks own telemetry
-registration, player/engine decoding, rink dimensions, action encoding, movement
-projection, goalie mechanics, and episode clock semantics. Profiles are selected per environment,
-without mutating global constants. Genesis retains its public button ordering,
-observation normalization, and ROM-derived forecasts. SNES uses native array
-ownership/selection and signed word velocities, with a separate normalization
-identifier and explicitly estimated motion/pass forecasts. Its integration
-scenario is packaged with this project; ROMs and save states stay in stable-retro.
+## Console backends
 
-SNES supports full-team Classic `FILTERED` `PostPlay` against CPU on either side,
-human versus Classic, and Classic versus Classic. Reset writes native menu,
-joystick/player assignment, and team cursor tables before advancing the supplied
-save. Gameplay uses controller inputs and native selection/animation feedback;
-the shared goalie controller receives console-specific takeover and save mechanics.
-Two scripted agents keep independent schedulers and world-coordinate team views.
-Configuration validation rejects unmapped training tasks, RNG, learned artifacts,
-and Genesis goalie experiments.
+`GameSpec.platform` selects a backend in `game/platforms/`. Genesis and SNES
+share `NHL94GameState` and `ClassicAIV1Model`. Backends own telemetry registration,
+player/engine decoding, rink dimensions, action encoding, motion projection,
+goalie mechanics, and episode clocks. Selecting a backend does not mutate global
+constants. `GameSpec.skaters_per_team` describes the roster layout; `num_players`
+counts controllers.
+
+Genesis retains its button ordering, observation normalization, and ROM-derived
+forecasts. SNES uses native array ownership/selection, signed word velocities,
+a separate normalization identifier, and estimated motion/pass forecasts. Its
+integration scenario is packaged here; Python ROMs and saves live in stable-retro.
+SNES reset configures native menu and controller tables before advancing the save;
+gameplay then uses controller input and native feedback. Supported modes and
+console restrictions are documented in [Classic](CLASSIC.md#snes-support).
 
 ## Services
 
 Training, demonstration collection, imitation, curriculum, and train-then-compare
-implementations have been removed pending an ML redesign. Their Python entrypoints
-raise `TrainingUnavailableError` (`NotImplementedError`); CLI entrypoints print an
-unavailable message and return a nonzero exit status. ES support is removed.
+workflows are unavailable pending an ML redesign. Python entrypoints raise
+`TrainingUnavailableError` (`NotImplementedError`); CLI entrypoints return a
+nonzero status with an explanation. ES support is removed.
 
-Existing non-ES checkpoints remain usable. `models.decision_ppo` retains only the
-classes needed to load and predict with legacy DecisionPPO archives; learning is
-disabled. `training.decision_ppo` re-exports their old serialized names.
-`datasets` reads/writes existing demonstration artifacts. `run_options` retains
-legacy configuration parsing without creating a training run.
+Compatible existing non-ES checkpoints remain usable for inference and evaluation.
+`models.decision_ppo` retains legacy loading/prediction classes with learning
+disabled; `training.decision_ppo` re-exports their serialized names. `datasets`
+retains artifact readers/writers, and `run_options` retains legacy configuration
+parsing. These compatibility helpers do not restore training workflows.
 
 `evaluation.runner.evaluate(agent, config, env=env)` returns rewards, lengths,
-termination and truncation flags, and budget status. The caller owns and closes
-the supplied environment.
+termination/truncation flags, and budget status. The caller owns and closes the
+environment. Task-based evaluation reports unavailable rewards as JSON `null`
+with `reward_status: unavailable`; goals, shots, passes, and episode endings remain
+measurable. Native offense/goalie outcome protocols have their own scoring rules.
 
-`evaluation.offense_policy` and `evaluation.goalie_policy` own existing-policy
-evaluation; offense playback and audit remain available through `nhl94 offense`.
-`evaluation.session.run_evaluation_session` evaluates a saved checkpoint using
-legacy run configuration. Replay scorers live in `evaluation/*_model.py`.
-
-`nhl94 external` loads an explicitly requested adapter; ordinary gameplay has no
-dependency on an external adapter package.
-
-Built-in task reward functions return `0.0` while ML is unavailable. Their
-`reward_available` flag is false; frame info reports `reward_status: unavailable`.
-The observation wrapper calls an optional `TaskDefinition.advance` hook once per
-native frame, before checking completion. This retains legacy stall/possession
-limits and opportunity completion without running reward formulas. Resets,
-observation fields, target bounds, and action restrictions are unchanged.
-
-Task-based evaluation represents unavailable reward totals as JSON `null` and
-reports `reward_status`, including live evaluation means and standard deviations.
-Goals, shots, passes, episode endings, and budgets remain measurable. Separate
-native offense/goalie outcome protocols retain their own scoring semantics.
+`nhl94 external` loads an explicitly requested adapter. Ordinary gameplay has no
+external-adapter dependency. The [evaluation guide](../nhl94_ai/evaluation/README.md)
+maps playback, policy evaluation, benchmarks, and replay modules.
 
 ## Configuration
 
 Precedence is parser defaults, JSON options, then explicit CLI arguments.
-Declared paths inside an options file resolve relative to that file. CLI paths
-resolve relative to the current working directory. `--state` is an emulator save
-name. Boolean options in JSON must be booleans.
+Declared paths inside an options file resolve relative to that file; CLI paths
+resolve relative to the working directory. `--state` normally names an emulator
+save; individual evaluation runners may also accept native save paths. JSON
+boolean options must be booleans.
 
-Editable examples are in `configs/`. Built-in training defaults are package data
-under `nhl94_ai/data/training/`; keep those copies synchronized when changing
-defaults. Dependencies and optional extras are declared in `pyproject.toml`.
+Editable examples live in `configs/`. Packaged legacy training defaults live in
+`nhl94_ai/data/training/`; keep corresponding copies synchronized when changing
+defaults. Dependencies and extras are declared in `pyproject.toml`.
+`EnvironmentConfig` validates game, controller, action, goalie, and self-play
+combinations before emulator workers start. Classic playback's additional file
+settings and overrides are described in [decision timing](CLASSIC.md#decision-timing).
 
-`GameSpec` distinguishes skaters per team from `num_players`, which counts
-controllers. `EnvironmentConfig` validates supported game, action, goalie, and
-self-play combinations before emulator workers start.
+## Agents
+
+`agents.base.Agent` exposes `reset()` and `act(AgentInput) -> AgentOutput`.
+Inputs carry game state and/or encoded observations; outputs carry actions,
+diagnostics, and an optional decision snapshot. `ScriptedAgent` adapts Classic;
+`LearnedAgent` retains recurrent state until reset. `FrameRepeatAgent` holds a
+policy action while playback advances and renders individual frames.
+
+`ClassicAIV1Model` coordinates tactical components and frame ownership.
+`classic_options` resolves and validates options; `classic_components` constructs
+components; `classic_resources` holds reusable loaded artifacts. Mutable action
+state belongs to each controller. Possession, passing, defense, and goalie modules
+make tactical decisions; scheduling and lifecycle modules govern their execution.
+Requested inputs are diagnostic intent. Applied buttons, native ownership,
+animation feedback, and counters establish what the game executed.
 
 ## Model input variants
 
-`--model_input` selects ordered observation groups from the model-input registry.
-The selected layout and normalization are recorded with the checkpoint. Equal
-tensor sizes do not imply compatible layouts. Loading a checkpoint restores its
-saved architecture; changing a configuration file does not resize a loaded model.
+`--model_input` selects ordered observation groups from the input registry.
+Checkpoints record the layout and normalization; equal tensor sizes do not imply
+compatible schemas. Loading restores the saved architecture, so editing a
+configuration file does not resize a loaded model.
 
-The `pvg` layout is a compact player-goalie observation contract. Use `pvg-v3`
-for its earlier layout and `default` or `legacy` for their respective full-team
-layouts. [Artifact contracts](ARTIFACTS.md) describe compatibility checks.
+`pvg` is the compact player-goalie layout, `pvg-v3` its earlier version, and
+`default`/`legacy` the respective full-team layouts. Changes to ordered observations
+or action semantics require matching schema version changes. See
+[artifact contracts](ARTIFACTS.md) for checkpoint, dataset, and export compatibility.
 
 ## Timing and reset
 
-The inner environment processes input, advances one emulator frame, refreshes
-state, advances task progression, returns the reward stub, checks completion,
-and encodes observations. Frame-skip
-wrappers repeat policy actions around that loop. Macro timers use native frames.
+Each inner environment step applies input, advances one emulator frame, refreshes
+game state, runs task progression and reward/completion logic, and encodes the
+next observation. Frame-skip wrappers repeat actions around that loop. Macro
+and native lifecycle timers count emulator frames.
 
-Classic's frame dispatcher observes each native frame independently of its
-tactical interval. `agents/scheduling.py` owns those clocks and cached input;
-`agents/lifecycle.py` owns shot, pass, and one-timer transitions. Standalone
-callers use `predict_frame(state, frame_skip=4)` per native frame to match normal
-dispatch. See [Classic](CLASSIC.md).
-
-`agents.base.configure_scripted_frames` attaches reactive scripted agents to
-the frame-skip wrapper for evaluation and collection. Demonstrations record
-the actual substeps; learned button policies retain their configured interval.
+In reactive mode, Classic observes every native frame independently of its
+tactical interval. `agents/scheduling.py` owns clocks and cached input;
+`agents/lifecycle.py` owns shot, pass, and one-timer transitions.
+`agents.base.configure_scripted_frames` attaches the scripted agent to the
+frame-skip wrapper and can record actual substeps. Learned button policies retain
+their configured interval. Strict Classic control intervals also throttle
+observation and hold raw buttons; see [Classic](CLASSIC.md#decision-timing).
 Reset clears controller history, pending actions, and recurrent policy state.
 
-`team_vs_game` extends the two-controller button path to native Genesis
-Two-Teammates play. `game.ram.configure_teammates` owns scoped reset assignments
-and automatic-goalie settings. `teammate_controller_info` supplies an authoritative
-selection for one controller without changing physical team identities or the
-other controller's fields. The legacy composite clock is replaced only in these
-views by its native low-word clock. Existing neural input layouts are unchanged.
+## Coordinated teammates
 
-`agents.teammates.TeammateCoordinator` observes the same RAM snapshot through two or three
-independent game states, keeps controller execution histories separate, assigns
-pursuit/support roles and emits 24 or 36 bot buttons before the next native frame. Native
-pass feedback reserves a controlled receiver; input requests are distinct from
-completed passes and native one-timer attempts. Gameplay selection changes use
-controller buttons. `evaluation.teammates` runs bounded seeded CPU comparisons
-and records/replays optional per-frame input traces from a verified reset boundary.
+`agents.teammates.TeammateCoordinator` reads the same RAM snapshot through two or
+three controller-specific game states, with separate execution histories.
+It assigns pursuit/support roles and emits 24 or 36 bot buttons before the next
+native frame. Controllers persist across role changes. Support frames observe
+feedback and commit applied buttons without generating discarded Classic decisions.
 
-Executors persist across role changes. Support frames observe fresh feedback and
-commit the buttons actually applied, without generating a discarded Classic
-decision. A shared pass commitment records native release, actual receiver,
-interception point, expiry and reception/shot phase. Controlled receivers reserve
-input ownership; one-timer cues require estimated contact with the native shot
-pose. `--teammate-support-options` opts into bounded reachable support options
-and goal-side recovery coverage in playback or teammate benchmarks. Support
-forecasts advance the receiver, carrier, teammates, defenders, goalies and puck
-to a common estimated release time before evaluating the pass flight. The
-receiver follows the same turning/braking steering used in execution; forecasts
-of other actors hold observed steering and do not predict new CPU decisions.
-Staying and coasting are explicit options, with bounded target persistence and
-immediate invalidation when possession or receiver availability changes.
-These tactics remain confined to the opt-in teammate mode. Benchmark `--state`
-also accepts an absolute path to an externally prepared, gzip native save; its
-initial state and RAM hashes are included in the report.
-Reception-to-shot evaluation retains observed possession through a bounded carry
-window and allows delayed shot counters to settle. Normal releases use native
-animation, ownership and puck-motion evidence; one-timers use native attempt
-counters. Confirmed shot follow-through is excluded from ordinary turnovers.
+`game.ram.configure_teammates` owns reset assignments and automatic-goalie setup.
+`teammate_controller_info` supplies controller selections without changing physical
+team identities. The coordinator supplies each bot's team perspective; the display
+keeps physical home/away order. Both teammate modes support either side and use
+controller input for gameplay selection changes, without the single-controller
+`restore_away_control` repair.
 
-RAM decoding belongs in `game/ram.py` and `game/state.py`. Task reset helpers
-belong in `tasks/setup.py` and the relevant task initializer. Changes to ordered
-observations or action semantics require matching schema version changes.
+`SharedReceiving` reserves receiver input through the pass/reception lifecycle.
+Commitments track native release, actual receiver, expiry, and reception/shot
+phase. Temporarily unknown selections produce neutral input and preserve released
+passes by default without extending expiry. Applied one-timer cues and native
+arming are separate evidence. `SupportPlanner` handles optional reachable support
+positions; `SharedPressure` coordinates containment, contact, and coverage through
+the existing defense controller. Native feedback invalidates stale assignments.
+Motion forecasts estimate future positions rather than predict new CPU decisions.
 
-Python's coordinated teammate mode also uses `agents.teammate_pressure.SharedPressure`
-against an opposing skater carrying the puck. Three bots jointly assign `contain`,
-`close`, and `cover`; two bots can assign both attacking roles only if other
-on-ice teammates retain observed coverage. The planner evaluates the whole group
-so that a deeper covering skater does not unnecessarily replace the nearest
-attacker. Coverage holds its existing depth and adjusts to the carrier-to-net line.
-
-Traps start in neutral/attacking ice or bounded board-side situations, with
-separate approach targets and an initial containment phase before contact.
-Every native frame rechecks coverage, dangerous receivers, player availability,
-arrival estimates, and predicted collisions over a 24-frame horizon. Motion
-forecasts are estimates; uncontrolled teammates receive only observed-motion
-credit. Advanced receivers require existing shot-lane cover. Unsafe or stalled
-traps return to ordinary pressure/coverage, and passes, loose pucks, or selection
-changes invalidate the shared plan. Assignments have a short stability lease,
-but safety exits take precedence.
-
-`ClassicAIV1Model.predict_team_defense` executes the shared assignments through
-the existing defense controller. Individual switching and approach boosts are
-disabled during the trap; only one attacker may request contact. A covered closer
-can approach from behind while retaining the ordinary energy, facing, impact,
-route, and collision checks. Exiting the trap releases commitments and reruns
-primary selection, so a loose puck gets a fresh retriever.
-
-`python -m tests.integration.teammate_pressure` checks two- and three-bot traps
-using native feedback. `evaluation.teammates --no-pressure` provides the previous
-coordinated behavior for seeded comparisons. Reports include `pressure_outcomes`
-with activation, fallback, spacing, and subsequent possession/shot observations;
-these are contextual measurements, not claims that a trap caused a turnover.
+Gameplay options belong in [Classic](CLASSIC.md#ai-teammates); experimental
+protocols, measurements, and replay comparisons belong in the
+[evaluation guide](../nhl94_ai/evaluation/README.md#matched-teammate-experiments).
 
 ## Target-position control
 
-`--action_type TARGET_POSITION` supports full-team, single-controller `MlpPolicy`
-with a two-float normalized action. DefenseZone maps that action into
-`x = -120..120`, `y = -270..-88`. `(0, 0)` maps to `(0, -179)`.
-
+`TARGET_POSITION` supports full-team Genesis with one `MlpPolicy` controller and
+a two-float normalized action. DefenseZone maps it into
+`x = -120..120`, `y = -270..-88`; `(0, 0)` maps to `(0, -179)`.
 `env.target_control.TargetPositionController` converts destinations into filtered
-buttons. The policy selects targets at its decision interval; the controller
-handles skating, routing, switching, and native feedback each emulator frame.
-Other players remain under the game's AI. Playback retains the checkpoint's
-decision interval while rendering individual frames.
-
-Target checkpoints require matching metadata for coordinates, bounds, controller
-settings, and ordered fields. They cannot be loaded as button policies. Loading
-existing weights preserves their saved network and action distribution.
+buttons, handling skating, routing, switching, and feedback each native frame.
+The policy selects targets at its recorded decision interval; other players use
+the game's AI. Target checkpoints require matching coordinate, bound, controller,
+and observation metadata and cannot be loaded as button policies.
 
 ## Tasks and extension
 
 Tasks declare setup, optional frame progression, reward availability, completion,
-and supported actions through the task registry. Procedural resets operate on
-the current emulator instance and preserve
-coherent ownership, controller slots, object ordering, roles, and physical state.
-Use the shared setup helpers rather than writing unrelated coordinates separately.
+and supported actions through `tasks.registry`. Built-in rewards currently return
+`0.0` and advertise `reward_available=False`. The observation wrapper calls the
+optional `TaskDefinition.advance` once per native frame before completion checks,
+preserving stall/possession limits and opportunity completion.
 
-DefenseZone supports button or target-position control. PvG supports the compact
-player-goalie input. Choose a matching game/save, controller count, action type,
-and observation layout for the task. Preserve shared self-play callers when
-changing task behavior.
+RAM decoding belongs in `game/ram.py`, `game/state.py`, and console backends.
+Procedural resets use `tasks/setup.py` and task initializers on the current emulator
+instance, preserving ownership, controller slots, object ordering, and physical
+state. Match game/save, controller count, action type, and observation layout;
+preserve shared self-play callers when changing task behavior.
 
 ## EA 4-Way Play
 
-`config.resolve_play_controllers` resolves teammate layout for both playback
-entrypoints and configuration validation. The logical count is team size plus
-one human in `team_vs_player`. Logical slots map directly to zero-based emulator
-ports; EA 4-Way Play provides four physical input channels. Unused channels are
-neutral and unassigned. `make_retro` explicitly requests device 1025 on connector
-0 only for the new modes. This configures the adapter across both Genesis
-connectors; connector IDs and the four input-channel IDs are different concepts.
+`config.resolve_play_controllers` derives the logical count: two or three bots,
+plus one human in `team_vs_player`. For more than two controllers, `make_retro`
+requires the patched stable-retro extension and requests device 1025 on connector
+0. EA 4-Way Play spans both Genesis connectors and exposes four input channels;
+connector IDs and input-channel IDs are distinct. Logical slots map directly to
+zero-based input channels. Unused channels are neutral and unassigned.
 
-The stable-retro patch lives in the sibling repository. It increases native
-capacity to four, exposes `RetroEmulator.max_players`, `controller_devices`, and
-`set_controller_port_device(port, device)`, and accepts `controller_devices` in
-`RetroEnv`. It bounds-checks native callbacks and movie access. Existing defaults
-remain unchanged. Feature detection fails before extra-controller environments
-start if the extension is older.
+The required stable-retro patch lives in the sibling checkout. It exposes
+`RetroEmulator.max_players >= 4`, `set_controller_port_device(port, device)`, and
+`controller_devices` support in `RetroEnv`. `game.multitap.require_multitap`
+checks capabilities before construction. Build/install that patched checkout
+with the project's Python environment and its documented native prerequisites,
+including the Genesis core; restart Python after rebuilding. A stock wheel
+without these capabilities cannot run three/four-controller layouts.
 
-Use this source checkout and its patched sibling together; a stock installed
-wheel is insufficient. In an already configured Unix Makefiles build using the
-development interpreter, rebuild only the frontend objects and extension:
+`game.multitap.prepare_multitap_save` validates the GENPLUS-GX 1.7.5 save format
+and initializes port-B IO for adapter polling at reset. `configure_teammates`
+then assigns teams, unique selected skaters, and automatic goalies. Snapshot
+restore preserves adapter/IO state without repeating device setup.
 
-```bash
-cd /home/mat/github/stable-retro
-make -f CMakeFiles/retro-base.dir/build.make CMakeFiles/retro-base.dir/build -j4
-make -f CMakeFiles/stable_retro.dir/build.make CMakeFiles/stable_retro.dir/build -j4
-/home/mat/vretro/bin/python -c 'import stable_retro; print(stable_retro.__file__, stable_retro.RetroEmulator.max_players)'
-```
+The ROM can temporarily alias C3/C4 into C1/C2 tables across a video-frame boundary.
+`controller_snapshot` retains raw tables for diagnostics and reports inconsistent
+selections as unknown; it does not guess ownership or repair live RAM. Bots emit
+neutral input during the gap, and persistent inconsistency fails explicitly.
+Goalie telemetry is separate from the skater-selection check.
 
-For a fresh checkout, apply the sibling repository changes, install its documented
-build prerequisites, configure CMake with `-DPYTHON_EXECUTABLE=/path/to/python`
-and `-DPython_EXECUTABLE=/path/to/python`, and follow its source installation
-instructions. Build the `genesis` target for Genesis Plus GX. The targeted make
-commands above assume its other native build dependencies have already been
-built; a fresh installation must build those dependencies first. Start a fresh
-Python process after rebuilding. No Gymnasium or Stable-Baselines3 patch is used.
+The observation wrapper accepts 24/36/48 binary buttons for the corresponding
+layout, tracks each controller's history, and advances the emulator once. Human
+buttons follow bot channels. Gymnasium retains scalar rewards and five step
+values; the Monitor/VecEnv stack retains batching, four-value VecEnv steps, and
+terminal auto-reset. Ordinary neural observation/action contracts stay unchanged.
 
-`game.multitap.prepare_multitap_save` initializes the saved port-B IO direction
-register to the value used by the ROM's adapter boot routine. It validates the
-GENPLUS-GX 1.7.5 state format and expected IO values. `configure_teammates` then
-sets native polling, teams, unique selected skaters and automatic goalies at
-reset. Gameplay uses controller input exclusively. Snapshot restore retains the
-configured adapter and restores saved IO without calling device setup again.
-
-The ROM temporarily substitutes C3/C4 into C1/C2 during input and selection
-routines. A video-frame boundary can expose those unfinished RAM tables.
-`controller_snapshot` retains the raw tables in diagnostics and reports unknown
-selections for inconsistent snapshots; it neither guesses suspended selections
-nor writes ownership back. Bots produce neutral input while those selections
-are unavailable, and persistent inconsistency fails explicitly. Goalie slots
-use their own telemetry and are excluded from the skater-flag comparison.
-
-The observation wrapper accepts 24/36/48 binary buttons only for the corresponding
-scripted layout, maintains separate input histories, and steps the emulator once.
-Neural observation layouts and ordinary one-/two-controller action contracts are
-unchanged. Gymnasium returns scalar reward and five step values; the Monitor and
-VecEnv stack retains batching, four-value VecEnv steps and terminal auto-reset.
-The debug display appends the human's twelve buttons after all bot channels.
-In both teammate modes, `--side` selects the bots' physical team; the human,
-when present, owns the opposite team. Reset selects distinct skaters from
-slots 0..4 for home or 6..10 for away, and initializes the human from the
-opposing range. The wrapper keeps the display in physical home/away order;
-the coordinator supplies each bot's team perspective. Teammate playback never
-calls the single-controller `restore_away_control` gameplay repair.
-
-New layouts use v2 teammate traces with physical capacity, logical port mapping,
-teams, opponent, seed, reset setup, and ROM/native/core hashes. Replay validates
-this metadata before stepping. Existing v1 traces retain their historical layout.
-V2 uses its existing `side` and physical `teams` fields for away layouts;
-omitted `side` retains the historical home meaning. No schema change is needed.
-`python -m tests.integration.away_teammates` checks both sides, native away input,
-display routing, and a full away regulation game with input replay.
-`python -m tests.integration.away_teammates_comparison` runs the fixed 24-match
-Sabres/Ducks, two/three-bot, pressure-on/off comparison for seeds 94..96,
-writing paired initial-state checks and outcome totals to
-`tmp/away-teammates/comparison.json`.
-Explicit native checks run with `python -m tests.integration.multitap`; legacy
-checks remain in `python -m tests.integration.teammates` and
-`python -m tests.integration.human_play`.
+Expanded layouts use v2 teammate input traces with physical capacity, logical
+ports, teams, opponent, seed, reset setup, and ROM/native/core hashes. Replay checks
+this metadata before stepping. Existing v1 traces retain their historical layout;
+an omitted `side` retains the historical home meaning. Native checks live in
+`tests.integration.multitap`, `teammates`, `away_teammates`, and `human_play`;
+see the [test guide](../tests/README.md) for prerequisites and execution conventions.

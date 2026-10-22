@@ -6,11 +6,11 @@ import { ClassicController } from "../classic/classic";
 import { DEFAULT_CLASSIC_CONFIG } from "../classic/config";
 import { DefenseController } from "../classic/defense";
 import { ActionEnd, OneTimerLifecycle, PassLifecycle, PassState, ShotLifecycle } from "../classic/lifecycle";
-import { carry_projection, normal_shot_release_frames, ordinary_shot_conditions, projected_state } from "../classic/offense";
+import { carry_future, carry_projection, normal_shot_release_frames, ordinary_shot_conditions, projected_state } from "../classic/offense";
 import { _SCENARIOS, evaluate_pass, one_timer_contact_frame, pad_direction, pass_contact, pass_release_frames, rom_pass_vector, selected_receiver } from "../classic/passing";
 import { PossessionOffenseController } from "../classic/possession";
 import { passive_reception, reception_target } from "../classic/receiving";
-import { Buttons, GameState, neutralAction, type Action, type Vec2 } from "../classic/state";
+import { Buttons, GameState, Player, neutralAction, type Action, type Vec2 } from "../classic/state";
 
 interface TraceRow {
   action: Action;
@@ -219,6 +219,30 @@ describe("Classic baseline carrying and normal shots", () => {
     expect(masks).toEqual([320, 320, 320, 320, 64, 64, 64, 64, 64, 64, 64, 64, 64]);
     expect([model.scheduler.frames, model.scheduler.decisions, model.scheduler.remaining]).toEqual([13, 4, 3]);
     expect(model._last_decision).toBe("shot-follow-through");
+  });
+  it("retains four-frame shot holds and tactical budgets when planning every native frame", () => {
+    const state = shooting_state(), model = controller();
+    const masks = Array.from({ length: 13 }, () => mask(model.predict_frame(state, 1)));
+    expect(masks).toEqual([320, 320, 320, 320, 64, 64, 64, 64, 64, 64, 64, 64, 64]);
+    expect([model.scheduler.frames, model.scheduler.decisions, model.scheduler.remaining]).toEqual([13, 13, 0]);
+    expect(model.shot.until_decision).toBe(29);
+    expect(model.scheduler.duration(6)).toBe(24);
+    expect(model.scheduler.duration(48)).toBe(192);
+    expect(model.offense.shot_hold_frames).toBe(4);
+  });
+  it("keeps forecast integer and precise coordinates coherent without changing live bodies", () => {
+    const state = offense_state();
+    Object.assign(state.team2.players[0]!, { precise_x: 40.25, precise_y: -74.5, motion_x: 1 });
+    Object.assign(state.puck, { precise_x: 0.25, precise_y: -119.5 });
+    const before = JSON.stringify(state), future = projected_state(state, [-20, -80])!;
+    for (const player of [future.team1.players[0]!, future.team2.players[0]!, future.puck]) {
+      expect([player.precise_x, player.precise_y]).toEqual([player.x, player.y]);
+    }
+    const carrier = Object.assign(new Player(), state.team1.players[0], { x: 15, y: -90 });
+    const carried = carry_future(state, state.team1.players[0]!, carrier);
+    expect(carried.team1.players[0]).toBe(carrier);
+    expect([carried.puck.precise_x, carried.puck.precise_y]).toEqual([carried.puck.x, carried.puck.y]);
+    expect(JSON.stringify(state)).toBe(before);
   });
   it("retains the baseline same-shooter rebound window and cancels for teammate recovery", () => {
     const state = shooting_state(), model = controller();

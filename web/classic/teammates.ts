@@ -2,12 +2,14 @@ import type { ControllerPort } from "../controllers";
 import type { Observation } from "../observations";
 import { actionMask } from "./bot";
 import { ClassicController } from "./classic";
-import { controlInterval, decisionState, type ClassicConfig } from "./config";
+import { controlInterval, decisionInterval, decisionState, type ClassicConfig } from "./config";
 import { controllerView } from "./decoder";
 import { defensive_steering, eligible } from "./defense";
 import { arrival_time } from "./motion";
 import { SharedReceiving } from "./teammate-receiving";
 import { SharedPressure, TRAP_ROLES } from "./teammate-pressure";
+import { TeamControlContext } from "./teammate-context";
+import { FaceoffInput } from "./teammate-faceoff";
 import { Buttons, neutralAction, type Action, type GameState, type Vec2 } from "./state";
 import { project_target } from "./target";
 
@@ -15,6 +17,8 @@ export class TeammateCoordinator {
   readonly controllers: ClassicController[];
   readonly receiving = new SharedReceiving();
   readonly pressure = new SharedPressure();
+  private readonly faceoff = new FaceoffInput();
+  private contextOwner: number | null = null;
   primary: number | null = null;
   roles: string[];
   targets: Vec2[];
@@ -64,7 +68,11 @@ export class TeammateCoordinator {
       return [project_target([Math.max(-30, Math.min(30, puck.x * 0.25)),
         puck.y + (team.net.y - puck.y) * 0.65]), "deep-coverage"];
     }
-    const attack = state.team2.net.y > team.net.y ? 1 : -1;
+    return this.classicSupportTarget(state);
+  }
+
+  private classicSupportTarget(state: GameState): [Vec2, string] {
+    const team = state.team1, puck = state.puck, attack = state.team2.net.y > team.net.y ? 1 : -1;
     const carrier = team.get_player_by_scnum(state.engine.puck_owner);
     if (carrier && carrier !== team.goalie) {
       const forward = carrier.y * attack;
@@ -83,8 +91,9 @@ export class TeammateCoordinator {
     const state = views[0]!, slots = views.map((view) => view.team1.controlled_scnum());
     this.frames++;
     const unavailable = observation.transient || state.engine.highlight;
-    if (unavailable) {
-      this.remaining = 0; this.primary = null; this.receiving.finish("native-transition");
+    if (unavailable) { this.remaining = 0; this.primary = null; }
+    if (state.engine.highlight) {
+      this.receiving.finish("highlight");
       this.receiving.last_owner = -1; this.receiving.last_count = null;
     }
     const wasTrapping = this.roles.some((role) => TRAP_ROLES.includes(role));
@@ -101,6 +110,18 @@ export class TeammateCoordinator {
       this.controllers.forEach((controller) => controller.advance_held_frame());
       return new Map(this.ports.map((port, i) => [port, actionMask(this.previous[i]!) ]));
     }
+    const draw = this.faceoff.choose(state, slots, this.frames, !!observation.transient, this.previous);
+    const knownSlots = !observation.transient && slots.every((slot) => slot >= 0);
+    for (const [index, controller] of this.controllers.entries()) {
+      const previous = controller.team_context;
+      const context = new TeamControlContext(slots, knownSlots, this.classicSupportTarget(views[index]!)[0], true);
+      const wasCpu = previous !== null && previous.known && this.contextOwner !== null &&
+        state.team1.owns_scnum(this.contextOwner) && this.contextOwner !== state.team1.goalie_scnum() &&
+        !previous.slots.includes(this.contextOwner);
+      if (wasCpu !== context.cpu_carrier(state)) controller.scheduler.interrupt();
+      controller.team_context = context;
+    }
+    this.contextOwner = state.engine.puck_owner;
     this.receiving.observe(state, slots, this.frames);
     for (const event of this.receiving.ended) {
       if (event.passer_controller !== null) this.controllers[event.passer_controller]!.delegate_reception(
@@ -119,16 +140,20 @@ export class TeammateCoordinator {
       if (plan?.phase === "flight" && plan.passer_controller === i && plan.receiver_controller !== null &&
           plan.receiver_controller !== i) controller.delegate_reception();
       const reception = this.receiving.receiverAction(view, i, this.frames, this.previous[i]!);
-      if (unavailable || intermission) {
+      if (state.engine.highlight || intermission) {
         role = state.engine.highlight ? "highlight" : "intermission";
         if (!observation.transient && i === 0 && this.frames - this.lastMenu >= 120 &&
             (state.engine.highlight || state.period <= 3 && state.time > 0)) {
           actions[i]![Buttons.INPUT_START] = 1; this.lastMenu = this.frames;
         }
-      } else if (slot < 0) role = "unavailable";
+      } else if (observation.transient || slot < 0) role = "unavailable";
       else if (view.engine.clock_stopped) {
-        role = i === 0 ? "faceoff" : "faceoff-support";
-        if (i === 0) actions[i]![Buttons.INPUT_B] = Number(this.frames % 8 < 4);
+        role = draw.center === null ? "stoppage" : i === draw.controller ? "faceoff" : "faceoff-support";
+        if (i === draw.controller) actions[i] = draw.action;
+      } else if (slot === state.engine.puck_owner && slot === view.team1.goalie_scnum()) {
+        if (this.lastSlots[i] !== slot) controller.scheduler.interrupt();
+        actions[i] = controller.predict_frame(view, decisionInterval(this.config));
+        role = "goalie-outlet"; target = controller._last_target; external = false;
       } else if (!player || slot === view.team1.goalie_scnum() || player.is_falling ||
           player.unavailable & 4 || player.role !== null && player.role <= 0 ||
           !eligible(player) && !player.is_one_timer && !controller.has_committed_action()) role = "unavailable";
@@ -138,11 +163,11 @@ export class TeammateCoordinator {
         actions[i] = controller.predict_team_defense(view, assignment);
         role = assignment.plan.mode; target = assignment.plan.target; external = false;
       }
-      else if (reception) { actions[i] = reception.action; target = reception.target; role = "receive"; }
+      else if (reception) { actions[i] = reception.action; target = reception.target; role = reception.role; }
       else if (i === primary || controller.has_committed_action()) {
         role = state.engine.puck_owner === slot ? "carrier" : view.team2.owns_scnum(state.engine.puck_owner) ? "pressure" : "retrieve";
         if (this.lastSlots[i] !== slot) controller.scheduler.interrupt();
-        actions[i] = controller.predict_frame(view, 4); external = false;
+        actions[i] = controller.predict_frame(view, decisionInterval(this.config)); external = false;
         this.receiving.propose(controller.pass_intention(), i, slots, state, this.frames);
         target = controller._last_target;
         if (state.engine.puck_owner !== slot && actions[i]![Buttons.INPUT_B]) {
@@ -156,10 +181,13 @@ export class TeammateCoordinator {
         actions[i]![Buttons.INPUT_LEFT] = Number(pad[0] < 0); actions[i]![Buttons.INPUT_RIGHT] = Number(pad[0] > 0);
       }
       if (external) {
-        if (["intermission", "highlight", "unavailable", "faceoff", "faceoff-support"].includes(role)) controller.cancel_actions(role);
+        if (["intermission", "highlight", "unavailable", "faceoff", "faceoff-support", "stoppage"].includes(role)) controller.cancel_actions(role);
         controller.observe_external_frame(view, actions[i]!, { frame_skip: 4 });
       }
       controller.accept_applied_action(actions[i]!);
+      if (role === "one-timer-receiver") {
+        this.receiving.acceptAppliedAction(i, slot, this.frames, actions[i]!, this.previous[i]!);
+      }
       this.roles[i] = role; this.targets[i] = target; this.lastSlots[i] = slot;
     }
     if (!intermission && !state.engine.clock_stopped && !unavailable) {

@@ -14,8 +14,10 @@ sys.path.insert(0, str(ROOT))
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.control_rate import ControlRateLimit
+from nhl94_ai.agents.teammates import TeammateCoordinator
+from nhl94_ai.game.multitap import controller_snapshot
 from nhl94_ai.game.platforms.genesis import GenesisBackend
-from nhl94_ai.game.ram import controller_team_info, pass_geometry_info
+from nhl94_ai.game.ram import controller_team_info, pass_geometry_info, register_teammate_state
 from nhl94_ai.game.state import NHL94GameState
 
 
@@ -84,14 +86,21 @@ def run(request):
     env = SimpleNamespace(data=data, gamename="NHL94-Genesis-v0", pass_geometry_rom=request["rom"])
     env.unwrapped = env
     backend.register(env, 5)
+    register_teammate_state(env)
     config = request["config"]
+    team_size = request.get("team_size")
+    if team_size and config["decision_hz"] != 60:
+        raise ValueError("Native teammate parity currently requires 60 Hz.")
     args = SimpleNamespace(env="NHL94-Genesis-v0", action_type="FILTERED",
-                           goalie_policy="selective" if config["ai_goalie"] else "off",
+                           goalie_policy="selective" if config["ai_goalie"] and not team_size else "off",
+                           classic_decision_interval=1 if config["decision_hz"] == 60 else 4,
+                           team_size=team_size, side=request.get("side", "home"),
+                           hyperparams_dict={"frame_skip": 4},
                            player_ratings_consideration=config["player_ratings_consideration"])
-    controller = ClassicAIV1Model(args)
+    controller = TeammateCoordinator(args) if team_size else ClassicAIV1Model(args)
     interval = 0 if config["decision_hz"] == 60 else 60 // config["decision_hz"]
-    adapter = ControlRateLimit(controller, interval) if interval else controller
-    actions, decisions, snapshots = [], [], []
+    adapter = ControlRateLimit(controller, interval) if interval and not team_size else controller
+    actions, decisions, snapshots, diagnostics = [], [], [], []
     masks = (1, 512, 0, 8, 16, 32, 64, 128, 256, 0, 0, 0)
     for index, frame in enumerate(request["frames"]):
         if "ram" in frame:
@@ -105,6 +114,21 @@ def run(request):
             for offset in range(0, len(changes), 2):
                 ram[changes[offset]] = changes[offset + 1]
         info = controller_team_info(pass_geometry_info(env, data.lookup_all()))
+        if team_size:
+            if team_size == 3:
+                info = controller_snapshot(info, team_size, False, 2 if args.side == "away" else 1)
+            output = controller.act(info).action.reshape(team_size, 12)
+            actions.append([sum(mask for mask, pressed in zip(masks, action) if pressed) for action in output])
+            decisions.append([executor._last_decision for executor in controller.controllers])
+            diagnostics.append([{
+                "role": controller.last_roles[i], "slot": controller.last_slots[i],
+                "target": executor._last_target, "decision": executor._last_decision,
+                "role_target": controller.last_diagnostics["teammates"]["controllers"][i]["target"],
+                "frames": executor.scheduler.frames, "decisions": executor.scheduler.decisions,
+                "player": {key: getattr(player, key) for key in ("role", "unavailable", "is_falling", "selection_flags")}
+                          if (player := controller.states[i].team1.get_player_by_scnum(controller.last_slots[i])) else None,
+            } for i, executor in enumerate(controller.controllers)])
+            continue
         state = NHL94GameState(5)
         state.BeginFrame(info, [0] * 6)
         state.EndFrame()
@@ -125,7 +149,7 @@ def run(request):
         action = adapter.predict_frame(state, 4)[0]
         actions.append(sum(mask for mask, pressed in zip(masks, action) if pressed))
         decisions.append(controller._last_decision)
-    return {"actions": actions, "decisions": decisions, "snapshots": snapshots}
+    return {"actions": actions, "decisions": decisions, "snapshots": snapshots, "diagnostics": diagnostics}
 
 
 def main():

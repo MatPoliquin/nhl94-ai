@@ -1,227 +1,196 @@
 # Artifacts
 
-Training and fitting commands are currently unavailable; ES support has been
-removed. The contracts below describe existing non-ES artifacts that can still
-be loaded, played, and evaluated. Historical training metadata remains readable.
+This guide describes supported artifact loading, playback, evaluation, and export.
+Training, fitting, demonstration collection, BC, and DAgger workflows are
+unavailable pending the ML redesign; ES support is removed. Historical training
+metadata remains readable but does not imply that those workflows can run.
+See the [README](../README.md#learned-policies) for existing-policy playback and
+the [evaluation guide](../nhl94_ai/evaluation/README.md) for evaluation commands.
+
+| Artifact | Files | Current use |
+| --- | --- | --- |
+| General SB3 policy | `MODEL.zip` and `MODEL.zip.json` | Compatible policy playback, evaluation, and button-policy export |
+| Demonstration shard | `SHARD.npz` and `SHARD.npz.json` | Dataset loading and export verification samples |
+| Offense policy | `MODEL.zip` and `MODEL.zip.offense.json` | Offense inference, playback, and evaluation |
+| Goalie policy | `MODEL.zip` and `MODEL.zip.goalie.json` | Goalie evaluation and enabled Classic manual-goalie play |
+| Retention model | JSON tree or ranker; historical `.training.json` report | Optional Classic movement filtering |
+| Policy export | `.onnx` and `.pt`, each with a `.json` sidecar | Verified deterministic inference in a separate runtime |
+
+Keep model files with their matching sidecars. These formats have distinct
+loaders and contracts; their metadata is not interchangeable.
+
+## Checkpoint metadata and compatibility
+
+General policy and demonstration metadata use `format_version: 1`, recording:
+
+- resolved options and hyperparameters, environment seed, and optional policy seed;
+- code revision, dirty-worktree status, Python-source SHA-256 fingerprint,
+  dependency versions, and Python version;
+- game, ordered observation fields, schema version, normalization, action type,
+  sequence length, and frame skip.
+
+`artifacts.load_policy` and `datasets.load_demo_arrays` compare known schemas
+when an expected configuration is supplied. Equal tensor lengths do not make
+field orders compatible. Different neural architectures may share an input
+schema. Unsupported metadata format versions fail explicitly.
+
+Missing or unversioned metadata is marked `compatibility: unknown`; loaders do
+not infer a schema from tensor dimensions. Legacy button policies can still load,
+but the caller must supply the correct configuration. `require_metadata=True`
+rejects unknown checkpoint schemas. Historical imports such as
+`models.ResidualMlpPolicy` resolve through aliases installed during loading.
 
 The retired `DartPolicy`, `CustomMlpPolicy`, `HockeyMultiHeadPolicy`,
-`AttentionMLPPolicy`, `CnnTransformerPolicy`, and `ViTPolicy` implementations
-have been removed, including their historical import aliases. Checkpoints that
-depend on these classes require a repository revision from before their removal.
+`AttentionMLPPolicy`, `CnnTransformerPolicy`, and `ViTPolicy` implementations and
+their historical aliases are removed. Checkpoints requiring those classes need
+a repository revision from before their removal.
 
-Built-in task rewards now return zero as compatibility stubs. Current evaluation
-reports mark those rewards unavailable and use `null` for reward metrics.
-Historical reward values in saved artifacts retain their original meaning.
+Named inputs from `model_input.json` resolve into saved ordered groups and schema
+versions; a registry name alone is not the schema. The compact `pvg` layout records
+`observation_layout: player-goalie-v1` and `normalization: player-centered-rink-v1`.
+Its version-4 schema has 52 inputs, including C-pressed status and hold duration.
+It is incompatible with the 50-input `pvg-v3` and earlier 310-input PvG contract.
+Use the input configuration matching the checkpoint: `pvg-v3` for the 50-input
+contract, or `default` for the earlier 310-input PvG contract. `default` and
+`legacy` retain version-2 and version-1 field ordering respectively.
 
-New checkpoints use SB3 `.zip` files with `.zip.json` metadata. Demonstration
-shards use `.npz` plus `.npz.json`. `format_version: 1` records:
-
-- resolved run options and hyperparameters;
-- environment seed and optional PPO initialization seed (`null` preserves the
-  old unseeded policy initialization);
-- code revision, dirty-worktree status, Python-source SHA-256 fingerprint, dependency
-  versions, and Python version;
-- game, ordered observation groups, observation schema version, normalization,
-  action type, sequence length and frame skip.
-
-`artifacts.load_policy` and dataset loading compare known schemas when an expected
-configuration is supplied. Equal tensor lengths do not make different field
-orders compatible. Neural architectures may differ while sharing an input schema.
-
-Named model inputs from `model_input.json` are resolved into the saved
-hyperparameters, including their ordered groups and schema version; a registry
-name alone is not the schema. The compact `pvg` input additionally records
-`observation_layout: player-goalie-v1` and `normalization:
-player-centered-rink-v1`. Schema version 4 has 52 inputs, including C-pressed
-status and a hold-duration counter, and is incompatible with the prior 50-input
-schema version 3 and 310-input PvG model. Use `--model_input pvg-v3` for the
-50-input contract or `--model_input default` for the earlier 310-input contract;
-start fresh to train with C feedback. The `default` and `legacy` registry entries
-preserve the prior version-2 and version-1 field ordering respectively.
-
-Older artifacts remain usable. Missing or old unversioned metadata is explicitly
-`compatibility: unknown`; the loader does not infer an observation contract from
-tensor dimensions. `require_metadata=True` rejects such checkpoints. Resumed runs
-record the parent checkpoint's compatibility status. Existing checkpoint imports
-such as `models.ResidualMlpPolicy` resolve through compatibility aliases installed
-only during loading. Bundled model binaries have not been changed.
+Built-in task rewards currently return zero as compatibility stubs. Evaluation
+marks them unavailable and uses `null` for reward metrics. Historical reward
+values and definitions in saved artifacts retain their original meaning.
 
 ## Reactive scripted demonstrations
 
-Classic V1 now reacts defensively each emulator frame while retaining the
-configured offensive decision interval. Collection records each actual substep,
-including button releases, instead of attaching one action to four different
-frames. DAgger likewise labels each learner-visited substep; the teacher does
-not take control of the learner's trajectory.
-
-These shards retain the existing array fields and shapes. `steps` now indexes
-emulator-frame samples within each episode. Their metadata explicitly records
+Historical reactive Classic demonstrations contain one sample per emulator frame,
+including button releases. Their `steps` field indexes native-frame samples within
+an episode; rewards and dones belong to those samples. Metadata records
 `sample_interval_frames: 1`, `schema.frame_skip: 1`, and
-`teacher_decision_interval` (normally 4). The requested `max_steps` still limits
-outer decisions, so a four-frame run can collect up to four times that many rows.
-Per-frame rewards/dones belong to the corresponding sample.
+`teacher_decision_interval` (normally 4). Historical collection budgets counted
+outer decisions, so a four-frame run could produce up to four times that many rows.
+DAgger labels described learner-visited substeps, without teacher takeover.
 
-Dataset loading accepts these labelled substeps for BC at the recorded teacher
-interval, while still validating field ordering and action/observation schemas.
-It does not relax checkpoint frame-skip compatibility. Training a clone that
-acts only every four frames cannot reproduce every reactive button edge; use
-`--no_frame_skip` consistently in collection/BC/DAgger for a one-frame clone.
-Existing datasets and saved policies keep their original timing contracts.
+The dataset loader accepts these per-frame samples against an expected teacher
+interval when the metadata agrees, while still checking other schema fields.
+This exception does not relax checkpoint frame-skip compatibility. A policy acting
+every four frames cannot reproduce every recorded native-frame button edge.
+Collection and imitation commands remain unavailable.
 
-Progressive Classic offense uses the same action/observation schemas and
-configured offensive decision interval. Optional live passing/rule feedback is
-not encoded into neural inputs. `AgentOutput.diagnostics` and recorded substeps
-add `classic_offense` alongside `classic_defense`; this is diagnostic metadata,
-not another training-array field or a target-policy schema revision.
-Old demonstrations remain compatible, but retain the old teacher's offensive
-behavior rather than becoming labels for the new strategy.
+`classic_offense` and `classic_defense` diagnostics describe controller decisions;
+they are not additional neural input fields. Existing datasets preserve the
+behavior of the teacher that produced them, even when Classic's tactics change.
 
-### Experimental possession-policy artifacts
+## Experimental possession-policy artifacts
 
-The separate `nhl94 offense` workflow uses `.zip.offense.json` sidecars with
-ordered observations/actions, native execution cadence and a ZIP hash. Sidecars
-record the algorithm (`PPO` or `DecisionPPO`) so reloading a decision model selects its legacy compatibility class.
-Prediction remains supported; duration-aware rollout collection and learning have been removed. Older sidecars
-without an algorithm field load as ordinary PPO.
+`nhl94 offense` loads `.zip.offense.json` sidecars with ordered observations/actions,
+execution cadence, and a ZIP hash. The `algorithm` field selects `PPO` or the
+legacy `DecisionPPO` compatibility class; an omitted field defaults to PPO.
+Prediction remains supported; rollout collection and learning are removed.
 
-Historical PPO sidecars also record `training_contract`: full period or finite attack,
-reward definition, observation-clock meaning, four-frame gamma units, and
-whether lambda/timesteps count decisions or fixed ticks. The attack task keeps
-the same tensor ordering but uses remaining attack seconds in the clock field.
-Evaluation requires an explicit `--allow-task-transfer` when moving between
-task contracts.
-Native frames and active decisions are reported separately from SB3 timesteps.
+Historical `training_contract` fields describe the task, reward, observation
+clock, discount units, and whether counters measured decisions or fixed ticks.
+Finite-attack tasks use remaining attack seconds in the clock field while keeping
+the tensor ordering. Evaluation requires `--allow-task-transfer` to cross task
+contracts. Native frames and active decisions are distinct from SB3 timesteps.
 
-Attack banks reuse trusted local emulator/controller snapshots with hash
-sidecars; all snapshots and both team assignments from a source game stay in
-one data partition. Snapshot files remain local, and benchmark reports identify
-their source games and hashes for reproducibility.
+The carry-only variant retains the 19 action IDs and feature order but masks
+IDs 9 through 18. `training_contract.control_scope` is `carry` or `offense`;
+missing scope means historical full offense. Evaluation requires
+`--allow-control-transfer` to cross scopes, independently of task transfer.
+Opportunity checkpoints may also record reward weights, native-frame time costs,
+four-frame discount units, and decision-based GAE details from historical training.
 
-The carry-only variant retains the 19 action IDs and original feature ordering,
-but masks IDs 9 through 18. `training_contract.control_scope` is `carry` or
-`offense` (missing means the historical full-offense scope). Loading into a
-different scope requires `--allow-control-transfer`; task/clock transfer still
-requires `--allow-task-transfer` for evaluation. Opportunity checkpoints include
-the versioned reward and its weights, native-frame time cost, four-frame discount
-unit and decision-based GAE trace. Native reward events are discounted inside
-each policy interval before variable-duration transitions are combined.
+Attack banks contain trusted local emulator/controller snapshots with hash
+sidecars. All snapshots and both team assignments from a source game belong in
+one data partition. Reports identify source games and hashes. Outcome counters
+start after snapshot restoration: requested passes, native one-timer attempts,
+shots, and goals are separate events. `active_decisions` counts eligible policy
+ticks; `executed_commands` counts ticks that used external movement, since Classic
+can take priority to finish. See the [evaluation guide](../nhl94_ai/evaluation/README.md)
+for experiment protocols.
 
-Opportunity reports count only counter deltas after snapshot restoration. A
-requested pass is an admitted setup; a fresh native one-timer counter plus the
-intended shooter confirms execution. These are separate from recorded shots and
-goals. Report `active_decisions` (eligible policy ticks) and `executed_commands`
-(ticks that actually used external movement) separately because Classic may
-consume an eligible tick by choosing a finish.
-
-Existing offense sidecars may include `parameters`, `initialization`,
-`parent_timesteps`, CLI options, and the training contract. Historical checkpoint
-manifests and `.training.json` reports remain metadata; the checkpoint-producing
-workflows are no longer implemented.
+Sidecars may retain `parameters`, `initialization`, `parent_timesteps`, and CLI
+options. Checkpoint manifests and `.training.json` reports describe historical
+runs; they are not instructions for producing new checkpoints.
 
 ## Supervised retention artifacts
 
-The retention experiment exports a plain JSON decision tree with schema
-`native-carry-retention-tree-v1`. It records ordered physical/action features,
-four-frame decision cadence, 24-frame label horizon, tree nodes, minimum
-baseline risk and risk-gap thresholds, source-game partitions, dataset hashes,
-source fingerprints and dependency versions. The adjacent `.training.json`
-records all fixed-grid development comparisons and the selected configuration.
-Inference checks feature order, finite inputs and valid tree indices. Export is
-checked against scikit-learn on all train/development rows. These artifacts are
-separate from all neural-policy ZIP schemas.
+`--retention-model` loads either JSON schema below, preserving Classic pass/shot
+priority and native reactions. Both require four-frame offensive decisions,
+a 24-frame label horizon, and matching ordered physical/action features.
 
-Pairwise movement ranking uses the separate schema
-`native-carry-retention-ranker-v1`. It stores a scalar base score, ordered boosted
-trees, the same feature schema and a minimum within-situation score margin.
-Higher scores rank movements as preferable; these scores are not loss
-probabilities and cannot use the classifier's risk thresholds. Inference uses
-float32 inputs and strict `<` split comparisons, matching XGBoost. All training
-and development feature rows are checked against the original predictor before
-an artifact is saved. JSON inference needs NumPy only; the XGBoost fitting workflow and its
-optional dependency have been removed. The existing `--retention-model` option loads
-either schema and preserves pass/shot priority and native reaction timing.
+| Schema | Stored model | Decision threshold |
+| --- | --- | --- |
+| `native-carry-retention-tree-v1` | Shallow decision tree with leaf risks | Minimum baseline risk and risk improvement |
+| `native-carry-retention-ranker-v1` | Base score and ordered boosted trees | Minimum within-situation score margin |
 
-Ranking labels compare alternative movements from the same snapshot. Censored
-branches contribute no label; fully censored situations contribute no game
-weight. Situations with identical outcomes have no unequal-label training pairs,
-but remain in policy evaluation so harmful or unnecessary overrides count.
-The adjacent training report records the fixed model/margin grid, training and
-development pair-order accuracy, actual policy outcomes and export parity.
+Higher ranker scores indicate preferred movements, not loss probabilities.
+Classifier risk thresholds cannot be applied to ranker scores. Inference validates
+feature order, finite inputs, tree structure, and thresholds. It uses float32
+inputs with `<=` splits for the classifier and strict `<` splits for the ranker.
+JSON inference needs NumPy; scikit-learn/XGBoost fitting workflows are retired.
 
-Retention datasets keep every alternative from a snapshot and both controlled
-sides of a physical save/ROM seed in one partition. Future branch outcomes are
-labels only; filtering and movement admission use current-state features. A
-pass or shot ending carrying exposure does not certify that the release led to
-a good attack.
+Historical artifacts and adjacent training reports record source-game partitions,
+dataset/source hashes, dependency versions, fixed model/threshold comparisons,
+outcomes, and export parity. Ranking labels compared alternative movements from
+the same snapshot; censored branches supplied no label. Every alternative and
+both controlled sides of a physical save/ROM seed belong in the same partition.
+Future outcomes are labels only; inference uses current-state features. Ending
+carrying exposure with a pass or shot does not establish a successful attack.
 
 ## Historical live-training snapshots
 
 Existing `*_latest_live.zip` snapshots remain readable by the optional viewer.
-Snapshot-producing training callbacks have been removed; no new live-training
-sessions are available.
+Snapshot-producing callbacks are removed; no new live-training sessions are
+available. The filename does not replace the checkpoint's compatibility metadata.
 
 ## Target-position policies
 
 `TARGET_POSITION` checkpoints add `schema.target_controller`: coordinate and
-authoritative-feedback conventions, the ordered appended observation fields,
-controller profile, version, and fixed settings. Their two-float action space
-and augmented observations are not interchangeable with button policies.
-Loading for target-mode training/evaluation requires verified metadata; a legacy
-checkpoint cannot be silently reinterpreted as a target policy. The current
-controller contract is also checked when loading a target checkpoint without an
-expected environment configuration. Ordinary legacy button-model loading is
-unchanged.
+feedback conventions, ordered appended observations, controller profile, version,
+and settings. Their two-float actions and augmented observations are not
+interchangeable with button policies. Target-mode loading requires verified
+metadata; the current controller contract is checked even without an explicit
+expected environment configuration.
 
-The target example's `squash_output` and `log_std_init` settings are recorded in
-the resolved hyperparameters. Its SB3 ZIP stores the `SquashedMlpPolicy` class,
-network weights and learned log standard deviations. Reloading restores the
-distribution for training, evaluation and live playback; it does not reinterpret
-old clipped-Gaussian weights as a squashed policy. The normalized action and
-observation schemas are unchanged, so both distributions use the same target
-controller contract. The saved policy is authoritative when loading a checkpoint;
-editing JSON does not convert a loaded model or reset its learned noise.
+A saved `SquashedMlpPolicy` includes its weights and learned log standard
+deviations; `squash_output` and `log_std_init` are recorded in hyperparameters.
+Loading for evaluation/playback restores that saved distribution. Editing JSON
+does not convert clipped-Gaussian weights into a squashed policy or reset noise.
+Both distributions use the same normalized target-controller schema.
 
-Task-bounded target policies additionally record `coordinates:
-task-bounded-world-xy-v1` and `bounds: [x_min, x_max, y_min, y_max]`.
-DefenseZone uses `[-120, 120, -270, -88]`. Its full `[-1, 1]` output range maps
-into our defensive zone. The old `absolute-world-xy-v1` whole-rink contract
-remains identifiable, but loading it into bounded DefenseZone fails explicitly:
-equal tensor shapes do not make different coordinate mappings compatible.
+Task-bounded policies record `coordinates: task-bounded-world-xy-v1` and
+`bounds: [x_min, x_max, y_min, y_max]`. DefenseZone uses
+`[-120, 120, -270, -88]`, mapping the full `[-1, 1]` action range into that zone.
+The older `absolute-world-xy-v1` whole-rink contract is identifiable but rejected
+for bounded DefenseZone, despite equal tensor shapes.
 
-The recorded `frame_skip` is the policy decision interval. Live/playback advance
-the emulator one frame at a time but retain policy actions for that recorded,
-validated interval. Controller timers are measured in emulator frames.
+Recorded `frame_skip` is the policy decision interval. Playback advances one
+emulator frame at a time while holding actions for that validated interval;
+controller timers count emulator frames.
 
 ## Experimental manual-goalie artifacts
 
-Existing goalie policies use an independent SB3 `DecisionPPO` ZIP plus
-`MODEL.zip.goalie.json`. The sidecar records schema version, token dimensions and action order,
-SHA256, parameter count, actual training decisions/native frames, decision
-interval, initialization seed, architecture, reward/horizon, source-game split,
-runtime source hashes and checkpoint history. Loading validates the checksum,
-schema, policy class and any explicitly requested interval. These artifacts
-are separate from legacy skater/carry checkpoints. Deployment uses the Python
-goalie controller; no separate-runtime export contract is provided. Historical training started from random weights and
-requires a fresh output/checkpoint directory.
+Goalie policies use an independent `DecisionPPO` ZIP and `MODEL.zip.goalie.json`.
+Sidecars record schema, token/action dimensions, checksum, decision interval,
+architecture, and historical training provenance. Loading validates schema,
+checksum, policy class, and any explicitly requested interval.
 
-The 292-float schema is fourteen twenty-field entity/context tokens followed
-by twelve action-mask bits. Actions are neutral, eight directional pads, save,
-left dive and right dive in the defended-net-at-negative-Y frame. Schema
-version 2 includes the correctly decoded native one-timer-shot
-flag in context field 16. Version-1 experimental goalie files are rejected;
-legacy skater-policy inputs and artifacts retain their original contract.
-Model files alone do not encode the native handoff/animation/outlet controller. Deployment
-requires `--goalie-model MODEL.zip` inside enabled full-team Classic manual
-goalie play. Copy the ZIP and its sidecar together.
+The 292-float input contains fourteen twenty-field entity/context tokens and
+twelve action-mask bits. Actions are neutral, eight directions, save, and left/right
+dives, with the defended net at negative Y. Schema version 2 includes the native
+one-timer-shot flag in context field 16; version-1 goalie artifacts are rejected.
 
-`python -m nhl94_ai.evaluation.goalie` collects locally generated
-`native-selected-manual-goalie-starts` banks. A bank lists checksum-protected
-`.pkl.gz` snapshots and their `.json` metadata: complete emulator/RNG bytes,
-controller/GameState history, initial RAM digest, physical source game, side
-and native frame. Pickle snapshots are trusted local artifacts, not a public
-dataset interchange format. Restores verify checksums and initial RAM.
-Splitting individual snapshots from the same physical game across train/test
-is rejected during evaluation unless explicitly allowed for a training audit.
+The checkpoint does not encode native handoff, animation, or outlet control.
+Use `--goalie-model MODEL.zip` inside enabled full-team Classic manual-goalie play,
+keeping the ZIP and sidecar together. Deployment uses the Python goalie controller;
+there is no separate-runtime export contract for these policies.
+
+`python -m nhl94_ai.evaluation.goalie` still collects evaluation start banks with
+schema `native-selected-manual-goalie-starts`. Checksum-protected `.pkl.gz`
+snapshots and JSON metadata preserve emulator/RNG bytes, controller/GameState
+history, RAM digest, physical source game, side, and native frame. These are
+trusted local snapshots rather than a public dataset interchange format.
+Restores verify checksums and initial RAM. Goalie policy evaluation rejects starts
+from recorded training sources unless `--allow-training-starts` is explicit.
 
 ## Export to the separate runtime
 
@@ -229,19 +198,20 @@ is rejected during evaluation unless explicitly allowed for a training audit.
 nhl94 export --src checkpoint.zip --dest export/policy --samples demos/shard.npz
 ```
 
-Install `.[export]` first. This produces `.onnx` (opset 17), `.pt` (TorchScript),
-and a JSON sidecar for each after numerical verification passes. The export
-accepts Box observations with batch size 1 and float32 input named `input`.
-Outputs are deterministic `actions`, `values`, and `log_prob`, in that order.
-Image inputs use the model's channel order. SB3 environment clipping/rescaling is
-excluded. Dict observations are rejected explicitly.
+Install `.[export]` first. The command writes ONNX (opset 17) and TorchScript
+files, verifies their outputs, then writes a JSON sidecar for each. Failed
+verification can leave model files without validated sidecars.
 
-Verification compares all three outputs with the Python policy at `rtol=1e-4`,
+Export supports compatible button policies with Box observations, batch size 1,
+and float32 input named `input`. Outputs are deterministic `actions`, `values`,
+and `log_prob`, in that order. Images use the policy's channel order. SB3
+clipping/rescaling is excluded. Dict observations are unsupported; target-policy
+export is rejected before writing files because the separate runtime lacks its
+scripted controller contract.
+
+Verification compares all outputs with the Python policy at `rtol=1e-4`,
 `atol=1e-5`, using zeros, ones, a seeded input, and up to 32 supplied observations.
-Without `--samples`, only the three synthetic probes are used. The sidecar records
-input shape, output names, source metadata, tolerances, and tested sample count.
-Legacy source schemas remain marked unknown in exports too. Runtime code belongs to `retro-ai-runtime`.
-
-Target-policy export is rejected before writing files: coordinates require the
-matching scripted controller and its state/observation contract, which the
-separate runtime does not yet implement.
+`--samples` accepts `.npy` observations or an existing `.npz` demonstration shard;
+without it only the three synthetic probes run. Sidecars record input shape,
+output names, source metadata, tolerances, and sample count. Unknown legacy schemas
+remain unknown after export. Runtime code belongs to `retro-ai-runtime`.

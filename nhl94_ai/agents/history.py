@@ -10,7 +10,7 @@ from dataclasses import dataclass, fields, is_dataclass
 
 CONTROLLER_FIELDS = (
     'args', 'options', 'resources', 'platform', 'refinements', '_one_timers', '_intents', '_size',
-    'recovery_switch_at_decision', 'input_owner', '_last_decision', '_last_target', 'selection_evidence',
+    'recovery_switch_at_decision', 'team_context', 'input_owner', '_last_decision', '_last_target', 'selection_evidence',
     '_last_action_preferences', '_last_pass_request', 'carry_metrics',
     'defense_diagnostics', 'offense_diagnostics', 'goalie_diagnostics',
     # The learned-offense controller adds command/teacher state to Classic.

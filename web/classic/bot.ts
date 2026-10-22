@@ -3,7 +3,7 @@ import type { ControllerPort } from "../controllers";
 import { Button, validMask } from "../inputs";
 import type { Observation } from "../observations";
 import { ClassicController } from "./classic";
-import { controlInterval, type ClassicConfig } from "./config";
+import { controlInterval, decisionInterval, type ClassicConfig } from "./config";
 import { controllerView } from "./decoder";
 import type { Action, GameState } from "./state";
 
@@ -40,7 +40,7 @@ export class ClassicBot implements Bot {
     if (!state) throw new Error("Classic game-state decoding is unavailable.");
     if (this.remaining === 0) {
       const view = controllerView(state, port, observation.controllers[port].slot);
-      this.held = actionMask(this.controller.predict_frame(view, 4));
+      this.held = actionMask(this.controller.predict_frame(view, decisionInterval(this.config)));
       this.remaining = controlInterval(this.config);
     } else {
       this.controller.advance_held_frame();

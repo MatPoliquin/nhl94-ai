@@ -97,7 +97,7 @@ for row in cases:
             'arrival': motion.arrival_time(p, target), 'boost_arrival': motion.arrival_time(p, target, boost=True),
             'optimistic_arrival': motion.arrival_time(p, target, optimistic=True),
             'block': motion.blocks_shot_lane(p, (other.x, other.y), target, 3),
-            'skate_step': motion.skate_step(((p.x,p.y),motion.velocity(p)), p.orientation, 3, pad, .08, 2.1),
+            'skate_step': motion.skate_step(p, ((p.x,p.y),motion.velocity(p)), p.orientation, 3, pad, .08, 2.1),
             'steer': steering_direction(p, target), 'defensive': defensive_steering(p, target),
             'grounded': pose(grounded_step(p,pad)), 'keeper_grounded': pose(grounded_step(p,pad,goalie=True)),
             'braking': pose(grounded_step(p,pad,stop=True)),
@@ -421,5 +421,45 @@ describe.skipIf(!existsSync(python))("Classic unmodified Python helper parity (N
     });
     parity(serial(actual), reference("goalie", cases.map(({ kind, states }) => ({ kind, states: states.map(({ live: _live, ...state }) => state) }))));
     expect(required(actual[0], "goalie sequence")).toHaveLength(64);
+  });
+
+  it("retains a live incoming receiver after the target word clears and drops stale commitments", () => {
+    for (const ending of ["touch", "possession", "pass", "stoppage", "period", "expiry", "miss"]) {
+      const state = goalieState(true), controller = new GoalieController();
+      Object.assign(state.engine, { puck_owner: -256, last_puck_player: 6, pass_target: 7 });
+      state.team2.pass_attempts = 1;
+      Object.assign(state.puck, { x: -60, y: -175, motion_x: 4, motion_y: 0 });
+      Object.assign(state.team2.players[1]!, { x: 30, y: -175 });
+      controller.frames = 1;
+      expect(controller._retained_receiver(state)).toBeNull();
+      expect(controller.incoming_pass?.receiver).toBe(7);
+      state.engine.pass_target = -249;
+      Object.assign(state.team2.players[1]!, { x: 34, selection_flags: 0x20, live_anim: 0x92e, is_one_timer: 1 });
+      const before = JSON.stringify(state);
+      controller.frames++;
+      expect(controller._retained_receiver(state)).toBe(7);
+      expect(JSON.stringify(state)).toBe(before);
+      if (ending === "touch") state.engine.last_puck_player = 7;
+      if (ending === "possession") state.engine.puck_owner = 0;
+      if (ending === "pass") state.team2.pass_attempts++;
+      if (ending === "stoppage") state.engine.clock_stopped = true;
+      if (ending === "period") state.period++;
+      if (ending === "expiry") controller.frames = controller.incoming_pass!.expires + 1;
+      if (ending === "miss") state.team2.players[1]!.y = 20;
+      expect(controller._retained_receiver(state)).toBeNull();
+      expect(controller.incoming_pass).toBeNull();
+    }
+  });
+
+  it("holds a selected goalie's outlet B until native launch confirmation or timeout", () => {
+    const state = goalieState(true), controller = new GoalieController();
+    state.engine.puck_owner = state.team1.goalie_scnum(); state.team1.pass_attempts = 0;
+    const buttons = neutralAction(); buttons[0] = 1;
+    controller.frames = 5;
+    controller.outlet = { receiver: 1, started: 1, passes: 0, launched: false, deadline: 60, buttons };
+    expect(controller._outlet_feedback(state)).toEqual(buttons);
+    state.team1.pass_attempts = 1; state.engine.puck_owner = -256;
+    expect(controller._outlet_feedback(state)).toEqual(neutralAction());
+    expect(controller.outlet?.launched).toBe(true);
   });
 });

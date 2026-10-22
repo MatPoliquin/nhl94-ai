@@ -1,6 +1,6 @@
 import { DEFAULT_CLASSIC_CONFIG, decisionState, parseClassicConfig, type ClassicConfig } from "./config";
 import { carry_pad } from "./carry";
-import { DefenseController, controlled_slot, eligible, on_ice, owns_puck } from "./defense";
+import { DefenseController, controlled_slot, defensive_steering, eligible, on_ice, owns_puck } from "./defense";
 import { CSaveGoalie } from "./goalie_csave";
 import { outlet_options } from "./goalie";
 import { ActionEnd, OneTimerLifecycle, ShotLifecycle, SetupState, ONE_TIMER_CONTACT_GRACE, ONE_TIMER_TIMEOUT_FRAMES,
@@ -11,6 +11,7 @@ import { PossessionOffenseController } from "./possession";
 import { aim_pass } from "./target";
 import { Buttons, GameState, Player, Team, neutralAction, type Action, type Vec2 } from "./state";
 import type { PressureAssignment } from "./teammate-pressure";
+import type { TeamControlContext } from "./teammate-context";
 
 export class ActionScheduler {
   frames = 0;
@@ -29,6 +30,7 @@ export class ActionScheduler {
   cache(action: Action, remaining: number | null = null): void {
     this.action = action; this.remaining = remaining ?? this.interval;
   }
+  duration(decisions: number): number { return Math.ceil(decisions * 4 / Math.min(this.interval, 4)); }
 }
 
 interface OneTimerPassRequest { frame: number; passer: number; receiver: number; purpose: "one-timer" }
@@ -44,6 +46,7 @@ export class ClassicController {
   readonly setup = new SetupState();
   readonly goalie: CSaveGoalie | null;
   recovery_switch_at_decision = 0;
+  team_context: TeamControlContext | null = null;
   input_owner = "idle";
   _last_decision = "init";
   _last_target: Vec2 = [0, 0];
@@ -86,7 +89,8 @@ export class ClassicController {
     if (this.offense.pass_action.pending !== null) return this.offense.pass_action.pending.snapshot();
     const request = this.one_timer.pending;
     return request === null ? null : { passer: request.passer, receiver: request.receiver, frame: request.started,
-      deadline: request.deadline, purpose: "one-timer", point: this._last_target };
+      deadline: request.deadline, purpose: "one-timer", point: this._last_target,
+      flight_frames: this.one_timer.flight_frames };
   }
   delegate_reception(state: GameState | null = null, reason = "teammate-receiver"): void {
     if (state === null) this.offense.cancel();
@@ -129,8 +133,7 @@ export class ClassicController {
     this.scheduler.configure(frame_skip); this.offense.decision_interval = frame_skip;
     if (state.engine.faceoff) {
       if (this.goalie !== null) {
-        this.goalie.phase = "stoppage"; this.goalie.outlet = this.goalie.pending_save = null;
-        this.goalie.possession_since = null; this.goalie.last_effective = false; this.goalie.pass_windup = null;
+        this.goalie.faceoff();
         this.goalie_diagnostics = {};
       }
       this.offense.cancel(); this.shot.cancel(); this.end_one_timer("stoppage", { interrupt: false }); this.setup.until_decision = 0;
@@ -329,11 +332,31 @@ export class ClassicController {
     const attack = state.team2.net.y > team.net.y ? 1 : -1, owner = state.engine.puck_owner;
     if (this.offense.pass_action.pending !== null) return this._continue_pass(state, action, player, actual);
     if (this.one_timer.pending !== null) { const pending = this._continue_one_timer(state); if (pending !== null) return pending; }
-    if (owner === (team.defense_goalie ?? team.goalie_scnum())) return this._goalie_outlet(state, action);
+    if (owner === (team.defense_goalie ?? team.goalie_scnum())) {
+      if (this.team_context?.goalie_ownership && actual !== owner) return this._team_support(state, action, player, true);
+      return this._goalie_outlet(state, action);
+    }
     if (owner >= 0 && !team.owns_scnum(owner)) { this.shot.cancel(); this.setup.until_decision = 0; }
     if (this.shot.active(this.scheduler.decisions)) return this._continue_shot(state, action, player);
     if (owner === actual && player !== null && player !== team.goalie) return this._attack(state, action, player, actual, attack);
+    if (this.team_context?.cpu_carrier(state)) return this._team_support(state, action, player);
     return this._recover(state, action, player);
+  }
+  _team_support(state: GameState, action: Action, player: Player | null, goalie = false): Action {
+    this.input_owner = "team-support";
+    this._last_decision = goalie ? "goalie-outlet-support" : "cpu-carrier-support";
+    const target = this.team_context!.support_target;
+    const attack = state.team2.net.y > state.team1.net.y ? 1 : -1;
+    this._last_target = state.engine.offsides_enabled !== false && state.puck.y * attack < 88 ?
+      [target[0], Math.min(76, target[1] * attack) * attack] : target;
+    this.offense_diagnostics = { mode: this._last_decision, target: this._last_target,
+      reason: goalie ? "goalie input belongs to another actor" : "confirmed friendly skater outside bot selections" };
+    if (player !== null) {
+      const [pad] = defensive_steering(player, this._last_target);
+      action[Buttons.INPUT_UP] = Number(pad[1] > 0); action[Buttons.INPUT_DOWN] = Number(pad[1] < 0);
+      action[Buttons.INPUT_LEFT] = Number(pad[0] < 0); action[Buttons.INPUT_RIGHT] = Number(pad[0] > 0);
+    }
+    return action;
   }
   _continue_pass(state: GameState, action: Action, player: Player | null, actual: number): Action {
     this.input_owner = "pass";
@@ -343,6 +366,7 @@ export class ClassicController {
       reason: "wait for observed reception; do not boost or switch through a pass", target: request.point, destination: request.point,
       waypoint: request.point, actual_slot: actual, desired_slot: request.receiver, pending_pass: request.snapshot() };
     if (owner === request.passer && !request.launched && this.scheduler.frames - request.frame < HOCKEY_PASS_PRESS_FRAMES) {
+      if (this.team_context?.goalie_ownership && owner === team.goalie_scnum() && actual !== owner) return action;
       const receiver = team.get_player_by_scnum(request.receiver);
       if (receiver !== null) { aim_pass(action, team.get_player_by_scnum(owner)!, receiver); action[Buttons.INPUT_B] = 1; return action; }
     }
@@ -383,7 +407,7 @@ export class ClassicController {
     this.offense_diagnostics = this.offense.diagnostics;
     const escape = this._goalie_escape(state, player, this.offense.carry_target(state, player));
     this.offense_diagnostics.shot_release_model = player.shot_offsets_y !== null ? "native-animation-envelope" : "conservative-animation-envelope";
-    const [normal_finish, early_finish] = ordinary_shot_conditions(state, player, this.scheduler.interval, escape);
+    const [normal_finish, early_finish] = ordinary_shot_conditions(state, player, this.offense.shot_hold_frames, escape);
     const target = this._one_timer_target(team, state.team2, attack, false, state);
     if (target !== null && !normal_finish) {
       this.input_owner = "one-timer";
@@ -405,7 +429,8 @@ export class ClassicController {
         reason: goalie_danger ? "finish before projected goalie contact" : "close-range finishing opportunity" });
       this.shot.aim(action);
       if (this.buttons.c_down) return action;
-      this.shot.start(state, this.scheduler.decisions, this.scheduler.frames, this.scheduler.interval);
+      this.shot.start(state, this.scheduler.decisions, this.scheduler.frames, this.offense.shot_hold_frames, this.scheduler.duration(7));
+      this.shot.extended_hold = this.offense.shot_hold_frames > this.scheduler.interval;
       action[Buttons.INPUT_C] = 1; return action;
     }
     if (plan !== null) {
@@ -423,7 +448,10 @@ export class ClassicController {
     }
     if (player.passing === null && this.scheduler.decisions >= this.setup.retry_at_decision && 140 < progress && progress < 215) {
       const setup = this._one_timer_target(team, state.team2, attack, true);
-      if (setup !== null) { this.setup.slot = setup[1]; this.setup.until_decision = this.scheduler.decisions + 8; this.setup.retry_at_decision = this.scheduler.decisions + 48; }
+      if (setup !== null) {
+        this.setup.slot = setup[1]; this.setup.until_decision = this.scheduler.decisions + this.scheduler.duration(8);
+        this.setup.retry_at_decision = this.scheduler.decisions + this.scheduler.duration(48);
+      }
     }
     if (this.scheduler.decisions < this.setup.until_decision) {
       const receiver = this.setup.slot === null ? null : team.get_player_by_scnum(this.setup.slot);
@@ -442,10 +470,12 @@ export class ClassicController {
     const distance = Math.hypot(puck.x - player.x, puck.y - player.y);
     const closest = Math.min(...team.players.map((p) => Math.hypot(puck.x - p.x, puck.y - p.y)));
     if (this.scheduler.decisions >= this.recovery_switch_at_decision && (!team.control || closest + 20 < distance)) {
-      this._last_decision = "switch"; this.recovery_switch_at_decision = this.scheduler.decisions + 6; action[Buttons.INPUT_B] = 1; return action;
+      this._last_decision = "switch"; this.recovery_switch_at_decision = this.scheduler.decisions + this.scheduler.duration(6);
+      action[Buttons.INPUT_B] = 1; return action;
     }
     const lead = Math.min(distance / 12, 6) * 0.45;
     this._steer(action, player, Math.max(-112, Math.min(112, puck.x + puck.vx * lead)), Math.max(-246, Math.min(246, puck.y + puck.vy * lead)), state);
-    action[Buttons.INPUT_C] = Number(this.scheduler.decisions % 2 === 0 && this._last_decision !== "goalie-avoid"); return action;
+    const burst_phase = 1 + Math.floor((this.scheduler.decisions - 1) / this.scheduler.duration(1));
+    action[Buttons.INPUT_C] = Number(burst_phase % 2 === 0 && this._last_decision !== "goalie-avoid"); return action;
   }
 }

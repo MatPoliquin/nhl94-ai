@@ -94,6 +94,15 @@ class EnvironmentConfig:
             raise ValueError(f'Unknown policy or agent: {config.nn}')
         if getattr(args, 'teammate_support_options', False) and getattr(args, 'mode', None) not in TEAM_MODES:
             raise ValueError('--teammate-support-options requires team_vs_game')
+        teammate_variants = any(getattr(args, name, False) for name in (
+            'teammate_offpuck', 'teammate_intent_arbitration', 'teammate_defensive_support', 'teammate_role_balance',
+            'teammate_transient_receiving', 'teammate_cue_anticipation'))
+        teammate_variants |= getattr(args, 'teammate_primary_policy', 'baseline') != 'baseline'
+        if teammate_variants and (getattr(args, 'mode', None) not in TEAM_MODES
+                                  or getattr(args, 'team_strategy', 'coordinated') != 'coordinated'):
+            raise ValueError('Teammate variants require coordinated team control')
+        if getattr(args, 'teammate_offpuck', False) and not getattr(args, 'teammate_support_options', False):
+            raise ValueError('--teammate-offpuck requires --teammate-support-options')
         if getattr(args, 'mode', None) in TEAM_MODES:
             supported = (config.env == 'NHL94-Genesis-v0', config.num_players == args.team_size + (args.mode == 'team_vs_player'),
                          config.nn == 'ClassicAIV1', config.action_type == 'FILTERED',

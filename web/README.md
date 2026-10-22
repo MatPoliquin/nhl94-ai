@@ -230,6 +230,16 @@ offense, passing/one-timer/shot lifecycles, native-frame defense and selective
 the same pre-frame game state. Two or three same-team no ml bot slots share the
 updated Python coordinator's carrier/retriever selection, passing support, deep
 coverage, serialized player switches and native-confirmed receiving commitments.
+Released passes survive temporary wholly unknown controller tables while inputs
+remain neutral; confirmed selection loss, stoppages, interceptions and expiry
+still cancel them. Receiving follows the selected skater's current controller.
+One-timer cues count only after that controller applies a fresh C edge, and native
+arming prevents another cue even after the shot animation changes.
+Faceoff inputs follow the native draw participant, including a B release when
+ownership changes. Only the selected goalie requests an outlet; other bots
+support confirmed friendly carriers without stealing their selection.
+Shared defense evaluates complete contain/close/cover assignments and moving
+receiving threats before committing to a trap.
 Optional tactical experiments, experimental support planners and learned policies
 are not included.
 
@@ -240,7 +250,7 @@ no ml bot slots during the current tab:
 
 | Setting | Behavior |
 | --- | --- |
-| Frequency | 60 Hz retains native reactions and the four-frame tactical scheduler. 15/10/6 Hz observe and hold all buttons every 4/6/10 native frames, including goalie inputs. These are nominal rates; the core runs at approximately 59.92 Hz. |
+| Frequency | 60 Hz reacts and plans every native frame while preserving four-frame shot holds and the original tactical time budgets. 15/10/6 Hz observe and hold all buttons every 4/6/10 native frames, including goalie inputs. These are nominal rates; the core runs at approximately 59.92 Hz. |
 | AI Goalie | Selective manual goalie AI for a sole no ml bot controller when enabled. Multiple-controller no ml bot teams always use native automatic goalies, matching Python teammate mode. Human-only teams keep the starting state's mode. |
 | Consider player ratings | Uses live ratings when enabled. Disabled gives both teams neutral decision ratings without changing RAM ratings, physics, energy, handedness or motion. |
 
@@ -261,6 +271,8 @@ working-tree changes at port time. The offline
 [`scripts/classic-reference.py`](scripts/classic-reference.py) oracle compares
 decoded state and every input on identical native RAM traces. Python is test
 tooling only: the website requires no Python, Pyodide, model server or backend.
+Native parity covers independent bots at every supported frequency and two/three
+coordinated bots at 60 Hz on both Home and Away.
 If Python behavior changes, review the differences before deliberately refreshing
 the fingerprint; do not automatically regenerate it to conceal parity failures.
 

@@ -74,6 +74,12 @@ describe("shared defensive pressure", () => {
     expect(new SharedPressure().choose(collision, [0, 1, 2], 1)).toBeNull();
   });
 
+  it("declines a trap when a currently wide receiver enters a dangerous lane during the approach", () => {
+    const s = state();
+    Object.assign(s.team2.players[1]!, { role: 1, x: 100, y: -170, motion_x: -1 });
+    expect(new SharedPressure().choose(s, [0, 1, 2], 1)).toBeNull();
+  });
+
   it("uses the boards without targeting outside the rink", () => {
     const s = state(); s.team2.players[0]!.x = s.puck.x = 100;
     [[76, -24], [94, 24], [65, -72]].forEach(([x, y], i) => Object.assign(s.team1.players[i]!, { x, y }));

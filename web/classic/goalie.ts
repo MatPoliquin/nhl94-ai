@@ -53,16 +53,21 @@ export function goalie_arrival(player: Player, target: Vec2): number {
   return ramp + (remaining - covered) / limit;
 }
 
-export function _receiver_contact(state: GameState, windup: PassWindup | null): [number, Vec2] | null {
-  const receiver = state.engine.pass_target === null ? null : state.team2.get_player_by_scnum(state.engine.pass_target);
-  if (receiver === null || !eligible(receiver)) return null;
+export function _receiver_contact(state: GameState, windup: PassWindup | null, receiver_slot: number | null = null): [number, Vec2] | null {
+  const target = receiver_slot ?? state.engine.pass_target;
+  const receiver = target === null ? null : state.team2.get_player_by_scnum(target);
+  if (receiver === null) return null;
+  const winding_up = receiver_slot !== null && receiver.is_one_timer &&
+    (receiver.live_anim === 0x7fc || receiver.live_anim === 0x92e) &&
+    (receiver.role === null || receiver.role > 0) && !(receiver.unavailable & 4);
+  if (!eligible(receiver) && !winding_up) return null;
   let contact: ReturnType<typeof pass_contact>, release: number;
   if (windup !== null) {
     const passer = state.team2.get_player_by_scnum(windup[0]);
     if (passer === null || state.engine.puck_owner !== windup[0]) return null;
     contact = pass_contact(state.puck, passer, receiver); release = pass_release_frames(receiver);
   } else if (state.engine.puck_owner < 0 && state.engine.last_puck_player !== null && state.team2.owns_scnum(state.engine.last_puck_player)) {
-    if (state.engine.pass_target === state.engine.last_puck_player || required(state.puck.height, "puck.height") > 8) return null;
+    if (target === state.engine.last_puck_player || required(state.puck.height, "puck.height") > 8) return null;
     const [vx, vy] = velocity(state.puck), [rx, ry] = velocity(receiver);
     const offset: Vec2 = [receiver.stick_x || 0, receiver.stick_y || 0];
     const dx = receiver.x + offset[0] - state.puck.x, dy = receiver.y + offset[1] - state.puck.y;
@@ -86,10 +91,10 @@ export function _receiver_contact(state: GameState, windup: PassWindup | null): 
   return [time, [receiver.x + rx * time, receiver.y + ry * time]];
 }
 
-export function goalie_target(state: GameState, windup: PassWindup | null = null): GoaliePlan {
+export function goalie_target(state: GameState, windup: PassWindup | null = null, receiver_slot: number | null = null): GoaliePlan {
   const sign = state.team1.net.y > 0 ? 1 : -1, puck = state.puck;
   let [vx, vy] = velocity(puck), x = puck.x, y = puck.y, z = Math.max(0, required(puck.height, "puck.height")), vz = puck.motion_z || 0;
-  const incoming = _receiver_contact(state, windup);
+  const incoming = _receiver_contact(state, windup, receiver_slot);
   let depth = Math.max(236, Math.min(254, Math.max(state.team1.goalie.y * sign, y * sign)));
   let crossing: [number, number, number] | null = y * sign >= depth ? [0, x, z] : null;
   if (state.engine.puck_owner < 0 && vy * sign > 0.05 && y * sign < 264) {
@@ -173,6 +178,9 @@ export function moving_body_contact(state: GameState, action: Action, horizon: n
 interface OutletRequest {
   receiver: number | null; started: number; passes: number | null; launched: boolean; deadline: number; buttons: Action;
 }
+interface IncomingPass {
+  passer: number; receiver: number; passes: number; expires: number; period: number;
+}
 export interface GoalieOptions {
   policy?: "selective" | "always";
   pass_timing?: boolean;
@@ -202,6 +210,7 @@ export class GoalieController {
   last_effective = false;
   last_passes: number | null = null;
   pass_windup: PassWindup | null = null;
+  incoming_pass: IncomingPass | null = null;
   hold_sample: number | null = null;
   hold_tick: number | null = null;
   hold_stride = 1;
@@ -294,6 +303,35 @@ export class GoalieController {
       || this.frames - this.pass_windup[2] > 6)) this.pass_windup = null;
   }
 
+  faceoff(): void {
+    this.phase = "stoppage"; this.outlet = this.pending_save = null;
+    this.possession_since = null; this.last_effective = false;
+    this.pass_windup = null; this.incoming_pass = null;
+  }
+
+  _retained_receiver(state: GameState): number | null {
+    const engine = state.engine, opponent = state.team2;
+    if (engine.clock_stopped || engine.puck_owner >= 0 || engine.last_puck_player === null ||
+        !opponent.owns_scnum(engine.last_puck_player) || opponent.pass_attempts === null) {
+      this.incoming_pass = null; return null;
+    }
+    const pending = this.incoming_pass;
+    if (pending !== null && (engine.last_puck_player !== pending.passer || opponent.pass_attempts !== pending.passes ||
+        state.period !== pending.period || this.frames > pending.expires)) this.incoming_pass = null;
+    const target = engine.pass_target;
+    if (target !== null && target >= 0) {
+      const contact = _receiver_contact(state, null);
+      this.incoming_pass = contact === null ? null : { passer: engine.last_puck_player, receiver: target,
+        passes: opponent.pass_attempts, expires: this.frames + Math.min(40, Math.ceil(contact[0]) + 4), period: state.period };
+      return null;
+    }
+    if (this.incoming_pass !== null) {
+      if (_receiver_contact(state, null, this.incoming_pass.receiver) !== null) return this.incoming_pass.receiver;
+      this.incoming_pass = null;
+    }
+    return null;
+  }
+
   step(state: GameState, { blocked = false } = {}): Action | null {
     const controller = this.validate(state);
     this.frames++;
@@ -302,11 +340,13 @@ export class GoalieController {
     const effective = selected && !(required(goalie.live_state_flags, "live_state_flags") & 4);
     if (state.engine.puck_owner === slot && this.last_owner !== slot && effective && this.last_effective) this._event("controlled_catches");
     this._pass_feedback(state);
-    const plan = goalie_target(state, this.pass_windup);
+    const receiver_slot = this._retained_receiver(state);
+    const plan = goalie_target(state, this.pass_windup, receiver_slot);
     this.diagnostics = { phase: "goalie", mode: this.phase, decision: this.phase, target: null,
       destination: plan.target, waypoint: plan.target, actual_slot: actual, desired_slot: slot, reason: plan.reason, policy: this.policy,
       crossing_frames: plan.crossing_frames, crossing_x: plan.crossing_x, deadline: plan.deadline, reach_frames: goalie_arrival(goalie, plan.target),
-      receiver: plan.receiver, reception_frames: plan.reception_frames, hold_count: state.engine.goalie_hold_counts?.[controller] ?? null,
+      receiver: plan.receiver, reception_frames: plan.reception_frames, retained_receiver_slot: receiver_slot,
+      hold_count: state.engine.goalie_hold_counts?.[controller] ?? null,
       animation: goalie.live_anim, assignment: goalie.assignment, cpu_fallback: !!(required(goalie.live_state_flags, "live_state_flags") & 4),
       metrics: { ...this.metrics }, last_event: this.last_event };
     const action = this._step(state, plan, slot, selected, blocked);
@@ -485,7 +525,8 @@ export class GoalieController {
       this.outlet = null; this.phase = "neutral-handoff"; this.release_until = this.frames + 2;
     } else if (this.frames >= request.deadline || !request.launched && this.frames - request.started > 8) {
       this._event("outlet_timeouts"); this.outlet = null; this.phase = "positioning"; this.possession_since = this.frames - 90;
-    } else if (!request.launched && this.frames - request.started < 2 && controlled_slot(state.team1) === state.team1.defense_goalie) return [...request.buttons];
+    } else if (!request.launched && (request.receiver !== null || this.frames - request.started < 2) &&
+        controlled_slot(state.team1) === state.team1.defense_goalie) return [...request.buttons];
     return neutral;
   }
 }

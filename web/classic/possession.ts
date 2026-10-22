@@ -67,7 +67,7 @@ export class PossessionOffenseController extends OffenseController {
     const sign = state.team2.net.y > state.team1.net.y ? 1 : -1, purpose = player.y * sign < 140 ? "advance" : "position";
     let [choices, candidates] = this.passes(state, purpose); this.diagnostics.candidates = candidates;
     const finish_depth = 198 + Math.max(0, 15 - (player.shot_accuracy ?? 15)) * 0.4;
-    if (player.y * sign > finish_depth && Math.abs(player.x) < 48 && shot_release_in_front(state, player, this.decision_interval) &&
+    if (player.y * sign > finish_depth && Math.abs(player.x) < 48 && shot_release_in_front(state, player, this.shot_hold_frames) &&
         pressure_margin(state.team2, [player.x, player.y], 8) >= 3) {
       this.feint_target = null; this.diagnostics.status = "close-to-finish"; return null;
     }

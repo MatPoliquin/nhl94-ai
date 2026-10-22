@@ -24,17 +24,8 @@ def passive_reception(state, receiver, *, stick_only=False):
                                        receiver.motion_x, receiver.motion_y, state.puck.motion_x,
                                        state.puck.motion_y, state.puck.height)):
         return None
-    from nhl94_ai.game.platforms import get_backend
-    backend = get_backend(getattr(state.puck, 'platform', 'genesis'))
-    scale = backend.velocity_scale
-    x = receiver.precise_x if receiver.precise_x is not None else float(receiver.x)
-    y = receiver.precise_y if receiver.precise_y is not None else float(receiver.y)
-    vx, vy = (round(component / scale) for component in velocity(receiver))
-    shift = backend.reception_drift_shift(receiver)
     closest, best_gap = None, math.inf
-    for frame, point, height in puck_path(state.puck, 40, sample_interval=1):
-        vx, vy = (component - ((component >> shift) or bool(component)) for component in (vx, vy))
-        x, y = x + vx * scale, y + vy * scale
+    for frame, point, height, (x, y) in reception_trajectory(state, receiver):
         if height > (5 if stick_only else 8):
             continue
         gap = math.dist(point, (x + receiver.stick_x, y + receiver.stick_y)) - 14
@@ -44,6 +35,25 @@ def passive_reception(state, receiver, *, stick_only=False):
             best_gap = gap
             closest = {'gap': gap, 'frames': frame, 'point': point}
     return closest
+
+
+def reception_trajectory(state, receiver, horizon=40):
+    """Expose the existing coasting approximation for native calibration.
+
+    A step assumes one native update per observation. This is not a certified
+    movement model; callers must not infer accuracy from this trace existing.
+    """
+    from nhl94_ai.game.platforms import get_backend
+    backend = get_backend(getattr(state.puck, 'platform', 'genesis'))
+    scale = backend.velocity_scale
+    x = receiver.precise_x if receiver.precise_x is not None else float(receiver.x)
+    y = receiver.precise_y if receiver.precise_y is not None else float(receiver.y)
+    vx, vy = (round(component / scale) for component in velocity(receiver))
+    shift = backend.reception_drift_shift(receiver)
+    for frame, point, height in puck_path(state.puck, horizon, sample_interval=1):
+        vx, vy = (component - ((component >> shift) or bool(component)) for component in (vx, vy))
+        x, y = x + vx * scale, y + vy * scale
+        yield frame, point, height, (x, y)
 
 
 def reception_target(state, receiver, *, stick_only=False):

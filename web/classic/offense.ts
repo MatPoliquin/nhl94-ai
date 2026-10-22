@@ -1,10 +1,11 @@
 import { body_clearance, carry_path, _segment_clearance } from "./carry";
 import { controlled_slot, on_ice } from "./defense";
+import { clone_forecast, project_body, set_position } from "./forecast";
 import { PassLifecycle, type TacticalDiagnostics } from "./lifecycle";
 import { bounded_projection, coast_projection, facing, skate_step, skating, stop_projection, velocity } from "./motion";
 import { distance, lexCompare, mod, pointEqual, pyRound } from "./numeric";
 import { evaluate_pass, one_timer_position_ok, pressure_margin, rom_direction, shot_value, type PassDiagnostics, type PassOption } from "./passing";
-import { GameState, Player, Team, type Vec2 } from "./state";
+import { GameState, Player, type Vec2 } from "./state";
 import { project_target, route_waypoint } from "./target";
 
 export const FEINT_FRAMES = 18;
@@ -117,51 +118,35 @@ export function projected_state(state: GameState, target: Vec2, frames = FEINT_F
   }
   const motion = _carry_motion(original, target, frames);
   if (motion === null) return null;
-  const future = Object.assign(new GameState(), state);
+  const future = clone_forecast(state);
   for (const name of ["team1", "team2"] as const) {
-    const team = Object.assign(new Team(state[name].controller), state[name]);
-    team.players = team.players.map((player) => Object.assign(new Player(), player));
-    team.goalie = Object.assign(new Player(), team.goalie);
+    const team = future[name];
     const carrier = name === "team1" ? team.get_player_by_scnum(state.engine.puck_owner) : null;
     for (const player of [...team.players, team.goalie]) {
       if (player === carrier || !on_ice(player)) continue;
-      const [position, uncertainty] = bounded_projection(player, frames, { boards: player !== team.goalie });
-      [player.x, player.y] = position; player.projection_uncertainty = uncertainty;
+      project_body(player, frames, player !== team.goalie);
     }
     future[name] = team;
   }
   const player = future.team1.get_player_by_scnum(state.engine.puck_owner)!;
   [[player.x, player.y], [player.motion_x, player.motion_y]] = motion;
-  future.puck = Object.assign(new Player(), state.puck);
-  future.puck.x = state.puck.x + player.x - original.x;
-  future.puck.y = state.puck.y + player.y - original.y;
+  set_position(player, [player.x, player.y]);
+  set_position(future.puck, [state.puck.x + player.x - original.x, state.puck.y + player.y - original.y]);
   return future;
 }
 
 export function carry_future(state: GameState, player: Player, carrier: Player, { frames = 18 } = {}): GameState {
-  const future = Object.assign(new GameState(), state);
+  const future = clone_forecast(state);
   for (const name of ["team1", "team2"] as const) {
-    const source = state[name], team = Object.assign(new Team(source.controller), source);
-    team.players = source.players.map((other) => {
-      if (other === player) return carrier;
-      const result = Object.assign(new Player(), other);
-      if (on_ice(result)) {
-        const [point, uncertainty] = bounded_projection(result, frames);
-        [result.x, result.y] = point; result.projection_uncertainty = uncertainty;
-        result.precise_x = result.x; result.precise_y = result.y;
-      }
-      return result;
-    });
-    team.goalie = Object.assign(new Player(), source.goalie);
-    if (on_ice(team.goalie)) {
-      const [point, uncertainty] = bounded_projection(team.goalie, frames, { boards: false });
-      [team.goalie.x, team.goalie.y] = point; team.goalie.projection_uncertainty = uncertainty;
-      team.goalie.precise_x = team.goalie.x; team.goalie.precise_y = team.goalie.y;
+    const team = future[name];
+    for (const [index, other] of team.players.entries()) {
+      if (state[name].players[index] === player) team.players[index] = carrier;
+      else if (on_ice(other)) project_body(other, frames);
     }
+    if (on_ice(team.goalie)) project_body(team.goalie, frames, false);
     future[name] = team;
   }
-  future.puck = Object.assign(new Player(), state.puck);
-  future.puck.x += carrier.x - player.x; future.puck.y += carrier.y - player.y;
+  set_position(future.puck, [state.puck.x + carrier.x - player.x, state.puck.y + carrier.y - player.y]);
   return future;
 }
 
@@ -271,6 +256,7 @@ export class OffenseController {
   }
   get uses_lookahead(): boolean { return true; }
   get movement_interval(): number | null { return this.carry_motion ? this.decision_interval : null; }
+  get shot_hold_frames(): number { return Math.max(4, this.decision_interval); }
   clear_carry(state: GameState, player: Player, target: Vec2): boolean { return carry_clear(state, player, target, { decision_interval: this.movement_interval }); }
   cancel(): void {
     this.pass_action.cancel(); this.feint_target = null; this.feint_until = 0; this.diagnostics = {};

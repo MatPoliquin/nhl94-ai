@@ -12,21 +12,29 @@ from nhl94_ai.env.factory import make_retro
 from nhl94_ai.evaluation.teammates import DEFAULT_STATE, play_match, prepare_match, replay_trace
 from nhl94_ai.agents.teammates import TeammateCoordinator
 from nhl94_ai.game.ram import configure_teammates, register_teammate_state
+from nhl94_ai.game.multitap import prepare_multitap_save
+from nhl94_ai.game.motion import VELOCITY_SCALE
+from nhl94_ai.agents.receiving import one_timer_reception, reception_trajectory
 from nhl94_ai.tasks.cross_crease_setup import OBJECT_BASE, OBJECT_STRIDE
 from nhl94_ai.tasks.defense_setup import (
     init_full_team_defense, _reset_player, _place_object, _rebuild_object_order,
 )
 
 
-def selected_pair_fixture(side, *, one_timer=False, receiver_facing=None):
+def selected_pair_fixture(side, *, one_timer=False, receiver_facing=None, team_size=2,
+                          pair=(0, 1), lifecycle=None, details=False, receiver_motion=(0, 0),
+                          coast_after_release=False, frames=200):
     """Coherent reset only; all defenders respond natively throughout gameplay."""
     env = make_retro(game='NHL94-Genesis-v0', state='PenguinsVsSenators.DefenseZone',
-                     num_players=2, allow_menu_buttons=True)
+                     num_players=team_size, allow_menu_buttons=True)
     try:
         env.reset(seed=94)
         register_teammate_state(env)
         init_full_team_defense(env)
-        carrier, receiver = configure_teammates(env.data, side)
+        if team_size == 3:
+            prepare_multitap_save(env)
+        selected = configure_teammates(env.data, side, team_size=team_size)
+        carrier, receiver = (selected[i] for i in pair)
         memory, sign = env.data.memory, 1 if side == 1 else -1
         start, finish = ((-50, 190), (35, 210)) if one_timer else ((0, -100), (-70, -25))
         friends = [slot for slot in range((side - 1) * 6, (side - 1) * 6 + 5)
@@ -43,13 +51,16 @@ def selected_pair_fixture(side, *, one_timer=False, receiver_facing=None):
             if slot == receiver and receiver_facing is not None:
                 facing = receiver_facing
             _reset_player(memory, slot, (point[0], point[1] * sign), facing,
-                          assignment, slot in (carrier, receiver), temporary)
+                          assignment, slot in selected, temporary)
             memory.assign(OBJECT_BASE + slot * OBJECT_STRIDE + 0x71, '|u1', 30)
         for slot, point in ((5, (0, -250)), (11, (0, 250))):
             _reset_player(memory, slot, point, 0 if slot == 5 else 4, 0x0E, False)
         for address, value in ((0xFFB7AA, carrier), (0xFFBEDA, carrier), (0xFFBEE0, -1), (0xFFBED8, -1)):
             memory.assign(address, '>i2', value)
         memory.assign(OBJECT_BASE + carrier * OBJECT_STRIDE + 0x6E, '|u1', 20)
+        for offset, component in zip((0x28, 0x2A), receiver_motion):
+            memory.assign(OBJECT_BASE + receiver * OBJECT_STRIDE + offset, '>i2',
+                          round(component / VELOCITY_SCALE))
         _place_object(memory, 14, (start[0], (start[1] + 8) * sign))
         _rebuild_object_order(memory)
         memory.assign(0xFFC2EC, '>u2', memory.extract(0xFFC2EC, '>u2') & ~0x0C00)
@@ -58,17 +69,50 @@ def selected_pair_fixture(side, *, one_timer=False, receiver_facing=None):
         info = env.data.lookup_all()
         agent = TeammateCoordinator(SimpleNamespace(
             env='NHL94-Genesis-v0', action_type='FILTERED', goalie_policy='off',
-            side='home' if side == 1 else 'away', hyperparams_dict={'frame_skip': 4}, one_timers=one_timer))
+            side='home' if side == 1 else 'away', hyperparams_dict={'frame_skip': 4}, one_timers=one_timer,
+            team_size=team_size, teammate_transient_receiving=lifecycle))
         events, actions, defender_positions = [], [], []
-        for _ in range(200):
+        trace, forecast, released = [], None, False
+        for _ in range(frames):
             info = agent.controllers[0].platform.frame_info(env, info)
             result = agent.act(info)
             events.extend(result.diagnostics['teammates']['events'])
+            released |= any(event['phase'] == 'released' for event in result.diagnostics['teammates']['events'])
+            if coast_after_release and released:
+                result.action[:] = 0
+                agent.previous[:] = 0
+                for controller in agent.controllers:
+                    controller.accept_applied_action(np.zeros(12, dtype=np.int8))
+            if details:
+                state = agent.states[0]
+                player = state.team1.get_player_by_scnum(receiver)
+                if released and forecast is None:
+                    forecast = {'frame': agent.frames, 'path': list(reception_trajectory(state, player, 16)),
+                                'contact': one_timer_reception(state, player)}
+                trace.append({'frame': agent.frames, 'owner': state.engine.puck_owner,
+                              'receiver': receiver, 'shooter': state.engine.shot_player,
+                              'attempts': state.team1.one_timer_attempts, 'armed': bool(player.is_one_timer),
+                              'position': [player.precise_x, player.precise_y],
+                              'puck': [state.puck.x, state.puck.y],
+                              'puck_precise': [state.puck.precise_x, state.puck.precise_y],
+                              'puck_motion': [state.puck.motion_x, state.puck.motion_y],
+                              'puck_height': state.puck.height, 'puck_friction': state.puck.friction,
+                              'animation': [player.live_anim, player.live_anim_frame],
+                              'stick': [player.stick_x, player.stick_y],
+                              'one_timer_offsets': player.one_timer_offsets,
+                              'coast_intervention': bool(coast_after_release and released),
+                              'clearance': min(np.hypot(player.x-other.x, player.y-other.y)
+                                               for team in (state.team1, state.team2)
+                                               for other in (*team.players, team.goalie) if other is not player),
+                              'slots': [row['slot'] for row in result.diagnostics['teammates']['controllers']],
+                              'pads': result.action.tolist(),
+                              'commitment': result.diagnostics['teammates']['pending_pass'],
+                              'events': result.diagnostics['teammates']['events']})
             actions.append(result.action.copy())
             defender = agent.states[0].team2.get_player_by_scnum(opponents[0])
             defender_positions.append((defender.x, defender.y))
             *_, info = env.step(result.action)
-        return events, actions, defender_positions
+        return {'trace': trace, 'forecast': forecast} if details else (events, actions, defender_positions)
     finally:
         env.close()
 

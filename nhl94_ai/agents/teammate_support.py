@@ -9,6 +9,8 @@ from nhl94_ai.game.motion import arrival_time, bounded_projection, velocity
 from nhl94_ai.agents.passing import evaluate_pass, pressure_margin, shot_value
 from nhl94_ai.game.skating import grounded_step
 from nhl94_ai.env.target_control import project_target
+from nhl94_ai.agents.teammate_offpuck import attack_options
+from nhl94_ai.agents.teammate_geometry import coverage_target
 
 
 FORECAST_FRAMES = 12
@@ -16,7 +18,7 @@ _PADS = ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1),
          (-1, 0), (-1, 1), (0, 0), (0, 0))
 
 
-def support_forecast(state, slot, target, *, coast=False, frames=FORECAST_FRAMES):
+def support_forecast(state, slot, target, *, coast=False, frames=FORECAST_FRAMES, native_updates=None):
     """Project all actors to one release time, then let passing model the flight.
 
     The receiver follows execution's turning/braking pad. Other actors retain
@@ -24,20 +26,27 @@ def support_forecast(state, slot, target, *, coast=False, frames=FORECAST_FRAMES
     The puck follows the carrier displacement, preserving its current offset.
     No receiver is teleported to the target or assigned an invented zero speed.
     """
+    # native_updates is an explicit sequence of D7 durations, not a count of
+    # video frames. An empty sequence means no actor update. Callers without
+    # a verified schedule retain the legacy, uncertified approximation.
+    updates = [1] * frames if native_updates is None else list(native_updates)
+    if any(isinstance(tick, bool) or not isinstance(tick, int) or tick < 1 for tick in updates):
+        raise ValueError('Native update durations must be positive integers')
     future = clone_forecast(state)
     owner = state.engine.puck_owner
 
     def project(player, receiver=False):
         projected = copy(player)
         if any(getattr(player, key) is None for key in ('weight', 'agility', 'speed', 'energy')):
-            point, _ = bounded_projection(player, frames)
+            point, _ = bounded_projection(player, sum(updates))
             set_position(projected, point)
             return projected
-        for _ in range(frames):
+        for elapsed in updates:
             steering = player.steering if player.steering in range(10) else 8
             pad = ((0, 0) if coast else defensive_steering(projected, target)[0]) if receiver else _PADS[steering]
             projected = grounded_step(projected, pad, goalie=player.role == 0,
-                                      stop=not receiver and steering == 9)
+                                      stop=not receiver and steering == 9, elapsed_ticks=elapsed,
+                                      friction_shift=(9 if native_updates is not None and (player.selection_flags or 0) & 1 else 6))
         return projected
 
     for name in ('team1', 'team2'):
@@ -69,7 +78,7 @@ class SupportPlanner:
         self.recover_until = 0
         self.coast = False
 
-    def choose(self, state, slot, frame, primary_slot=None):
+    def choose(self, state, slot, frame, primary_slot=None, *, movement=False, reserved_targets=()):
         team, opponents, puck = state.team1, state.team2, state.puck
         player = team.get_player_by_scnum(slot)
         owner = state.engine.puck_owner
@@ -82,16 +91,24 @@ class SupportPlanner:
                  'attack' if carrier is not None and carrier is not team.goalie and carrier.y * attack >= 88
                  else 'buildup' if carrier is not None and carrier is not team.goalie
                  else 'recovery' if frame < self.recover_until else 'defense')
-        key = (slot, owner, attack, phase, primary_slot)
+        key = (slot, owner, attack, phase, primary_slot, movement, tuple(reserved_targets))
         if player is None or not controllable_skater(player):
             self.key, self.until, self.coast = None, 0, False
             self.target, self.role = (0, 0), 'coverage'
             self.diagnostics = {'phase': 'unavailable', 'candidates': []}
             return self.target, self.role
+        if movement and player.unavailable & 2:
+            # Animation and video-frame boundaries do not guarantee one grounded
+            # update. Do not price a cut during a known animation transition.
+            self.key, self.until, self.coast = None, 0, True
+            self.target, self.role = (player.x, player.y), 'animation-hold'
+            self.diagnostics = {'phase': 'animation-unavailable', 'candidates': [],
+                                'coast': True, 'target_owner': 'support-planner'}
+            return self.target, self.role
         imminent = owner < 0 and math.dist((player.x, player.y), (puck.x, puck.y)) < 24
         if key == self.key and frame < self.until and not imminent:
             return self.target, self.role
-        self.key, self.until, self.coast = key, frame + 8, False
+        self.key, self.until, self.coast = key, frame + (FORECAST_FRAMES if movement else 8), False
         if phase in ('defense', 'recovery'):
             self.target = self._coverage(state, player, primary_slot)
             self.role = 'coverage'
@@ -106,6 +123,12 @@ class SupportPlanner:
                   (flank * 35, forward - 35), (-flank * 60, forward - 30),
                   (flank * 35, 210 if phase == 'attack' else forward + 65),
                   (player.x, player.y * attack)]
+        labels = ['passing-option'] * len(points)
+        if movement and phase != 'outlet':
+            options = attack_options(carrier, attack, phase, frame)
+            points = [point[:2] for point in options] + points
+            labels = [point[2] for point in options] + labels
+        labels.append('coasting-option')
         candidates = []
         for option_index, (x, y) in enumerate([*points, points[-1]]):
             coast = option_index == len(points)
@@ -113,6 +136,8 @@ class SupportPlanner:
             if state.engine.offsides_enabled is not False and puck.y * attack < 88:
                 y = min(76, y)
             point = project_target((x, y * attack))
+            if any(math.dist(point, reserved) < 24 for reserved in reserved_targets):
+                continue
             arrival = arrival_time(player, point)
             spacing = math.dist((carrier.x, carrier.y), point)
             teammate_gap = min((math.dist(point, (other.x, other.y)) for other in team.players
@@ -122,7 +147,8 @@ class SupportPlanner:
             pressure = pressure_margin(opponents, point, arrival)
             score = (0.3 * (point[1] * attack - forward) - arrival * 0.6
                      + min(18, pressure) * 1.5 - max(0, 30 - teammate_gap))
-            candidates.append({'point': point, 'arrival': arrival, 'pressure': pressure, 'score': score, 'coast': coast, 'stay': option_index >= len(points) - 1})
+            candidates.append({'point': point, 'arrival': arrival, 'pressure': pressure, 'score': score,
+                               'role': labels[option_index], 'coast': coast, 'stay': option_index >= len(points) - 1})
         # At most four forecasts. Always consider braking/staying and coasting
         # when their spacing is useful; movement is not itself the objective.
         finalists = sorted((item for item in candidates if not item['stay']),
@@ -170,31 +196,17 @@ class SupportPlanner:
         if finalists:
             chosen = max(finalists, key=lambda item: item['score'])
             self.target, self.coast = chosen['point'], chosen['coast']
+            if movement:
+                self.role = chosen['role']
         else:
             # A nearby legal outlet remains bounded when every forecast fails.
             y = min(76, player.y * attack) if state.engine.offsides_enabled is not False and puck.y * attack < 88 else player.y * attack
             self.target = project_target((player.x, y * attack))
         self.diagnostics = {'phase': phase, 'target': self.target, 'candidates': finalists,
-                            'coast': self.coast, 'forecast': 'held-steering-common-time-estimate',
-                            'release_time': FORECAST_FRAMES}
+                            'coast': self.coast, 'forecast': 'uncertified-native-update-schedule',
+                            'forecast_certified': False,
+                            'release_time': FORECAST_FRAMES, 'target_until': self.until,
+                            'target_owner': 'support-planner', 'bursts': False}
         return self.target, self.role
 
-    @staticmethod
-    def _coverage(state, player, primary_slot):
-        puck, team = state.puck, state.team1
-        toward = 1 if team.net.y > puck.y else -1
-        depth = min(60, max(30, abs(team.net.y - puck.y) * 0.45))
-        y = puck.y + toward * depth
-        y = min(team.net.y - 24, y) if toward > 0 else max(team.net.y + 24, y)
-        middle = (max(-42, min(42, puck.x * 0.4)), y)
-        threats = [other for other in state.team2.players if controllable_skater(other)
-                   and (other.y - puck.y) * toward > 15 and abs(other.x) < 85]
-        if threats:
-            threat = min(threats, key=lambda other: math.dist((other.x, other.y), (0, team.net.y)))
-            lane = ((puck.x + threat.x) / 2, (puck.y + threat.y) / 2)
-            if abs(lane[0]) < 55 and math.dist(lane, (puck.x, puck.y)) >= 30:
-                middle = ((middle[0] + lane[0]) / 2, (middle[1] + lane[1]) / 2)
-        primary = team.get_player_by_scnum(primary_slot) if primary_slot is not None else None
-        if primary is not None and math.dist(middle, (primary.x, primary.y)) < 24:
-            middle = (middle[0] + (28 if player.x >= primary.x else -28), middle[1])
-        return project_target(middle)
+    _coverage = staticmethod(coverage_target)

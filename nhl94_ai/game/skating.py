@@ -10,17 +10,28 @@ _DIRECTIONS = ((0, 200), (141, 141), (200, 0), (141, -141),
                (0, -200), (-141, -141), (-200, 0), (-141, 141))
 
 
-def grounded_step(player, pad, *, goalie=False, stop=False):
-    """Integrate friction first, then turn/brake/accelerate for the next frame."""
+def grounded_step(player, pad, *, goalie=False, stop=False, elapsed_ticks=1, friction_shift=6):
+    """One native object update, with explicit elapsed game ticks (Genesis D7).
+
+    Friction and turning happen once per update. Position and acceleration use
+    elapsed ticks. A video-frame boundary does not imply one object update.
+    Defaults preserve the historical one-update approximation for all callers.
+    """
+    if isinstance(elapsed_ticks, bool) or not isinstance(elapsed_ticks, int) or elapsed_ticks < 1:
+        raise ValueError('elapsed_ticks must count positive native elapsed ticks')
+    if friction_shift not in (6, 9):
+        raise ValueError('Grounded Genesis friction shift must be 6 or 9')
     if getattr(player, 'platform', 'genesis') != 'genesis':
+        if elapsed_ticks != 1 or friction_shift != 6:
+            raise ValueError('Explicit native update timing is Genesis-only')
         from nhl94_ai.game.platforms import get_backend
         return get_backend(player.platform).grounded_step(player, pad, goalie=goalie, stop=stop)
     future = copy(player)
     vx, vy = (round(component / VELOCITY_SCALE) for component in velocity(player))
-    vx, vy = (component - ((component >> 6) or bool(component)) for component in (vx, vy))
+    vx, vy = (component - ((component >> friction_shift) or bool(component)) for component in (vx, vy))
     x = player.precise_x if player.precise_x is not None else float(player.x)
     y = player.precise_y if player.precise_y is not None else float(player.y)
-    future.precise_x, future.precise_y = x + vx * VELOCITY_SCALE, y + vy * VELOCITY_SCALE
+    future.precise_x, future.precise_y = x + vx * VELOCITY_SCALE * elapsed_ticks, y + vy * VELOCITY_SCALE * elapsed_ticks
     future.x, future.y = math.floor(future.precise_x), math.floor(future.precise_y)
     phase = player.facing_phase if player.facing_phase is not None else float(
         player.orientation if player.facing is None else player.facing)
@@ -51,7 +62,7 @@ def grounded_step(player, pad, *, goalie=False, stop=False):
         factor = (64 - player.weight // 4 + player.agility + player.movement_bonus
                   + (player.agility + 16 if goalie else 0)) // 2
         dx, dy = _DIRECTIONS[wanted if goalie else heading]
-        proposed = vx + ((dx * factor) >> 5), vy + ((dy * factor) >> 5)
+        proposed = vx + ((dx * factor) >> 5) * elapsed_ticks, vy + ((dy * factor) >> 5) * elapsed_ticks
         _, limit, _ = skating(player)
         if proposed[0] ** 2 + proposed[1] ** 2 <= round((limit / VELOCITY_SCALE) ** 2):
             vx, vy = proposed

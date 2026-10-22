@@ -29,6 +29,12 @@ Native integration scripts deliberately do not use the `test_*.py` naming
 pattern. Run the relevant script explicitly; blanket discovery should not
 launch games, run long benchmarks, or require ROMs.
 
+`python -m tests.integration.teammate_one_timers --output /absolute/external/run`
+checks every ordered two/three-controller pair on both sides against native
+one-timer counters and shooter identity. It also reports 48 fixed coasting
+forecast windows. A completed calibration run is not a passing accuracy gate;
+inspect `calibration.json` for failures and unsupported contact horizons.
+
 ```bash
 # Genesis: frozen input traces across game variants and action types.
 python -m tests.integration.smoke
@@ -42,7 +48,25 @@ python -m tests.integration.snes_recording
 
 # SNES: seeded reproducibility and paired benchmark behavior.
 python -m tests.integration.snes_benchmark
+
+# Teammates: retained native goalie snapshot capture/probe and movement calibration.
+python -m tests.integration.teammate_ownership capture --output /tmp/goalie-snapshot
+python -m tests.integration.teammate_ownership probe --output /tmp/goalie-snapshot
+python -m tests.integration.teammate_movement --output /tmp/teammate-calibration.json
+python -m tests.integration.teammate_forecast --output /tmp/teammate-forecast-windows
 ```
+
+The movement calibration retains failures against its one-unit forecast
+tolerance. `--require-forecast` fails the command when that gate is not met;
+ordinary execution reports the measured errors, including native video frames
+with zero or two physics updates. A successful faceoff ownership check does not
+certify movement forecasts. The expanded forecast runner keeps fixed windows
+across sides, two/three controllers, steering and coasting, checks all twelve
+horizons, and records native vblank/loop clocks and collision exposure. Its
+report explicitly distinguishes an unmet accuracy gate from test execution.
+Use a preserved source snapshot on `sys.path` when
+capturing a regression from an older policy. Native fixture files belong in
+ignored output directories, not the test source tree.
 
 Read a runner's module docstring and argument parser before launching it.
 `smoke --record` replaces the frozen regression fixtures; ordinary smoke runs

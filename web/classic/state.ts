@@ -61,6 +61,21 @@ export class Player {
   shot_projection_durations: readonly number[] | null = null;
   precise_x: number | null = null;
   precise_y: number | null = null;
+  position_frac_x: number | null = null;
+  position_frac_y: number | null = null;
+  raw_vel_x: number | null = null;
+  raw_vel_y: number | null = null;
+  physics_frame_debt: number | null = null;
+  physics_step_frames: number | null = null;
+  native_facing_phase: number | null = null;
+  motion_weight: number | null = null;
+  motion_agility: number | null = null;
+  speed_rating: number | null = null;
+  turning_state: number | null = null;
+  carrier_state: number | null = null;
+  motion_flags: number | null = null;
+  input_lock_x: number | null = null;
+  input_lock_y: number | null = null;
   facing_phase: number | null = null;
   sprite_flipped_x: boolean | null = null;
   motion_x: number | null = null;
@@ -143,6 +158,8 @@ export class GoalieStats {
 }
 
 export class EngineState {
+  physics_frame_debt: number | null = null;
+  physics_step_frames: number | null = null;
   puck_owner = -1;
   puck_owner_known = false;
   offsides_enabled: boolean | null = null;

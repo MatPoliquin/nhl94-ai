@@ -61,6 +61,80 @@ paths relative to `nhl94_ai`. When moving measured code, update explicit source
 lists and replay gates too. Existing report structures and command/module paths
 are kept stable; fingerprints change when their source changes.
 
+## Matched teammate experiments
+
+`python -m nhl94_ai.evaluation.teammate_benchmark` snapshots source, runs the
+single/two/three-bot CPU matrix in a fresh interpreter, and compares paired
+results. For example:
+
+```bash
+python -m nhl94_ai.evaluation.teammate_benchmark snapshot --output tmp/team-baseline-source
+python -m nhl94_ai.evaluation.teammate_benchmark snapshot --output tmp/team-harness
+python -m nhl94_ai.evaluation.teammate_benchmark run --source tmp/team-baseline-source --harness tmp/team-harness --output tmp/team-baseline --seed 20000 --count 20 --periods 3 --seconds 300 --frame-skip 4 --trace
+python -m nhl94_ai.evaluation.teammate_benchmark compare --before tmp/team-baseline/report.json --after tmp/team-candidate/report.json --output tmp/team-comparison.json
+```
+
+Use different immutable directories for every candidate. `--variant` accepts a
+JSON object of tactical options for team profiles only. Duration, cadence,
+starting save, seed lists and controller layout cannot be overridden there.
+`--periods`, `--seconds`, `--frame-skip` and `--seeds` apply to every profile,
+including the one-controller control (`strategy=single`, runner `team_size=2`).
+Explicit seed lists may be longer than twenty. A resumed job must match its
+complete policy, harness, runtime, seed and settings contract. Scored support,
+off-puck movement, intent arbitration, defensive support, primary race policies,
+position-based three-bot roles, and
+`--teammate-cue-anticipation` are separate
+opt-in experiments. Cue anticipation times the bot receiver's one-timer cue from
+the shared pass intent's predicted contact instead of native release
+confirmation. The shared
+Classic single-bot profile receives none of these options. The public gameplay
+and single-match teammate evaluator parsers expose matching `--teammate-*` flags; movement
+requires scored support and experimental variants require coordinated control.
+
+Coordinated receiving preserves a released pass while all controller selections
+are temporarily unknown, with neutral input during the gap and unchanged expiry,
+interception and confirmed-selection-loss handling. This correctness fix is on
+by default. `--no-teammate-transient-receiving` disables only gap preservation
+for comparison; `--teammate-transient-receiving` explicitly enables it.
+Single and independent modes do not use shared receiving.
+
+Receiving-controller ownership always follows the settled native selection
+table. A one-timer cue is recorded only after its C
+edge is applied to the intended receiver; suppressed requests do not consume
+the cue. Native `one-timer-armed` feedback is recorded separately, including
+CPU receivers that acquire a controller when the game arms their shot.
+Applied cues are not automatically retried when native arming is absent.
+These lifecycle checks do not certify the contact forecast or playing strength.
+
+The report separates live possession, requested B inputs, applied B/C edges,
+native goalie owner exits/receptions, sampled modeled pass opportunities, and
+native one-timer attempts. Baselines recorded before intent provenance existed
+report unclassified edges; do not infer intent from possession or held labels.
+Dangerous possession entries are a geometry proxy. Paired intervals use only
+complete, matching seeds/settings/assets within a controller layout. The
+study must declare its own seed cap, margins and multiplicity policy before
+examining candidate results. Install `.[evaluation]` (or `.[dev]`) for SciPy
+Student-t quantiles. `compare --unit game --confidence 0.9979166666666667`
+uses raw game totals and Bonferroni coverage for 24 estimates; `--unit per120`
+is separately labeled and scales the displayed thresholds to preserve the same
+decision. The default Python comparison remains compatible with historical
+per-120-second screens. Regulation acceptance thresholds apply only to games
+with three 300-second periods; short screens are labeled separately.
+
+Policy packages load from `--source`; all evaluator modules load from the
+separately pinned `--harness`. Neither snapshot is rewritten. Reports include
+native totals by period, and `*.events.jsonl.gz` stores bounded pre-release
+and flight observations for tracked passes, including successes and failures.
+Event endings can occur beyond the retained window and are labeled accordingly.
+`teammate_study` reports cross-layout context separately from policy pairing,
+keeps game-level pass denominators, and provides variance-only sample sizing.
+Periods and individual passes are never counted as independent seeds.
+
+`teammate_trace_compare.py` validates entire traces and records the first input
+and diagnostic differences. Later live trajectory differences are expected
+after an intended input change. Exact single-bot input and final-RAM comparisons
+remain a separate gate. Input-only replay tests determinism, not policy parity.
+
 ## Compatibility and outputs
 
 `compare.py` intentionally reports that the retired train-then-compare workflow

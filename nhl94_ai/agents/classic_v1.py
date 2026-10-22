@@ -92,6 +92,7 @@ class ClassicAIV1Model:
         self.scheduler = ActionScheduler()
         self.buttons = ButtonState()
         self.recovery_switch_at_decision = 0
+        self.team_context = None
         self.shot = ShotLifecycle(rebound_recovery=options.rebound_recovery)
         self.one_timer = OneTimerLifecycle(execution=options.one_timer_execution)
         self.setup = SetupState()
@@ -438,7 +439,8 @@ class ClassicAIV1Model:
             return None
         return {'passer': request.passer, 'receiver': request.receiver,
                 'frame': request.started, 'deadline': request.deadline,
-                'purpose': 'one-timer', 'point': self._last_target}
+                'purpose': 'one-timer', 'point': self._last_target,
+                'flight_frames': self.one_timer.flight_frames}
 
     def delegate_reception(self, state=None, reason='teammate-receiver'):
         """Release a confirmed pass to a receiver owned by another controller."""
@@ -818,6 +820,9 @@ class ClassicAIV1Model:
 
         goalie_slot = team.goalie_scnum() if team.defense_goalie is None else team.defense_goalie
         if owner == goalie_slot:
+            if (self.team_context is not None and self.team_context.goalie_ownership
+                    and actual != goalie_slot):
+                return self._team_support(state, action, player, goalie=True)
             return self._goalie_outlet(state, action)
 
         if owner >= 0 and not owned:
@@ -828,7 +833,27 @@ class ClassicAIV1Model:
 
         if owner == actual and player is not None and player is not team.goalie:
             return self._attack(state, action, player, actual, attack)
+        if self.team_context is not None and self.team_context.cpu_carrier(state):
+            return self._team_support(state, action, player)
         return self._recover(state, action, player)
+
+    def _team_support(self, state, action, player, *, goalie=False):
+        """A CPU skater retains possession; this controller offers a legal outlet."""
+        from nhl94_ai.agents.defense import defensive_steering
+        self.input_owner = 'team-support'
+        self._last_decision = 'goalie-outlet-support' if goalie else 'cpu-carrier-support'
+        self._record_selection(self._last_decision)
+        target = self.team_context.support_target
+        attack = 1 if state.team2.net.y > state.team1.net.y else -1
+        if state.engine.offsides_enabled is not False and state.puck.y * attack < 88:
+            target = (target[0], min(76, target[1] * attack) * attack)
+        self._last_target = target
+        self.offense_diagnostics = {'mode': self._last_decision, 'target': target,
+                                    'reason': 'goalie input belongs to another actor' if goalie else
+                                              'confirmed friendly skater outside bot selections'}
+        if player is not None:
+            apply_pad(action, defensive_steering(player, target)[0])
+        return action, HOCKEY_INTENT_NOOP
 
     def _continue_pass(self, state, action, player, actual):
         self.input_owner = 'pass'
@@ -844,6 +869,9 @@ class ClassicAIV1Model:
         }
         if (owner == request.passer and not request.launched
                 and self.scheduler.frames - request.frame < HOCKEY_PASS_PRESS_FRAMES):
+            if (self.team_context is not None and self.team_context.goalie_ownership
+                    and owner == team.goalie_scnum() and actual != owner):
+                return action, HOCKEY_INTENT_NOOP
             receiver = team.get_player_by_scnum(request.receiver)
             if receiver is not None:
                 aim_pass(action, team.get_player_by_scnum(owner), receiver)

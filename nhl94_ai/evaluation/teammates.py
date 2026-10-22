@@ -28,6 +28,8 @@ from nhl94_ai.tasks.cross_crease_setup import crossing_touch_player
 from nhl94_ai.evaluation.teammate_metrics import ReceptionOutcomes
 from nhl94_ai.evaluation.teammate_opportunities import opportunity_diagnostics
 from nhl94_ai.evaluation.pressure_metrics import PressureMetrics
+from nhl94_ai.evaluation.teammate_diagnostics import TeammateDiagnostics
+from nhl94_ai.evaluation.teammate_evidence import PassEvidence
 
 
 DEFAULT_STATE = 'SabresVsMightyDucks.ManualGoalie.Start'
@@ -77,7 +79,9 @@ def prepare_match(env, *, seed, seconds, single=False, side=1, team_size=2, huma
 
 def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=1,
                seconds=300, frame_skip=4, max_frames=None, trace=None, side='home', support_options=False,
-               team_size=2, human_input=None, pressure=True):
+               team_size=2, human_input=None, pressure=True, offpuck=False, intent_arbitration=False,
+               defensive_support=False, primary_policy='baseline', role_balance=False, event_trace=None,
+               transient_receiving=None, cue_anticipation=False):
     """Return measured outcomes; a bounded/incomplete run never counts as a win."""
     validate_rom_seed(seed)
     human = human_input is not None
@@ -87,8 +91,15 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
         raise ValueError('Multitap matches require a teammate strategy')
     if strategy not in ('single', 'independent', 'coordinated'):
         raise ValueError('Unknown teammate strategy')
+    if transient_receiving is None:
+        transient_receiving = strategy == 'coordinated'
     if support_options and strategy != 'coordinated':
         raise ValueError('Support positioning requires coordinated teammates')
+    if any((offpuck, intent_arbitration, defensive_support, role_balance, transient_receiving, cue_anticipation,
+            primary_policy != 'baseline')) and strategy != 'coordinated':
+        raise ValueError('Teammate variants require coordinated strategy')
+    if offpuck and not support_options:
+        raise ValueError('Off-puck movement requires scored support positioning')
     if periods not in (1, 3) or not 1 <= seconds <= 300 or periods == 3 and seconds != 300:
         raise ValueError('Use one period of 1..300 seconds or three 300-second regulation periods')
     if isinstance(frame_skip, bool) or not isinstance(frame_skip, int) or frame_skip < 1:
@@ -101,6 +112,12 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
     args = SimpleNamespace(env='NHL94-Genesis-v0', action_type='FILTERED', goalie_policy='off',
                            hyperparams_dict={'frame_skip': frame_skip}, side=side,
                            teammate_support_options=support_options, teammate_pressure=pressure, team_size=team_size,
+                           teammate_offpuck=offpuck,
+                           teammate_intent_arbitration=intent_arbitration,
+                           teammate_defensive_support=defensive_support,
+                           teammate_primary_policy=primary_policy,
+                           teammate_role_balance=role_balance, teammate_transient_receiving=transient_receiving,
+                           teammate_cue_anticipation=cue_anticipation,
                            mode='team_vs_player' if human else 'team_vs_game')
     single = strategy == 'single'
     agent = ClassicAIV1Model(args) if single else TeammateCoordinator(args, strategy=strategy)
@@ -134,6 +151,11 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
         offense = OffenseMetrics()
         receptions = ReceptionOutcomes()
         pressure_metrics = PressureMetrics()
+        measurements = TeammateDiagnostics()
+        evidence = PassEvidence(event_trace)
+        period_native = {'score': first_scores, 'shots': first_shots, 'pass_attempts': passes,
+                         'one_timer_attempts': one_timers, 'one_timer_goals': one_timer_goals}
+        period_observed = {}
         last_menu = -120
         completed = False
         frame = 0
@@ -183,7 +205,10 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
                         action[3] = 1
                         last_menu = frame
                 diagnostics = {'controllers': [{'controller': 1, 'slot': native[f'p{physical_side}_control_slot'],
-                                                  'role': 'highlight' if highlight else agent._last_decision}]}
+                                                  'role': 'highlight' if highlight else agent._last_decision,
+                                                  'decision_tick': agent.scheduler.decisions,
+                                                  'decision': agent._last_decision,
+                                                  'buttons': action.tolist()}]}
                 state_object.EndFrame()
             else:
                 previous_teammate_inputs = agent.previous.copy() if recording else None
@@ -249,6 +274,8 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
                     raise ValueError('Human input source must return 12 binary buttons')
                 action = np.concatenate((action, human_buttons))
             action = filter_menu_actions(env.data, action)
+            measurements.observe(frame, view_state, diagnostics, action, highlight=highlight)
+            evidence.observe(frame, view_state, diagnostics, action, receptions)
             if single:
                 previous_action = np.asarray(action, dtype=np.int8).copy()
             digest.update(np.asarray(action, dtype=np.int8).tobytes())
@@ -267,8 +294,20 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
             if (not info.get('goalie_clock_flags', 0) & 0x10
                     and info['period'] in started_periods and info['teammate_clock'] == 0
                     and info['period'] == len(period_rows)):
+                current = {'score': [info[f'p{i}_score'] for i in ordered_sides],
+                           'shots': [decode_shot_count(info[f'p{i}_shots']) for i in ordered_sides],
+                           'pass_attempts': info.get(f'p{physical_side}_pass_attempts', 0),
+                           'one_timer_attempts': info.get(f'p{physical_side}_one_timer_attempts', 0),
+                           'one_timer_goals': info[f'bench_one_timer_goals{physical_side}']}
+                totals = {key: [a-b for a, b in zip(value, period_native[key])] if isinstance(value, list)
+                          else value-period_native[key] for key, value in current.items()}
+                observed = dict(measurements.counts, skater_turnovers=turnovers)
+                observed_delta = {key: value-period_observed.get(key, 0) for key, value in observed.items()
+                                  if key != 'max_goalie_hold_frames'}
                 period_rows.append({'period': info['period'] + 1, 'frame': frame,
-                                    'score': [info['p1_score'], info['p2_score']]})
+                                    'score': [info['p1_score'], info['p2_score']],
+                                    'native_totals': totals, 'observed_totals': observed_delta})
+                period_native, period_observed = current, observed
                 if len(period_rows) == periods:
                     completed = True
                     break
@@ -297,6 +336,12 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
                 'strategy': strategy, 'controllers': 1 if single else team_size + human,
                 'team_size': 1 if single else team_size, 'opponent': 'human' if human else 'cpu', 'goalies': 'automatic',
                 'support_options': support_options,
+                'offpuck': offpuck,
+                'intent_arbitration': intent_arbitration,
+                'defensive_support': defensive_support,
+                'primary_policy': primary_policy,
+                'role_balance': role_balance, 'transient_receiving': transient_receiving,
+                'cue_anticipation': cue_anticipation,
                 'pressure': pressure, 'pressure_outcomes': pressure_metrics.summary(),
                 'controller_health': {'transient_frames': transient_frames,
                                       'max_transient_streak': max_transient_streak,
@@ -308,7 +353,9 @@ def play_match(*, state=DEFAULT_STATE, seed=94, strategy='coordinated', periods=
                 'one_timer_attempts': info.get(f'p{physical_side}_one_timer_attempts', 0) - one_timers,
                 'one_timer_goals': info[f'bench_one_timer_goals{physical_side}'] - one_timer_goals,
                 'offense': offense.summary(),
+                'teammate_diagnostics': measurements.summary(),
                 'reception_outcomes': receptions.summary(),
+                'decision_evidence': evidence.close(receptions),
                 'pass_attacks': receptions.events,
                 'native_shot_releases': receptions.shots.events,
                 'passes_to_controlled_teammate': controlled_passes,
@@ -388,7 +435,8 @@ def replay_trace(path):
 
 def source_hash():
     digest = hashlib.sha256()
-    root = Path(__file__).resolve().parents[1]
+    import nhl94_ai
+    root = Path(nhl94_ai.__file__).resolve().parent
     for path in sorted(root.rglob('*.py')):
         digest.update(str(path.relative_to(root)).encode())
         digest.update(path.read_bytes())
@@ -404,10 +452,20 @@ def build_parser():
     parser.add_argument('--team-size', type=int, choices=(2, 3), default=2)
     parser.add_argument('--strategy', choices=('single', 'independent', 'coordinated'), default='coordinated')
     parser.add_argument('--side', choices=('home', 'away'), default='home', help='Bots team; the opposite team is CPU-controlled')
-    parser.add_argument('--teammate-support-options', action='store_true',
-                        help='Opt in to scored reachable support positions')
+    parser.add_argument('--teammate-support-options', action=argparse.BooleanOptionalAction, default=False,
+                        help='Scored reachable support positions; --no-teammate-support-options retains baseline steering')
     parser.add_argument('--no-pressure', action='store_true',
                         help='Disable coordinated carrier traps for a baseline comparison')
+    parser.add_argument('--teammate-offpuck', action='store_true', help='Evaluate scored cuts/flanks with forecast-matched steering')
+    parser.add_argument('--teammate-intent-arbitration', action='store_true', help='Separate native poke, switch and pass requests')
+    parser.add_argument('--teammate-defensive-support', action='store_true', help='Threat-aware fallback screen coverage')
+    parser.add_argument('--teammate-primary-policy', choices=('baseline', 'short-lease', 'lost-race'), default='baseline')
+    parser.add_argument('--teammate-transient-receiving', action=argparse.BooleanOptionalAction, default=None,
+                        help='Preserve released receptions during unknown controller tables (default: on in coordinated mode); '
+                             '--no-teammate-transient-receiving disables only that preservation for comparison')
+    parser.add_argument('--teammate-cue-anticipation', action='store_true',
+                        help='Time bot-receiver one-timer cue from shared pass intent (default: off)')
+    parser.add_argument('--teammate-role-balance', action='store_true', help='Position-based three-bot safety assignments')
     parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--periods', type=int, choices=(1, 3), default=1)
     parser.add_argument('--seconds', type=int, default=300)
@@ -434,7 +492,12 @@ def run(args):
                  periods=args.periods, seconds=args.seconds, frame_skip=args.frame_skip,
                  max_frames=args.max_frames, trace=args.trace, side=args.side,
                  support_options=args.teammate_support_options, team_size=args.team_size,
-                 pressure=not args.no_pressure) for index in range(args.trials)]
+                 pressure=not args.no_pressure, offpuck=args.teammate_offpuck,
+                 intent_arbitration=args.teammate_intent_arbitration,
+                 defensive_support=args.teammate_defensive_support,
+                 primary_policy=args.teammate_primary_policy,
+                 role_balance=args.teammate_role_balance, transient_receiving=getattr(args, 'teammate_transient_receiving', None),
+                 cue_anticipation=getattr(args, 'teammate_cue_anticipation', False)) for index in range(args.trials)]
     matches = []
     with ExitStack() as resources:
         if args.workers > 1:

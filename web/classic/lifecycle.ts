@@ -76,9 +76,9 @@ export class ShotLifecycle {
   phase(decision: number, frame: number): string {
     return !this.active(decision) ? "idle" : frame < this.hold_until_frame ? "holding" : "follow-through";
   }
-  start(state: GameState, decision: number, frame: number, hold_frames: number): void {
+  start(state: GameState, decision: number, frame: number, hold_frames: number, follow_through_decisions = 7): void {
     this.extended_hold = this.crossing = this.release_observed = false;
-    this.until_decision = decision + 7;
+    this.until_decision = decision + follow_through_decisions;
     this.hold_until_frame = frame + hold_frames;
     this.shots_before = state.team1.stats.shots;
     this.slot = state.engine.puck_owner;
@@ -151,6 +151,7 @@ export interface PassSnapshot {
 export interface PassOutcome extends PassSnapshot { outcome: string; owner: number; end_frame: number }
 export interface PassIntention {
   passer: number; receiver: number; frame: number; deadline: number; purpose: string; point: Vec2;
+  flight_frames?: number | null;
 }
 
 export class PassState {

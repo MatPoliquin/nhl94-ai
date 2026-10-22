@@ -6,6 +6,8 @@ import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { DiagnosticBot } from "../bot";
 import { ClassicBot } from "../classic/bot";
+import { TeammateCoordinator } from "../classic/teammates";
+import type { ControllerPort } from "../controllers";
 import { DEFAULT_CLASSIC_CONFIG, type ClassicConfig } from "../classic/config";
 import { Engine, type CoreFactory } from "../engine";
 import { decodeDefaultState, DEFAULT_STATE_FILE } from "../start-state";
@@ -30,14 +32,18 @@ async function match() {
   return { core, engine };
 }
 
-function oracle(config: ClassicConfig, port: 0 | 1, frames: Capture[], snapshots: number[]): OracleResult {
-  const input = gzipSync(JSON.stringify({ rom: process.env.NHL94_ROM, config, port, frames, snapshots }));
+function queryOracle<T>(request: object): T {
+  const input = gzipSync(JSON.stringify({ rom: process.env.NHL94_ROM, ...request }));
   const result = spawnSync(process.env.NHL94_PYTHON!, [resolve("scripts/classic-reference.py")], {
     input, encoding: "utf8", timeout: 120000, maxBuffer: 16 * 1024 * 1024,
   });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`Python Classic reference failed:\n${result.stderr}`);
-  return JSON.parse(result.stdout) as OracleResult;
+  return JSON.parse(result.stdout) as T;
+}
+
+function oracle(config: ClassicConfig, port: 0 | 1, frames: Capture[], snapshots: number[]): OracleResult {
+  return queryOracle({ config, port, frames, snapshots });
 }
 
 function compareState(actual: Json, expected: Json, path = "state"): void {
@@ -94,6 +100,55 @@ async function compareTrace(config: ClassicConfig, port: 0 | 1, count: number): 
 }
 
 describe.skipIf(!process.env.NHL94_ROM || !process.env.NHL94_PYTHON)("Classic Python/native-WASM parity", () => {
+  for (const team_size of [2, 3]) {
+    for (const side of [1, 2] as const) {
+      it(`matches ${team_size} coordinated ${side === 1 ? "Home" : "Away"} bots on identical native frames`, async () => {
+        const { core, engine } = await match();
+        try {
+          engine.assignControllers([side, side, team_size === 3 ? side : 0, 0]);
+          engine.assignGoalies([1, 1]);
+          const ports: ControllerPort[] = team_size === 3 ? [0, 1, 2] : [0, 1];
+          const team = new TeammateCoordinator(ports, DEFAULT_CLASSIC_CONFIG);
+          const frames: (Capture & { transient?: boolean })[] = [], actions: number[][] = [], diagnostics: unknown[] = [];
+          let previous: Uint8Array | undefined;
+          for (let frame = 0; frame < 1200; frame++) {
+            const bytes = core.HEAPU8.slice(core._arena_ram(), core._arena_ram() + 65536);
+            const observation = engine.observe();
+            if (!previous) frames.push({ ram: Buffer.from(bytes).toString("base64"), transient: observation.transient });
+            else {
+              const changes: number[] = [];
+              for (let index = 0; index < bytes.length; index++) {
+                if (bytes[index] !== previous[index]) changes.push(index, bytes[index]!);
+              }
+              frames.push({ changes, transient: observation.transient });
+            }
+            previous = bytes;
+            const input = engine.classicState(), masks = team.act(observation, input);
+            diagnostics.push(team.controllers.map((controller, index) => {
+              const slot = observation.controllers[ports[index]!].slot;
+              const own = side === 1 ? input.team1 : input.team2, player = own.get_player_by_scnum(slot);
+              return { role: team.roles[index], slot, target: controller._last_target, role_target: team.targets[index],
+                decision: controller._last_decision,
+                frames: controller.scheduler.frames, decisions: controller.scheduler.decisions,
+                player: player ? { role: player.role, unavailable: player.unavailable, is_falling: player.is_falling,
+                  selection_flags: player.selection_flags } : null };
+            }));
+            actions.push(ports.map((port) => masks.get(port)!));
+            engine.step(masks.get(0)!, masks.get(1)!, masks.get(2) ?? 0);
+          }
+          const reference = queryOracle<{ actions: number[][]; decisions: string[][]; diagnostics: unknown[] }>({
+            config: DEFAULT_CLASSIC_CONFIG, team_size, side: side === 1 ? "home" : "away", frames,
+          });
+          expect(reference.actions).toHaveLength(actions.length);
+          for (const [frame, action] of actions.entries()) {
+            expect(action, `frame ${frame}: browser ${JSON.stringify(diagnostics[frame])}; Python ${JSON.stringify(reference.diagnostics[frame])}`)
+              .toEqual(reference.actions[frame]);
+          }
+        } finally { engine.dispose(); }
+      }, 180000);
+    }
+  }
+
   it("matches both independent Classic ports throughout a complete first period", async () => {
     const { core, engine } = await match();
     try {

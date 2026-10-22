@@ -248,7 +248,8 @@ class TeammateCoordinationTests(unittest.TestCase):
         info = team_info(defense_control1=-256, defense_control2=-1, goalie_clock_flags=1)
         self.assertFalse(ai.act(info).action.any())
         self.assertFalse(any(controller.buttons.b_down for controller in ai.controllers))
-        self.assertTrue(ai.act({**info, 'defense_control1': 0}).action[0])
+        # A valid selection alone is not evidence of a native faceoff participant.
+        self.assertFalse(ai.act({**info, 'defense_control1': 0}).action.any())
 
     def test_support_respects_both_attacking_directions_and_offside_line(self):
         ai = TeammateCoordinator(team_args())
@@ -392,6 +393,8 @@ class TeammateCoordinationTests(unittest.TestCase):
                        return_value={'gap': -3, 'frames': 8}), \
                  patch('nhl94_ai.agents.teammate_receiving.shot_value', return_value=30):
                 first = shared.receiver_action(state, 2, 2, np.zeros(12))[0]
+                self.assertIsNone(shared.pending.cue)
+                shared.accept_applied_action(2, 1, 2, first, np.zeros(12))
                 second = shared.receiver_action(state, 2, 3, first)[0]
                 third = shared.receiver_action(state, 2, 4, second)[0]
             self.assertEqual(first[8], 1)

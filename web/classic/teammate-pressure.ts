@@ -6,6 +6,7 @@ import { Player, type GameState, type Vec2 } from "./state";
 import { project_target } from "./target";
 
 const HORIZON = 24;
+const APPROACH_LIMIT = 48;
 export const TRAP_ROLES = ["contain", "close", "cover"];
 export interface PressureAssignment { plan: DefensePlan; contact: boolean; covered_closer: boolean }
 type Identity = [number, number[], number, number, number | null, number];
@@ -58,7 +59,10 @@ export class SharedPressure {
       .map(([slot, player]) => this.forecast(player, slot === guard ? target : undefined));
     const sign = state.team1.net.y > 0 ? 1 : -1;
     const threats = skaters(state.team2).map(([, player]) => player).filter((player) =>
-      player === carrier || Math.abs(player.x) < 85 && (player.y - carrier.y) * sign > 15);
+      player === carrier || [0, HORIZON].some((time) => {
+        const origin = bounded_projection(player, time)[0], carrierPoint = bounded_projection(carrier, time)[0];
+        return Math.abs(origin[0]) < 85 && (origin[1] - carrierPoint[1]) * sign > 15;
+      }));
     for (const time of [0, 8, 16, 24]) for (const threat of threats) {
       if (!this.known(threat)) return false;
       const origin = bounded_projection(threat, time)[0], available = guards.map((path) => path[time]!);
@@ -107,39 +111,45 @@ export class SharedPressure {
     if (depth > (boards ? 150 : 88)) { this.reset("too-close-to-own-goal", frame); return null; }
     if (this.key && frame - this.started >= 120) { this.reset("trap-timeout", frame); this.retryAt = frame + 36; }
     if (frame < this.retryAt) { this.diagnostics = { phase: "idle", reason: "regroup" }; return null; }
-    const coverTarget = project_target([point[0] * 0.45, point[1] + sign * 72]);
-    let guardIndex = slots.length === 3 ? [0, 1, 2].sort((a, b) =>
-      arrival_time(players[a]!, coverTarget) - arrival_time(players[b]!, coverTarget) || a - b)[0]! : null;
-    if (this.key && frame < this.until) guardIndex = this.key[4];
-    const attackers = slots.map((_, i) => i).filter((i) => i !== guardIndex);
-    const guard = guardIndex === null ? null : slots[guardIndex]!;
-    if (!this.coverage(state, attackers.map((i) => slots[i]!), guard, coverTarget, carrier)) {
-      this.reset("exposed-lane", frame); return null;
-    }
+    let guardIndices: (number | null)[] = slots.length === 3 ? [0, 1, 2] : [null];
+    if (this.key && frame < this.until) guardIndices = [this.key[4]];
     const choices: { score: number; identity: Identity; ready: boolean; targets: Map<number, Vec2> }[] = [];
-    for (const pair of [attackers, [...attackers].reverse()]) for (const flank of [-1, 1]) {
-      const [contain, close] = pair as [number, number];
-      const identity: Identity = [owner, [...slots], contain, close, guardIndex, flank];
-      if (this.key && frame < this.until && !same(identity, this.key)) continue;
-      const ready = (players[contain]!.y - carrier.y) * sign >= 8 &&
-        distance([players[contain]!.x, players[contain]!.y], point) <= 42 &&
-        distance([players[close]!.x, players[close]!.y], point) <= 48;
-      const gap = ready ? 12 : 22, side = point[0] > 0 ? 1 : -1;
-      const first = project_target([point[0] + (boards ? -side : flank) * gap, point[1] + sign * gap]);
-      const second = project_target([point[0] - (boards ? side * 6 : flank * gap), point[1] - sign * gap]);
-      const times = [arrival_time(players[contain]!, first), arrival_time(players[close]!, second)];
-      if (Math.max(...times) > HORIZON || Math.abs(times[0]! - times[1]!) > 14) continue;
-      const targets = new Map<number, Vec2>([[slots[contain]!, first], [slots[close]!, second]]);
-      if (guard !== null) targets.set(guard, coverTarget);
-      if (!this.clearRoutes(state, targets, owner)) continue;
-      choices.push({ score: times[0]! + times[1]! - (same(identity, this.key) ? 6 : 0), identity, ready, targets });
+    let covered = false, reachable = false;
+    for (const guardIndex of guardIndices) {
+      const attackers = slots.map((_, i) => i).filter((i) => i !== guardIndex);
+      const guard = guardIndex === null ? null : slots[guardIndex]!;
+      let y = guardIndex === null ? point[1] + sign * 72 : players[guardIndex]!.y;
+      y = sign * Math.min(232, Math.max(point[1] * sign + 40, y * sign));
+      const fraction = (state.team1.net.y - y) / (state.team1.net.y - point[1]);
+      const coverTarget = project_target([point[0] * fraction, y]);
+      if (!this.coverage(state, attackers.map((i) => slots[i]!), guard, coverTarget, carrier)) continue;
+      covered = true;
+      for (const pair of [attackers, [...attackers].reverse()]) for (const flank of [-1, 1]) {
+        const [contain, close] = pair as [number, number];
+        const identity: Identity = [owner, [...slots], contain, close, guardIndex, flank];
+        if (this.key && frame < this.until && !same(identity, this.key)) continue;
+        const ready = (players[contain]!.y - carrier.y) * sign >= 8 &&
+          distance([players[contain]!.x, players[contain]!.y], point) <= 42 &&
+          distance([players[close]!.x, players[close]!.y], point) <= 48;
+        const gap = ready ? 12 : 22, side = point[0] > 0 ? 1 : -1;
+        const first = project_target([point[0] + (boards ? -side : flank) * gap, point[1] + sign * gap]);
+        const second = project_target([point[0] - (boards ? side * 6 : flank * gap), point[1] - sign * gap]);
+        const times = [arrival_time(players[contain]!, first), arrival_time(players[close]!, second)];
+        if (Math.max(...times) > APPROACH_LIMIT || Math.abs(times[0]! - times[1]!) > 32) continue;
+        reachable = true;
+        const targets = new Map<number, Vec2>([[slots[contain]!, first], [slots[close]!, second]]);
+        if (guard !== null) targets.set(guard, coverTarget);
+        if (!this.clearRoutes(state, targets, owner)) continue;
+        choices.push({ score: times[0]! + times[1]! - (same(identity, this.key) ? 6 : 0), identity, ready, targets });
+      }
     }
     const best = choices.sort((a, b) => a.score - b.score)[0];
-    if (!best) { this.reset("approach-unreachable-or-obstructed", frame); return null; }
+    if (!best) { this.reset(!covered ? "exposed-lane" : !reachable ? "approach-unreachable" : "approach-obstructed", frame); return null; }
     const { identity, ready, targets } = best;
     if (!same(identity, this.key)) { if (!this.key) this.started = frame; this.until = frame + 24; }
     this.key = identity;
     const [, , contain, close] = identity;
+    const guard = identity[4] === null ? null : slots[identity[4]]!;
     const contact = ready ? pendingContact !== null && [contain, close].includes(pendingContact) ? pendingContact :
       [contain, close].sort((a, b) => arrival_time(players[a]!, [carrier.x, carrier.y]) -
         arrival_time(players[b]!, [carrier.x, carrier.y]))[0]! : null;

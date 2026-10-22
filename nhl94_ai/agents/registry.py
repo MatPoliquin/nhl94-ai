@@ -1,5 +1,6 @@
 """Explicit agent registration without importing neural networks."""
 from importlib import import_module
+from argparse import BooleanOptionalAction
 from nhl94_ai.agents.base import ScriptedAgent
 from nhl94_ai.agents.classic_options import resolve_goalie_positioning  # pylint: disable=unused-import
 
@@ -18,8 +19,22 @@ TEAM_INCOMPATIBLE = (
 
 
 def add_classic_arguments(parser):
-    parser.add_argument('--teammate-support-options', action='store_true',
-                        help='Experiment with scored reachable support positions in team_vs_game')
+    parser.add_argument('--teammate-support-options', action=BooleanOptionalAction, default=False,
+                        help='Scored reachable support positions; disable explicitly for baseline steering')
+    parser.add_argument('--teammate-offpuck', action='store_true',
+                        help='Evaluate scored off-puck cuts/flanks; requires --teammate-support-options')
+    parser.add_argument('--teammate-intent-arbitration', action='store_true',
+                        help='Separate native poke, switch and pass requests')
+    parser.add_argument('--teammate-defensive-support', action='store_true',
+                        help='Threat-aware fallback screen coverage')
+    parser.add_argument('--teammate-primary-policy', choices=('baseline', 'short-lease', 'lost-race'), default='baseline',
+                        help='Evaluate primary race lease and invalidation variants')
+    parser.add_argument('--teammate-transient-receiving', action=BooleanOptionalAction, default=None,
+                        help='Preserve released receptions during unknown controller tables (default: on in coordinated mode); '
+                             '--no-teammate-transient-receiving disables only that preservation for comparison')
+    parser.add_argument('--teammate-cue-anticipation', action='store_true',
+                        help='Time bot-receiver one-timer cue from shared pass intent')
+    parser.add_argument('--teammate-role-balance', action='store_true', help='Position-based three-bot safety assignments')
     parser.add_argument('--goalie-positioning', choices=('classic', 'deep', 'deep-csave'),
                         help='Manual goalie controller (default: deep-csave on Genesis, classic on SNES)')
     parser.add_argument('--goalie-planner', choices=('physics', 'search-12', 'search-24', 'search-48', 'outcome-24'),

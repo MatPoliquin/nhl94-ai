@@ -22,7 +22,9 @@ export interface PassCommitment {
   released: number | null;
   received: number | null;
   cue: number | null;
+  predicted_contact: number | null;
   shot: number | null;
+  armed: number | null;
 }
 
 export class SharedReceiving {
@@ -39,6 +41,8 @@ export class SharedReceiving {
   propose(request: PassIntention | null, controller: number | null, slots: readonly number[],
     state: GameState, frame: number): void {
     if (!request) return;
+    // Goalie releases do not reliably update native pass counters or targets.
+    if (request.passer === state.team1.goalie_scnum()) return;
     if (this.pending) {
       if (request.frame <= this.pending.started) return;
       this.finish("next-pass-requested");
@@ -51,7 +55,8 @@ export class SharedReceiving {
       expiry: frame + Math.max(8, Math.min(72, request.deadline - request.frame)),
       purpose: request.purpose, passes_before: state.team1.pass_attempts, shots_before: state.team1.stats.shots,
       attempts_before: state.team1.one_timer_attempts, goals_before: state.team1.stats.score,
-      phase: "release", released: null, received: null, cue: null, shot: null,
+      phase: "release", released: null, received: null, cue: null, shot: null, armed: null,
+      predicted_contact: request.flight_frames == null ? null : request.frame + Math.ceil(request.flight_frames),
     };
   }
 
@@ -76,6 +81,7 @@ export class SharedReceiving {
             this.pending.receiver = actual;
             this.pending.purpose = "native-pass";
             this.pending.receiver_controller = slots.includes(actual) ? slots.indexOf(actual) : null;
+            this.pending.cue = this.pending.predicted_contact = null;
           }
         }
         if (this.pending) { this.pending.phase = "flight"; this.pending.released = frame; }
@@ -84,6 +90,8 @@ export class SharedReceiving {
     const plan = this.pending;
     if (plan) {
       const receiver = state.team1.get_player_by_scnum(plan.receiver), attempts = state.team1.one_timer_attempts;
+      if (slots.includes(plan.receiver)) plan.receiver_controller = slots.indexOf(plan.receiver);
+      if (receiver?.is_one_timer && plan.released !== null && plan.armed === null) plan.armed = frame;
       const shot = state.team1.stats.shots > plan.shots_before ||
         attempts !== null && plan.attempts_before !== null && attempts > plan.attempts_before;
       if (plan.shot === null && plan.released !== null && shot && state.engine.shot_player === plan.receiver) {
@@ -98,20 +106,22 @@ export class SharedReceiving {
       } else if (plan.released !== null && owner >= 0 && owner !== plan.passer) this.finish("other-receiver");
       else if (plan.phase === "received" && owner !== plan.receiver) this.finish("reception-possession-ended");
       else if (!receiver || receiver.is_falling || !eligible(receiver) && !receiver.is_one_timer) this.finish("receiver-unavailable");
-      else if (plan.receiver_controller !== null && !slots.includes(plan.receiver)) this.finish("receiver-selection-lost");
+      else if (plan.receiver_controller !== null && !slots.includes(plan.receiver) &&
+          (plan.phase !== "flight" || slots.some((slot) => slot >= 0))) this.finish("receiver-selection-lost");
       else if (plan.released !== null && owner === plan.passer) this.finish("recovered-by-passer");
       if (this.pending && frame >= plan.expiry) this.finish(`unresolved-${plan.phase}`);
     }
     this.last_count = count; this.last_owner = owner;
   }
 
-  receiverAction(state: GameState, controller: number, frame: number, previous: Action): { action: Action; target: Vec2 } | null {
+  receiverAction(state: GameState, controller: number, frame: number, previous: Action):
+    { action: Action; target: Vec2; role: "receive" | "one-timer-receiver" } | null {
     const plan = this.pending;
     if (!plan || plan.receiver_controller !== controller || !["release", "flight"].includes(plan.phase)) return null;
     const player = state.team1.get_player_by_scnum(plan.receiver);
     if (!player || !eligible(player) && !player.is_one_timer) return null;
     const action = neutralAction();
-    if (plan.phase === "release" || player.is_one_timer) return { action, target: [player.x, player.y] };
+    if (plan.phase === "release" || player.is_one_timer) return { action, target: [player.x, player.y], role: "receive" };
     const forecast = passive_reception(state, player), interception = reachable_reception(state, player);
     let target: Vec2 = [player.x, player.y];
     if (!forecast || forecast.gap > -2) {
@@ -125,14 +135,21 @@ export class SharedReceiving {
     const contact = plan.purpose === "one-timer" ? one_timer_reception(state, player) : null;
     if (contact && contact.gap <= -2 && contact.frames > 1 && contact.frames <= 16 &&
         player.y * attack > 175 && player.y * attack < 245 && Math.abs(player.x) < 70 &&
-        shot_value(state, player) > 0 && plan.cue === null && !previous[Buttons.INPUT_C]) {
+        shot_value(state, player) > 0 && plan.cue === null && plan.armed === null && !previous[Buttons.INPUT_C]) {
       const lifecycle = new OneTimerLifecycle();
       lifecycle.pending = new OneTimerState(plan.passer, plan.receiver, plan.expiry,
         frame - HOCKEY_PASS_PRESS_FRAMES, plan.passes_before);
       lifecycle.pending.actual_receiver = plan.receiver; lifecycle.pending.launched = true;
       const step = lifecycle.step(state, frame);
-      if (step instanceof ActionStep) { plan.cue = frame; return { action: step.buttons, target }; }
+      if (step instanceof ActionStep) return { action: step.buttons, target, role: "one-timer-receiver" };
     }
-    return { action, target };
+    return { action, target, role: "receive" };
+  }
+
+  acceptAppliedAction(controller: number, slot: number, frame: number, action: Action, previous: Action): void {
+    const plan = this.pending;
+    if (!plan || !["release", "flight"].includes(plan.phase)) return;
+    if (plan.receiver_controller === controller && plan.receiver === slot && plan.cue === null &&
+        plan.armed === null && action[Buttons.INPUT_C] && !previous[Buttons.INPUT_C]) plan.cue = frame;
   }
 }
