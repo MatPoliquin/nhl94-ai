@@ -1,6 +1,6 @@
 # NHL94 AI
 
-> **Work in progress**: The ML less baseline bot is available now. Training workflows are unavailable pending a redesign. Existing non-ES model playback and evaluation remain supported; ES has been removed.
+> **Work in progress**: The ML less baseline bot is available now. Training workflows are unavailable pending a redesign.
 
 
 * Benchmark various Neural Networks architectures, LLMs and ML/RL algos on NHL94
@@ -97,7 +97,6 @@ nhl94 external --adapter my_external_package.adapter:create \
   --pairs 10 --seed 26534 --periods 3 --output /tmp/external-results.json
 ```
 
-
 To play against an installed adapter yourself, use `--human` and select your
 side. This starts a playable window with the same keyboard and M30 controls as
 `nhl94 play`:
@@ -107,8 +106,6 @@ side. This starts a playable window with the same keyboard and M30 controls as
 nhl94 external --adapter my_external_package.adapter:create \
   --human --fixture sabres-ducks --side away
 ```
-
-
 
 ## Learned policies
 
