@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>NHL94 AI CONTEST</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>NHL94 AI CONTEST<span class="badge">Smoke test 0.0.1</span></h1>
+          <p class="intro">UNDER CONSTRUCTION</p>
+        </div>
+        <div class="header-actions">
+          <nav class="site-nav" aria-label="Site navigation">
+            <a href="./bots.html" target="_blank" rel="noopener" title="Open Bots in a new tab">Bots</a>
+            <a href="./leaderboards.html" target="_blank" rel="noopener" title="Open Leaderboards in a new tab">Leaderboards</a>
+            <a href="./help.html" target="_blank" rel="noopener" title="Open Help in a new tab">Help</a>
+            <a href="./about.html" target="_blank" rel="noopener" title="Open About in a new tab">About</a>
+          </nav>
+          <span class="local-indicator">LOCAL ONLY</span>
+        </div>
+      </header>
+      <section class="notice">
+        <strong>Local AI arena.</strong>
+        Choose ROM AI for the game's built-in CPU or no ml bot for the Genesis scripted bot.
+      </section>
+      <p id="error" role="alert" hidden></p>
+      <div class="layout">
+        <section class="arena" aria-label="Emulator">
+          <div class="screen">
+            <canvas id="screen" width="320" height="224" tabindex="0" aria-label="NHL94 game screen"></canvas>
+            <p id="placeholder">Load your local NHL94 ROM to begin.</p>
+          </div>
+          <div class="transport">
+            <button id="play" disabled>Play</button>
+            <button id="step" disabled>Step one frame</button>
+            <button id="restart" disabled>Restart match</button>
+            <label class="check"><input id="sound" type="checkbox" /> Sound</label>
+            <span class="frame-label">FRAME <output id="frame" aria-label="Native frame">0</output></span>
+          </div>
+          <p id="status" role="status">Ready. Select an uncompressed original NHL94 Genesis ROM.</p>
+          <div class="virtual-controls" aria-label="On-screen controller">
+            <button data-code="ArrowUp" aria-label="Up">Up</button>
+            <button data-code="ArrowDown" aria-label="Down">Down</button>
+            <button data-code="ArrowLeft" aria-label="Left">Left</button>
+            <button data-code="ArrowRight" aria-label="Right">Right</button>
+            <button data-code="KeyZ">A</button>
+            <button data-code="KeyX">B</button>
+            <button data-code="KeyC">C</button>
+            <button data-code="Enter">Start</button>
+          </div>
+          <p class="hint">Arrows: skate/menu &middot; Z: A &middot; X: B &middot; C: C &middot; Enter: Start.
+            Gamepad: select your device and check its mapping in Step 3.</p>
+          <section class="panel bot-configuration" aria-labelledby="bot-configuration-title">
+            <h2 id="bot-configuration-title">Bot Configuration</h2>
+            <p class="detail">Applies to no ml bot slots. Changing settings pauses the match and resets bot decisions.
+              Lower frequencies hold all inputs between decisions, including goalie inputs. Ratings-off changes the AI's view, not game physics.
+              Same-team no ml bot slots coordinate automatically and use native automatic goalies.</p>
+            <fieldset id="bot-settings" class="bot-settings">
+              <legend>Bot frequency</legend>
+              <div class="frequency-options">
+                <label><input type="radio" name="bot-frequency" value="60" checked /> 60 Hz</label>
+                <label><input type="radio" name="bot-frequency" value="15" /> 15 Hz</label>
+                <label><input type="radio" name="bot-frequency" value="10" /> 10 Hz</label>
+                <label><input type="radio" name="bot-frequency" value="6" /> 6 Hz</label>
+              </div>
+              <label class="check"><input id="bot-goalie" type="checkbox" checked /> AI Goalie</label>
+              <label class="check"><input id="bot-ratings" type="checkbox" checked /> Consider player ratings</label>
+            </fieldset>
+          </section>
+          <section class="panel game-stats" aria-labelledby="game-stats-title">
+            <h2 id="game-stats-title">Game Stats</h2>
+            <p id="game-stats-status" class="detail">Load a game to see its statistics.</p>
+            <table aria-label="Game stats">
+              <thead>
+                <tr><th scope="col">Statistic</th><th scope="col">Home</th><th scope="col">Away</th></tr>
+              </thead>
+              <tbody id="game-stats-body"></tbody>
+            </table>
+            <p class="detail">Native pause-menu totals. Times are minutes:seconds.
+              Scoring chances show goals / attempts; passing shows completions / attempts and percentage.</p>
+          </section>
+        </section>
+        <aside>
+          <section class="panel">
+            <h2>1. Load your game</h2>
+            <label class="file-label" for="rom">Local NHL94 ROM (.bin, .md, .gen)</label>
+            <input id="rom" type="file" accept=".bin,.md,.gen" />
+            <p id="rom-info" class="detail">Original ROM only for this test. No ROM is bundled or uploaded.</p>
+            <p class="detail">Default start: Sabres vs Mighty Ducks, with manual goalies.
+              The supplied match state is restored after loading your ROM.</p>
+          </section>
+          <section class="panel">
+            <h2>2. Configure controllers</h2>
+            <div class="controller-list">
+              <fieldset class="controller-row">
+                <legend>Controller 1</legend>
+                <div class="controller-fields">
+                  <label for="controller-1-agent">Player
+                    <select id="controller-1-agent" aria-label="Controller 1 player"></select>
+                  </label>
+                  <label for="controller-1-team">Team
+                    <select id="controller-1-team" aria-label="Controller 1 team">
+                      <option value="1">Team 1 (Home)</option>
+                      <option value="2">Team 2 (Away)</option>
+                    </select>
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset class="controller-row">
+                <legend>Controller 2</legend>
+                <div class="controller-fields">
+                  <label for="controller-2-agent">Player
+                    <select id="controller-2-agent" aria-label="Controller 2 player"></select>
+                  </label>
+                  <label for="controller-2-team">Team
+                    <select id="controller-2-team" aria-label="Controller 2 team">
+                      <option value="1">Team 1 (Home)</option>
+                      <option value="2">Team 2 (Away)</option>
+                    </select>
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset class="controller-row">
+                <legend>Controller 3</legend>
+                <div class="controller-fields">
+                  <label for="controller-3-agent">Player
+                    <select id="controller-3-agent" aria-label="Controller 3 player"></select>
+                  </label>
+                  <label for="controller-3-team">Team
+                    <select id="controller-3-team" aria-label="Controller 3 team">
+                      <option value="1">Team 1 (Home)</option>
+                      <option value="2">Team 2 (Away)</option>
+                    </select>
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset class="controller-row">
+                <legend>Controller 4</legend>
+                <div class="controller-fields">
+                  <label for="controller-4-agent">Player
+                    <select id="controller-4-agent" aria-label="Controller 4 player"></select>
+                  </label>
+                  <label for="controller-4-team">Team
+                    <select id="controller-4-team" aria-label="Controller 4 team">
+                      <option value="1">Team 1 (Home)</option>
+                      <option value="2">Team 2 (Away)</option>
+                    </select>
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+            <p id="controller-error" role="alert" hidden></p>
+            <p id="controller-note" class="detail"></p>
+            <p class="detail">Home/Away changes the in-game controller assignment.
+              ROM AI and None release that controller; teams without an assigned controller use the game's built-in ROM AI.
+              Assign up to three no ml bot teammates to one team against the CPU or a Human on the other team.
+              Up to two Human slots use keyboard/on-screen controls and the selected gamepad.</p>
+          </section>
+          <section class="panel">
+            <h2>3. Input device</h2>
+            <p class="detail">Keyboard and on-screen controls are available without a gamepad.
+              Select a gamepad below to use it with your Human controller slot.</p>
+            <label class="file-label" for="gamepad">Gamepad device</label>
+            <select id="gamepad" aria-describedby="gamepad-status">
+              <option value="">Keyboard only</option>
+            </select>
+            <p id="gamepad-status" class="detail" role="status">Checking browser gamepad access...</p>
+            <details class="gamepad-details">
+              <summary>Gamepad setup and live inputs</summary>
+              <button id="gamepad-setup" disabled>Set up buttons / D-pad</button>
+              <button id="gamepad-reset" disabled>Reset mapping</button>
+              <p class="detail">Standard gamepads and the M30 / 6B receiver (0ca3:0024, 10 buttons / 3 axes) work automatically.
+                Use setup to override the defaults or configure another layout. Custom mappings are saved in this browser.
+                Reset mapping restores the automatic preset when available.</p>
+              <pre id="gamepad-live" aria-label="Live gamepad inputs">No selected gamepad input.</pre>
+              <p class="detail">If no device appears, click the page and press a gamepad button.
+                In Firefox, check that gamepad support is enabled and try a regular browser
+                window if this is an embedded page.</p>
+            </details>
+          </section>
+          <section class="panel">
+            <h2>4. Inspect and replay</h2>
+            <button id="export" disabled>Download input replay</button>
+            <label class="file-label" for="replay">Load a local input replay</label>
+            <input id="replay" type="file" accept=".json" disabled />
+            <p class="detail">Replays restore their recorded starting state and controller changes,
+              then use recorded buttons, not bot inference.
+              Maximum recording: 108,000 native frames.</p>
+          </section>
+        </aside>
+      </div>
+      <footer>
+        <span>TypeScript + custom Genesis Plus GX WASM bridge. No accounts, lobby, netplay or arbitrary bot uploads.</span>
+        <span><a href="./core/LICENSE.txt">Core license</a> &middot;
+          <a href="./fonts/barlow-condensed-LICENSE.txt">Font license</a> &middot;
+          <a href="./core/source.tar.gz">Core + wrapper source</a></span>
+      </footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

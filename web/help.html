@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Help - NHL94 AI CONTEST</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="information-page">
+      <header>
+        <div>
+          <a class="site-brand" href="./index.html">NHL94 AI CONTEST</a>
+          <p class="intro">An NHL94 AI research arena.</p>
+        </div>
+        <nav class="site-nav" aria-label="Site navigation">
+          <a href="./bots.html">Bots</a>
+          <a href="./leaderboards.html">Leaderboards</a>
+          <a href="./help.html" aria-current="page">Help</a>
+          <a href="./about.html">About</a>
+        </nav>
+      </header>
+      <h1>Help</h1>
+      <p class="intro page-intro">How to use the current local browser arena.</p>
+      <div class="content-stack">
+        <section class="panel page-content">
+          <h2>1. Load your game</h2>
+          <p>Select your legally obtained original NHL94 Genesis ROM in the arena.
+            The emulator runs locally in your browser; your ROM is not uploaded or included with this site.</p>
+          <p>This version accepts the original raw .bin, .md or .gen ROM, up to 4 MiB.
+            ZIP files, interleaved SMD files, roster hacks and other ROM revisions are not supported yet.</p>
+        </section>
+        <section class="panel page-content">
+          <h2>2. Configure controllers</h2>
+          <p>Controller 1 defaults to Human/Home and controller 2 to no ml bot/Away.
+            Each active slot can be Human, an <a href="./bots.html">available bot</a>, or None.
+            All four slots are available; controllers 3 and 4 default to None.</p>
+          <p>Loading your ROM restores the bundled Sabres vs Mighty Ducks manual-goalie
+            match. Choose Home or Away beside each slot to change its in-game controller
+            assignment immediately, without selecting players in the game's menus.</p>
+          <p>With one Human slot, keyboard, on-screen controls and your selected gamepad
+            all control that slot. With two Human slots, keyboard/on-screen input goes to
+            the first Human slot and the gamepad to the second Human slot (in controller-number order).
+            Up to two Human slots are supported. ROM AI and None release a controller;
+            teams with no assigned controller return to the game's built-in CPU.
+            ROM AI does not send scripted button inputs. Its Home/Away selector is disabled
+            because it does not assign a controller to a team.</p>
+          <p>For Bot vs Bot, choose a bot for each slot and press Play.
+            Changing controller setup pauses playback and applies the new ownership
+            before the next frame. For three bots against the CPU, set controllers 1, 2 and 3
+            to no ml bot/Home and leave controller 4 as None. For a human opponent,
+            set controller 4 to Human/Away; keyboard and the selected gamepad control it.
+            no ml bot teammates automatically coordinate carrier, receiving, passing-option
+            and deep-coverage roles.</p>
+        </section>
+        <section class="panel page-content">
+          <h2>3. Choose an input device</h2>
+          <p>Use the keyboard or select a browser-detected gamepad in Step 3.</p>
+          <ul>
+            <li>Arrow keys: D-pad.</li>
+            <li>Z / X / C: Genesis A / B / C.</li>
+            <li>Enter: Genesis Start, including the in-game pause menu.</li>
+            <li>Standard gamepad X / A / B: Genesis A / B / C; Start: Genesis Start.</li>
+          </ul>
+          <p>If your gamepad does not appear, click inside the arena and press a controller
+            button. Browser activation may be required even when Linux recognizes the device.</p>
+          <p>Standard gamepads and the M30 / 6B receiver (0ca3:0024 with 10 buttons and 3 axes)
+            are mapped automatically. For that receiver, physical A/B/C map directly to Genesis A/B/C;
+            A/B/C use buttons 0/1/5, Start uses button 9 and the D-pad uses axes 0/1.</p>
+          <p>For another raw layout or a custom override, expand <strong>Gamepad setup and live inputs</strong>,
+            select <strong>Set up buttons / D-pad</strong>, and follow the eight prompts.
+            Custom mappings are saved locally in this browser and restored after reload or reconnection.
+            Reset mapping removes the saved override and restores the automatic preset when available.
+            If browser storage is blocked, the arena warns that custom mappings only last for this tab.
+            Setup pauses the match; press Play after finishing.</p>
+        </section>
+        <section class="panel page-content">
+          <h2>Playback and game statistics</h2>
+          <p><strong>Play/Pause</strong> starts or pauses emulation.
+            <strong>Step one frame</strong> advances exactly one native frame.
+            <strong>Restart match</strong> restores the default match and starts a new recording.
+            Sound is optional and begins after a user action.</p>
+          <p>The Game Stats table beneath Bot Configuration shows Home/Away totals from
+            the game's native team counters, including every pause-menu Game Statistics row.</p>
+          <p><strong>Bot Configuration applies to no ml bot.</strong> Defaults come from
+            the project's bot JSON configuration: 60 Hz, AI Goalie on and player ratings on.
+            At 60 Hz no ml bot reacts and plans each native frame, preserving four-frame
+            shot holds and its tactical time budgets. 15, 10 and 6 Hz hold all inputs for 4, 6 and 10 native
+            frames, including goalie inputs.</p>
+          <p>AI Goalie enables selective manual goalie control on teams with a no ml bot slot.
+            Turning it off restores native automatic goalies on those teams.
+            Teams with multiple assigned controllers always use automatic goalies, matching
+            no ml bot's teammate mode; manual goalie AI is for a sole no ml bot controller.
+            Turning player ratings off gives no ml bot neutral ratings for both teams without
+            changing actual game ratings, energy, handedness, positions or physics.
+            These settings do not affect Human inputs or ROM AI.
+            Changing a setting pauses the match and resets no ml bot's pending decisions.</p>
+          <p>Hiding the arena tab pauses emulation. The arena's Bots, Leaderboards, Help and About links
+            open a new tab so reading them does not unload your match.</p>
+        </section>
+        <section class="panel page-content">
+          <h2>4. Record and replay</h2>
+          <p>Download the input replay in Step 4. Load it again with the same ROM,
+            starting state and emulator build, then press Play. Replays restore the saved
+            start, apply recorded controller-assignment and goalie-mode changes and reproduce the recorded
+            inputs without running the bots again.</p>
+          <p>Replay playback disables live controller setup and no ml bot settings. Recordings are limited to
+            108,000 native frames and replay files to 4 MiB. Replays contain inputs and
+            compatibility identifiers, not the ROM or bot source.</p>
+        </section>
+        <section class="panel page-content">
+          <h2>Current scope</h2>
+          <p>This is a local browser test arena using Genesis Plus GX WebAssembly.
+            no ml bot is the Genesis baseline TypeScript port with passing, one-timers,
+            possession, defense and selective manual goalies. Each bot slot has independent
+            execution state; two or three same-team no ml bot slots share a tactical plan.
+            Experimental Python policies and optional experimental support planners are not included.
+            Learned models, online challenges and
+            ranked competitions are not implemented yet.</p>
+        </section>
+      </div>
+      <footer><a href="./index.html">Back to arena</a><a href="./fonts/barlow-condensed-LICENSE.txt">Font license</a></footer>
+    </main>
+  </body>
+</html>

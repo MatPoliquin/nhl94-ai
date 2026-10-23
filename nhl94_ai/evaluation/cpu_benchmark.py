@@ -1,0 +1,480 @@
+"""Seeded first-period trials against NHL94's built-in CPU, with real rosters."""
+import argparse
+from collections import Counter
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
+import hashlib
+import inspect
+import json
+from pathlib import Path
+from types import SimpleNamespace
+
+import numpy as np
+
+from nhl94_ai.agents.registry import ALIASES, add_classic_arguments, create_scripted, resolve_goalie_positioning
+from nhl94_ai.env.actions import HockeyActionController
+# Re-export historical helper imports for existing scripts.
+from nhl94_ai.game.genesis_match import RAM, CPU_RAM, away_view, update_state, select_side, lineup, cpu_view
+from nhl94_ai.game.state import NHL94GameState
+from nhl94_ai.game.ram import pass_geometry_info, restore_away_control
+from nhl94_ai.evaluation.pass_outcomes import PassOutcomes
+from nhl94_ai.evaluation.offense_metrics import OffenseMetrics
+from nhl94_ai.evaluation.defense_metrics import CarrierDefenseMetrics, GoalieDefenseMetrics
+
+
+MATCHUPS = {
+    'penguins-senators': ('PenguinsVsSenators.start', 1),
+    'senators-penguins': ('PenguinsVsSenators.start', 2),
+    'nordiques-canadiens': ('CanadiensVsNordiques.start', 2),
+}
+DEFAULT_MATCHUPS = list(MATCHUPS)
+MATCHUPS.update({
+    'sabres-ducks-manual': ('SabresVsMightyDucks.ManualGoalie.Start', 1),
+    'ducks-sabres-manual': ('SabresVsMightyDucks.ManualGoalie.Start', 2),
+    'ducks-campbell-manual': ('MightyDucksVsAllStarCampbell.ManualGoalie.Start', 1),
+    'campbell-ducks-manual': ('MightyDucksVsAllStarCampbell.ManualGoalie.Start', 2),
+})
+
+
+def cpu_match(fixture, *, classic_control_interval=0, goalie_planner=None, goalie_positioning=None):
+    from nhl94_ai.env.factory import make_retro
+    from stable_retro.data import get_romfile_path
+    agent_name, matchup, seed, seconds, frame_skip, schema, *options = fixture
+    goalie_policy = options[0] if options else 'off'
+    cross_crease = bool(options[1]) if len(options) > 1 else False
+    deke = bool(options[2]) if len(options) > 2 else False
+    uncertain_carry = bool(options[3]) if len(options) > 3 else False
+    chance_creation = bool(options[4]) if len(options) > 4 else False
+    offense_lookahead = bool(options[5]) if len(options) > 5 else False
+    refinements = options[6] if len(options) > 6 else ()
+    possession_value = bool(options[7]) if len(options) > 7 else False
+    possession_ablation = options[8] if len(options) > 8 else None
+    receiver_selection = options[9] if len(options) > 9 else None
+    shot_placement = options[10] if len(options) > 10 else None
+    reception_control = bool(options[11]) if len(options) > 11 else False
+    one_timer_execution = options[12] if len(options) > 12 else None
+    rebound_recovery = bool(options[13]) if len(options) > 13 else False
+    goalie_save_timing = options[14] if len(options) > 14 else 'classic'
+    goalie_model = options[15] if len(options) > 15 else None
+    goalie_interval = options[16] if len(options) > 16 else None
+    retention_model = options[17] if len(options) > 17 else None
+    opportunistic_cross_crease = bool(options[18]) if len(options) > 18 else False
+    goalie_positioning = resolve_goalie_positioning(SimpleNamespace(
+        goalie_positioning=goalie_positioning, goalie_policy=goalie_policy,
+        goalie_planner=goalie_planner, goalie_model=goalie_model,
+        goalie_decision_interval=goalie_interval, goalie_save_timing=goalie_save_timing))
+    if goalie_policy != 'off' and schema != 'FILTERED':
+        raise ValueError('Manual goalie CPU trials require FILTERED buttons')
+    state_name, side = MATCHUPS[matchup]
+    env = make_retro(game='NHL94-Genesis-v0', state=state_name, num_players=1, goalie_policy=goalie_policy)
+    try:
+        for name, (address, kind) in CPU_RAM.items():
+            env.data.set_variable(name, {'address': address, 'type': kind})
+        env.reset(seed=seed)
+        env.data.update_ram()
+        select_side(env.data, env.data.lookup_all(), side)
+        env.data.set_value('bench_rng', seed)
+        env.data.set_value('bench_clock', seconds)
+        *_, info = env.step(np.zeros(12, dtype=np.int8))
+        starting_lineup = lineup(info, Path(get_romfile_path('NHL94-Genesis-v0')).read_bytes())
+        if (info['bench_team1'], info['bench_team2']) != (side, 0):
+            raise ValueError('CPU opponent still has a joystick assigned.')
+        agent = create_scripted(agent_name, SimpleNamespace(
+            classic_control_interval=classic_control_interval,
+            goalie_planner=goalie_planner,
+            goalie_positioning=goalie_positioning,
+            action_type=schema, goalie_policy=goalie_policy, cross_crease=cross_crease, deke=deke,
+            uncertain_carry=uncertain_carry, chance_creation=chance_creation,
+            offense_lookahead=offense_lookahead, classic_refinements=refinements,
+            possession_value=possession_value, possession_ablation=possession_ablation,
+            receiver_selection=receiver_selection, shot_placement=shot_placement,
+            reception_control=reception_control, one_timer_execution=one_timer_execution,
+            rebound_recovery=rebound_recovery, goalie_save_timing=goalie_save_timing,
+            goalie_model=goalie_model, goalie_decision_interval=goalie_interval, retention_model=retention_model,
+            opportunistic_cross_crease=opportunistic_cross_crease))
+        agent.frame_skip = frame_skip
+        state, frames = NHL94GameState(5), 1
+        context = SimpleNamespace(action_type=schema, game_state=state)
+        processor = HockeyActionController(context)
+        macro = processor._new_action_state()
+        decisions, digest = Counter(), hashlib.sha256()
+        defense_frames, defense_requests = Counter(), Counter()
+        controlled_recoveries = 0
+        inactive_skater_frames = 0
+        ordinary_pass_metrics = Counter()
+        last_ordinary_pass = None
+        passes = PassOutcomes(side)
+        offense = OffenseMetrics()
+        carrier_defense = CarrierDefenseMetrics()
+        opponent = 3 - side
+        goalie_defense = GoalieDefenseMetrics(info[f'p{opponent}_score'],
+                                             info[f'bench_one_timer_goals{opponent}'])
+        budget = seconds * 120 + 6000
+        while info['bench_clock'] > 0 and frames < budget:
+            info = pass_geometry_info(env, info)
+            view = cpu_view(state, info, side)
+            inactive_skater_frames += sum(p.role is not None and p.role < 0
+                                          for p in (*view.team1.players, *view.team2.players))
+            offense.observe(frames, view)
+            before_tick = agent.scheduler.decisions
+            action = agent.predict_game_state(view)[0]
+            event = agent.offense.pass_action.last_pass
+            if event is not None and event['end_frame'] != last_ordinary_pass:
+                ordinary_pass_metrics[event['outcome']] += 1
+                last_ordinary_pass = event['end_frame']
+            if agent.scheduler.decisions != before_tick:
+                decisions[agent._last_decision] += 1
+            request = agent._last_pass_request
+            if request and request['frame'] != getattr(passes, 'last_request_frame', None):
+                passes.start(frames, info, request['passer'], request['receiver'], request['purpose'])
+                passes.last_request_frame = request['frame']
+            diagnostics = agent.defense_diagnostics
+            carrier_defense.observe(view, diagnostics)
+            if diagnostics:
+                defense_frames[diagnostics['decision']] += 1
+                if diagnostics['mode'].endswith('-request'):
+                    defense_requests[diagnostics['mode']] += 1
+            if schema == 'HOCKEY_INTENT_DPAD':
+                context.game_state = view
+                buttons = processor._process_action(action, macro)[0]
+            else:
+                buttons = action
+            goalie_defense.observe(view, agent.goalie, buttons, frames)
+            offense.record_action(frames, view, agent._last_decision, agent.offense_diagnostics,
+                                  buttons, target=agent._last_target)
+            digest.update(np.asarray(buttons, dtype=np.int8).tobytes())
+            before_owner = info['puck_owner']
+            *_, info = env.step(buttons)
+            if side == 2:
+                info = restore_away_control(env.data, info, controller_prefix='bench', player_prefix='cpu', slots=6)
+            if diagnostics and before_owner != info['puck_owner'] == diagnostics['acting_slot']:
+                controlled_recoveries += 1
+            carrier_defense.after_step(info['puck_owner'])
+            goalie_defense.after_step(info[f'p{opponent}_score'], info[f'bench_one_timer_goals{opponent}'])
+            frames += 1
+            passes.observe(frames, info)
+        passes.finish(frames, info, 'period_ended' if info['bench_clock'] == 0 else 'trial_incomplete')
+        agent.end_one_timer('period-ended' if info['bench_clock'] == 0 else 'trial-incomplete')
+        ended = sum(agent.one_timer.metrics.values())
+        if ended != agent.one_timer.starts:
+            raise RuntimeError(f'Unbalanced one-timer lifecycle: {agent.one_timer.starts} starts, {ended} endings.')
+        return {
+            'agent': agent_name, 'matchup': matchup, 'side': side, 'seed': seed,
+            'classic_control_interval': classic_control_interval,
+            'control_rate': agent.control_rate.report() if getattr(agent, 'control_rate', None) else None,
+            'goals': [info['p1_score'], info['p2_score']],
+            'shots': [info['bench_shots1'], info['bench_shots2']],
+            'one_timers': [info['bench_one_timers1'], info['bench_one_timers2']],
+            'one_timer_goals': [info['bench_one_timer_goals1'], info['bench_one_timer_goals2']],
+            'one_timer_metrics': dict(agent.one_timer.metrics),
+            'one_timer_accounting': {'started': agent.one_timer.starts, 'ended': ended},
+            'carry_metrics': dict(agent.carry_metrics),
+            'retention_model': retention_model,
+            'retention_metrics': dict(agent.retention_filter.metrics) if getattr(agent, 'retention_filter', None) else {},
+            'decisions': dict(decisions), 'frames': frames,
+            'defense_frames': dict(defense_frames), 'defense_requests': dict(defense_requests),
+            'controlled_recoveries': controlled_recoveries,
+            'carrier_defense_metrics': carrier_defense.summary(),
+            'inactive_skater_frames': inactive_skater_frames,
+            'ordinary_pass_metrics': dict(ordinary_pass_metrics),
+            'pass_outcomes': passes.summary(), 'pass_events': passes.events,
+            'offense_metrics': offense.summary(), 'zone_entries': offense.entries,
+            'goalie_contact_events': offense.goalie_contacts,
+            'clock_remaining': info['bench_clock'], 'completed': info['bench_clock'] == 0,
+            'teams': [info['home_team'], info['away_team']], 'lineup': starting_lineup,
+            'actions_sha256': digest.hexdigest(),
+            'initial_state_sha256': hashlib.sha256(env.initial_state).hexdigest(),
+            'goalie_policy': goalie_policy,
+            'goalie_planner': goalie_planner,
+            'goalie_positioning': goalie_positioning,
+            'goalie_save_timing': goalie_save_timing, 'goalie_model': goalie_model,
+            'goalie_decision_interval': goalie_interval,
+            'goalie_metrics': dict(agent.goalie.metrics) if agent.goalie else {},
+            'goalie_context_metrics': goalie_defense.summary(),
+            'cross_crease': cross_crease,
+            'cross_crease_metrics': dict(agent.cross_crease.metrics) if agent.cross_crease else {},
+            'cross_crease_events': agent.cross_crease.events if agent.cross_crease else [],
+            'opportunistic_cross_crease': opportunistic_cross_crease,
+            'crossing_finish_metrics': dict(agent.crossing_finish.metrics) if agent.crossing_finish else {},
+            'crossing_finish_events': agent.crossing_finish.events if agent.crossing_finish else [],
+            'deke': deke,
+            'uncertain_carry': uncertain_carry,
+            'chance_creation': chance_creation,
+            'offense_lookahead': offense_lookahead,
+            'classic_refinements': list(refinements),
+            'possession_value': possession_value,
+            'possession_ablation': possession_ablation,
+            'receiver_selection': receiver_selection,
+            'shot_placement': shot_placement,
+            'reception_control': reception_control,
+            'one_timer_execution': one_timer_execution,
+            'rebound_recovery': rebound_recovery,
+            'rebound_recoveries': agent.shot.recoveries,
+            'reception_metrics': dict(agent.offense.pass_action.reception_metrics),
+            'shot_placement_sha256': agent.shot_placement.sha256 if agent.shot_placement else None,
+            'shot_placement_metrics': dict(agent.shot_placement.metrics) if agent.shot_placement else {},
+            'receiver_selection_metrics': dict(agent.receiver_selector.metrics) if agent.receiver_selector else {},
+            'possession_ablation_metrics': dict(agent.possession_ablation.metrics) if agent.possession_ablation else {},
+            'possession_value_metrics': dict(agent.possession_value.metrics) if agent.possession_value else {},
+            'deke_metrics': dict(agent.deke.metrics) if agent.deke else {},
+            'deke_events': agent.deke.events if agent.deke else [],
+        }
+    finally:
+        env.close()
+
+
+def summarize(results):
+    summary = {}
+    for matchup in dict.fromkeys(row['matchup'] for row in results):
+        rows = [r for r in results if r['matchup'] == matchup and r['completed']]
+        scores = [(r['goals'][r['side'] - 1], r['goals'][2 - r['side']]) for r in rows]
+        summary[matchup] = {
+            'periods': len(rows), 'wins': sum(a > b for a, b in scores),
+            'draws': sum(a == b for a, b in scores), 'losses': sum(a < b for a, b in scores),
+            'goals_for': sum(a for a, _ in scores), 'goals_against': sum(b for _, b in scores),
+            'one_timer_setups': sum(r['decisions'].get('one-timer-pass', 0) for r in rows),
+            'one_timers': sum(r['one_timers'][r['side'] - 1] for r in rows),
+            'one_timer_goals': sum(r['one_timer_goals'][r['side'] - 1] for r in rows),
+            'periods_without_one_timers': sum(r['one_timers'][r['side'] - 1] == 0 for r in rows),
+        }
+        outcomes = Counter()
+        for row in rows:
+            outcomes.update(row.get('pass_outcomes', {}).get('outcomes', {}))
+        summary[matchup]['pass_outcomes'] = dict(outcomes)
+        summary[matchup]['wrong_recipient'] = sum(r.get('pass_outcomes', {}).get('wrong_recipient', 0) for r in rows)
+        metrics = Counter()
+        for row in rows:
+            metrics.update(row.get('offense_metrics', {}))
+        summary[matchup]['offense_metrics'] = dict(metrics)
+        contacts = [event for row in rows for event in row.get('goalie_contact_events', [])]
+        summary[matchup]['goalie_contact_phases'] = dict(Counter(
+            event['preceding_action']['phase'] if event['preceding_action'] else 'unmeasured'
+            for event in contacts))
+        summary[matchup]['goalie_contact_decisions'] = dict(Counter(
+            event['preceding_action']['decision'] if event['preceding_action'] else 'unmeasured'
+            for event in contacts))
+        one_timer_metrics = Counter()
+        for row in rows:
+            one_timer_metrics.update(row.get('one_timer_metrics', {}))
+        summary[matchup]['one_timer_metrics'] = dict(one_timer_metrics)
+        summary[matchup]['one_timer_accounting'] = {
+            key: sum(row.get('one_timer_accounting', {}).get(key, 0) for row in rows)
+            for key in ('started', 'ended')
+        }
+        ordinary_pass_metrics = Counter()
+        for row in rows:
+            ordinary_pass_metrics.update(row.get('ordinary_pass_metrics', {}))
+        summary[matchup]['ordinary_pass_metrics'] = dict(ordinary_pass_metrics)
+        summary[matchup]['carrier_defense_metrics'] = {
+            zone: dict(sum((Counter(row.get('carrier_defense_metrics', {}).get(zone, {}))
+                            for row in rows), Counter()))
+            for zone in sorted({zone for row in rows for zone in row.get('carrier_defense_metrics', {})})
+        }
+        carry_metrics = Counter()
+        for row in rows:
+            carry_metrics.update(row.get('carry_metrics', {}))
+        summary[matchup]['carry_metrics'] = dict(carry_metrics)
+        goalie_metrics = Counter()
+        for row in rows:
+            goalie_metrics.update(row.get('goalie_metrics', {}))
+        summary[matchup]['goalie_metrics'] = dict(goalie_metrics)
+        crossing_metrics = Counter()
+        for row in rows:
+            crossing_metrics.update(row.get('cross_crease_metrics', {}))
+        summary[matchup]['cross_crease_metrics'] = dict(crossing_metrics)
+        summary[matchup]['crossing_finish_metrics'] = dict(sum(
+            (Counter(row.get('crossing_finish_metrics', {})) for row in rows), Counter()))
+        deke_metrics = Counter()
+        for row in rows:
+            deke_metrics.update(row.get('deke_metrics', {}))
+        summary[matchup]['deke_metrics'] = dict(deke_metrics)
+        summary[matchup]['possession_value_metrics'] = dict(sum(
+            (Counter(row.get('possession_value_metrics', {})) for row in rows), Counter()))
+        summary[matchup]['possession_ablation_metrics'] = dict(sum(
+            (Counter(row.get('possession_ablation_metrics', {})) for row in rows), Counter()))
+        summary[matchup]['receiver_selection_metrics'] = dict(sum(
+            (Counter(row.get('receiver_selection_metrics', {})) for row in rows), Counter()))
+        summary[matchup]['shot_placement_metrics'] = dict(sum(
+            (Counter(row.get('shot_placement_metrics', {})) for row in rows), Counter()))
+        summary[matchup]['rebound_recoveries'] = sum(row.get('rebound_recoveries', 0) for row in rows)
+        summary[matchup]['reception_metrics'] = dict(sum(
+            (Counter(row.get('reception_metrics', {})) for row in rows), Counter()))
+        summary[matchup]['passes_by_purpose'] = {
+            purpose: dict(Counter(event['outcome'] for row in rows for event in row.get('pass_events', [])
+                                  if event.get('purpose', 'one-timer') == purpose))
+            for purpose in sorted({event.get('purpose', 'one-timer') for row in rows
+                                   for event in row.get('pass_events', [])})
+        }
+    return summary
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--agent', choices=ALIASES, default='classic-v1')
+    parser.add_argument('--matchups', choices=MATCHUPS, nargs='+', default=DEFAULT_MATCHUPS)
+    parser.add_argument('--goalie-policy', choices=['off', 'selective', 'always'], default='off')
+    parser.add_argument('--trials', type=int, default=20)
+    parser.add_argument('--seed', type=int, default=8000)
+    parser.add_argument('--seconds', type=int, default=300)
+    parser.add_argument('--frame-skip', type=int, default=4)
+    parser.add_argument('--action-type', choices=['FILTERED', 'HOCKEY_INTENT_DPAD'], default='FILTERED')
+    parser.add_argument('--workers', type=int, default=1)
+    parser.add_argument('--output')
+    return add_classic_arguments(parser)
+
+
+def run(args):
+    args.goalie_positioning = resolve_goalie_positioning(args)
+    from nhl94_ai.agents.classic_options import validate_classic_options
+    options = validate_classic_options(args, benchmark=True)
+    interval = options.classic_control_interval
+    if (min(args.trials, args.seconds, args.frame_skip, args.workers) < 1
+            or args.seconds > 65535 or args.seed < 0 or args.seed + args.trials > 2**32):
+        raise ValueError('Use positive counts, a uint16 clock, and uint32 ROM seeds.')
+    if len(set(args.matchups)) != len(args.matchups):
+        raise ValueError('Choose distinct matchups.')
+    if args.goalie_policy != 'off' and args.action_type != 'FILTERED':
+        raise ValueError('Manual goalie CPU trials require FILTERED buttons')
+    fixtures = [(args.agent, matchup, seed, args.seconds, args.frame_skip, args.action_type, args.goalie_policy)
+                for matchup in args.matchups for seed in range(args.seed, args.seed + args.trials)]
+    if getattr(args, 'uncertain_carry', False):
+        fixtures = [(*fixture, bool(getattr(args, 'cross_crease', False)),
+                     bool(getattr(args, 'deke', False)), True) for fixture in fixtures]
+    elif getattr(args, 'deke', False):
+        fixtures = [(*fixture, bool(getattr(args, 'cross_crease', False)), True) for fixture in fixtures]
+    elif getattr(args, 'cross_crease', False):
+        fixtures = [(*fixture, True) for fixture in fixtures]
+    if getattr(args, 'chance_creation', False):
+        fixtures = [(*fixture[:7], bool(getattr(args, 'cross_crease', False)),
+                     bool(getattr(args, 'deke', False)), bool(getattr(args, 'uncertain_carry', False)), True)
+                    for fixture in fixtures]
+    if getattr(args, 'offense_lookahead', False):
+        fixtures = [(*fixture[:7], bool(getattr(args, 'cross_crease', False)),
+                     bool(getattr(args, 'deke', False)), bool(getattr(args, 'uncertain_carry', False)),
+                     bool(getattr(args, 'chance_creation', False)), True) for fixture in fixtures]
+    if args.classic_refinements or getattr(args, 'possession_value', False):
+        fixtures = [(*fixture[:7], bool(getattr(args, 'cross_crease', False)),
+                     bool(getattr(args, 'deke', False)), bool(getattr(args, 'uncertain_carry', False)),
+                     bool(getattr(args, 'chance_creation', False)), bool(getattr(args, 'offense_lookahead', False)),
+                     tuple(args.classic_refinements)) for fixture in fixtures]
+    if getattr(args, 'possession_value', False):
+        fixtures = [(*fixture, True) for fixture in fixtures]
+    if getattr(args, 'possession_ablation', None):
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, args.possession_ablation)
+                    for fixture in fixtures]
+    if getattr(args, 'receiver_selection', None):
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, args.receiver_selection)
+                    for fixture in fixtures]
+    shot_path = Path(args.shot_placement).resolve() if getattr(args, 'shot_placement', None) else None
+    shot_digest = hashlib.sha256(shot_path.read_bytes()).hexdigest() if shot_path else None
+    if shot_path:
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, str(shot_path))
+                    for fixture in fixtures]
+    if getattr(args, 'reception_control', False):
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, None, True)
+                    for fixture in fixtures]
+    if getattr(args, 'one_timer_execution', None):
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, None, False,
+                     args.one_timer_execution) for fixture in fixtures]
+    if getattr(args, 'rebound_recovery', False):
+        fixtures = [(*fixture[:7], False, False, False, False, False, (), False, None, None, None, False,
+                     None, True) for fixture in fixtures]
+    if (args.goalie_save_timing != 'classic' or args.goalie_model or args.goalie_decision_interval is not None):
+        defaults = [False, False, False, False, False, (), False, None, None, None, False, None, False]
+        fixtures = [(*fixture, *defaults[len(fixture) - 7:], args.goalie_save_timing,
+                     args.goalie_model, args.goalie_decision_interval) for fixture in fixtures]
+    retention_path = Path(args.retention_model).resolve() if getattr(args, 'retention_model', None) else None
+    retention_digest = hashlib.sha256(retention_path.read_bytes()).hexdigest() if retention_path else None
+    if retention_path:
+        defaults = ['off', False, False, False, False, False, (), False, None, None, None,
+                    False, None, False, 'classic', None, None]
+        fixtures = [(*fixture, *defaults[len(fixture) - 6:], str(retention_path)) for fixture in fixtures]
+    if getattr(args, 'opportunistic_cross_crease', False):
+        defaults = ['off', False, False, False, False, False, (), False, None, None, None,
+                    False, None, False, 'classic', None, None, None]
+        fixtures = [(*fixture, *defaults[len(fixture) - 6:], True) for fixture in fixtures]
+    controller = create_scripted(args.agent, SimpleNamespace(action_type=args.action_type)).controller
+    files = {Path(__file__), Path(inspect.getfile(PassOutcomes)), Path(inspect.getfile(OffenseMetrics)),
+             Path(inspect.getfile(CarrierDefenseMetrics)),
+             Path(inspect.getfile(HockeyActionController)), Path(inspect.getfile(NHL94GameState)),
+             Path(inspect.getfile(update_state))}
+    files.update(Path(inspect.getfile(cls)) for cls in type(controller).__mro__ if cls is not object)
+    root = Path(__file__).resolve().parents[2]
+    files.update(root / 'nhl94_ai' / name for name in (
+        'evaluation/benchmark.py', 'game/ram.py', 'game/geometry.py', 'env/factory.py', 'env/target_control.py',
+        'agents/classic_options.py', 'agents/classic_components.py', 'agents/history.py', 'agents/classic_resources.py', 'agents/decisions.py', 'game/actors.py', 'game/forecast.py', 'game/motion.py', 'game/passing.py', 'game/shooting.py', 'game/skating.py', 'game/platforms/base.py', 'game/platforms/genesis.py', 'game/platforms/snes.py', 'agents/base.py', 'agents/control_rate.py', 'agents/scheduling.py', 'agents/lifecycle.py', 'agents/defense.py', 'agents/motion.py', 'agents/carry.py',
+        'agents/offense.py', 'agents/possession.py', 'agents/possession_value.py', 'agents/possession_ablation.py',
+        'agents/receiver_selection.py', 'agents/shot_placement.py',
+        'agents/passing.py', 'agents/receiving.py', 'agents/responses.py', 'agents/finishing.py',
+        'agents/goalie.py', 'agents/cross_crease.py', 'agents/deke.py', 'agents/skating.py', 'agents/registry.py',
+        'agents/crossing_finish.py', 'agents/cross_crease_only.py', 'agents/cross_crease_roaming.py'))
+    if args.goalie_model or args.goalie_decision_interval is not None:
+        files.add(root / 'nhl94_ai/agents/learned_goalie.py')
+    if args.goalie_model:
+        files.add(root / 'nhl94_ai/models/goalie.py')
+        files.add(root / 'nhl94_ai/agents/neural_goalie.py')
+    if getattr(args, 'goalie_planner', None):
+        files.add(root / 'nhl94_ai/agents/goalie_physics.py')
+        files.add(root / 'nhl94_ai/agents/goalie_planner.py')
+        if args.goalie_planner == 'outcome-24':
+            files.add(root / 'nhl94_ai/agents/goalie_outcomes.py')
+            files.add(root / 'nhl94_ai/agents/goalie_outcome_planner.py')
+    if getattr(args, 'goalie_positioning', 'classic') != 'classic':
+        files.add(root / 'nhl94_ai/agents/goalie_positioning.py')
+    if getattr(args, 'goalie_positioning', 'classic') == 'deep-csave':
+        files.add(root / 'nhl94_ai/agents/goalie_csave.py')
+        files.add(root / 'nhl94_ai/agents/goalie_physics.py')
+    if retention_path:
+        files.add(root / 'nhl94_ai/agents/retention_filter.py')
+        files.add(root / 'nhl94_ai/agents/retention_features.py')
+        files.add(root / 'nhl94_ai/agents/retention_ranker.py')
+    goalie_path = Path(args.goalie_model).resolve() if args.goalie_model else None
+    goalie_digest = hashlib.sha256(goalie_path.read_bytes()).hexdigest() if goalie_path else None
+    sources = {str(path.relative_to(root)):
+               hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
+    # Forward the resolved choice even when it is "classic": omitting it lets
+    # cpu_match choose the automatic deep-csave default for manual goalies.
+    match_options = {'goalie_positioning': args.goalie_positioning}
+    if interval:
+        match_options['classic_control_interval'] = interval
+    if getattr(args, 'goalie_planner', None):
+        match_options['goalie_planner'] = args.goalie_planner
+    match = partial(cpu_match, **match_options) if match_options else cpu_match
+    if args.workers == 1:
+        results = [match(fixture) for fixture in fixtures]
+    else:
+        with ProcessPoolExecutor(max_workers=args.workers) as pool:
+            results = list(pool.map(match, fixtures))
+    if any(hashlib.sha256((root / name).read_bytes()).hexdigest() != digest
+           for name, digest in sources.items()):
+        raise RuntimeError('CPU benchmark sources changed during measurement; discard the results.')
+    if shot_path and hashlib.sha256(shot_path.read_bytes()).hexdigest() != shot_digest:
+        raise RuntimeError('Shot-placement model changed during measurement; discard the results.')
+    if goalie_path and hashlib.sha256(goalie_path.read_bytes()).hexdigest() != goalie_digest:
+        raise RuntimeError('Goalie model changed during measurement; discard the results.')
+    if retention_path and hashlib.sha256(retention_path.read_bytes()).hexdigest() != retention_digest:
+        raise RuntimeError('Retention model changed during measurement; discard the results.')
+    from importlib.metadata import version
+    report = {
+        'protocol': 'nhl94-cpu-first-period-v2', 'settings': vars(args), 'sources': sources,
+        'shot_placement_sha256': shot_digest,
+        'goalie_model_sha256': goalie_digest,
+        'retention_model_sha256': retention_digest,
+        'versions': {name: version(name) for name in ('nhl94-ai', 'stable-retro', 'numpy')},
+        'limitations': ['Fixed starting rosters, first periods only; not full-game win rates.',
+                        'Away trials transfer the joystick to the away team and correct RAM control observations.',
+                        'Defense uses authoritative control slots; offensive inference is unchanged.',
+                        (f'All Classic observations/raw inputs are held for {interval} native frames; '
+                         'frame-skip separately controls tactical scheduling.' if interval else
+                         'Defense reacts each frame; frame-skip controls the offensive decision interval.'),
+                        'Team changes also change opponents; this does not isolate any individual rating effect.'],
+        'summary': summarize(results), 'matches': results,
+    }
+    if args.output:
+        path = Path(args.output).expanduser()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+    print(json.dumps(report['summary'], indent=2))
+    if not all(row['completed'] for row in results):
+        raise RuntimeError('Incomplete CPU periods; partial scores must not count as results.')
+    return report

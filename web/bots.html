@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Bots - NHL94 AI CONTEST</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="information-page">
+      <header>
+        <div>
+          <a class="site-brand" href="./index.html">NHL94 AI CONTEST</a>
+          <p class="intro">An NHL94 AI research arena.</p>
+        </div>
+        <nav class="site-nav" aria-label="Site navigation">
+          <a href="./bots.html" aria-current="page">Bots</a>
+          <a href="./leaderboards.html">Leaderboards</a>
+          <a href="./help.html">Help</a>
+          <a href="./about.html">About</a>
+        </nav>
+      </header>
+      <h1>Bots</h1>
+      <p class="intro page-intro">The bots currently available in the browser arena.</p>
+      <section class="panel page-content" aria-labelledby="available-bots-title">
+        <h2 id="available-bots-title">Available bots</h2>
+        <table class="bot-table" aria-label="Available bots">
+          <thead><tr><th scope="col">Bot</th><th scope="col">Description</th></tr></thead>
+          <tbody id="bot-list"></tbody>
+        </table>
+        <p class="detail">This table uses the same catalogue as the controller selectors.
+          no ml bot supports the Bot Configuration controls; ROM AI does not use them.
+          Two or three same-team no ml bot slots coordinate automatically against the CPU
+          or a human opponent. Learned policies and experimental support planners are not available yet.</p>
+        <noscript><p>Enable JavaScript to display the bot catalogue and run the browser arena.</p></noscript>
+      </section>
+      <footer><a href="./index.html">Back to arena</a><a href="./fonts/barlow-condensed-LICENSE.txt">Font license</a></footer>
+    </main>
+    <script type="module" src="./bots-page.ts"></script>
+  </body>
+</html>
