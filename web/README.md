@@ -329,6 +329,27 @@ assets into `dist/`. It does not deploy anything. After TypeScript/CSS edits,
 Vite reloads automatically; rebuild the core only after native/build changes.
 Generated assets, dependencies, caches and test output are ignored by Git.
 
+## GitHub Pages
+
+In repository **Settings → Pages → Build and deployment**, select **GitHub
+Actions** as the source. No Jekyll or Static HTML template is needed.
+
+The [Browser arena workflow](../.github/workflows/pages.yml) builds the pinned
+Emscripten core, runs unit tests, builds the site, and runs Chromium tests against
+the production files. Pull requests targeting `main` run these checks when
+`web/`, `configs/classic_bot.json`, or the workflow changes. ROM-dependent tests
+are skipped in CI; no ROM is downloaded or included in the deployment.
+
+After those changes reach `main`, the workflow publishes `web/dist/` to Pages.
+Once the workflow exists on `main`, **Actions → Browser arena → Run workflow**
+can also rebuild and deploy `main`. Runs from other branches never deploy.
+The deployment URL appears in the workflow's `github-pages` environment.
+Relative asset URLs support both a repository subpath and a custom domain.
+
+The published directory includes the WASM core, its license and corresponding
+sources, fonts, and the bundled starting save. Visitors select their own ROM
+locally; hosting does not add online multiplayer or a backend.
+
 Genesis Plus GX has a
 [non-commercial license](https://github.com/ekeeke/Genesis-Plus-GX/blob/master/LICENSE.txt)
 and source/notice requirements. Review those obligations before public deployment
