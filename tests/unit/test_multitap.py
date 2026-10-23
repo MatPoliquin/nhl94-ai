@@ -1,5 +1,6 @@
 """Three-bot configuration, independent state, routing, and wrapper contracts."""
 from collections import defaultdict
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -189,6 +190,7 @@ class MultitapWrapperTests(unittest.TestCase):
                 self.assertIn('terminal_observation', info[0])
                 self.assertTrue(all(not state['last_env_action'].any() for state in inner.teammate_action_states))
 
+    @unittest.skipUnless(importlib.util.find_spec('pygame'), 'optional display extra is not installed')
     def test_display_merges_only_last_slot_and_releases(self):
         import pygame
         from nhl94_ai.ui.debug import NHL94DebugDisplay
