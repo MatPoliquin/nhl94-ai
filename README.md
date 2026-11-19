@@ -13,6 +13,10 @@ Supported games:
 
 
 
+The browser application is maintained separately in
+[videogames-ai-website](https://github.com/MatPoliquin/videogames-ai-website).
+This repository contains the Python agents, native gameplay, and evaluation tools.
+
 ## Install
 
 ```bash

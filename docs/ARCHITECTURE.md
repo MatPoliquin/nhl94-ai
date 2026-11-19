@@ -1,9 +1,9 @@
 # Architecture
 
 The Python application lives in `nhl94_ai/`. Top-level `models/` holds model
-assets; `nhl94_ai/models/` contains policy definitions. The separate
-[TypeScript browser application](../web/README.md) uses a WebAssembly emulator
-and its own Classic implementation; it does not require the Python runtime.
+assets; `nhl94_ai/models/` contains policy definitions. The browser application
+is maintained in the separate
+[videogames-ai-website repository](https://github.com/MatPoliquin/videogames-ai-website).
 
 | Package | Responsibility | Extension point |
 | --- | --- | --- |
