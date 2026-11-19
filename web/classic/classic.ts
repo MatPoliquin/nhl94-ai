@@ -5,7 +5,7 @@ import { CSaveGoalie } from "./goalie_csave";
 import { outlet_options } from "./goalie";
 import { ActionEnd, OneTimerLifecycle, ShotLifecycle, SetupState, ONE_TIMER_CONTACT_GRACE, ONE_TIMER_TIMEOUT_FRAMES,
   type PassIntention, type PassSnapshot, type TacticalDiagnostics, type TeammateScore } from "./lifecycle";
-import { goalie_avoidance, ordinary_shot_conditions, type GoalieEscape } from "./offense";
+import { goalie_avoidance, goalie_motion_aim, ordinary_shot_conditions, rush_shot_available, type GoalieEscape } from "./offense";
 import { HOCKEY_PASS_PRESS_FRAMES, pass_release_frames } from "./passing";
 import { PossessionOffenseController } from "./possession";
 import { aim_pass } from "./target";
@@ -396,11 +396,37 @@ export class ClassicController {
   _continue_shot(state: GameState, action: Action, player: Player | null): Action {
     this.input_owner = "shot"; this._last_decision = "shot-follow-through";
     if (!this.shot.released(state) || player === null) this.shot.aim(action);
-    else this._steer(action, player, player.x + this.shot.side * 40, player.y, state);
+    else this._steer(action, player, player.x + (this.shot.follow_through_side ?? this.shot.side) * 40, player.y, state);
     if (this.shot.extended_hold && this.scheduler.frames < this.shot.hold_until_frame) action[Buttons.INPUT_C] = 1;
     return action;
   }
   _attack(state: GameState, action: Action, player: Player, actual: number, attack: number): Action {
+    const result = this._choose_attack(state, action, player, actual, attack);
+    if (this.team_context === null && !this.buttons.b_down && !this.buttons.c_down &&
+        ["carry", "carry-breakaway", "carry-escape", "goalie-avoid"].includes(this._last_decision) &&
+        rush_shot_available(state, player, attack, this.offense.shot_hold_frames)) {
+      result.fill(0);
+      return this._finish_shot(state, result, player, actual, "clear far-post lane on the rush");
+    }
+    return result;
+  }
+  _finish_shot(state: GameState, action: Action, player: Player, actual: number, reason: string): Action {
+    this.input_owner = "shot"; this._last_decision = "shoot";
+    const carrySide = state.team2.goalie.x > 0 ? -1 : 1;
+    const hold = this.offense.shot_hold_frames;
+    this.shot.side = this.team_context === null && !this.buttons.c_down && state.team2.goalie.motion_x !== null
+      ? goalie_motion_aim(state.team2.goalie, player, hold) : carrySide;
+    this._last_target = [this.shot.side * 13, state.team2.net.y];
+    Object.assign(this.offense_diagnostics, { desired_slot: actual, receiver: null, reason });
+    this.shot.aim(action);
+    if (this.buttons.c_down) return action;
+    this.shot.start(state, this.scheduler.decisions, this.scheduler.frames, hold, this.scheduler.duration(7));
+    if (this.shot.side !== carrySide) this.shot.follow_through_side = carrySide;
+    this.shot.extended_hold = hold > this.scheduler.interval;
+    action[Buttons.INPUT_C] = 1;
+    return action;
+  }
+  _choose_attack(state: GameState, action: Action, player: Player, actual: number, attack: number): Action {
     this.input_owner = "offense"; const team = state.team1, owner = state.engine.puck_owner, progress = player.y * attack;
     this.offense.one_timer_at = this.one_timer.retry_at_frame;
     const plan = this.offense.choose(state, this.scheduler.frames);
@@ -423,15 +449,8 @@ export class ClassicController {
     }
     const goalie_danger = progress > 175 && escape !== null, preparing = plan !== null && plan[0] === "one-timer-setup";
     if (normal_finish || early_finish && !preparing) {
-      this.input_owner = "shot"; this._last_decision = "shoot"; this.shot.side = state.team2.goalie.x > 0 ? -1 : 1;
-      this._last_target = [this.shot.side * 13, state.team2.net.y];
-      Object.assign(this.offense_diagnostics, { desired_slot: actual, receiver: null,
-        reason: goalie_danger ? "finish before projected goalie contact" : "close-range finishing opportunity" });
-      this.shot.aim(action);
-      if (this.buttons.c_down) return action;
-      this.shot.start(state, this.scheduler.decisions, this.scheduler.frames, this.offense.shot_hold_frames, this.scheduler.duration(7));
-      this.shot.extended_hold = this.offense.shot_hold_frames > this.scheduler.interval;
-      action[Buttons.INPUT_C] = 1; return action;
+      return this._finish_shot(state, action, player, actual,
+        goalie_danger ? "finish before projected goalie contact" : "close-range finishing opportunity");
     }
     if (plan !== null) {
       const [mode, point, option] = plan; this._last_decision = mode; this._last_target = point;

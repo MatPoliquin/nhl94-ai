@@ -2,7 +2,7 @@ import { body_clearance, carry_path, _segment_clearance } from "./carry";
 import { controlled_slot, on_ice } from "./defense";
 import { clone_forecast, project_body, set_position } from "./forecast";
 import { PassLifecycle, type TacticalDiagnostics } from "./lifecycle";
-import { bounded_projection, coast_projection, facing, skate_step, skating, stop_projection, velocity } from "./motion";
+import { VELOCITY_SCALE, bounded_projection, coast_projection, facing, skate_step, skating, stop_projection, velocity } from "./motion";
 import { distance, lexCompare, mod, pointEqual, pyRound } from "./numeric";
 import { evaluate_pass, one_timer_position_ok, pressure_margin, rom_direction, shot_value, type PassDiagnostics, type PassOption } from "./passing";
 import { GameState, Player, type Vec2 } from "./state";
@@ -65,6 +65,41 @@ export function shot_release_in_front(state: GameState, player: Player, hold_fra
   const [, y] = coast_projection(player, normal_shot_release_frames(player, hold_frames));
   const reach = Math.max(...(player.shot_offsets_y ?? [-20, 20]).map((offset) => offset * sign));
   return Math.max(point.y * sign, player.y * sign + reach, y * sign + reach) < state.team2.net.y * sign;
+}
+
+export function goalie_motion_aim(goalie: Player, player: Player, hold: number): number {
+  const delay = Math.min(12, normal_shot_release_frames(player, hold));
+  return goalie.x + velocity(goalie)[0] * delay > 0 ? -1 : 1;
+}
+
+export function rush_shot_available(state: GameState, player: Player, attack: number, hold: number): boolean {
+  const depth = player.y * attack;
+  if (player.motion_y === null || depth < 188 || depth >= 218 || Math.abs(player.x) >= 40 ||
+      player.motion_y * attack <= 0 || !shot_release_in_front(state, player, hold)) return false;
+  const delay = normal_shot_release_frames(player, hold);
+  const [x, y] = coast_projection(player, delay);
+  const point: Vec2 = [state.puck.x + x - player.x, state.puck.y + y - player.y];
+  const goalie = state.team2.goalie;
+  const goal: Vec2 = [goalie.x > 0 ? -13 : 13, state.team2.net.y];
+  const energy = Math.min(4096, Math.max(0, player.energy ?? 4096));
+  const rating = Math.floor(Math.floor((player.shot_power ?? 15) / 2) * energy / 4096);
+  const speed = Math.max(1, Math.floor((20 + rating) * (15 + hold) * 0x5249 / 65536) * 68 * VELOCITY_SCALE);
+  const arrival = delay + distance(point, goal) / speed;
+  for (const team of [state.team1, state.team2]) {
+    for (const other of [...team.players, team.goalie]) {
+      if (other === player || !on_ice(other)) continue;
+      const [vx, vy] = velocity(other);
+      const start = other === goalie ? Math.min(12, delay) : delay;
+      const end = other === goalie ? Math.min(12, arrival) : arrival;
+      const clearance = _segment_clearance(
+        [point[0] - (other.x + vx * start), point[1] - (other.y + vy * start)],
+        [goal[0] - (other.x + vx * end), goal[1] - (other.y + vy * end)]);
+      const padStack = [0x250, 0x2a2].includes(other.live_anim ?? 0) && delay <= (other.animation_timer ?? 0);
+      const radius = other === goalie ? (padStack ? 18 : 12) : 8;
+      if (clearance <= radius) return false;
+    }
+  }
+  return pressure_margin(state.team2, point, delay) > 0;
 }
 
 export function ordinary_shot_conditions(state: GameState, player: Player, hold_frames: number, escape: GoalieEscape | null): [boolean, boolean] {

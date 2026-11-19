@@ -28,8 +28,8 @@ def conflicted_setup_state(*, away=False):
     state = live_one_timer_state(away=away)
     sign = -1 if away else 1
     passer, receiver = state.team1.players[:2]
-    passer.x, passer.facing = 0, 5 if away else 1
-    receiver.x, receiver.y, receiver.motion_y = sign * 35, sign * 205, 0
+    passer.x, passer.facing, passer.passing = 0, 5 if away else 1, 30
+    receiver.x, receiver.y, receiver.motion_y, receiver.stick = sign * 35, sign * 205, 0, 0
     blocker = state.team1.players[2]
     blocker.x, blocker.y, blocker.unavailable = sign * 15, sign * 209, 4
     state.puck.x = 0

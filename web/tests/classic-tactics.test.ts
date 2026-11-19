@@ -384,6 +384,20 @@ describe("Classic native-frame reception and scheduler", () => {
         }
         cases.push(sequence);
       }
+      for (const attack of [-1, 1]) {
+        const rush = offense_state(), player = rush.team1.players[0]!;
+        player.x = rush.puck.x = 25;
+        player.y = rush.puck.y = 195 * attack;
+        player.motion_y = attack;
+        rush.team1.net.y = -264 * attack; rush.team2.net.y = 264 * attack;
+        Object.assign(rush.team2.goalie, { x: -33, y: 248 * attack });
+        cases.push(Array<GameState>(8).fill(rush));
+      }
+      const movingGoalie = offense_state();
+      movingGoalie.team1.players[0]!.x = movingGoalie.puck.x = 0;
+      movingGoalie.team1.players[0]!.y = movingGoalie.puck.y = 224;
+      Object.assign(movingGoalie.team2.goalie, { x: 2, y: 251, motion_x: -1.5 });
+      cases.push(Array<GameState>(8).fill(movingGoalie));
       const result = spawnSync(python, ["-c", TRACE_REFERENCE], {
         input: JSON.stringify(cases), encoding: "utf8", timeout: 60000, maxBuffer: 4 * 1024 * 1024,
         env: { ...process.env, PYTHONPATH: `${resolve(root, "../stable-retro")}:${root}` },

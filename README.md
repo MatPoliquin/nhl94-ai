@@ -160,11 +160,14 @@ The [test guide](tests/README.md) covers unit tests, native integration checks,
 and reusable fixtures.
 
 ## Citations
+
+```bibtex
 @misc{nhl94-ai,
   author = {Poliquin, Mathieu},
   title = {nhl94-ai, custom AI players for NHL 94 - Sega Genesis},
   year = {2026},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/MatPoliquin/nhl94-ai},
+  howpublished = {\url{https://github.com/MatPoliquin/nhl94-ai}},
 }
+```

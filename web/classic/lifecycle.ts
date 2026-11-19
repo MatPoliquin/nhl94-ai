@@ -67,6 +67,7 @@ export class ShotLifecycle {
   shots_before = 0;
   slot = -1;
   side = 1;
+  follow_through_side: number | null = null;
   extended_hold = false;
   crossing = false;
   release_observed = false;
@@ -78,6 +79,7 @@ export class ShotLifecycle {
   }
   start(state: GameState, decision: number, frame: number, hold_frames: number, follow_through_decisions = 7): void {
     this.extended_hold = this.crossing = this.release_observed = false;
+    this.follow_through_side = null;
     this.until_decision = decision + follow_through_decisions;
     this.hold_until_frame = frame + hold_frames;
     this.shots_before = state.team1.stats.shots;

@@ -3,7 +3,8 @@ from dataclasses import dataclass
 import math
 
 from nhl94_ai.game.actors import observable_body
-from nhl94_ai.game.motion import VELOCITY_SCALE, velocity
+from nhl94_ai.game.motion import VELOCITY_SCALE, coast_projection, velocity
+from nhl94_ai.agents.passing import pressure_margin
 from nhl94_ai.agents.offense import shot_release_in_front
 from nhl94_ai.game.shooting import normal_shot_release_frames
 from nhl94_ai.game.passing import one_timer_contact_frame, option_receiver, pass_point_at, pass_release_frames
@@ -59,6 +60,25 @@ def _score(state, shooter, point, side, release, speed):
     accuracy = 15 if shooter.shot_accuracy is None else shooter.shot_accuracy
     value = (40 if clearance > 0 else 0) + 2 * max(-24, min(24, clearance)) + accuracy * 0.2 - release * 0.2
     return clearance, value
+
+
+def rush_shot_available(state, player, attack, hold):
+    """Check a central rush for room to release and a clear path to the far post."""
+    if (player.motion_y is None or not 188 <= player.y * attack < 218 or abs(player.x) >= 40
+            or player.motion_y * attack <= 0 or not shot_release_in_front(state, player, hold)):
+        return False
+    delay = normal_shot_release_frames(player, hold)
+    x, y = coast_projection(player, delay)
+    point = state.puck.x + x - player.x, state.puck.y + y - player.y
+    side = -1 if state.team2.goalie.x > 0 else 1
+    clearance, _ = _score(state, player, point, side, delay, shot_speed(player, hold))
+    return clearance > 0 and pressure_margin(state.team2, point, delay) > 0
+
+
+def goalie_motion_aim(goalie, player, hold):
+    delay = normal_shot_release_frames(player, hold)
+    x, _ = _goalie_position(goalie, delay)
+    return -1 if x > 0 else 1
 
 
 def normal_finish(state, player, decision_interval):

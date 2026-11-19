@@ -36,7 +36,9 @@ from nhl94_ai.agents.possession_value import PossessionValuePlanner
 from nhl94_ai.agents.possession_ablation import LegacyValueRanker
 from nhl94_ai.agents.receiver_selection import ReceiverSelector
 from nhl94_ai.agents.shot_placement import ShotPlacement, extend_hold
-from nhl94_ai.agents.finishing import Finish, normal_finish as evaluate_finish, one_timer_finish
+from nhl94_ai.agents.finishing import (
+    Finish, goalie_motion_aim, normal_finish as evaluate_finish, one_timer_finish, rush_shot_available,
+)
 from nhl94_ai.game.constants import GameConsts as Buttons
 from nhl94_ai.game.geometry import aim_pass, apply_pad
 from nhl94_ai.env.intents import (
@@ -926,7 +928,8 @@ class ClassicAIV1Model:
         if not released or player is None:
             self.shot.aim(action)
         else:
-            self._steer(action, player, player.x + self.shot.side * 40, player.y, state)
+            side = self.shot.follow_through_side or self.shot.side
+            self._steer(action, player, player.x + side * 40, player.y, state)
         if self.shot.extended_hold and self.scheduler.frames < self.shot.hold_until_frame:
             action[Buttons.INPUT_C] = 1
             return action, HOCKEY_INTENT_NORMAL_SHOOT
@@ -938,6 +941,9 @@ class ClassicAIV1Model:
             self.offense_diagnostics['receiver_selection'] = self.receiver_selector.diagnostics
             self.offense_diagnostics.update(target=option.point, desired_slot=option.slot)
         return option
+
+    def _rush_finishing_enabled(self):
+        return self.team_context is None and self.shot_placement is None and self.options.rush_finishing
 
     def _attack(self, state, action, player, actual, attack):
         selected = self._select_attack(state, player, attack)
@@ -955,8 +961,16 @@ class ClassicAIV1Model:
         if ordinary_shot:
             return self._finish_shot(state, action, player, actual, attack, selected)
         if selected.plan is not None:
-            return self._planned_attack(state, action, player, actual, selected.plan)
-        return self._legacy_setup_or_carry(state, action, player, attack)
+            result = self._planned_attack(state, action, player, actual, selected.plan)
+        else:
+            result = self._legacy_setup_or_carry(state, action, player, attack)
+        if (self._rush_finishing_enabled() and not self.buttons.b_down and not self.buttons.c_down
+                and self._last_decision in ('carry', 'carry-breakaway', 'carry-escape', 'goalie-avoid')
+                and rush_shot_available(state, player, attack, self.offense.shot_hold_frames)):
+            action.fill(0)
+            result = self._finish_shot(state, action, player, actual, attack, selected)
+            self.offense_diagnostics['reason'] = 'clear far-post lane on the rush'
+        return result
 
     def _select_attack(self, state, player, attack):
         self.input_owner = 'offense'
@@ -1113,8 +1127,15 @@ class ClassicAIV1Model:
             self.offense_diagnostics['shot_placement'] = self.shot_placement.diagnostics
             action[4:9] = 0
             self.shot.aim(action)
+        carry_side = self.shot.side
+        if self._rush_finishing_enabled() and opponents.goalie.motion_x is not None:
+            self.shot.side = goalie_motion_aim(opponents.goalie, player, hold)
+            action[Buttons.INPUT_LEFT] = action[Buttons.INPUT_RIGHT] = 0
+            self._last_target = self.shot.side * 13, opponents.net.y
         result = self._start_shot(state, action, hold,
                                   follow_through_decisions=self.scheduler.duration(7))
+        if self.shot.side != carry_side:
+            self.shot.follow_through_side = carry_side
         if self.shot_placement is not None or self.scheduler.interval < 4:
             extend_hold(self, hold)
         return result

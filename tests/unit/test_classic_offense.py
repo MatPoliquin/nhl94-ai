@@ -12,8 +12,9 @@ from nhl94_ai.agents.carry import forecast_carry
 from nhl94_ai.agents.motion import VELOCITY_SCALE
 from nhl94_ai.agents.offense import FEINT_FRAMES, OffenseController, carry_clear, carry_projection, projected_state
 from nhl94_ai.agents.passing import (
-    PassOption, evaluate_pass, pad_direction, pass_contact, pass_speed, rom_direction, selected_receiver,
+    PassOption, evaluate_pass, pad_direction, pass_contact, pass_speed, rom_direction, selected_receiver, shot_value,
 )
+from nhl94_ai.game.passing import pass_point_at
 from nhl94_ai.agents.registry import create_scripted
 from nhl94_ai.env.actions import HockeyActionController
 from nhl94_ai.evaluation.benchmark import away_view
@@ -208,6 +209,20 @@ class PassEstimateTests(unittest.TestCase):
         self.assertEqual(details['status'], 'airborne-or-unsafe-route')
 
 class OneTimerPassEstimateTests(unittest.TestCase):
+    def test_one_timer_values_first_contact_instead_of_closest_approach(self):
+        state = live_one_timer_state()
+        receiver = state.team1.players[1]
+        with patch('nhl94_ai.agents.passing.pressure_margin', return_value=60) as pressure:
+            choices, details = OffenseController().passes(state, 'one-timer')
+        option = choices[0]
+        elapsed = details[0]['first_contact_frame']
+        point = pass_point_at(state.puck, receiver, option.contact, elapsed - option.release_frames)
+        self.assertLess(elapsed, option.flight_frames + option.release_frames)
+        self.assertNotEqual(point, option.point)
+        self.assertEqual(details[0]['first_contact_point'], point)
+        self.assertAlmostEqual(option.shot_value, shot_value(state, receiver, point, elapsed))
+        pressure.assert_called_once_with(state.team2, point, elapsed)
+
     def test_live_contact_deadline_covers_the_flight_at_all_decision_intervals(self):
         for interval in (1, 4, 10):
             with self.subTest(interval=interval):
@@ -395,8 +410,8 @@ class OffenseControllerTests(unittest.TestCase):
     def test_live_cut_can_create_and_continue_a_safe_one_timer_setup(self):
         state = live_one_timer_state()
         passer, receiver = state.team1.players[:2]
-        passer.x, passer.facing = 0, 1
-        receiver.x, receiver.y, receiver.motion_y = 35, 205, 0
+        passer.x, passer.facing, passer.passing = 0, 1, 30
+        receiver.x, receiver.y, receiver.motion_y, receiver.stick = 35, 205, 0, 0
         blocker = state.team1.players[2]
         blocker.x, blocker.y, blocker.unavailable = 15, 209, 4
         state.puck.x = 0
