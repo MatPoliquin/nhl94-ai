@@ -61,6 +61,7 @@ class ShotLifecycle:
     shots_before: int = 0
     slot: int = -1
     side: int = 1
+    follow_through_side: int | None = None
     extended_hold: bool = False
     crossing: bool = False
     rebound_recovery: bool = False
@@ -77,6 +78,7 @@ class ShotLifecycle:
         return 'holding' if frame < self.hold_until_frame else 'follow-through'
 
     def start(self, state, decision, frame, hold_frames, *, follow_through_decisions=7):
+        self.follow_through_side = None
         self.extended_hold = False
         self.crossing = False
         self.release_observed = False

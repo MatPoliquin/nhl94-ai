@@ -39,6 +39,7 @@ export interface PassDiagnostics {
   geometry?: string;
   cue_frame?: number;
   first_contact_frame?: number | null;
+  first_contact_point?: Vec2;
   margin?: number;
   robustness?: number;
   bypassed?: number;
@@ -340,6 +341,7 @@ export function evaluate_pass(
   const live_geometry = receiver.stick_x !== null && receiver.stick_y !== null;
   Object.assign(details, { point, flight_frames: flight, forward_gain: gain, direction, release_frames: release,
     geometry: live_geometry ? "rom-sprite-and-integer-launch" : "facing-hotspot-estimate" });
+  let shotPoint = point, shotTime = total;
   if (purpose === "one-timer") {
     const accuracy = receiver.shot_accuracy ?? 15;
     if (Math.abs(point[0]) > 70 || !(175 + Math.max(0, 15 - accuracy) <= point[1] * sign && point[1] * sign < 245)) return reject("outside-one-timer-window");
@@ -349,6 +351,9 @@ export function evaluate_pass(
     details.first_contact_frame = first;
     if (first === null) return reject("unreachable-reception");
     if (flight < 4 || first <= cue) return reject("too-short-for-one-timer-cue");
+    shotPoint = pass_point_at(state.puck, receiver, contact, first - release);
+    shotTime = first;
+    details.first_contact_point = shotPoint;
   }
   const crosses = state.puck.y * sign < 88 && 88 <= point[1] * sign;
   if (crosses && state.engine.offsides_enabled === null) return reject("unknown-offside-rule");
@@ -394,12 +399,12 @@ export function evaluate_pass(
     }
     previous = puck; previous_elapsed = elapsed;
   }
-  margin = Math.min(margin, pressure_margin(state.team2, point, total + (purpose === "one-timer" ? 0 : 4)));
+  margin = Math.min(margin, pressure_margin(state.team2, shotPoint, shotTime + (purpose === "one-timer" ? 0 : 4)));
   const robustness = safe.filter(Boolean).length / SAMPLES;
   Object.assign(details, { margin, robustness });
   if (margin < 3 || robustness < 0.875) return reject("contested-reception-or-lane");
   const bypassed = state.team2.players.filter((p) => on_ice(p) && passer.y * sign < p.y * sign && p.y * sign < point[1] * sign).length;
-  const shooting = shot_value(state, receiver, point, total), value = gain * 0.4 + bypassed * 16 + Math.min(margin, 20) + shooting * 0.6;
+  const shooting = shot_value(state, receiver, shotPoint, shotTime), value = gain * 0.4 + bypassed * 16 + Math.min(margin, 20) + shooting * 0.6;
   const option = new PassOption(index, slot, point, flight, direction, margin, robustness, gain, bypassed, shooting, value,
     { contact, receiver_origin: [receiver.x, receiver.y, ...velocity(receiver)], release_frames: release });
   return [option, { ...details, status: "safe", bypassed, shot_value: shooting, value }];

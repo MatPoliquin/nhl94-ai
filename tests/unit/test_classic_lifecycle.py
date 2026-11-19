@@ -25,6 +25,34 @@ class LifecycleContracts(unittest.TestCase):
                     self.assertEqual(buttons, [1] * 4 + [0] * 24 + [1] * 4)
                     self.assertEqual(model.scheduler.decisions, 32 // interval)
 
+    def test_rush_shot_requires_a_clear_lane_and_works_at_both_ends(self):
+        from nhl94_ai.agents.finishing import rush_shot_available
+        for attack in (-1, 1):
+            with self.subTest(attack=attack):
+                state, model = offense_state(), ClassicAIV1Model()
+                player = state.team1.players[0]
+                player.x = state.puck.x = 25
+                player.y = state.puck.y = 195 * attack
+                player.motion_y = attack
+                state.team1.net.y, state.team2.net.y = -264 * attack, 264 * attack
+                state.team2.goalie.x, state.team2.goalie.y = -33, 248 * attack
+                self.assertTrue(model.predict_frame(state, 4)[0, Buttons.INPUT_C])
+                self.assertEqual(model.offense_diagnostics['reason'], 'clear far-post lane on the rush')
+                blocker = state.team2.players[0]
+                blocker.x, blocker.y = player.x, player.y
+                self.assertFalse(rush_shot_available(state, player, attack, 4))
+
+    def test_goalie_crossing_the_middle_changes_aim_through_release(self):
+        state, model = offense_state(), ClassicAIV1Model()
+        player, goalie = state.team1.players[0], state.team2.goalie
+        player.x = state.puck.x = 0
+        player.y = state.puck.y = 224
+        goalie.x, goalie.y, goalie.motion_x = 2, 251, -1.5
+        for frame in range(8):
+            action = model.predict_frame(state, 4)[0]
+            self.assertEqual(tuple(action[6:9]), (0, 1, int(frame < 4)))
+        self.assertEqual(model.shot.follow_through_side, -1)
+
     def test_faster_tactics_preserve_recovery_switch_cooldown(self):
         for interval in (1, 4):
             with self.subTest(interval=interval):

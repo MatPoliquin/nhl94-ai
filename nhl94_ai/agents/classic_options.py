@@ -46,6 +46,11 @@ class ClassicOptions:
         return cls(**values)
 
     @property
+    def rush_finishing(self):
+        return (self.env == 'NHL94-Genesis-v0' and self.action_type == 'FILTERED'
+                and not self.retention_model and not any(getattr(self, flag) for flag, _ in OFFENSIVE_EXPERIMENTS))
+
+    @property
     def effective_goalie_positioning(self):
         return resolve_goalie_positioning(self)
 

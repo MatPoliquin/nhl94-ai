@@ -7,7 +7,7 @@ import numpy as np
 
 from nhl94_ai.agents.classic_v1 import ClassicAIV1Model
 from nhl94_ai.agents.motion import VELOCITY_SCALE
-from nhl94_ai.agents.offense import FEINT_FRAMES
+from nhl94_ai.agents.offense import FEINT_FRAMES, projected_state
 from nhl94_ai.env.factory import build_single_nhl94_env
 from nhl94_ai.env.intents import HOCKEY_INTENT_PASS_START
 from nhl94_ai.evaluation.play import parse_cmdline
@@ -204,8 +204,11 @@ def one_timer_setup_cut():
                     state = get_game_state(env)
                     action = model.predict_frame(state)[0]
                     if frame == 0:
-                        assert model._last_decision == 'one-timer-setup', model.offense_diagnostics
-                    if model._last_decision == 'one-timer-setup':
+                        assert model._last_decision in ('one-timer-setup', 'feint'), model.offense_diagnostics
+                        future = projected_state(state, model._last_target,
+                                                 decision_interval=model.offense.movement_interval)
+                        assert model.offense.passes(future, 'one-timer')[0], model.offense_diagnostics
+                    if model._last_decision in ('one-timer-setup', 'feint'):
                         assert model._last_target == model.offense.feint_target
                     if model._last_decision == 'one-timer-pass':
                         requested = model.one_timer.pending.receiver

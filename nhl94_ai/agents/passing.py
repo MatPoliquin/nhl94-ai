@@ -170,6 +170,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
     details.update(point=point, flight_frames=flight, forward_gain=gain, direction=direction)
     live_geometry = receiver.stick_x is not None and receiver.stick_y is not None
     details.update(release_frames=release, geometry=backend.pass_geometry_models[0 if live_geometry else 1])
+    shot_point, shot_time = point, total
     if purpose == 'one-timer':
         accuracy = receiver.shot_accuracy if receiver.shot_accuracy is not None else 15
         if one_timer_window and (abs(point[0]) > 70 or not 175 + max(0, 15 - accuracy) <= point[1] * sign < 245):
@@ -182,6 +183,9 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
             return None, {**details, 'status': 'unreachable-reception'}
         if flight < 4 or first_contact <= cue:
             return None, {**details, 'status': 'too-short-for-one-timer-cue'}
+        shot_point = pass_point_at(state.puck, receiver, contact, first_contact - release)
+        shot_time = first_contact
+        details['first_contact_point'] = shot_point
     crosses_zone = state.puck.y * sign < 88 <= point[1] * sign
     if crosses_zone and state.engine.offsides_enabled is None:
         return None, {**details, 'status': 'unknown-offside-rule'}
@@ -238,7 +242,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
                                                    center[1] + contact[1] + offset[1] * uncertainty), puck) > radius
                                         for contact in offsets)
         previous_puck, previous_elapsed = puck, elapsed
-    reception = pressure_margin(state.team2, point, total + (0 if purpose == 'one-timer' else 4))
+    reception = pressure_margin(state.team2, shot_point, shot_time + (0 if purpose == 'one-timer' else 4))
     margin = min(margin, reception)
     robustness = float(safe.mean())
     details.update(margin=margin, robustness=robustness)
@@ -246,7 +250,7 @@ def evaluate_pass(state, passer, index, receiver, purpose='advance', *, decision
         return None, {**details, 'status': 'contested-reception-or-lane'}
     bypassed = sum(passer.y * sign < p.y * sign < point[1] * sign
                    for p in state.team2.players if observable_body(p))
-    shooting = shot_value(state, receiver, point, total)
+    shooting = shot_value(state, receiver, shot_point, shot_time)
     params = tuning()
     value = (gain * params.pass_progress_weight + bypassed * params.pass_bypassed_defender_weight
              + min(margin, 20) + shooting * params.pass_receiver_shot_weight)
